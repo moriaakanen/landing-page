@@ -255,11 +255,15 @@
   const MAX_ATTEMPTS = 5;
   const LOCKOUT_MINUTES = 10;
 
-  // Redirect jika sudah login
+  // Redirect jika sudah login — gunakan replace agar tidak ada history loop
   try {
     const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
     if (s && s.expires_at && Date.now() < s.expires_at) {
-      window.location.href = 'index.html';
+      if (s.must_change_password) {
+        window.location.replace('ganti-password.html');
+      } else {
+        window.location.replace('index.html');
+      }
     }
   } catch(e) { localStorage.removeItem('nova_user'); }
 
@@ -428,7 +432,7 @@
     const fill = document.getElementById('progress-fill');
     fill.style.transition = `width ${delay}ms linear`;
     setTimeout(() => { fill.style.width = '100%'; }, 50);
-    setTimeout(() => { window.location.href = redirect; }, delay);
+    setTimeout(() => { window.location.replace(redirect); }, delay);
   }
 
   function togglePass(id, btn) {
