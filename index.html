@@ -388,25 +388,37 @@
 
   // Session check
   function checkSession(){
+    // Cegah loop: tandai bahwa kita sedang di index
+    if(sessionStorage.getItem('checking_session')){
+      sessionStorage.removeItem('checking_session');
+    }
     try{
       const s=JSON.parse(localStorage.getItem('nova_user')||'null');
-      if(!s){window.location.href='login.html';return null;}
-      // expires_at disimpan dalam milliseconds (bukan detik)
-      if(s.expires_at && Date.now() > s.expires_at){
-        localStorage.removeItem('nova_user');
-        window.location.href='login.html';
+      if(!s){
+        window.location.replace('login.html');
         return null;
       }
-      // Cek must_change_password
+      if(s.expires_at && Date.now() > s.expires_at){
+        localStorage.removeItem('nova_user');
+        window.location.replace('login.html');
+        return null;
+      }
       if(s.must_change_password){
-        window.location.href='ganti-password.html';
+        window.location.replace('ganti-password.html');
         return null;
       }
       return s;
-    }catch(e){localStorage.removeItem('nova_user');window.location.href='login.html';return null;}
+    }catch(e){
+      localStorage.removeItem('nova_user');
+      window.location.replace('login.html');
+      return null;
+    }
   }
 
-  function logout(){localStorage.removeItem('nova_user');window.location.href='login.html';}
+  function logout(){
+    localStorage.removeItem('nova_user');
+    window.location.replace('login.html');
+  }
 
   // Set user info — format nova_user dari login baru
   function setUserInfo(session){
