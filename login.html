@@ -3,818 +3,374 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NOVA — Login</title>
+<title>Portal NOVA — Masuk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #080808;
-    --surface: #111111;
-    --surface2: #181818;
-    --border: rgba(255,255,255,0.07);
-    --border-hover: rgba(255,255,255,0.15);
-    --accent: #c8f230;
-    --accent2: #f23078;
-    --text: #f0ede8;
-    --muted: #7a7773;
-    --error: #f23078;
-    --success: #c8f230;
+    --bg: #f5f4f0;
+    --white: #ffffff;
+    --navy: #0d2340;
+    --navy2: #163358;
+    --gold: #c8a84b;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e2ddd6;
+    --border2: #d1ccc3;
+    --red: #c0392b;
+    --success: #1a7a4a;
   }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-weight:400;min-height:100vh}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
+  .gov-bar{background:var(--navy);padding:9px 48px;display:flex;align-items:center;justify-content:space-between}
+  .gov-bar-left{display:flex;align-items:center;gap:10px}
+  .gov-seal{width:26px;height:26px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .gov-name{font-size:12px;color:rgba(255,255,255,0.8);font-weight:400}
+  .gov-name strong{color:white;font-weight:600}
+  .gov-bar-right{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.5px}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
-    overflow: hidden;
-    cursor: none;
-  }
+  .page{min-height:calc(100vh - 44px - 52px);display:grid;grid-template-columns:1fr 500px}
 
-  /* Cursor */
-  .cursor {
-    width: 10px; height: 10px;
-    background: var(--accent); border-radius: 50%;
-    position: fixed; top: 0; left: 0;
-    pointer-events: none; z-index: 9999;
-    transition: transform 0.15s ease, background 0.2s ease;
-    mix-blend-mode: difference;
-  }
-  .cursor.hover { transform: scale(3.5); background: var(--accent2); }
-  .cursor-ring {
-    width: 36px; height: 36px;
-    border: 1px solid rgba(200,242,48,0.35); border-radius: 50%;
-    position: fixed; top: 0; left: 0;
-    pointer-events: none; z-index: 9998;
-    transition: all 0.25s ease;
-  }
+  .left{background:var(--navy);padding:56px 52px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+  .left::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(200,168,75,0.07) 1px,transparent 1px);background-size:30px 30px}
+  .left::after{content:'';position:absolute;bottom:-100px;right:-100px;width:420px;height:420px;border:70px solid rgba(200,168,75,0.05);border-radius:50%}
 
-  /* Noise */
-  body::after {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 1000;
-  }
+  .left-inner{position:relative;z-index:2}
+  .portal-logo{display:flex;align-items:center;gap:14px;margin-bottom:56px;animation:fadeUp 0.6s ease 0.1s both}
+  .logo-emblem{width:48px;height:48px;background:linear-gradient(135deg,var(--gold),#e8c96a);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(200,168,75,0.3)}
+  .logo-name{font-size:20px;font-weight:700;color:white;letter-spacing:1px;line-height:1}
+  .logo-tagline{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
 
-  /* Layout */
-  .wrapper {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    height: 100vh;
-  }
+  .left-headline{animation:fadeUp 0.6s ease 0.2s both;margin-bottom:28px}
+  .left-headline h1{font-family:'Fraunces',serif;font-size:clamp(34px,3vw,50px);font-weight:300;color:white;line-height:1.25;margin-bottom:16px}
+  .left-headline h1 em{font-style:italic;color:var(--gold)}
+  .left-headline p{font-size:14px;color:rgba(255,255,255,0.5);line-height:1.8;max-width:360px}
 
-  /* LEFT PANEL */
-  .left-panel {
-    position: relative;
-    overflow: hidden;
-    display: flex; flex-direction: column;
-    justify-content: space-between;
-    padding: 48px;
-    border-right: 1px solid var(--border);
-  }
+  .left-divider{width:40px;height:2px;background:var(--gold);margin:28px 0;animation:fadeUp 0.6s ease 0.3s both}
 
-  /* Animated grid bg */
-  .left-panel::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(200,242,48,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(200,242,48,0.05) 1px, transparent 1px);
-    background-size: 48px 48px;
-    animation: gridScroll 15s linear infinite;
-  }
-  @keyframes gridScroll {
-    from { transform: translateY(0); }
-    to { transform: translateY(48px); }
-  }
+  .left-features{display:flex;flex-direction:column;gap:14px;animation:fadeUp 0.6s ease 0.4s both}
+  .feature-item{display:flex;align-items:flex-start;gap:12px}
+  .feature-dot{width:5px;height:5px;background:var(--gold);border-radius:50%;margin-top:8px;flex-shrink:0}
+  .feature-text{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.6}
+  .feature-text strong{color:rgba(255,255,255,0.85);font-weight:500}
 
-  /* Orbs */
-  .orb {
-    position: absolute; border-radius: 50%;
-    filter: blur(80px); pointer-events: none;
-  }
-  .orb-1 {
-    width: 400px; height: 400px;
-    background: rgba(200,242,48,0.15);
-    top: -100px; left: -100px;
-    animation: float 9s ease-in-out infinite;
-  }
-  .orb-2 {
-    width: 250px; height: 250px;
-    background: rgba(242,48,120,0.12);
-    bottom: 50px; right: -50px;
-    animation: float 12s ease-in-out infinite reverse;
-  }
-  @keyframes float {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(20px, -25px); }
-  }
+  .left-stats{display:flex;gap:0;border-top:1px solid rgba(255,255,255,0.08);padding-top:28px;position:relative;z-index:2;animation:fadeUp 0.6s ease 0.5s both}
+  .l-stat{flex:1;padding-right:20px;border-right:1px solid rgba(255,255,255,0.08);margin-right:20px}
+  .l-stat:last-child{border-right:none;margin-right:0;padding-right:0}
+  .l-stat-num{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--gold);display:block;line-height:1;margin-bottom:3px}
+  .l-stat-label{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.3px}
 
-  .left-top { position: relative; z-index: 2; }
-  .brand {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px; letter-spacing: 6px; color: var(--accent);
-    display: inline-block;
-    animation: fadeUp 0.7s ease both;
-  }
+  .right{background:var(--white);display:flex;align-items:center;justify-content:center;padding:48px 52px;border-left:1px solid var(--border)}
 
-  .left-center {
-    position: relative; z-index: 2;
-    animation: fadeUp 0.7s ease 0.2s both;
-  }
-  .left-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(56px, 6vw, 88px);
-    line-height: 0.92; letter-spacing: 2px;
-    margin-bottom: 24px;
-  }
-  .left-title .stroke {
-    -webkit-text-stroke: 1px rgba(240,237,232,0.25);
-    color: transparent;
-  }
-  .left-title .accent { color: var(--accent); }
+  .login-wrap{width:100%;max-width:360px;animation:fadeUp 0.7s ease 0.1s both}
 
-  .left-desc {
-    font-size: 15px; line-height: 1.8;
-    color: var(--muted); max-width: 340px;
-  }
+  .security-badge{display:inline-flex;align-items:center;gap:6px;background:#f0f9f4;border:1px solid #b7e0cc;padding:4px 10px;border-radius:100px;font-size:11px;color:var(--success);font-weight:500;margin-bottom:18px}
+  .s-dot{width:5px;height:5px;background:var(--success);border-radius:50%;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 
-  .left-bottom {
-    position: relative; z-index: 2;
-    animation: fadeUp 0.7s ease 0.4s both;
-  }
-  .left-stats { display: flex; gap: 40px; }
-  .l-stat-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 36px; color: var(--accent); letter-spacing: 2px;
-    display: block;
-  }
-  .l-stat-label {
-    font-size: 11px; letter-spacing: 1.5px;
-    text-transform: uppercase; color: var(--muted);
-  }
+  .form-title{font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--navy);margin-bottom:6px;line-height:1.2}
+  .form-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+  .form-sub a{color:var(--navy);font-weight:600;text-decoration:none;border-bottom:1px solid transparent;transition:border-color 0.2s}
+  .form-sub a:hover{border-color:var(--navy)}
 
-  /* RIGHT PANEL */
-  .right-panel {
-    display: flex; align-items: center; justify-content: center;
-    padding: 48px;
-    position: relative;
-  }
+  .auth-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:24px;position:relative}
+  .tab-btn{flex:1;padding:11px 8px;background:transparent;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:color 0.2s;position:relative;z-index:1}
+  .tab-btn.active{color:var(--navy)}
+  .tab-line{position:absolute;bottom:-2px;left:0;height:2px;width:50%;background:var(--navy);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1)}
+  .tab-line.register{transform:translateX(100%)}
 
-  .login-box {
-    width: 100%; max-width: 420px;
-    animation: fadeUp 0.8s ease 0.1s both;
-  }
+  .alert{padding:11px 13px;border-radius:6px;font-size:13px;line-height:1.5;margin-bottom:18px;display:none;gap:8px;align-items:flex-start}
+  .alert.show{display:flex;animation:fadeUp 0.3s ease}
+  .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+  .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
 
-  .login-header { margin-bottom: 40px; }
-  .login-greeting {
-    font-size: 12px; letter-spacing: 3px;
-    text-transform: uppercase; color: var(--accent);
-    margin-bottom: 12px; display: block;
-  }
-  .login-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 52px; letter-spacing: 2px; line-height: 1;
-    margin-bottom: 8px;
-  }
-  .login-sub { font-size: 14px; color: var(--muted); line-height: 1.6; }
-  .login-sub a { color: var(--accent); text-decoration: none; transition: opacity 0.2s; }
-  .login-sub a:hover { opacity: 0.8; }
+  .form-group{margin-bottom:16px}
+  .form-label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:7px;letter-spacing:0.2px}
+  .form-label span{color:var(--red);margin-left:2px}
+  .input-wrap{position:relative}
+  .input-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;color:var(--muted)}
+  .form-input{width:100%;padding:11px 13px 11px 38px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+  .form-input.no-icon{padding-left:13px}
+  .form-input::placeholder{color:#b8b3ac}
+  .form-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,0.08)}
+  .form-input.error{border-color:var(--red)}
+  .toggle-pass{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;display:flex;align-items:center;transition:color 0.2s}
+  .toggle-pass:hover{color:var(--navy)}
+  .error-msg{font-size:11px;color:var(--red);margin-top:4px;display:none}
+  .error-msg.show{display:block}
 
-  /* Tabs */
-  .auth-tabs {
-    display: flex; gap: 0;
-    border: 1px solid var(--border);
-    margin-bottom: 32px;
-    position: relative;
-  }
-  .tab-btn {
-    flex: 1; padding: 12px;
-    background: transparent; border: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px; letter-spacing: 1.5px;
-    text-transform: uppercase; color: var(--muted);
-    cursor: none; transition: color 0.3s;
-    position: relative; z-index: 1;
-  }
-  .tab-btn.active { color: #080808; }
-  .tab-indicator {
-    position: absolute; top: 0; left: 0;
-    width: 50%; height: 100%;
-    background: var(--accent);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 0;
-  }
-  .tab-indicator.register { transform: translateX(100%); }
+  .forgot-row{display:flex;justify-content:flex-end;margin-top:-8px;margin-bottom:16px}
+  .forgot-link{font-size:12px;color:var(--navy);text-decoration:none;font-weight:500;border-bottom:1px solid transparent;transition:border-color 0.2s}
+  .forgot-link:hover{border-color:var(--navy)}
 
-  /* Form */
-  .form-group { margin-bottom: 20px; position: relative; }
-  .form-label {
-    display: block; font-size: 11px;
-    letter-spacing: 2px; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 10px;
-  }
-  .form-input {
-    width: 100%; padding: 14px 18px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px; font-weight: 300;
-    outline: none;
-    transition: border-color 0.3s, background 0.3s;
-    cursor: none;
-  }
-  .form-input::placeholder { color: rgba(122,119,115,0.5); }
-  .form-input:focus {
-    border-color: var(--accent);
-    background: var(--surface2);
-  }
-  .form-input.error { border-color: var(--error); }
+  .register-only{display:none}
+  .register-only.show{display:block}
 
-  /* Password toggle */
-  .input-wrapper { position: relative; }
-  .toggle-pass {
-    position: absolute; right: 16px; top: 50%;
-    transform: translateY(-50%);
-    background: none; border: none;
-    color: var(--muted); cursor: none;
-    font-size: 16px; padding: 4px;
-    transition: color 0.3s;
-  }
-  .toggle-pass:hover { color: var(--text); }
+  .btn-submit{width:100%;padding:12px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;position:relative;overflow:hidden;transition:background 0.2s,transform 0.15s,box-shadow 0.2s;margin-bottom:14px;box-shadow:0 2px 8px rgba(13,35,64,0.2)}
+  .btn-submit:hover{background:var(--navy2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(13,35,64,0.25)}
+  .btn-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+  .btn-submit.loading{color:transparent}
+  .btn-submit.loading::after{content:'';position:absolute;top:50%;left:50%;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;transform:translate(-50%,-50%);animation:spin 0.7s linear infinite}
+  @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 
-  /* Error message */
-  .error-msg {
-    font-size: 12px; color: var(--error);
-    margin-top: 6px; display: none;
-    letter-spacing: 0.3px;
-  }
-  .error-msg.show { display: block; }
+  .divider{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .div-line{flex:1;height:1px;background:var(--border)}
+  .div-txt{font-size:11px;color:var(--muted);letter-spacing:0.5px;white-space:nowrap}
 
-  /* Alert box */
-  .alert {
-    padding: 14px 16px;
-    border: 1px solid;
-    font-size: 13px; line-height: 1.6;
-    margin-bottom: 20px;
-    display: none;
-    animation: fadeUp 0.3s ease;
-  }
-  .alert.show { display: block; }
-  .alert.error { border-color: rgba(242,48,120,0.4); background: rgba(242,48,120,0.05); color: var(--error); }
-  .alert.success { border-color: rgba(200,242,48,0.4); background: rgba(200,242,48,0.05); color: var(--accent); }
+  .btn-google{width:100%;padding:10px;background:white;border:1.5px solid var(--border2);border-radius:7px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:border-color 0.2s,box-shadow 0.2s,transform 0.15s}
+  .btn-google:hover{box-shadow:0 2px 8px rgba(0,0,0,0.08);transform:translateY(-1px)}
 
-  /* Submit button */
-  .btn-submit {
-    width: 100%; padding: 16px;
-    background: var(--accent); color: #080808;
-    border: none; font-family: 'DM Sans', sans-serif;
-    font-size: 14px; font-weight: 500;
-    letter-spacing: 2px; text-transform: uppercase;
-    cursor: none; position: relative; overflow: hidden;
-    transition: transform 0.2s, background 0.3s;
-    margin-bottom: 20px;
-  }
-  .btn-submit::after {
-    content: ''; position: absolute; inset: 0;
-    background: rgba(255,255,255,0.2);
-    transform: translateX(-100%);
-    transition: transform 0.4s ease;
-  }
-  .btn-submit:hover::after { transform: translateX(100%); }
-  .btn-submit:hover { transform: translateY(-1px); }
-  .btn-submit:disabled {
-    opacity: 0.6; transform: none; cursor: not-allowed;
-  }
-  .btn-submit.loading { color: transparent; }
-  .btn-submit.loading::before {
-    content: '';
-    position: absolute; top: 50%; left: 50%;
-    width: 18px; height: 18px;
-    border: 2px solid rgba(8,8,8,0.3);
-    border-top-color: #080808;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    animation: spin 0.7s linear infinite;
-  }
-  @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+  .form-footer{margin-top:20px;padding-top:18px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.8;text-align:center}
+  .form-footer a{color:var(--navy);text-decoration:none;font-weight:500}
 
-  /* Divider */
-  .divider {
-    display: flex; align-items: center; gap: 16px;
-    margin-bottom: 20px;
-  }
-  .divider-line { flex: 1; height: 1px; background: var(--border); }
-  .divider-text { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .success-screen{display:none;flex-direction:column;align-items:center;text-align:center;gap:14px}
+  .success-screen.show{display:flex;animation:fadeUp 0.4s ease}
+  .success-icon-wrap{width:60px;height:60px;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both}
+  @keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+  .success-title{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--navy)}
+  .success-msg{font-size:13px;color:var(--muted);line-height:1.7}
+  .progress-wrap{width:160px;height:3px;background:var(--border);border-radius:100px;overflow:hidden}
+  .progress-fill{height:100%;background:var(--navy);border-radius:100px;animation:fillBar 2s linear forwards}
+  @keyframes fillBar{from{width:0}to{width:100%}}
 
-  /* Google button */
-  .btn-google {
-    width: 100%; padding: 14px;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px; font-weight: 300; letter-spacing: 1px;
-    cursor: none; display: flex; align-items: center;
-    justify-content: center; gap: 10px;
-    transition: border-color 0.3s, transform 0.2s, background 0.3s;
-  }
-  .btn-google:hover {
-    border-color: var(--border-hover);
-    background: rgba(255,255,255,0.03);
-    transform: translateY(-1px);
-  }
-  .google-icon { width: 18px; height: 18px; flex-shrink: 0; }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
-  /* Footer note */
-  .login-footer {
-    margin-top: 28px; text-align: center;
-    font-size: 12px; color: var(--muted); line-height: 1.8;
-  }
-  .login-footer a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); transition: border-color 0.3s; }
-  .login-footer a:hover { border-color: var(--text); }
+  .page-footer{background:var(--navy);padding:14px 48px;display:flex;align-items:center;justify-content:space-between}
+  .footer-left{font-size:11px;color:rgba(255,255,255,0.35)}
+  .footer-links{display:flex;gap:20px}
+  .footer-links a{font-size:11px;color:rgba(255,255,255,0.35);text-decoration:none;transition:color 0.2s}
+  .footer-links a:hover{color:rgba(255,255,255,0.65)}
 
-  /* Register-only fields */
-  .register-only { display: none; }
-  .register-only.show { display: block; }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Success screen */
-  .success-screen {
-    display: none;
-    flex-direction: column; align-items: center;
-    justify-content: center; text-align: center;
-    gap: 20px;
-    animation: fadeUp 0.5s ease;
-  }
-  .success-screen.show { display: flex; }
-  .success-icon {
-    width: 72px; height: 72px;
-    border: 2px solid var(--accent);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px;
-    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-  }
-  @keyframes popIn {
-    from { transform: scale(0); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-  .success-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 40px; letter-spacing: 2px; color: var(--accent);
-  }
-  .success-msg { font-size: 14px; color: var(--muted); line-height: 1.8; }
-  .redirect-bar {
-    width: 200px; height: 2px;
-    background: rgba(255,255,255,0.1);
-    position: relative; overflow: hidden;
-  }
-  .redirect-fill {
-    height: 100%; background: var(--accent);
-    animation: fillBar 2s linear forwards;
-  }
-  @keyframes fillBar { from { width: 0; } to { width: 100%; } }
-
-  @media (max-width: 768px) {
-    body { overflow: auto; cursor: auto; }
-    .cursor, .cursor-ring { display: none; }
-    .wrapper { grid-template-columns: 1fr; }
-    .left-panel { display: none; }
-    .right-panel { min-height: 100vh; }
+  @media(max-width:900px){
+    .gov-bar,.page-footer{padding:9px 20px}
+    .page{grid-template-columns:1fr}
+    .left{display:none}
+    .right{padding:40px 24px;align-items:flex-start;padding-top:48px}
   }
 </style>
 </head>
 <body>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
+<div class="gov-bar">
+  <div class="gov-bar-left">
+    <div class="gov-seal">🏛</div>
+    <span class="gov-name"><strong>Portal NOVA</strong> — Sistem Informasi Terpadu</span>
+  </div>
+  <div class="gov-bar-right">portal.nova.go.id</div>
+</div>
 
-<div class="wrapper">
-
-  <!-- LEFT PANEL -->
-  <div class="left-panel">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-
-    <div class="left-top">
-      <span class="brand">NOVA</span>
-    </div>
-
-    <div class="left-center">
-      <h2 class="left-title">
-        SELAMAT<br>
-        <span class="accent">DATANG</span><br>
-        <span class="stroke">KEMBALI</span>
-      </h2>
-      <p class="left-desc">
-        Masuk ke platform dan lanjutkan membangun masa depan bersama tim kamu. Semua yang kamu butuhkan ada di sini.
-      </p>
-    </div>
-
-    <div class="left-bottom">
-      <div class="left-stats">
+<div class="page">
+  <div class="left">
+    <div class="left-inner">
+      <div class="portal-logo">
+        <div class="logo-emblem">🏛</div>
         <div>
-          <span class="l-stat-num">50K+</span>
-          <span class="l-stat-label">Pengguna</span>
-        </div>
-        <div>
-          <span class="l-stat-num">99.9%</span>
-          <span class="l-stat-label">Uptime</span>
-        </div>
-        <div>
-          <span class="l-stat-num">4.9★</span>
-          <span class="l-stat-label">Rating</span>
+          <div class="logo-name">PORTAL NOVA</div>
+          <div class="logo-tagline">Sistem Informasi Terpadu</div>
         </div>
       </div>
+      <div class="left-headline">
+        <h1>Layanan Digital<br>yang <em>Terpercaya</em><br>& Transparan</h1>
+        <p>Platform resmi pengelolaan data dan layanan publik yang terintegrasi, aman, dan mudah diakses seluruh pemangku kepentingan.</p>
+      </div>
+      <div class="left-divider"></div>
+      <div class="left-features">
+        <div class="feature-item"><div class="feature-dot"></div><div class="feature-text"><strong>Keamanan Berlapis</strong> — enkripsi data end-to-end berstandar nasional</div></div>
+        <div class="feature-item"><div class="feature-dot"></div><div class="feature-text"><strong>Akses 24/7</strong> — layanan tersedia kapan saja dan di mana saja</div></div>
+        <div class="feature-item"><div class="feature-dot"></div><div class="feature-text"><strong>Terintegrasi</strong> — terhubung dengan seluruh unit dan instansi terkait</div></div>
+      </div>
+    </div>
+    <div class="left-stats">
+      <div class="l-stat"><span class="l-stat-num">50K+</span><span class="l-stat-label">Pengguna Terdaftar</span></div>
+      <div class="l-stat"><span class="l-stat-num">99.9%</span><span class="l-stat-label">Uptime Sistem</span></div>
+      <div class="l-stat"><span class="l-stat-num">120+</span><span class="l-stat-label">Instansi Terhubung</span></div>
     </div>
   </div>
 
-  <!-- RIGHT PANEL -->
-  <div class="right-panel">
-    <div class="login-box">
-
-      <!-- Header -->
-      <div class="login-header">
-        <span class="login-greeting">// Akses Platform</span>
-        <h1 class="login-title" id="form-title">MASUK</h1>
-        <p class="login-sub" id="form-sub">
-          Belum punya akun? <a href="#" onclick="switchTab('register'); return false;">Daftar sekarang</a>
-        </p>
+  <div class="right">
+    <div class="login-wrap">
+      <div id="form-header">
+        <div class="security-badge"><span class="s-dot"></span> Koneksi Aman & Terenkripsi</div>
+        <h2 class="form-title" id="form-title">Masuk ke Portal</h2>
+        <p class="form-sub" id="form-sub">Belum terdaftar? <a href="#" onclick="switchTab('register');return false;">Buat akun baru</a></p>
       </div>
 
-      <!-- Tabs -->
       <div class="auth-tabs">
-        <div class="tab-indicator" id="tab-indicator"></div>
+        <div class="tab-line" id="tab-line"></div>
         <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Masuk</button>
         <button class="tab-btn" id="tab-register" onclick="switchTab('register')">Daftar</button>
       </div>
 
-      <!-- Alert -->
-      <div class="alert" id="alert-box"></div>
+      <div class="alert" id="alert-box"><span id="alert-icon"></span><span id="alert-text"></span></div>
 
-      <!-- Form -->
       <div id="auth-form">
-
-        <!-- Nama (register only) -->
         <div class="form-group register-only" id="field-name">
-          <label class="form-label">Nama Lengkap</label>
-          <input type="text" class="form-input" id="input-name" placeholder="John Doe" autocomplete="name">
+          <label class="form-label">Nama Lengkap <span>*</span></label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input type="text" class="form-input" id="input-name" placeholder="Masukkan nama lengkap">
+          </div>
           <span class="error-msg" id="err-name">Nama tidak boleh kosong</span>
         </div>
 
-        <!-- Email -->
         <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-input" id="input-email" placeholder="kamu@email.com" autocomplete="email">
-          <span class="error-msg" id="err-email">Email tidak valid</span>
-        </div>
-
-        <!-- Password -->
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <div class="input-wrapper">
-            <input type="password" class="form-input" id="input-password" placeholder="••••••••" autocomplete="current-password">
-            <button class="toggle-pass" onclick="togglePassword('input-password', this)">👁</button>
+          <label class="form-label">Alamat Email <span>*</span></label>
+          <div class="input-wrap">
+            <span class="input-icon">✉️</span>
+            <input type="email" class="form-input" id="input-email" placeholder="nama@instansi.go.id">
           </div>
-          <span class="error-msg" id="err-password">Password minimal 6 karakter</span>
+          <span class="error-msg" id="err-email">Format email tidak valid</span>
         </div>
 
-        <!-- Konfirmasi password (register only) -->
+        <div class="form-group">
+          <label class="form-label">Kata Sandi <span>*</span></label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" class="form-input" id="input-password" placeholder="Minimal 8 karakter" style="padding-right:40px">
+            <button class="toggle-pass" onclick="togglePass('input-password',this)" type="button">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <span class="error-msg" id="err-password">Kata sandi minimal 8 karakter</span>
+        </div>
+
+        <div class="forgot-row" id="forgot-row">
+          <a href="#" class="forgot-link">Lupa kata sandi?</a>
+        </div>
+
         <div class="form-group register-only" id="field-confirm">
-          <label class="form-label">Konfirmasi Password</label>
-          <div class="input-wrapper">
-            <input type="password" class="form-input" id="input-confirm" placeholder="••••••••" autocomplete="new-password">
-            <button class="toggle-pass" onclick="togglePassword('input-confirm', this)">👁</button>
+          <label class="form-label">Konfirmasi Kata Sandi <span>*</span></label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" class="form-input" id="input-confirm" placeholder="Ulangi kata sandi" style="padding-right:40px">
+            <button class="toggle-pass" onclick="togglePass('input-confirm',this)" type="button">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
           </div>
-          <span class="error-msg" id="err-confirm">Password tidak cocok</span>
+          <span class="error-msg" id="err-confirm">Kata sandi tidak cocok</span>
         </div>
 
-        <!-- Submit -->
         <button class="btn-submit" id="btn-submit" onclick="handleSubmit()">
-          <span id="btn-text">MASUK</span>
+          <span id="btn-text">Masuk ke Portal</span>
         </button>
 
-        <!-- Divider -->
-        <div class="divider">
-          <div class="divider-line"></div>
-          <span class="divider-text">atau</span>
-          <div class="divider-line"></div>
-        </div>
+        <div class="divider"><div class="div-line"></div><span class="div-txt">atau lanjutkan dengan</span><div class="div-line"></div></div>
 
-        <!-- Google -->
         <button class="btn-google" onclick="handleGoogle()">
-          <svg class="google-icon" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
+          <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
           Lanjutkan dengan Google
         </button>
-
       </div>
 
-      <!-- Success screen -->
       <div class="success-screen" id="success-screen">
-        <div class="success-icon">✓</div>
-        <div class="success-title" id="success-title">BERHASIL!</div>
-        <p class="success-msg" id="success-msg">Login berhasil. Mengalihkan ke dashboard...</p>
-        <div class="redirect-bar"><div class="redirect-fill"></div></div>
+        <div class="success-icon-wrap">✓</div>
+        <div class="success-title" id="success-title">Berhasil Masuk</div>
+        <p class="success-msg" id="success-msg">Identitas terverifikasi. Mengalihkan ke portal...</p>
+        <div class="progress-wrap"><div class="progress-fill"></div></div>
       </div>
 
-      <!-- Footer -->
-      <div class="login-footer">
-        Dengan masuk, kamu menyetujui <a href="#">Syarat & Ketentuan</a> dan <a href="#">Kebijakan Privasi</a> kami.
+      <div class="form-footer">
+        Dengan masuk, Anda menyetujui <a href="#">Syarat Penggunaan</a> dan <a href="#">Kebijakan Privasi</a> Portal NOVA.<br>
+        Sistem ini hanya untuk pengguna yang berwenang.
       </div>
-
     </div>
   </div>
 </div>
 
+<div class="page-footer">
+  <div class="footer-left">© 2026 Portal NOVA — Hak cipta dilindungi undang-undang.</div>
+  <div class="footer-links"><a href="#">Bantuan</a><a href="#">Kebijakan Privasi</a><a href="#">Hubungi Kami</a></div>
+</div>
+
 <script>
-  // =============================================
-  // KONFIGURASI SUPABASE — sama dengan index.html
-  // =============================================
-  const SUPABASE_URL = 'https://jsmmtqeoukkgugorrvmg.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzbW10cWVvdWtrZ3Vnb3Jydm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTg2NzksImV4cCI6MjA5MTY3NDY3OX0.O03NscRcj4RcNx-P3j65hO7XXLRSkbyJcwpcArpqHBQ';
+  const SUPABASE_URL='https://jsmmtqeoukkgugorrvmg.supabase.co';
+  const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzbW10cWVvdWtrZ3Vnb3Jydm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTg2NzksImV4cCI6MjA5MTY3NDY3OX0.O03NscRcj4RcNx-P3j65hO7XXLRSkbyJcwpcArpqHBQ';
+  let currentTab='login';
 
-  // =============================================
-  // STATE
-  // =============================================
-  let currentTab = 'login';
+  // Redirect jika sudah login
+  try{const s=JSON.parse(localStorage.getItem('nova_session')||'null');if(s&&s.expires_at&&Date.now()/1000<s.expires_at)window.location.href='index.html';}catch(e){localStorage.removeItem('nova_session');}
 
-  // =============================================
-  // SUPABASE AUTH HELPERS
-  // =============================================
-  async function supabaseRequest(endpoint, body) {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify(body)
-    });
-    return res.json();
+  async function supabaseAuth(ep,body){
+    const r=await fetch(`${SUPABASE_URL}/auth/v1/${ep}`,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY},body:JSON.stringify(body)});
+    return r.json();
   }
 
-  // =============================================
-  // TAB SWITCH
-  // =============================================
-  function switchTab(tab) {
-    currentTab = tab;
-    const isRegister = tab === 'register';
-
-    document.getElementById('tab-login').classList.toggle('active', !isRegister);
-    document.getElementById('tab-register').classList.toggle('active', isRegister);
-    document.getElementById('tab-indicator').classList.toggle('register', isRegister);
-
-    document.querySelectorAll('.register-only').forEach(el => {
-      el.classList.toggle('show', isRegister);
-    });
-
-    document.getElementById('form-title').textContent = isRegister ? 'DAFTAR' : 'MASUK';
-    document.getElementById('btn-text').textContent = isRegister ? 'BUAT AKUN' : 'MASUK';
-    document.getElementById('form-sub').innerHTML = isRegister
-      ? 'Sudah punya akun? <a href="#" onclick="switchTab(\'login\'); return false;">Masuk di sini</a>'
-      : 'Belum punya akun? <a href="#" onclick="switchTab(\'register\'); return false;">Daftar sekarang</a>';
-
-    clearErrors();
-    hideAlert();
+  function switchTab(tab){
+    currentTab=tab;const isReg=tab==='register';
+    document.getElementById('tab-login').classList.toggle('active',!isReg);
+    document.getElementById('tab-register').classList.toggle('active',isReg);
+    document.getElementById('tab-line').classList.toggle('register',isReg);
+    document.querySelectorAll('.register-only').forEach(el=>el.classList.toggle('show',isReg));
+    document.getElementById('forgot-row').style.display=isReg?'none':'';
+    document.getElementById('form-title').textContent=isReg?'Buat Akun Baru':'Masuk ke Portal';
+    document.getElementById('btn-text').textContent=isReg?'Buat Akun':'Masuk ke Portal';
+    document.getElementById('form-sub').innerHTML=isReg?'Sudah terdaftar? <a href="#" onclick="switchTab(\'login\');return false;">Masuk di sini</a>':'Belum terdaftar? <a href="#" onclick="switchTab(\'register\');return false;">Buat akun baru</a>';
+    clearAll();
   }
 
-  // =============================================
-  // VALIDASI
-  // =============================================
-  function validateForm() {
-    let valid = true;
-    clearErrors();
+  function showAlert(msg,type='error'){
+    const b=document.getElementById('alert-box');
+    document.getElementById('alert-icon').textContent=type==='error'?'⚠️':'✅';
+    document.getElementById('alert-text').textContent=msg;
+    b.className=`alert ${type} show`;
+  }
+  function clearAlert(){document.getElementById('alert-box').className='alert';}
+  function showErr(eId,iId){document.getElementById(eId).classList.add('show');document.getElementById(iId).classList.add('error');}
+  function clearAll(){document.querySelectorAll('.error-msg').forEach(e=>e.classList.remove('show'));document.querySelectorAll('.form-input').forEach(i=>i.classList.remove('error'));clearAlert();}
 
-    const email = document.getElementById('input-email').value.trim();
-    const password = document.getElementById('input-password').value;
-
-    if (currentTab === 'register') {
-      const name = document.getElementById('input-name').value.trim();
-      if (!name) { showError('err-name', 'input-name'); valid = false; }
-    }
-
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showError('err-email', 'input-email'); valid = false;
-    }
-
-    if (password.length < 6) {
-      showError('err-password', 'input-password'); valid = false;
-    }
-
-    if (currentTab === 'register') {
-      const confirm = document.getElementById('input-confirm').value;
-      if (password !== confirm) {
-        showError('err-confirm', 'input-confirm'); valid = false;
-      }
-    }
-
-    return valid;
+  function validate(){
+    let ok=true;clearAll();
+    const email=document.getElementById('input-email').value.trim();
+    const pass=document.getElementById('input-password').value;
+    if(currentTab==='register'&&!document.getElementById('input-name').value.trim()){showErr('err-name','input-name');ok=false;}
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showErr('err-email','input-email');ok=false;}
+    if(pass.length<8){showErr('err-password','input-password');ok=false;}
+    if(currentTab==='register'&&pass!==document.getElementById('input-confirm').value){showErr('err-confirm','input-confirm');ok=false;}
+    return ok;
   }
 
-  function showError(errId, inputId) {
-    document.getElementById(errId).classList.add('show');
-    document.getElementById(inputId).classList.add('error');
-  }
+  function setLoading(v){const b=document.getElementById('btn-submit');b.disabled=v;b.classList.toggle('loading',v);}
 
-  function clearErrors() {
-    document.querySelectorAll('.error-msg').forEach(e => e.classList.remove('show'));
-    document.querySelectorAll('.form-input').forEach(i => i.classList.remove('error'));
-  }
-
-  // =============================================
-  // ALERT
-  // =============================================
-  function showAlert(msg, type = 'error') {
-    const box = document.getElementById('alert-box');
-    box.textContent = msg;
-    box.className = `alert ${type} show`;
-  }
-
-  function hideAlert() {
-    document.getElementById('alert-box').classList.remove('show');
-  }
-
-  // =============================================
-  // LOADING STATE
-  // =============================================
-  function setLoading(loading) {
-    const btn = document.getElementById('btn-submit');
-    btn.disabled = loading;
-    btn.classList.toggle('loading', loading);
-  }
-
-  // =============================================
-  // HANDLE SUBMIT
-  // =============================================
-  async function handleSubmit() {
-    if (!validateForm()) return;
-
-    const email = document.getElementById('input-email').value.trim();
-    const password = document.getElementById('input-password').value;
-    hideAlert();
-    setLoading(true);
-
-    try {
-      if (currentTab === 'login') {
-        // LOGIN
-        const data = await supabaseRequest('token?grant_type=password', { email, password });
-
-        if (data.error || data.error_description) {
-          const msg = data.error_description || data.error;
-          if (msg.includes('Invalid login')) showAlert('Email atau password salah. Coba lagi.');
-          else if (msg.includes('Email not confirmed')) showAlert('Email belum diverifikasi. Cek inbox kamu.');
-          else showAlert(msg);
-          setLoading(false);
-          return;
-        }
-
-        // Simpan session
-        localStorage.setItem('nova_session', JSON.stringify(data));
+  async function handleSubmit(){
+    if(!validate())return;
+    const email=document.getElementById('input-email').value.trim();
+    const password=document.getElementById('input-password').value;
+    clearAlert();setLoading(true);
+    try{
+      if(currentTab==='login'){
+        const d=await supabaseAuth('token?grant_type=password',{email,password});
+        if(d.error_description||d.error){showAlert((d.error_description||d.error).includes('Invalid login')?'Email atau kata sandi tidak valid.':d.error_description||d.error);setLoading(false);return;}
+        localStorage.setItem('nova_session',JSON.stringify(d));
         showSuccess('login');
-
-      } else {
-        // REGISTER
-        const name = document.getElementById('input-name').value.trim();
-        const data = await supabaseRequest('signup', {
-          email, password,
-          data: { full_name: name }
-        });
-
-        if (data.error || data.error_description) {
-          const msg = data.error_description || data.error;
-          if (msg.includes('already registered')) showAlert('Email ini sudah terdaftar. Coba masuk.');
-          else showAlert(msg);
-          setLoading(false);
-          return;
-        }
-
-        // Cek apakah perlu verifikasi email
-        if (data.identities && data.identities.length === 0) {
-          showAlert('Email ini sudah terdaftar. Silakan masuk.', 'error');
-          setLoading(false);
-          return;
-        }
-
-        if (!data.session) {
-          // Perlu verifikasi email
-          showSuccess('verify');
-        } else {
-          localStorage.setItem('nova_session', JSON.stringify(data.session));
-          showSuccess('register');
-        }
+      }else{
+        const name=document.getElementById('input-name').value.trim();
+        const d=await supabaseAuth('signup',{email,password,data:{full_name:name}});
+        if(d.error_description||d.error){showAlert((d.error_description||d.error).includes('already registered')?'Email sudah terdaftar. Silakan masuk.':d.error_description||d.error);setLoading(false);return;}
+        if(!d.session){showSuccess('verify');}
+        else{localStorage.setItem('nova_session',JSON.stringify(d.session));showSuccess('register');}
       }
-    } catch (err) {
-      showAlert('Terjadi kesalahan. Periksa koneksi internet kamu.');
-      setLoading(false);
-    }
+    }catch(e){showAlert('Terjadi kesalahan jaringan. Periksa koneksi Anda.');setLoading(false);}
   }
 
-  // =============================================
-  // GOOGLE LOGIN
-  // =============================================
-  async function handleGoogle() {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(window.location.origin + '/index.html')}`, {
-      headers: { 'apikey': SUPABASE_ANON_KEY }
-    });
-    window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(window.location.origin + '/index.html')}`;
+  function handleGoogle(){window.location.href=`${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(window.location.origin+'/index.html')}`;}
+
+  function showSuccess(type){
+    document.getElementById('auth-form').style.display='none';
+    document.getElementById('form-header').style.display='none';
+    document.querySelector('.auth-tabs').style.display='none';
+    const sc=document.getElementById('success-screen');sc.classList.add('show');
+    if(type==='verify'){document.getElementById('success-title').textContent='Cek Email Anda';document.getElementById('success-msg').innerHTML='Tautan verifikasi telah dikirim.<br>Klik tautan tersebut untuk mengaktifkan akun.';sc.querySelector('.progress-wrap').style.display='none';}
+    else setTimeout(()=>{window.location.href='index.html';},2000);
   }
 
-  // =============================================
-  // SUCCESS SCREEN
-  // =============================================
-  function showSuccess(type) {
-    document.getElementById('auth-form').style.display = 'none';
-    document.querySelector('.login-header').style.display = 'none';
-    document.querySelector('.auth-tabs').style.display = 'none';
-
-    const screen = document.getElementById('success-screen');
-    screen.classList.add('show');
-
-    if (type === 'verify') {
-      document.getElementById('success-title').textContent = 'CEK EMAIL!';
-      document.getElementById('success-msg').innerHTML =
-        'Link verifikasi sudah dikirim ke email kamu.<br>Klik link tersebut untuk mengaktifkan akun.';
-      screen.querySelector('.redirect-bar').style.display = 'none';
-    } else {
-      document.getElementById('success-title').textContent = 'BERHASIL!';
-      document.getElementById('success-msg').textContent =
-        type === 'login' ? 'Login berhasil. Mengalihkan ke halaman utama...' : 'Akun berhasil dibuat. Mengalihkan...';
-
-      // Redirect ke index.html setelah 2 detik
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 2000);
-    }
+  function togglePass(id,btn){
+    const inp=document.getElementById(id);const isT=inp.type==='text';inp.type=isT?'password':'text';
+    btn.innerHTML=isT?'<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>':'<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
   }
 
-  // =============================================
-  // CEK SESSION — jika sudah login, langsung redirect
-  // =============================================
-  function checkSession() {
-    const session = localStorage.getItem('nova_session');
-    if (session) {
-      try {
-        const parsed = JSON.parse(session);
-        const expiresAt = parsed.expires_at;
-        if (expiresAt && Date.now() / 1000 < expiresAt) {
-          window.location.href = 'index.html';
-        }
-      } catch(e) {
-        localStorage.removeItem('nova_session');
-      }
-    }
-  }
-  checkSession();
-
-  // =============================================
-  // PASSWORD TOGGLE
-  // =============================================
-  function togglePassword(inputId, btn) {
-    const input = document.getElementById(inputId);
-    const isText = input.type === 'text';
-    input.type = isText ? 'password' : 'text';
-    btn.textContent = isText ? '👁' : '🙈';
-  }
-
-  // =============================================
-  // CURSOR
-  // =============================================
-  const cursor = document.getElementById('cursor');
-  const ring = document.getElementById('cursorRing');
-  let mx = 0, my = 0, rx = 0, ry = 0;
-  document.addEventListener('mousemove', e => {
-    mx = e.clientX; my = e.clientY;
-    cursor.style.transform = `translate(${mx - 5}px, ${my - 5}px)`;
-  });
-  function animRing() {
-    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
-    ring.style.transform = `translate(${rx - 18}px, ${ry - 18}px)`;
-    requestAnimationFrame(animRing);
-  }
-  animRing();
-  document.querySelectorAll('button, a, input').forEach(el => {
-    el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
-    el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
-  });
-
-  // Enter key submit
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter') handleSubmit();
-  });
+  document.addEventListener('keydown',e=>{if(e.key==='Enter')handleSubmit();});
 </script>
 </body>
 </html>
