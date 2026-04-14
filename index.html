@@ -16,11 +16,8 @@
     --text: #f0ede8;
     --muted: #7a7773;
   }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   html { scroll-behavior: smooth; }
-
   body {
     background: var(--bg);
     color: var(--text);
@@ -30,46 +27,80 @@
     cursor: none;
   }
 
+  /* Loading Screen */
+  #loading-screen {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 24px;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #loading-screen.hidden { opacity: 0; visibility: hidden; }
+  .loading-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px; letter-spacing: 8px;
+    color: var(--accent);
+    animation: pulse 1.5s infinite;
+  }
+  .loading-bar-wrap {
+    width: 200px; height: 2px;
+    background: rgba(255,255,255,0.1);
+  }
+  .loading-bar {
+    height: 100%; background: var(--accent);
+    animation: loadBar 1.5s ease forwards;
+  }
+  @keyframes loadBar {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+  .loading-text {
+    font-size: 11px; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* Error Banner */
+  #error-banner {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0;
+    background: var(--accent2);
+    color: white; text-align: center;
+    padding: 12px; font-size: 13px;
+    z-index: 500; letter-spacing: 0.5px;
+  }
+
   /* Custom Cursor */
   .cursor {
     width: 12px; height: 12px;
-    background: var(--accent);
-    border-radius: 50%;
-    position: fixed;
-    top: 0; left: 0;
-    pointer-events: none;
-    z-index: 9999;
+    background: var(--accent); border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 8999;
     transition: transform 0.15s ease, background 0.2s ease;
     mix-blend-mode: difference;
   }
   .cursor-ring {
     width: 40px; height: 40px;
-    border: 1px solid rgba(200,242,48,0.4);
-    border-radius: 50%;
-    position: fixed;
-    top: 0; left: 0;
-    pointer-events: none;
-    z-index: 9998;
+    border: 1px solid rgba(200,242,48,0.4); border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 8998;
     transition: all 0.25s ease;
   }
   .cursor.hover { transform: scale(3); background: var(--accent2); }
 
-  /* Noise Overlay */
   body::before {
     content: '';
     position: fixed; inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0.6;
+    pointer-events: none; z-index: 1000; opacity: 0.6;
   }
 
   /* NAV */
   nav {
     position: fixed; top: 0; left: 0; right: 0;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 24px 48px;
-    z-index: 100;
+    padding: 24px 48px; z-index: 100;
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     background: rgba(8,8,8,0.7);
@@ -81,9 +112,7 @@
   }
   .nav-logo {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: 4px;
-    color: var(--accent);
+    font-size: 28px; letter-spacing: 4px; color: var(--accent);
   }
   .nav-links { display: flex; gap: 40px; list-style: none; }
   .nav-links a {
@@ -105,16 +134,10 @@
   /* HERO */
   .hero {
     min-height: 100vh;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: grid; grid-template-columns: 1fr 1fr;
     padding: 120px 48px 80px;
-    position: relative;
-    overflow: hidden;
-    gap: 40px;
-    align-items: center;
+    position: relative; overflow: hidden; gap: 40px; align-items: center;
   }
-
-  /* Animated background grid */
   .hero::before {
     content: '';
     position: absolute; inset: 0;
@@ -128,14 +151,7 @@
     from { transform: translateY(0); }
     to { transform: translateY(60px); }
   }
-
-  /* Glow orbs */
-  .orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(100px);
-    pointer-events: none;
-  }
+  .orb { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; }
   .orb-1 {
     width: 500px; height: 500px;
     background: rgba(200,242,48,0.12);
@@ -152,48 +168,32 @@
     0%, 100% { transform: translateY(0) scale(1); }
     50% { transform: translateY(-30px) scale(1.05); }
   }
-
   .hero-left { position: relative; z-index: 2; }
-
   .hero-badge {
     display: inline-flex; align-items: center; gap: 8px;
     border: 1px solid var(--border);
-    padding: 6px 16px;
-    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 32px;
+    padding: 6px 16px; font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 32px;
     animation: fadeUp 0.8s ease 0.2s both;
   }
   .badge-dot {
-    width: 6px; height: 6px;
-    background: var(--accent); border-radius: 50%;
+    width: 6px; height: 6px; background: var(--accent); border-radius: 50%;
     animation: pulse 2s infinite;
   }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
   .hero-title {
     font-family: 'Bebas Neue', sans-serif;
     font-size: clamp(72px, 9vw, 130px);
-    line-height: 0.9;
-    letter-spacing: 2px;
-    margin-bottom: 32px;
+    line-height: 0.9; letter-spacing: 2px; margin-bottom: 32px;
     animation: fadeUp 0.8s ease 0.4s both;
   }
   .hero-title .accent { color: var(--accent); }
-  .hero-title .stroke {
-    -webkit-text-stroke: 1px rgba(240,237,232,0.3);
-    color: transparent;
-  }
-
+  .hero-title .stroke { -webkit-text-stroke: 1px rgba(240,237,232,0.3); color: transparent; }
   .hero-desc {
-    font-size: 16px; line-height: 1.8;
-    color: var(--muted); max-width: 440px;
-    margin-bottom: 48px;
+    font-size: 16px; line-height: 1.8; color: var(--muted);
+    max-width: 440px; margin-bottom: 48px;
     animation: fadeUp 0.8s ease 0.6s both;
   }
-
   .hero-actions {
     display: flex; gap: 16px; align-items: center;
     animation: fadeUp 0.8s ease 0.8s both;
@@ -204,287 +204,178 @@
     font-family: 'DM Sans', sans-serif;
     font-size: 14px; font-weight: 500; letter-spacing: 1px;
     text-transform: uppercase; cursor: none;
-    position: relative; overflow: hidden;
-    transition: transform 0.2s;
+    position: relative; overflow: hidden; transition: transform 0.2s;
   }
   .btn-primary::after {
-    content: '';
-    position: absolute; inset: 0;
+    content: ''; position: absolute; inset: 0;
     background: rgba(255,255,255,0.2);
-    transform: translateX(-100%);
-    transition: transform 0.4s ease;
+    transform: translateX(-100%); transition: transform 0.4s ease;
   }
   .btn-primary:hover::after { transform: translateX(100%); }
   .btn-primary:hover { transform: translateY(-2px); }
-
   .btn-ghost {
     background: transparent; color: var(--text);
-    padding: 16px 36px;
-    border: 1px solid var(--border);
+    padding: 16px 36px; border: 1px solid var(--border);
     font-family: 'DM Sans', sans-serif;
     font-size: 14px; font-weight: 300; letter-spacing: 1px;
     text-transform: uppercase; cursor: none;
     transition: border-color 0.3s, transform 0.2s;
   }
   .btn-ghost:hover { border-color: var(--text); transform: translateY(-2px); }
-
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Hero Visual */
+  /* Hero Card */
   .hero-right {
     position: relative; z-index: 2;
     display: flex; justify-content: center; align-items: center;
     animation: fadeUp 1s ease 0.5s both;
   }
-
   .hero-card {
     width: 100%; max-width: 480px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 0;
-    position: relative;
-    overflow: hidden;
+    background: var(--surface); border: 1px solid var(--border);
+    position: relative; overflow: hidden;
   }
-
   .card-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border);
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
     display: flex; gap: 8px; align-items: center;
   }
   .dot { width: 10px; height: 10px; border-radius: 50%; }
   .dot-r { background: #ff5f57; }
   .dot-y { background: #febc2e; }
   .dot-g { background: #28c840; }
-
   .card-body { padding: 32px 24px; }
-
-  .metric-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 16px; margin-bottom: 24px;
-  }
-  .metric {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    padding: 16px;
-  }
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .metric { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 16px; }
   .metric-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
   .metric-value { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 2px; }
   .metric-value.up { color: var(--accent); }
   .metric-value.hot { color: var(--accent2); }
-
-  .chart-area {
-    height: 100px; position: relative;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-  .chart-area svg { width: 100%; height: 100%; }
-
+  .chart-area { height: 100px; position: relative; border-bottom: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; }
   .chart-bar-group { display: flex; gap: 4px; align-items: flex-end; height: 100%; padding: 8px 0; }
-  .chart-bar {
-    flex: 1; background: rgba(200,242,48,0.15);
-    border-top: 2px solid var(--accent);
-    transition: background 0.3s;
-  }
+  .chart-bar { flex: 1; background: rgba(200,242,48,0.15); border-top: 2px solid var(--accent); transition: background 0.3s; }
   .chart-bar:hover { background: rgba(200,242,48,0.3); }
   .chart-bar.active { background: rgba(200,242,48,0.3); }
-
   .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .tag {
-    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
-    padding: 4px 10px; border: 1px solid var(--border);
-    color: var(--muted);
-  }
+  .tag { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--border); color: var(--muted); }
   .tag.active { border-color: var(--accent); color: var(--accent); }
 
-  /* Stats Bar */
+  /* STATS */
   .stats-bar {
     display: flex; align-items: center;
     padding: 20px 48px;
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
     background: var(--surface);
-    overflow: hidden;
   }
-  .stat-item { display: flex; align-items: baseline; gap: 12px; padding: 0 48px; border-right: 1px solid var(--border); }
+  .stat-item {
+    display: flex; align-items: baseline; gap: 12px;
+    padding: 0 48px; border-right: 1px solid var(--border);
+    flex: 1;
+  }
   .stat-item:last-child { border-right: none; }
   .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 2px; color: var(--accent); }
   .stat-label { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 
-  /* FEATURES */
-  .features {
-    padding: 120px 48px;
-    position: relative;
+  /* Skeleton loader */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 2px;
   }
-
-  .section-label {
-    display: inline-block;
-    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 16px;
-  }
-
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(48px, 6vw, 80px);
-    line-height: 1;
-    margin-bottom: 80px;
-  }
-
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--border);
-  }
-
-  .feature-card {
-    background: var(--bg);
-    padding: 48px 40px;
-    position: relative;
-    overflow: hidden;
-    transition: background 0.4s;
-  }
-  .feature-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s ease;
-  }
-  .feature-card:hover { background: #0f0f0f; }
-  .feature-card:hover::before { transform: scaleX(1); }
-
-  .feature-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 80px; letter-spacing: 2px;
-    color: rgba(255,255,255,0.04);
-    position: absolute; top: 16px; right: 24px;
-    line-height: 1;
-  }
-
-  .feature-icon {
-    width: 48px; height: 48px;
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 24px;
-    font-size: 20px;
-    transition: border-color 0.3s, background 0.3s;
-  }
-  .feature-card:hover .feature-icon { border-color: var(--accent); background: rgba(200,242,48,0.05); }
-
-  .feature-title { font-size: 20px; font-weight: 400; margin-bottom: 12px; letter-spacing: 0.3px; }
-  .feature-desc { font-size: 14px; line-height: 1.8; color: var(--muted); }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
   /* MARQUEE */
   .marquee-section {
     padding: 32px 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    overflow: hidden;
-    position: relative;
-    background: var(--surface);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    overflow: hidden; position: relative; background: var(--surface);
   }
   .marquee-track {
     display: flex; gap: 64px; align-items: center;
-    animation: marquee 20s linear infinite;
-    white-space: nowrap;
+    animation: marquee 20s linear infinite; white-space: nowrap;
   }
-  @keyframes marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .marquee-item { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 4px; color: var(--muted); flex-shrink: 0; }
+  .marquee-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+
+  /* FEATURES */
+  .features { padding: 120px 48px; position: relative; }
+  .section-label { display: inline-block; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 6vw, 80px); line-height: 1; margin-bottom: 80px; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); }
+  .feature-card {
+    background: var(--bg); padding: 48px 40px;
+    position: relative; overflow: hidden; transition: background 0.4s;
   }
-  .marquee-item {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px; letter-spacing: 4px;
-    color: var(--muted);
-    flex-shrink: 0;
+  .feature-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--accent); transform: scaleX(0); transform-origin: left;
+    transition: transform 0.4s ease;
   }
-  .marquee-dot {
-    width: 6px; height: 6px;
-    background: var(--accent); border-radius: 50%; flex-shrink: 0;
+  .feature-card:hover { background: #0f0f0f; }
+  .feature-card:hover::before { transform: scaleX(1); }
+  .feature-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 80px; letter-spacing: 2px;
+    color: rgba(255,255,255,0.04); position: absolute; top: 16px; right: 24px; line-height: 1;
   }
+  .feature-icon {
+    width: 48px; height: 48px; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 24px; font-size: 20px;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .feature-card:hover .feature-icon { border-color: var(--accent); background: rgba(200,242,48,0.05); }
+  .feature-title { font-size: 20px; font-weight: 400; margin-bottom: 12px; letter-spacing: 0.3px; }
+  .feature-desc { font-size: 14px; line-height: 1.8; color: var(--muted); }
 
   /* TESTIMONIAL */
   .testimonial-section {
     padding: 120px 48px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: center;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center;
   }
-
   .testimonial-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 48px;
-    position: relative;
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 48px; position: relative;
   }
   .testimonial-card::before {
-    content: '"';
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 120px;
-    color: var(--accent);
-    opacity: 0.15;
-    position: absolute;
-    top: 16px; left: 32px;
-    line-height: 1;
+    content: '"'; font-family: 'Bebas Neue', sans-serif; font-size: 120px;
+    color: var(--accent); opacity: 0.15;
+    position: absolute; top: 16px; left: 32px; line-height: 1;
   }
-  .testimonial-text {
-    font-size: 18px; line-height: 1.8;
-    font-style: italic; margin-bottom: 32px;
-    position: relative; z-index: 1;
-  }
+  .testimonial-text { font-size: 18px; line-height: 1.8; font-style: italic; margin-bottom: 32px; position: relative; z-index: 1; }
   .testimonial-author { display: flex; align-items: center; gap: 16px; }
   .author-avatar {
     width: 48px; height: 48px;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
     font-weight: 500; color: #080808; font-size: 14px;
   }
   .author-name { font-size: 15px; font-weight: 500; }
   .author-role { font-size: 12px; color: var(--muted); letter-spacing: 0.5px; }
 
-  /* CTA Section */
-  .cta-section {
-    padding: 120px 48px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
+  /* CTA */
+  .cta-section { padding: 120px 48px; text-align: center; position: relative; overflow: hidden; }
   .cta-section::before {
-    content: '';
-    position: absolute; inset: 0;
+    content: ''; position: absolute; inset: 0;
     background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(200,242,48,0.08), transparent);
   }
-  .cta-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(60px, 8vw, 110px);
-    line-height: 0.95;
-    margin-bottom: 32px;
-    position: relative; z-index: 1;
-  }
+  .cta-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(60px, 8vw, 110px); line-height: 0.95; margin-bottom: 32px; position: relative; z-index: 1; }
   .cta-desc { font-size: 16px; color: var(--muted); margin-bottom: 48px; max-width: 500px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
   .cta-actions { display: flex; gap: 16px; justify-content: center; position: relative; z-index: 1; }
 
   /* FOOTER */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 48px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
+  footer { border-top: 1px solid var(--border); padding: 48px; display: flex; align-items: center; justify-content: space-between; }
   .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 4px; color: var(--accent); }
   .footer-links { display: flex; gap: 32px; }
   .footer-links a { color: var(--muted); text-decoration: none; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; transition: color 0.3s; }
   .footer-links a:hover { color: var(--text); }
   .footer-copy { font-size: 12px; color: var(--muted); }
 
-  /* Scroll reveal */
   .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
 
@@ -493,8 +384,8 @@
     .nav-links { display: none; }
     .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; }
     .hero-right { display: none; }
-    .stats-bar { flex-direction: column; gap: 24px; padding: 32px 24px; }
-    .stat-item { border-right: none; border-bottom: 1px solid var(--border); width: 100%; padding: 0 0 24px; }
+    .stats-bar { flex-direction: column; gap: 0; padding: 0 24px; }
+    .stat-item { border-right: none; border-bottom: 1px solid var(--border); width: 100%; padding: 24px 0; }
     .stat-item:last-child { border-bottom: none; }
     .features { padding: 80px 24px; }
     .features-grid { grid-template-columns: 1fr; }
@@ -507,71 +398,60 @@
 </head>
 <body>
 
-<!-- Custom Cursor -->
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <div class="loading-logo">NOVA</div>
+  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+  <div class="loading-text">Memuat data...</div>
+</div>
+
+<!-- Error Banner -->
+<div id="error-banner">
+  ⚠️ Gagal memuat data dari database. Menampilkan konten default.
+</div>
+
+<!-- Cursor -->
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
 
 <!-- NAV -->
 <nav>
-  <div class="nav-logo">NOVA</div>
+  <div class="nav-logo" id="nav-brand">NOVA</div>
   <ul class="nav-links">
     <li><a href="#">Produk</a></li>
     <li><a href="#">Fitur</a></li>
     <li><a href="#">Harga</a></li>
     <li><a href="#">Blog</a></li>
   </ul>
-  <button class="nav-cta">Mulai Gratis</button>
+  <button class="nav-cta" id="nav-cta-text">Mulai Gratis</button>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
-
   <div class="hero-left">
-    <div class="hero-badge">
-      <span class="badge-dot"></span>
-      Platform #1 untuk Tim Modern
-    </div>
-    <h1 class="hero-title">
-      BANGUN<br>
-      <span class="accent">MASA</span><br>
-      <span class="stroke">DEPAN</span>
+    <div class="hero-badge"><span class="badge-dot"></span>Platform #1 untuk Tim Modern</div>
+    <h1 class="hero-title" id="hero-title">
+      BANGUN<br><span class="accent">MASA</span><br><span class="stroke">DEPAN</span>
     </h1>
-    <p class="hero-desc">
-      Platform all-in-one yang mengubah cara tim bekerja. Kolaborasi lebih cepat, hasil lebih luar biasa — semua dalam satu ekosistem yang dirancang untuk era baru.
-    </p>
+    <p class="hero-desc" id="hero-desc">Platform all-in-one yang mengubah cara tim bekerja. Kolaborasi lebih cepat, hasil lebih luar biasa.</p>
     <div class="hero-actions">
-      <button class="btn-primary">Coba Sekarang</button>
+      <button class="btn-primary" id="hero-cta">Coba Sekarang</button>
       <button class="btn-ghost">Lihat Demo →</button>
     </div>
   </div>
-
   <div class="hero-right">
     <div class="hero-card">
       <div class="card-header">
-        <div class="dot dot-r"></div>
-        <div class="dot dot-y"></div>
-        <div class="dot dot-g"></div>
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
       </div>
       <div class="card-body">
         <div class="metric-grid">
-          <div class="metric">
-            <div class="metric-label">Revenue</div>
-            <div class="metric-value up">↑ 84%</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Konversi</div>
-            <div class="metric-value hot">12.4K</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Aktif Users</div>
-            <div class="metric-value up">38.2K</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Uptime</div>
-            <div class="metric-value">99.9%</div>
-          </div>
+          <div class="metric"><div class="metric-label">Revenue</div><div class="metric-value up">↑ 84%</div></div>
+          <div class="metric"><div class="metric-label">Konversi</div><div class="metric-value hot">12.4K</div></div>
+          <div class="metric"><div class="metric-label">Aktif Users</div><div class="metric-value up">38.2K</div></div>
+          <div class="metric"><div class="metric-label">Uptime</div><div class="metric-value">99.9%</div></div>
         </div>
         <div class="chart-area">
           <div class="chart-bar-group">
@@ -591,7 +471,6 @@
           <span class="tag active">Real-time</span>
           <span class="tag">Analytics</span>
           <span class="tag">AI-Powered</span>
-          <span class="tag">Enterprise</span>
         </div>
       </div>
     </div>
@@ -599,23 +478,8 @@
 </section>
 
 <!-- STATS -->
-<div class="stats-bar">
-  <div class="stat-item">
-    <span class="stat-num">50K+</span>
-    <span class="stat-label">Pengguna Aktif</span>
-  </div>
-  <div class="stat-item">
-    <span class="stat-num">99.9%</span>
-    <span class="stat-label">Uptime SLA</span>
-  </div>
-  <div class="stat-item">
-    <span class="stat-num">120+</span>
-    <span class="stat-label">Negara</span>
-  </div>
-  <div class="stat-item">
-    <span class="stat-num">4.9★</span>
-    <span class="stat-label">Rating Rata-rata</span>
-  </div>
+<div class="stats-bar" id="stats-bar">
+  <!-- Diisi dari database -->
 </div>
 
 <!-- MARQUEE -->
@@ -642,43 +506,8 @@
     <span class="section-label">// Kenapa NOVA</span>
     <h2 class="section-title">FITUR YANG<br>MENGUBAH SEGALANYA</h2>
   </div>
-  <div class="features-grid reveal">
-    <div class="feature-card">
-      <span class="feature-num">01</span>
-      <div class="feature-icon">⚡</div>
-      <h3 class="feature-title">Kecepatan Ekstrem</h3>
-      <p class="feature-desc">Infrastruktur edge-first yang memastikan respons di bawah 50ms di mana pun tim Anda berada di dunia.</p>
-    </div>
-    <div class="feature-card">
-      <span class="feature-num">02</span>
-      <div class="feature-icon">🔐</div>
-      <h3 class="feature-title">Keamanan Zero-Trust</h3>
-      <p class="feature-desc">Enkripsi end-to-end, autentikasi multi-faktor, dan audit trail lengkap untuk kepatuhan enterprise.</p>
-    </div>
-    <div class="feature-card">
-      <span class="feature-num">03</span>
-      <div class="feature-icon">🤖</div>
-      <h3 class="feature-title">AI yang Benar-benar Bekerja</h3>
-      <p class="feature-desc">Bukan sekadar AI gimmick — otomasi cerdas yang benar-benar memahami konteks bisnis Anda.</p>
-    </div>
-    <div class="feature-card">
-      <span class="feature-num">04</span>
-      <div class="feature-icon">📊</div>
-      <h3 class="feature-title">Analytics Real-time</h3>
-      <p class="feature-desc">Dashboard yang terupdate setiap detik. Tidak ada lag, tidak ada keterlambatan keputusan.</p>
-    </div>
-    <div class="feature-card">
-      <span class="feature-num">05</span>
-      <div class="feature-icon">🔗</div>
-      <h3 class="feature-title">1000+ Integrasi</h3>
-      <p class="feature-desc">Terhubung dengan semua tools yang sudah Anda gunakan — tanpa coding, tanpa kerumitan.</p>
-    </div>
-    <div class="feature-card">
-      <span class="feature-num">06</span>
-      <div class="feature-icon">🌍</div>
-      <h3 class="feature-title">Global-Ready</h3>
-      <p class="feature-desc">Multi-bahasa, multi-mata uang, multi-zona waktu. Satu platform untuk tim yang tersebar di seluruh dunia.</p>
-    </div>
+  <div class="features-grid reveal" id="features-grid">
+    <!-- Diisi dari database -->
   </div>
 </section>
 
@@ -688,14 +517,12 @@
     <span class="section-label">// Kata Mereka</span>
     <h2 class="section-title">DIPERCAYA<br>RIBUAN TIM</h2>
     <p style="color: var(--muted); font-size: 15px; line-height: 1.8; margin-top: 24px;">
-      Dari startup yang baru lahir hingga perusahaan Fortune 500 — NOVA menjadi fondasi bagaimana tim terbaik beroperasi setiap harinya.
+      Dari startup yang baru lahir hingga perusahaan Fortune 500 — NOVA menjadi fondasi bagaimana tim terbaik beroperasi.
     </p>
   </div>
   <div class="reveal">
     <div class="testimonial-card">
-      <p class="testimonial-text">
-        NOVA benar-benar mengubah cara kami bekerja. Dalam 3 bulan pertama, produktivitas tim naik 60% dan kami berhasil mengurangi meeting yang tidak perlu hingga 40%.
-      </p>
+      <p class="testimonial-text">NOVA benar-benar mengubah cara kami bekerja. Dalam 3 bulan pertama, produktivitas tim naik 60% dan kami berhasil mengurangi meeting yang tidak perlu hingga 40%.</p>
       <div class="testimonial-author">
         <div class="author-avatar">AR</div>
         <div>
@@ -710,10 +537,10 @@
 <!-- CTA -->
 <section class="cta-section">
   <div class="reveal">
-    <h2 class="cta-title">SIAP UNTUK<br><span style="color: var(--accent)">LEVEL UP?</span></h2>
-    <p class="cta-desc">Bergabunglah dengan lebih dari 50.000 tim yang sudah memilih NOVA sebagai fondasi operasional mereka.</p>
+    <h2 class="cta-title">SIAP UNTUK<br><span style="color: var(--accent)" id="cta-title-accent">LEVEL UP?</span></h2>
+    <p class="cta-desc" id="cta-desc">Bergabunglah dengan lebih dari 50.000 tim yang sudah memilih NOVA sebagai fondasi operasional mereka.</p>
     <div class="cta-actions">
-      <button class="btn-primary">Mulai Gratis 14 Hari</button>
+      <button class="btn-primary" id="cta-btn">Mulai Gratis 14 Hari</button>
       <button class="btn-ghost">Hubungi Sales</button>
     </div>
   </div>
@@ -721,62 +548,196 @@
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-logo">NOVA</div>
+  <div class="footer-logo" id="footer-brand">NOVA</div>
   <div class="footer-links">
-    <a href="#">Produk</a>
-    <a href="#">Fitur</a>
-    <a href="#">Harga</a>
-    <a href="#">Blog</a>
-    <a href="#">Karir</a>
-    <a href="#">Kontak</a>
+    <a href="#">Produk</a><a href="#">Fitur</a><a href="#">Harga</a>
+    <a href="#">Blog</a><a href="#">Karir</a><a href="#">Kontak</a>
   </div>
   <div class="footer-copy">© 2026 NOVA. All rights reserved.</div>
 </footer>
 
 <script>
-  // Custom cursor
+  // =============================================
+  // KONFIGURASI SUPABASE
+  // Ganti dua baris ini dengan kredensial kamu!
+  // =============================================
+  const SUPABASE_URL = 'https://jsmmtqeoukkgugorrvmg.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzbW10cWVvdWtrZ3Vnb3Jydm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTg2NzksImV4cCI6MjA5MTY3NDY3OX0.O03NscRcj4RcNx-P3j65hO7XXLRSkbyJcwpcArpqHBQ';
+
+  // =============================================
+  // KONTEN DEFAULT (fallback jika DB gagal)
+  // =============================================
+  const DEFAULTS = {
+    konten: {
+      brand_name: 'NOVA',
+      hero_title: 'BANGUN\nMASA\nDEPAN',
+      hero_desc: 'Platform all-in-one yang mengubah cara tim bekerja. Kolaborasi lebih cepat, hasil lebih luar biasa.',
+      cta_text: 'Coba Sekarang',
+      cta_title: 'LEVEL UP?',
+      cta_desc: 'Bergabunglah dengan lebih dari 50.000 tim yang sudah memilih NOVA.',
+      cta_main_btn: 'Mulai Gratis 14 Hari',
+    },
+    stats: [
+      { label: 'Pengguna Aktif', value: '50K+' },
+      { label: 'Uptime SLA', value: '99.9%' },
+      { label: 'Negara', value: '120+' },
+      { label: 'Rating', value: '4.9★' },
+    ],
+    fitur: [
+      { icon: '⚡', title: 'Kecepatan Ekstrem', desc: 'Infrastruktur edge-first yang memastikan respons di bawah 50ms di mana pun tim Anda berada.' },
+      { icon: '🔐', title: 'Keamanan Zero-Trust', desc: 'Enkripsi end-to-end, autentikasi multi-faktor, dan audit trail lengkap untuk kepatuhan enterprise.' },
+      { icon: '🤖', title: 'AI yang Benar-benar Bekerja', desc: 'Otomasi cerdas yang benar-benar memahami konteks bisnis Anda.' },
+      { icon: '📊', title: 'Analytics Real-time', desc: 'Dashboard yang terupdate setiap detik. Tidak ada lag, tidak ada keterlambatan keputusan.' },
+      { icon: '🔗', title: '1000+ Integrasi', desc: 'Terhubung dengan semua tools yang sudah Anda gunakan — tanpa coding, tanpa kerumitan.' },
+      { icon: '🌍', title: 'Global-Ready', desc: 'Multi-bahasa, multi-mata uang, multi-zona waktu. Satu platform untuk tim global.' },
+    ]
+  };
+
+  // =============================================
+  // FETCH DATA DARI SUPABASE
+  // =============================================
+  async function fetchTable(table) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&order=urutan.asc`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    if (!res.ok) throw new Error(`Gagal fetch tabel: ${table}`);
+    return res.json();
+  }
+
+  // =============================================
+  // RENDER KONTEN
+  // =============================================
+  function renderKonten(data) {
+    const map = {};
+    data.forEach(row => { map[row.key] = row.value; });
+
+    if (map.brand_name) {
+      document.querySelectorAll('#nav-brand, #footer-brand').forEach(el => el.textContent = map.brand_name);
+      document.title = `${map.brand_name} — Shape Your Future`;
+    }
+    if (map.hero_desc) document.getElementById('hero-desc').textContent = map.hero_desc;
+    if (map.cta_text) document.getElementById('hero-cta').textContent = map.cta_text;
+    if (map.cta_title) document.getElementById('cta-title-accent').textContent = map.cta_title;
+    if (map.cta_desc) document.getElementById('cta-desc').textContent = map.cta_desc;
+    if (map.cta_main_btn) document.getElementById('cta-btn').textContent = map.cta_main_btn;
+    if (map.nav_cta) document.getElementById('nav-cta-text').textContent = map.nav_cta;
+
+    // Hero title dengan format baris
+    if (map.hero_title) {
+      const lines = map.hero_title.split('\n');
+      document.getElementById('hero-title').innerHTML =
+        lines.map((l, i) => {
+          if (i === 1) return `<span class="accent">${l}</span>`;
+          if (i === 2) return `<span class="stroke">${l}</span>`;
+          return l;
+        }).join('<br>');
+    }
+  }
+
+  function renderStats(data) {
+    const bar = document.getElementById('stats-bar');
+    if (!data.length) return;
+    bar.innerHTML = data.map(s => `
+      <div class="stat-item">
+        <span class="stat-num">${s.value}</span>
+        <span class="stat-label">${s.label}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderFitur(data) {
+    const grid = document.getElementById('features-grid');
+    if (!data.length) return;
+    grid.innerHTML = data.map((f, i) => `
+      <div class="feature-card">
+        <span class="feature-num">0${i + 1}</span>
+        <div class="feature-icon">${f.icon}</div>
+        <h3 class="feature-title">${f.title}</h3>
+        <p class="feature-desc">${f.desc}</p>
+      </div>
+    `).join('');
+  }
+
+  // =============================================
+  // INISIALISASI
+  // =============================================
+  async function init() {
+    let hasError = false;
+
+    try {
+      // Cek apakah anon key sudah diisi
+      if (SUPABASE_ANON_KEY === 'GANTI_DENGAN_ANON_KEY_KAMU') {
+        throw new Error('Anon key belum diisi');
+      }
+
+      const [konten, stats, fitur] = await Promise.all([
+        fetchTable('konten'),
+        fetchTable('stats'),
+        fetchTable('fitur')
+      ]);
+
+      if (konten.length) renderKonten(konten);
+      else renderStats(DEFAULTS.stats); // fallback
+
+      if (stats.length) renderStats(stats);
+      else renderStats(DEFAULTS.stats);
+
+      if (fitur.length) renderFitur(fitur);
+      else renderFitur(DEFAULTS.fitur);
+
+    } catch (err) {
+      console.warn('Supabase error, menggunakan data default:', err.message);
+      hasError = true;
+
+      // Gunakan data default
+      renderStats(DEFAULTS.stats);
+      renderFitur(DEFAULTS.fitur);
+
+      if (SUPABASE_ANON_KEY !== 'GANTI_DENGAN_ANON_KEY_KAMU') {
+        document.getElementById('error-banner').style.display = 'block';
+      }
+    }
+
+    // Sembunyikan loading screen
+    setTimeout(() => {
+      document.getElementById('loading-screen').classList.add('hidden');
+    }, hasError ? 800 : 1200);
+  }
+
+  init();
+
+  // =============================================
+  // CURSOR
+  // =============================================
   const cursor = document.getElementById('cursor');
   const ring = document.getElementById('cursorRing');
   let mx = 0, my = 0, rx = 0, ry = 0;
-
   document.addEventListener('mousemove', e => {
     mx = e.clientX; my = e.clientY;
     cursor.style.transform = `translate(${mx - 6}px, ${my - 6}px)`;
   });
-
   function animRing() {
-    rx += (mx - rx) * 0.12;
-    ry += (my - ry) * 0.12;
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
     ring.style.transform = `translate(${rx - 20}px, ${ry - 20}px)`;
     requestAnimationFrame(animRing);
   }
   animRing();
-
-  // Hover state
   document.querySelectorAll('button, a, .feature-card, .metric').forEach(el => {
     el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
     el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
   });
 
-  // Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add('visible'); }
-    });
+  // =============================================
+  // SCROLL REVEAL
+  // =============================================
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.15 });
-  reveals.forEach(r => obs.observe(r));
-
-  // Animate stats on scroll
-  const statNums = document.querySelectorAll('.stat-num');
-  const statsObs = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      statNums.forEach(el => {
-        el.style.animation = 'fadeUp 0.6s ease forwards';
-      });
-    }
-  });
-  if (statNums[0]) statsObs.observe(statNums[0]);
+  document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
 </script>
 </body>
 </html>
