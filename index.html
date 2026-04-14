@@ -389,22 +389,31 @@
   // Session check
   function checkSession(){
     try{
-      const s=JSON.parse(localStorage.getItem('nova_session')||'null');
+      const s=JSON.parse(localStorage.getItem('nova_user')||'null');
       if(!s){window.location.href='login.html';return null;}
-      if(s.expires_at&&Date.now()/1000>s.expires_at){localStorage.removeItem('nova_session');window.location.href='login.html';return null;}
+      // expires_at disimpan dalam milliseconds (bukan detik)
+      if(s.expires_at && Date.now() > s.expires_at){
+        localStorage.removeItem('nova_user');
+        window.location.href='login.html';
+        return null;
+      }
+      // Cek must_change_password
+      if(s.must_change_password){
+        window.location.href='ganti-password.html';
+        return null;
+      }
       return s;
-    }catch(e){localStorage.removeItem('nova_session');window.location.href='login.html';return null;}
+    }catch(e){localStorage.removeItem('nova_user');window.location.href='login.html';return null;}
   }
 
-  function logout(){localStorage.removeItem('nova_session');window.location.href='login.html';}
+  function logout(){localStorage.removeItem('nova_user');window.location.href='login.html';}
 
-  // Set user info
+  // Set user info — format nova_user dari login baru
   function setUserInfo(session){
-    const email=session?.user?.email||'Pengguna';
-    const name=session?.user?.user_metadata?.full_name||email.split('@')[0];
-    const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('user-name').textContent=name;
-    document.getElementById('user-avatar').textContent=initials;
+    const name = session.full_name || session.username || 'Pengguna';
+    const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('user-avatar').textContent = initials;
   }
 
   // Clock
