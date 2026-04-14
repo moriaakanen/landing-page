@@ -584,12 +584,12 @@
       { label: 'Rating', value: '4.9★' },
     ],
     fitur: [
-      { icon: '⚡', title: 'Kecepatan Ekstrem', desc: 'Infrastruktur edge-first yang memastikan respons di bawah 50ms di mana pun tim Anda berada.' },
-      { icon: '🔐', title: 'Keamanan Zero-Trust', desc: 'Enkripsi end-to-end, autentikasi multi-faktor, dan audit trail lengkap untuk kepatuhan enterprise.' },
-      { icon: '🤖', title: 'AI yang Benar-benar Bekerja', desc: 'Otomasi cerdas yang benar-benar memahami konteks bisnis Anda.' },
-      { icon: '📊', title: 'Analytics Real-time', desc: 'Dashboard yang terupdate setiap detik. Tidak ada lag, tidak ada keterlambatan keputusan.' },
-      { icon: '🔗', title: '1000+ Integrasi', desc: 'Terhubung dengan semua tools yang sudah Anda gunakan — tanpa coding, tanpa kerumitan.' },
-      { icon: '🌍', title: 'Global-Ready', desc: 'Multi-bahasa, multi-mata uang, multi-zona waktu. Satu platform untuk tim global.' },
+      { icon: '⚡', title: 'Kecepatan Ekstrem', deskripsi: 'Infrastruktur edge-first yang memastikan respons di bawah 50ms di mana pun tim Anda berada.' },
+      { icon: '🔐', title: 'Keamanan Zero-Trust', deskripsi: 'Enkripsi end-to-end, autentikasi multi-faktor, dan audit trail lengkap untuk kepatuhan enterprise.' },
+      { icon: '🤖', title: 'AI yang Benar-benar Bekerja', deskripsi: 'Otomasi cerdas yang benar-benar memahami konteks bisnis Anda.' },
+      { icon: '📊', title: 'Analytics Real-time', deskripsi: 'Dashboard yang terupdate setiap detik. Tidak ada lag, tidak ada keterlambatan keputusan.' },
+      { icon: '🔗', title: '1000+ Integrasi', deskripsi: 'Terhubung dengan semua tools yang sudah Anda gunakan — tanpa coding, tanpa kerumitan.' },
+      { icon: '🌍', title: 'Global-Ready', deskripsi: 'Multi-bahasa, multi-mata uang, multi-zona waktu. Satu platform untuk tim global.' },
     ]
   };
 
@@ -657,7 +657,7 @@
         <span class="feature-num">0${i + 1}</span>
         <div class="feature-icon">${f.icon}</div>
         <h3 class="feature-title">${f.title}</h3>
-        <p class="feature-desc">${f.desc}</p>
+        <p class="feature-desc">${f.deskripsi}</p>
       </div>
     `).join('');
   }
