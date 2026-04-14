@@ -665,7 +665,45 @@
   // =============================================
   // INISIALISASI
   // =============================================
+  // =============================================
+  // CEK SESSION — redirect ke login jika belum login
+  // =============================================
+  function checkSession() {
+    const session = localStorage.getItem('nova_session');
+    if (!session) {
+      window.location.href = 'login.html';
+      return false;
+    }
+    try {
+      const parsed = JSON.parse(session);
+      const expiresAt = parsed.expires_at;
+      if (expiresAt && Date.now() / 1000 > expiresAt) {
+        localStorage.removeItem('nova_session');
+        window.location.href = 'login.html';
+        return false;
+      }
+    } catch(e) {
+      localStorage.removeItem('nova_session');
+      window.location.href = 'login.html';
+      return false;
+    }
+    return true;
+  }
+
+  function addLogoutButton() {
+    const navCta = document.querySelector('.nav-cta');
+    if (navCta) {
+      navCta.textContent = 'Keluar';
+      navCta.onclick = () => {
+        localStorage.removeItem('nova_session');
+        window.location.href = 'login.html';
+      };
+    }
+  }
+
   async function init() {
+    if (!checkSession()) return;
+    addLogoutButton();
     let hasError = false;
 
     try {
