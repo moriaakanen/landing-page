@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal NOVA — Surat Tugas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f5f4f0;--white:#ffffff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--red:#c0392b;--sidebar-w:260px;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
+
+  .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200;}
+  .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0;}
+  .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+  .brand-name{font-size:14px;font-weight:700;color:white;letter-spacing:0.5px;line-height:1}
+  .brand-tag{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;text-transform:uppercase}
+  .topbar-right{display:flex;align-items:center;gap:14px}
+  .topbar-time{font-size:11px;color:rgba(255,255,255,0.35)}
+  .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);}
+  .topbar-username{font-size:13px;color:rgba(255,255,255,0.75);font-weight:500}
+  .btn-logout{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.2s;}
+  .btn-logout:hover{border-color:rgba(255,255,255,0.4);color:rgba(255,255,255,0.9)}
+  .layout{display:flex;flex:1;min-height:0}
+  .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+  .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px;}
+  .nav-group-label{font-size:10px;font-weight:600;color:var(--border2);letter-spacing:1.2px;text-transform:uppercase;padding:16px 20px 6px;margin-top:4px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;text-decoration:none;user-select:none;transition:background 0.15s,color 0.15s;}
+  .nav-item:hover{background:var(--bg);color:var(--navy)}
+  .nav-item.active{background:var(--gold-light);color:var(--navy);border-left-color:var(--gold);font-weight:600;}
+  .nav-item-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--bg);flex-shrink:0;transition:background 0.15s;}
+  .nav-item.active .nav-item-icon{background:rgba(200,168,75,0.2)}
+  .nav-item:hover .nav-item-icon{background:var(--border)}
+  .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7;}
+  .sidebar-footer strong{color:var(--navy);font-weight:600}
+  .main{flex:1;overflow-y:auto;padding:36px 40px}
+
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap;}
+  .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
+  .page-title{font-family:'Fraunces',serif;font-size:clamp(22px,2.5vw,30px);font-weight:300;color:var(--navy);line-height:1.2;}
+  .page-title em{font-style:italic;color:var(--gold)}
+  .page-desc{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.7}
+
+  .btn-primary{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.15s;white-space:nowrap;}
+  .btn-primary:hover{background:var(--navy2);transform:translateY(-1px)}
+
+  .stats-row{display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
+  .stat-pill{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:12px 18px;display:flex;align-items:center;gap:10px;flex:1;min-width:130px;}
+  .stat-pill-icon{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+  .stat-pill-num{font-size:20px;font-weight:700;color:var(--navy);line-height:1}
+  .stat-pill-label{font-size:11px;color:var(--muted);margin-top:2px}
+
+  .filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .search-wrap{position:relative;flex:1;min-width:200px;}
+  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
+  .search-input{width:100%;padding:9px 12px 9px 34px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s;}
+  .search-input:focus{border-color:var(--navy)}
+  .search-input::placeholder{color:#b8b3ac}
+  .filter-select{padding:9px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;}
+  .filter-select:focus{border-color:var(--navy)}
+
+  .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,0.05);}
+  .table-head{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+  .table-head-title{font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:0.8px;text-transform:uppercase;}
+  .table-head-count{font-size:11px;color:rgba(255,255,255,0.35);}
+  table{width:100%;border-collapse:collapse;}
+  thead th{background:#f9f8f5;padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
+  tbody tr:last-child{border-bottom:none}
+  tbody tr:hover{background:#fafaf8}
+  tbody td{padding:13px 16px;font-size:13px;color:var(--text);vertical-align:middle;}
+
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;}
+  .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
+  .badge.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+  .badge.disetujui{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+  .badge.ditolak{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+  .badge.draft{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1}
+
+  .btn-action{padding:5px 12px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--navy);cursor:pointer;transition:all 0.2s;}
+  .btn-action:hover{background:var(--gold-light);border-color:var(--gold)}
+  .table-empty{padding:48px 24px;text-align:center;}
+  .table-empty-icon{font-size:28px;opacity:0.3;margin-bottom:10px}
+  .table-empty-text{font-size:13px;color:var(--muted)}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,0.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+  .modal-overlay.open{opacity:1;pointer-events:all;}
+  .modal{background:var(--white);border-radius:12px;width:100%;max-width:660px;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:transform 0.25s;box-shadow:0 20px 60px rgba(13,35,64,0.2);}
+  .modal-overlay.open .modal{transform:translateY(0)}
+  .modal-header{background:var(--navy);padding:24px 28px;position:relative;overflow:hidden;}
+  .modal-header::before{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border:20px solid rgba(200,168,75,0.08);border-radius:50%;}
+  .modal-header-icon{width:40px;height:40px;background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.3);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:12px;position:relative;z-index:1;}
+  .modal-title{font-family:'Fraunces',serif;font-size:20px;font-weight:300;color:white;position:relative;z-index:1;}
+  .modal-title em{font-style:italic;color:var(--gold)}
+  .modal-sub{font-size:12px;color:rgba(255,255,255,0.45);margin-top:4px;position:relative;z-index:1;}
+  .modal-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.1);border:none;border-radius:5px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.6);font-size:16px;transition:all 0.2s;z-index:2;}
+  .modal-close:hover{background:rgba(255,255,255,0.2);color:white}
+  .modal-body{padding:28px}
+  .form-section{margin-bottom:22px}
+  .form-section-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .form-row.single{grid-template-columns:1fr}
+  .form-group{display:flex;flex-direction:column;gap:6px;}
+  .form-label{font-size:12px;font-weight:600;color:var(--navy)}
+  .form-label span{color:var(--red);margin-left:2px}
+  .form-input,.form-select,.form-textarea{padding:10px 13px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;width:100%;}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,0.07)}
+  .form-input::placeholder,.form-textarea::placeholder{color:#b8b3ac}
+  .form-input.err,.form-select.err,.form-textarea.err{border-color:var(--red)}
+  .form-textarea{resize:vertical;min-height:80px;line-height:1.6}
+  .err-msg{font-size:11px;color:var(--red);display:none}
+  .err-msg.show{display:block}
+  .form-hint{font-size:11px;color:var(--muted)}
+
+  .pegawai-picker{border:1.5px solid var(--border2);border-radius:7px;overflow:hidden;}
+  .pegawai-picker-search{border-bottom:1px solid var(--border);}
+  .pegawai-picker-input{width:100%;padding:9px 13px;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;background:var(--white);}
+  .pegawai-picker-input::placeholder{color:#b8b3ac}
+  .pegawai-list{max-height:150px;overflow-y:auto;}
+  .pegawai-item{display:flex;align-items:center;gap:10px;padding:9px 13px;cursor:pointer;transition:background 0.15s;border-bottom:1px solid var(--border);}
+  .pegawai-item:last-child{border-bottom:none}
+  .pegawai-item:hover{background:var(--bg)}
+  .pegawai-item.selected{background:var(--gold-light)}
+  .pegawai-item input[type=checkbox]{accent-color:var(--navy);flex-shrink:0;cursor:pointer;}
+  .pegawai-item-name{font-size:13px;font-weight:500;color:var(--navy)}
+  .pegawai-item-nip{font-size:11px;color:var(--muted)}
+  .selected-tags{display:flex;flex-wrap:wrap;gap:6px;padding:10px 13px;min-height:40px;background:#fafaf8;border-top:1px solid var(--border);}
+  .pegawai-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 10px;background:var(--gold-light);border:1px solid rgba(200,168,75,0.4);border-radius:100px;font-size:11px;font-weight:600;color:#7a5c10;}
+  .pegawai-tag-remove{background:none;border:none;cursor:pointer;color:#a07020;font-size:14px;padding:0;line-height:1;display:flex;align-items:center;}
+  .pegawai-tag-remove:hover{color:var(--red)}
+  .pegawai-empty{padding:20px;text-align:center;font-size:12px;color:var(--muted);}
+
+  .modal-footer{padding:20px 28px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:10px;background:#fafaf8;}
+  .btn-cancel{padding:10px 20px;background:transparent;border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+  .btn-cancel:hover{border-color:var(--navy);color:var(--navy)}
+  .btn-submit{padding:10px 24px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.15s;position:relative;overflow:hidden;}
+  .btn-submit:hover:not(:disabled){background:var(--navy2);transform:translateY(-1px)}
+  .btn-submit:disabled{opacity:0.55;cursor:not-allowed;transform:none}
+  .btn-submit.loading{color:transparent}
+  .btn-submit.loading::after{content:'';position:absolute;top:50%;left:50%;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;transform:translate(-50%,-50%);animation:spin 0.7s linear infinite}
+  @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+  .alert{padding:11px 13px;border-radius:6px;font-size:13px;line-height:1.5;margin-bottom:16px;display:none;gap:8px;align-items:flex-start;}
+  .alert.show{display:flex;animation:fadeUp 0.3s ease}
+  .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+  .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+
+  .skel{background:linear-gradient(90deg,rgba(13,35,64,0.05) 25%,rgba(13,35,64,0.1) 50%,rgba(13,35,64,0.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px;}
+  @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .fade-in{animation:fadeUp 0.5s ease both}
+  .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px;}
+
+  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 20px}.topbar-time{display:none}.form-row{grid-template-columns:1fr}}
+  @media(max-width:600px){
+    .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left 0.25s ease;box-shadow:4px 0 20px rgba(13,35,64,0.12)}
+    .sidebar.open{left:0}.layout{display:block}.main{padding:20px 16px}.menu-toggle{display:flex!important}
+    .stats-row{flex-wrap:wrap}.stat-pill{min-width:calc(50% - 7px)}
+    table thead{display:none}
+    tbody tr{display:block;padding:12px 16px;border-bottom:1px solid var(--border);}
+    tbody td{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;}
+    tbody td::before{content:attr(data-label);font-weight:600;color:var(--muted);font-size:11px;margin-right:8px;white-space:nowrap;flex-shrink:0;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-emblem">🏛</div>
+    <div><div class="brand-name">PORTAL NOVA</div><div class="brand-tag">Sistem Informasi Terpadu</div></div>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-time" id="topbar-time"></span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="topbar-avatar" id="topbar-avatar">—</div>
+      <span class="topbar-username" id="topbar-username">Pengguna</span>
+    </div>
+    <button class="btn-logout" onclick="logout()">Keluar</button>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section-label">Menu Utama</div>
+    <a class="nav-item" href="index.html"><div class="nav-item-icon">👤</div>Profil Saya</a>
+    <div class="nav-group-label">Persuratan</div>
+    <a class="nav-item active" href="surat-tugas.html"><div class="nav-item-icon">📄</div>Surat Tugas</a>
+    <div class="sidebar-footer"><strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>© 2026 Pemerintah RI</div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header fade-in">
+      <div>
+        <div class="page-eyebrow">Persuratan</div>
+        <h1 class="page-title">Surat <em>Tugas</em></h1>
+        <p class="page-desc">Daftar pengajuan surat tugas Anda. Setiap pengajuan akan diverifikasi oleh administrator.</p>
+      </div>
+      <button class="btn-primary" onclick="openModal()">＋ Buat Surat Tugas</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row fade-in" style="animation-delay:0.05s">
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#e8f0fe">📋</div><div><div class="stat-pill-num" id="st-total">—</div><div class="stat-pill-label">Total Pengajuan</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef3c7">⏳</div><div><div class="stat-pill-num" id="st-menunggu">—</div><div class="stat-pill-label">Menunggu</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">✅</div><div><div class="stat-pill-num" id="st-disetujui">—</div><div class="stat-pill-label">Disetujui</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef2f2">❌</div><div><div class="stat-pill-num" id="st-ditolak">—</div><div class="stat-pill-label">Ditolak</div></div></div>
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-bar fade-in" style="animation-delay:0.1s">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" id="search-input" placeholder="Cari nomor atau perihal surat..." oninput="filterTable()">
+      </div>
+      <select class="filter-select" id="filter-status" onchange="filterTable()">
+        <option value="">Semua Status</option>
+        <option value="menunggu">Menunggu</option>
+        <option value="disetujui">Disetujui</option>
+        <option value="ditolak">Ditolak</option>
+        <option value="draft">Draft</option>
+      </select>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap fade-in" style="animation-delay:0.15s">
+      <div class="table-head">
+        <span class="table-head-title">Daftar Surat Tugas</span>
+        <span class="table-head-count" id="table-count">Memuat...</span>
+      </div>
+      <div id="table-area">
+        <table><thead><tr><th>Nomor Surat</th><th>Perihal</th><th>Tujuan</th><th>Berangkat</th><th>Kembali</th><th>Pegawai</th><th>Status</th><th></th></tr></thead>
+        <tbody><tr><td colspan="8"><div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div class="skel" style="height:38px;border-radius:6px"></div>
+          <div class="skel" style="height:38px;border-radius:6px"></div>
+          <div class="skel" style="height:38px;border-radius:6px"></div>
+        </div></td></tr></tbody></table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-header-icon">📄</div>
+      <h2 class="modal-title">Buat Surat <em>Tugas</em></h2>
+      <p class="modal-sub">Isi formulir berikut. Pengajuan akan dikirim ke administrator untuk disetujui.</p>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert" id="form-alert"><span id="alert-icon"></span><span id="alert-text"></span></div>
+
+      <div class="form-section">
+        <div class="form-section-title">Informasi Surat</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nomor Surat <span>*</span></label>
+            <input class="form-input" id="f-nomor" type="text" placeholder="Contoh: ST/001/IV/2026">
+            <span class="err-msg" id="e-nomor">Nomor surat wajib diisi</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Surat <span>*</span></label>
+            <input class="form-input" id="f-tanggal-surat" type="date">
+            <span class="err-msg" id="e-tanggal-surat">Tanggal surat wajib diisi</span>
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label">Perihal <span>*</span></label>
+            <input class="form-input" id="f-perihal" type="text" placeholder="Perihal / judul surat tugas">
+            <span class="err-msg" id="e-perihal">Perihal wajib diisi</span>
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label">Tujuan Penugasan <span>*</span></label>
+            <input class="form-input" id="f-tujuan" type="text" placeholder="Kota / instansi tujuan">
+            <span class="err-msg" id="e-tujuan">Tujuan wajib diisi</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Waktu Penugasan</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tanggal Berangkat <span>*</span></label>
+            <input class="form-input" id="f-tgl-berangkat" type="date" onchange="checkTanggal()">
+            <span class="err-msg" id="e-tgl-berangkat">Tanggal berangkat wajib diisi</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Kembali</label>
+            <input class="form-input" id="f-tgl-kembali" type="date" onchange="checkTanggal()">
+            <span class="err-msg" id="e-tgl-kembali">Tidak boleh sebelum tanggal berangkat</span>
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label class="form-label">Keperluan / Keterangan</label>
+            <textarea class="form-textarea" id="f-keperluan" placeholder="Jelaskan keperluan penugasan secara singkat..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Pegawai yang Ditugaskan <span style="color:var(--red);font-size:13px">*</span></div>
+        <p class="form-hint" style="margin-bottom:10px">Pilih satu atau lebih pegawai yang akan ditugaskan.</p>
+        <div class="pegawai-picker">
+          <div class="pegawai-picker-search">
+            <input class="pegawai-picker-input" id="pegawai-search" type="text" placeholder="🔍  Cari nama atau NIP..." oninput="filterPegawai()">
+          </div>
+          <div class="pegawai-list" id="pegawai-list">
+            <div class="pegawai-empty">Memuat data pegawai...</div>
+          </div>
+          <div class="selected-tags" id="selected-tags">
+            <span style="font-size:11px;color:var(--muted);align-self:center">Belum ada pegawai dipilih</span>
+          </div>
+        </div>
+        <span class="err-msg" id="e-pegawai">Pilih minimal satu pegawai</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-submit" id="btn-submit" onclick="submitForm()">Kirim Pengajuan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://jsmmtqeoukkgugorrvmg.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzbW10cWVvdWtrZ3Vnb3Jydm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTg2NzksImV4cCI6MjA5MTY3NDY3OX0.O03NscRcj4RcNx-P3j65hO7XXLRSkbyJcwpcArpqHBQ';
+const H={'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json'};
+
+let SESSION=null;
+function checkSession(){try{const s=JSON.parse(localStorage.getItem('nova_user')||'null');if(!s){window.location.replace('login.html');return null;}if(s.expires_at&&Date.now()>s.expires_at){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}if(s.must_change_password){window.location.replace('ganti-password.html');return null;}return s;}catch(e){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}}
+function logout(){localStorage.removeItem('nova_user');window.location.replace('login.html');}
+function updateClock(){document.getElementById('topbar-time').textContent=new Date().toLocaleString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+updateClock();setInterval(updateClock,1000);
+function setTopbarUser(s){const name=s.full_name||s.username||'Pengguna';const i=name.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);document.getElementById('topbar-avatar').textContent=i;document.getElementById('topbar-username').textContent=name;}
+
+/* ── PEGAWAI PICKER ── */
+let allPegawai=[];
+let selectedNIP=new Set();
+
+async function loadPegawai(){
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/data%20pegawai?select=id,NAMA,NIP&order=NAMA.asc`,{headers:H});
+    if(!res.ok)throw new Error();
+    allPegawai=await res.json();
+    renderPegawaiList(allPegawai);
+  }catch(e){document.getElementById('pegawai-list').innerHTML='<div class="pegawai-empty">Gagal memuat data pegawai.</div>';}
+}
+
+function renderPegawaiList(list){
+  const el=document.getElementById('pegawai-list');
+  if(!list.length){el.innerHTML='<div class="pegawai-empty">Tidak ada hasil.</div>';return;}
+  el.innerHTML=list.map(p=>{
+    const nip=p['NIP']||'';const nama=p['NAMA']||'-';
+    const checked=selectedNIP.has(nip)?'checked':'';
+    const sel=selectedNIP.has(nip)?' selected':'';
+    const safeNama=nama.replace(/'/g,"\\'");
+    return `<div class="pegawai-item${sel}" onclick="togglePegawai('${nip}','${safeNama}')">
+      <input type="checkbox" ${checked} onclick="event.stopPropagation();togglePegawai('${nip}','${safeNama}')">
+      <div><div class="pegawai-item-name">${nama}</div><div class="pegawai-item-nip">NIP ${nip||'—'}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function filterPegawai(){
+  const q=document.getElementById('pegawai-search').value.toLowerCase();
+  renderPegawaiList(allPegawai.filter(p=>(p['NAMA']||'').toLowerCase().includes(q)||(p['NIP']||'').includes(q)));
+}
+
+function togglePegawai(nip,nama){
+  if(selectedNIP.has(nip))selectedNIP.delete(nip);
+  else selectedNIP.add(nip);
+  filterPegawai();
+  renderSelectedTags();
+}
+
+function renderSelectedTags(){
+  const el=document.getElementById('selected-tags');
+  if(!selectedNIP.size){el.innerHTML='<span style="font-size:11px;color:var(--muted);align-self:center">Belum ada pegawai dipilih</span>';return;}
+  el.innerHTML=[...selectedNIP].map(nip=>{
+    const p=allPegawai.find(x=>x['NIP']===nip);
+    const nama=p?p['NAMA']:nip;
+    const safeNama=(nama||'').replace(/'/g,"\\'");
+    return `<span class="pegawai-tag">${nama}<button class="pegawai-tag-remove" onclick="togglePegawai('${nip}','${safeNama}')">×</button></span>`;
+  }).join('');
+}
+
+/* ── SURAT TUGAS DATA ── */
+let allSurat=[];
+
+async function loadSurat(){
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/surat_tugas?user_id=eq.${encodeURIComponent(SESSION.id)}&order=created_at.desc`,{headers:H});
+    if(!res.ok)throw new Error();
+    allSurat=await res.json();
+    updateStats();renderTable(allSurat);
+  }catch(e){
+    document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">⚠️</div><div class="table-empty-text">Gagal memuat data. Muat ulang halaman.</div></div>';
+  }
+}
+
+function updateStats(){
+  document.getElementById('st-total').textContent=allSurat.length;
+  document.getElementById('st-menunggu').textContent=allSurat.filter(s=>s.status==='menunggu').length;
+  document.getElementById('st-disetujui').textContent=allSurat.filter(s=>s.status==='disetujui').length;
+  document.getElementById('st-ditolak').textContent=allSurat.filter(s=>s.status==='ditolak').length;
+}
+
+function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});}
+
+function badgeHTML(status){
+  const m={menunggu:['menunggu','Menunggu'],disetujui:['disetujui','Disetujui'],ditolak:['ditolak','Ditolak'],draft:['draft','Draft']};
+  const[cls,lbl]=m[status]||['draft',status||'Draft'];
+  return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;
+}
+
+function renderTable(data){
+  document.getElementById('table-count').textContent=`${data.length} surat`;
+  if(!data.length){
+    document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Belum ada surat tugas. Klik "+ Buat Surat Tugas" untuk membuat pengajuan baru.</div></div>';
+    return;
+  }
+  const rows=data.map(s=>`<tr>
+    <td data-label="Nomor"><strong style="color:var(--navy);font-size:12px">${s.nomor_surat||'—'}</strong></td>
+    <td data-label="Perihal" style="max-width:180px"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${s.perihal||'—'}</span></td>
+    <td data-label="Tujuan">${s.tujuan||'—'}</td>
+    <td data-label="Berangkat">${fmtDate(s.tanggal_berangkat)}</td>
+    <td data-label="Kembali">${fmtDate(s.tanggal_kembali)}</td>
+    <td data-label="Pegawai"><span style="font-size:11px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td>
+    <td data-label="Status">${badgeHTML(s.status)}</td>
+    <td><button class="btn-action" onclick='showDetail(${JSON.stringify(s)})'>Detail</button></td>
+  </tr>`).join('');
+  document.getElementById('table-area').innerHTML=`<table><thead><tr><th>Nomor Surat</th><th>Perihal</th><th>Tujuan</th><th>Berangkat</th><th>Kembali</th><th>Pegawai</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function filterTable(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  const st=document.getElementById('filter-status').value;
+  const f=allSurat.filter(s=>(!q||(s.nomor_surat||'').toLowerCase().includes(q)||(s.perihal||'').toLowerCase().includes(q))&&(!st||s.status===st));
+  renderTable(f);
+  document.getElementById('table-count').textContent=`${f.length} surat`;
+}
+
+function showDetail(s){
+  const pegawai=(s.pegawai_list||[]).join(', ')||'—';
+  alert(`DETAIL SURAT TUGAS\n\nNomor      : ${s.nomor_surat||'—'}\nTanggal    : ${fmtDate(s.tanggal_surat)}\nPerihal    : ${s.perihal||'—'}\nTujuan     : ${s.tujuan||'—'}\nBerangkat  : ${fmtDate(s.tanggal_berangkat)}\nKembali    : ${fmtDate(s.tanggal_kembali)}\nStatus     : ${s.status||'—'}\nPegawai    : ${pegawai}\nKeperluan  : ${s.keperluan||'—'}`);
+}
+
+/* ── MODAL ── */
+function openModal(){
+  selectedNIP=new Set();
+  ['f-nomor','f-tanggal-surat','f-perihal','f-tujuan','f-tgl-berangkat','f-tgl-kembali','f-keperluan'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('pegawai-search').value='';
+  document.querySelectorAll('.err-msg').forEach(e=>e.classList.remove('show'));
+  document.querySelectorAll('.form-input,.form-textarea').forEach(e=>e.classList.remove('err'));
+  document.getElementById('form-alert').className='alert';
+  const btn=document.getElementById('btn-submit');btn.disabled=false;btn.classList.remove('loading');
+  renderPegawaiList(allPegawai);renderSelectedTags();
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function handleOverlayClick(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+
+function checkTanggal(){
+  const a=document.getElementById('f-tgl-berangkat').value;
+  const b=document.getElementById('f-tgl-kembali').value;
+  const err=document.getElementById('e-tgl-kembali');
+  const inp=document.getElementById('f-tgl-kembali');
+  if(a&&b&&b<a){err.classList.add('show');inp.classList.add('err');}
+  else{err.classList.remove('show');inp.classList.remove('err');}
+}
+
+function showAlert(msg,type='error'){
+  document.getElementById('alert-icon').textContent=type==='success'?'✅':'⚠️';
+  document.getElementById('alert-text').textContent=msg;
+  document.getElementById('form-alert').className=`alert ${type} show`;
+  document.getElementById('form-alert').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function submitForm(){
+  document.querySelectorAll('.err-msg').forEach(e=>e.classList.remove('show'));
+  document.querySelectorAll('.form-input,.form-textarea').forEach(e=>e.classList.remove('err'));
+  document.getElementById('form-alert').className='alert';
+
+  const nomor=document.getElementById('f-nomor').value.trim();
+  const tglSurat=document.getElementById('f-tanggal-surat').value;
+  const perihal=document.getElementById('f-perihal').value.trim();
+  const tujuan=document.getElementById('f-tujuan').value.trim();
+  const tglBerangkat=document.getElementById('f-tgl-berangkat').value;
+  const tglKembali=document.getElementById('f-tgl-kembali').value;
+  const keperluan=document.getElementById('f-keperluan').value.trim();
+
+  let ok=true;
+  if(!nomor){document.getElementById('e-nomor').classList.add('show');document.getElementById('f-nomor').classList.add('err');ok=false;}
+  if(!tglSurat){document.getElementById('e-tanggal-surat').classList.add('show');document.getElementById('f-tanggal-surat').classList.add('err');ok=false;}
+  if(!perihal){document.getElementById('e-perihal').classList.add('show');document.getElementById('f-perihal').classList.add('err');ok=false;}
+  if(!tujuan){document.getElementById('e-tujuan').classList.add('show');document.getElementById('f-tujuan').classList.add('err');ok=false;}
+  if(!tglBerangkat){document.getElementById('e-tgl-berangkat').classList.add('show');document.getElementById('f-tgl-berangkat').classList.add('err');ok=false;}
+  if(tglKembali&&tglBerangkat&&tglKembali<tglBerangkat){document.getElementById('e-tgl-kembali').classList.add('show');document.getElementById('f-tgl-kembali').classList.add('err');ok=false;}
+  if(!selectedNIP.size){document.getElementById('e-pegawai').classList.add('show');ok=false;}
+  if(!ok){showAlert('Lengkapi semua kolom yang wajib diisi.');return;}
+
+  const pegawaiList=[...selectedNIP].map(nip=>{const p=allPegawai.find(x=>x['NIP']===nip);return p?p['NAMA']:nip;});
+
+  const payload={
+    user_id:SESSION.id,
+    nomor_surat:nomor,
+    tanggal_surat:tglSurat,
+    perihal,
+    tujuan,
+    tanggal_berangkat:tglBerangkat,
+    tanggal_kembali:tglKembali||null,
+    keperluan:keperluan||null,
+    pegawai_nip:[...selectedNIP],
+    pegawai_list:pegawaiList,
+    status:'menunggu',
+    created_at:new Date().toISOString()
+  };
+
+  const btn=document.getElementById('btn-submit');
+  btn.disabled=true;btn.classList.add('loading');
+
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/surat_tugas`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(payload)});
+    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||`HTTP ${res.status}`);}
+    closeModal();
+    await loadSurat();
+  }catch(e){
+    showAlert(`Gagal mengirim: ${e.message}. Pastikan tabel surat_tugas sudah dibuat di Supabase.`);
+    btn.disabled=false;btn.classList.remove('loading');
+  }
+}
+
+async function init(){
+  SESSION=checkSession();
+  if(!SESSION)return;
+  setTopbarUser(SESSION);
+  await Promise.all([loadSurat(),loadPegawai()]);
+}
+init();
+</script>
+</body>
+</html>
