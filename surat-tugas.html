@@ -107,7 +107,7 @@
   .table-empty-icon{font-size:26px;opacity:.3;margin-bottom:8px}
   .table-empty-text{font-size:13px;color:var(--muted)}
 
-  /* ── Fix #3: MODAL DETAIL (mengganti alert() native) ── */
+  /* ── MODAL DETAIL ── */
   .modal-overlay{
     position:fixed;inset:0;
     background:rgba(13,35,64,0.55);
@@ -474,7 +474,7 @@
   <div class="peg-list" id="peg-list"></div>
 </div>
 
-<!-- ═══ Fix #3: MODAL DETAIL — mengganti native alert() ═══ -->
+<!-- ═══ MODAL DETAIL ═══ -->
 <div class="modal-overlay" id="detail-modal" style="display:none" onclick="if(event.target===this)closeDetailModal()">
   <div class="modal">
     <div class="modal-header">
@@ -492,6 +492,20 @@
 <script src="config.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════ */
+// Fix XSS: escape semua data dari DB sebelum dimasukkan ke innerHTML
+function esc(str){
+  if(str==null)return'';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+/* ═══════════════════════════════════════════════════════
    CONFIG & STATE
 ═══════════════════════════════════════════════════════ */
 const H={'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'Content-Type':'application/json'};
@@ -499,6 +513,8 @@ const H={'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}
 let SESSION=null;
 let allPegawai=[];
 let allSurat=[];
+// Map untuk menyimpan data surat berdasarkan id (hindari serialisasi di onclick attr)
+const suratMap={};
 let rowIdCounter=0;
 const rows={};
 
@@ -552,9 +568,10 @@ function fmtWaktu(mulai,selesai){
 async function loadPegawai(){
   try{
     const res=await fetch(`${SUPABASE_URL}/rest/v1/data%20pegawai?select=id,NAMA,NIP&order=NAMA.asc`,{headers:H});
-    if(!res.ok)throw new Error();
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
     allPegawai=await res.json();
-  }catch(e){console.warn('Gagal load pegawai',e);}
+    console.log('Pegawai loaded:',allPegawai.length);
+  }catch(e){console.error('Gagal load pegawai',e);}
 }
 
 /* ── LOAD SURAT ── */
@@ -579,7 +596,7 @@ function updateStats(){
 
 function badgeHTML(status){
   const m={menunggu:['menunggu','Menunggu'],disetujui:['disetujui','Disetujui'],ditolak:['ditolak','Ditolak']};
-  const[cls,lbl]=m[status]||['draft',status||'Draft'];
+  const[cls,lbl]=m[status]||['draft',esc(status)||'Draft'];
   return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;
 }
 
@@ -589,13 +606,16 @@ function renderTable(data){
     document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Belum ada surat tugas. Gunakan tab Bulk Entry untuk membuat surat baru.</div></div>';
     return;
   }
+  // Fix XSS: gunakan esc() untuk semua data dari DB
+  // Fix onclick: simpan data di suratMap, passing hanya id
+  data.forEach(s=>{ suratMap[s.id]=s; });
   const r=data.map(s=>`<tr>
-    <td style="max-width:220px;white-space:normal;word-break:break-word;line-height:1.5">${s.perihal||'—'}</td>
-    <td style="white-space:nowrap;font-size:12px">${fmtWaktu(s.waktu_mulai,s.waktu_selesai)}</td>
-    <td>${s.tujuan||'—'}</td>
+    <td style="max-width:220px;white-space:normal;word-break:break-word;line-height:1.5">${esc(s.perihal)||'—'}</td>
+    <td style="white-space:nowrap;font-size:12px">${esc(fmtWaktu(s.waktu_mulai,s.waktu_selesai))}</td>
+    <td>${esc(s.tujuan)||'—'}</td>
     <td><span style="font-size:11px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td>
     <td>${badgeHTML(s.status)}</td>
-    <td><button class="btn-sm" onclick='showDetail(${JSON.stringify(s).replace(/'/g,"&#39;")})'>Detail</button></td>
+    <td><button class="btn-sm" onclick="showDetail(${JSON.stringify(s.id)})">Detail</button></td>
   </tr>`).join('');
   document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu Pelaksanaan</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th></th></tr></thead><tbody>${r}</tbody></table>`;
 }
@@ -607,30 +627,27 @@ function filterTable(){
   renderTable(f);document.getElementById('table-count').textContent=`${f.length} surat`;
 }
 
-/* ─────────────────────────────────────────────────────
-   Fix #3: Modal detail menggantikan native alert()
-   Tampilan konsisten dengan UI portal, bisa di-style,
-   dan tidak memblokir thread utama browser.
-───────────────────────────────────────────────────── */
-function showDetail(s){
+/* ── MODAL DETAIL ── */
+function showDetail(id){
+  const s=suratMap[id];
+  if(!s)return;
   const field=(label,val)=>`
     <div>
       <div class="modal-field-label">${label}</div>
       <div class="modal-field-val">${val||'—'}</div>
     </div>`;
   document.getElementById('modal-body').innerHTML=`
-    ${field('Perihal', s.perihal)}
-    ${field('Waktu Pelaksanaan', fmtWaktu(s.waktu_mulai, s.waktu_selesai))}
-    ${field('Tujuan', s.tujuan)}
+    ${field('Perihal', esc(s.perihal))}
+    ${field('Waktu Pelaksanaan', esc(fmtWaktu(s.waktu_mulai, s.waktu_selesai)))}
+    ${field('Tujuan', esc(s.tujuan))}
     ${field('Status', badgeHTML(s.status))}
-    ${field('Pegawai', (s.pegawai_list||[]).join(', ')||'—')}
+    ${field('Pegawai', (s.pegawai_list||[]).map(esc).join(', ')||'—')}
   `;
   document.getElementById('detail-modal').style.display='flex';
 }
 function closeDetailModal(){
   document.getElementById('detail-modal').style.display='none';
 }
-// Tutup modal dengan tombol Escape
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape') closeDetailModal();
 });
@@ -691,14 +708,29 @@ function drpRender(){
     } else if(startStr&&ds===startStr){
       cls+=(endStr===startStr)?' drp-day-single':' drp-day-start';
     }
-    html+=`<div class="${cls}" onclick="drpClickDay('${ds}')">${d}</div>`;
+    html+=`<div class="${cls}" data-date="${ds}">${d}</div>`;
   }
   document.getElementById('drp-days').innerHTML=html;
+
+  // Pasang event listener via delegasi (bukan onclick attr) agar tidak perlu stopPropagation
+  document.getElementById('drp-days').onclick=function(e){
+    const day=e.target.closest('.drp-day');
+    if(!day||day.classList.contains('drp-day-empty')||day.classList.contains('drp-day-disabled'))return;
+    drpClickDay(day.dataset.date);
+  };
+
   let footerText='Klik tanggal mulai';
   if(drpPhase===1&&startStr)footerText=`Mulai: ${fmtWaktu(startStr,null)} — klik tanggal selesai`;
   else if(drpPhase===0&&startStr&&endStr)footerText=fmtWaktu(startStr,endStr===startStr?null:endStr);
   document.getElementById('drp-selected-text').textContent=footerText;
 }
+
+/*
+ * FIX KALENDER: drpClickDay tidak lagi menerima event,
+ * sehingga tidak perlu stopPropagation.
+ * Panggilan drpRender() di sini aman karena listener
+ * dipasang via delegasi di drp-days, bukan di tiap .drp-day.
+ */
 function drpClickDay(ds){
   if(drpRowId==null)return;
   const r=rows[drpRowId];
@@ -713,6 +745,7 @@ function drpClickDay(ds){
     setTimeout(()=>drpClose(),200);
   }
 }
+
 function drpUpdateTrigger(rowId){
   const r=rows[rowId];
   const trigger=document.getElementById(`drp-trigger-${rowId}`);
@@ -780,27 +813,47 @@ function pegFilterList(q){
   pegFilteredList=q?allPegawai.filter(p=>(p['NAMA']||'').toLowerCase().includes(q)||(p['NIP']||'').includes(q)):allPegawai;
   pegRenderList();
 }
+
+/*
+ * FIX PEGAWAI: Gunakan event delegation di peg-list
+ * agar klik pada item tidak menyebabkan popup tertutup
+ * akibat re-render list (target menjadi detached dari DOM).
+ */
 function pegRenderList(){
   const list=document.getElementById('peg-list');
   if(!list)return;
-  if(!allPegawai.length){list.innerHTML='<div class="peg-empty">Data pegawai belum dimuat.<br><small>Periksa koneksi atau muat ulang halaman.</small></div>';return;}
+  if(!allPegawai.length){
+    list.innerHTML='<div class="peg-empty">Data pegawai belum dimuat.<br><small>Periksa koneksi atau muat ulang halaman.</small></div>';
+    return;
+  }
   if(!pegFilteredList.length){list.innerHTML='<div class="peg-empty">Tidak ada hasil</div>';return;}
   const sel=pegRowId!=null?(rows[pegRowId]?.pegawaiNIPs||[]):[];
   list.innerHTML=pegFilteredList.map((p,i)=>{
     const nip=p['NIP']||'';const nama=p['NAMA']||'-';
     const isSel=sel.includes(nip);
-    return`<div class="peg-item${isSel?' selected':''}" data-nip="${nip}" data-idx="${i}"
-      onclick="pegToggle('${nip.replace(/'/g,"\\'")}')"
-      onmouseenter="pegSetFocus(${i})">
+    return`<div class="peg-item${isSel?' selected':''}" data-nip="${esc(nip)}" data-idx="${i}">
       <div class="peg-item-check">${isSel?'✓':''}</div>
       <div style="flex:1">
-        <div class="peg-item-name">${nama}</div>
-        <div class="peg-item-nip">NIP ${nip||'—'}</div>
+        <div class="peg-item-name">${esc(nama)}</div>
+        <div class="peg-item-nip">NIP ${esc(nip)||'—'}</div>
       </div>
     </div>`;
   }).join('');
   pegScrollToFocus();
 }
+
+// Pasang satu listener delegasi di peg-list (bukan per item)
+document.getElementById('peg-list').addEventListener('click',function(e){
+  const item=e.target.closest('.peg-item');
+  if(!item)return;
+  pegToggle(item.dataset.nip||'');
+});
+document.getElementById('peg-list').addEventListener('mouseover',function(e){
+  const item=e.target.closest('.peg-item');
+  if(!item)return;
+  pegSetFocus(parseInt(item.dataset.idx,10));
+});
+
 function pegSetFocus(idx){
   pegFocusIdx=idx;
   document.querySelectorAll('#peg-list .peg-item').forEach((el,i)=>el.classList.toggle('focused',i===idx));
@@ -814,7 +867,9 @@ function pegToggle(nip){
   if(pegRowId==null)return;
   const r=rows[pegRowId];const arr=r.pegawaiNIPs;const idx=arr.indexOf(nip);
   if(idx>=0)arr.splice(idx,1);else arr.push(nip);
-  pegRenderTags(pegRowId);pegRenderList();
+  pegRenderTags(pegRowId);
+  // Re-render list tanpa menutup popup (aman karena listener ada di parent, bukan di item)
+  pegRenderList();
 }
 function pegRenderTags(rowId){
   const trigger=document.getElementById(`peg-trigger-${rowId}`);
@@ -830,8 +885,16 @@ function pegRenderTags(rowId){
     const tag=document.createElement('span');
     tag.className='peg-tag';tag.title=nama;
     const namaTrunc=nama.length>18?nama.slice(0,16)+'…':nama;
-    tag.innerHTML=`${namaTrunc}<button class="peg-tag-x" onclick="event.stopPropagation();pegToggle('${nip.replace(/'/g,"\\'")}')">×</button>`;
+    // Gunakan data-nip agar tidak perlu inline JS
+    tag.innerHTML=`${esc(namaTrunc)}<button class="peg-tag-x" data-nip="${esc(nip)}">×</button>`;
     trigger.insertBefore(tag,ph||null);
+  });
+  // Delegasi event untuk tombol × di tag
+  trigger.querySelectorAll('.peg-tag-x').forEach(btn=>{
+    btn.onclick=function(e){
+      e.stopPropagation();
+      pegToggle(this.dataset.nip);
+    };
   });
 }
 document.getElementById('peg-search').addEventListener('keydown',function(e){
@@ -842,18 +905,36 @@ document.getElementById('peg-search').addEventListener('keydown',function(e){
 });
 document.getElementById('peg-search').addEventListener('input',function(){pegFocusIdx=-1;pegFilterList(this.value);});
 
-/* ── Close popups on outside click ── */
+/* ── Close popups on outside click ──
+ * FIX UTAMA: Tambahkan pengecekan document.contains(e.target).
+ * Ketika drpRender() atau pegRenderList() dipanggil di dalam handler klik,
+ * elemen yang diklik (e.target) dihapus dari DOM (detached).
+ * Akibatnya popup.contains(e.target) mengembalikan false,
+ * dan outside-click handler salah mengira ini klik di luar popup,
+ * lalu menutup popup. Dengan document.contains(e.target), kita
+ * abaikan event jika targetnya sudah tidak ada di DOM.
+ */
 document.addEventListener('click',function(e){
   const drpPopup=document.getElementById('drp-popup');
   const pegPopup=document.getElementById('peg-popup');
+
   if(drpPopup.classList.contains('open')){
     const trigger=drpRowId!=null?document.getElementById(`drp-trigger-${drpRowId}`):null;
-    if(!drpPopup.contains(e.target)&&(!trigger||!trigger.contains(e.target)))drpClose();
+    if(
+      document.contains(e.target) &&
+      !drpPopup.contains(e.target) &&
+      (!trigger||!trigger.contains(e.target))
+    ) drpClose();
   }
+
   if(pegPopup.classList.contains('open')){
     if(pegJustOpened)return;
     const trigger=pegRowId!=null?document.getElementById(`peg-trigger-${pegRowId}`):null;
-    if(!pegPopup.contains(e.target)&&(!trigger||!trigger.contains(e.target)))pegClose();
+    if(
+      document.contains(e.target) &&
+      !pegPopup.contains(e.target) &&
+      (!trigger||!trigger.contains(e.target))
+    ) pegClose();
   }
 });
 
@@ -931,11 +1012,6 @@ function handleKey(e,id,colIdx){
   }
 }
 
-/*
- * Fix #5: Tambahkan reNumberRows() di akhir handlePaste.
- * Sebelumnya, saat paste menambah baris baru otomatis,
- * nomor urut baris tidak diperbarui.
- */
 function handlePaste(e,startId){
   const text=e.clipboardData?.getData('text')||'';
   if(!text.includes('\t')&&!text.includes('\n'))return;
@@ -947,7 +1023,6 @@ function handlePaste(e,startId){
     const cells=line.split('\t');
     let rowId=ids[startIdx+li];
     if(!rowId){addRows(1);rowId=getRowIds()[getRowIds().length-1];}
-    // Kolom Excel: perihal | waktu_mulai(YYYY-MM-DD) | waktu_selesai(YYYY-MM-DD) | tujuan
     const maps=[
       {field:'perihal',elId:`f-perihal-${rowId}`},
       {field:'waktuMulai',elId:null},
@@ -963,7 +1038,6 @@ function handlePaste(e,startId){
     });
     drpUpdateTrigger(rowId);
   });
-  // Fix #5: Perbarui nomor urut setelah semua baris selesai diproses
   reNumberRows();
   updateBulkCounters();
 }
@@ -1042,7 +1116,7 @@ function showRowErrors(id,errs){
   if(!el)return;
   if(!errs.length){el.classList.remove('show');rowEl?.classList.remove('has-error');return;}
   el.classList.add('show');rowEl?.classList.add('has-error');
-  el.innerHTML=errs.map(e=>`<span class="row-err-item">⚠ ${e}</span>`).join('');
+  el.innerHTML=errs.map(e=>`<span class="row-err-item">⚠ ${esc(e)}</span>`).join('');
 }
 function clearRowErrors(id){showRowErrors(id,[]);}
 
@@ -1057,13 +1131,6 @@ async function submitChecked(){
 
   const payloads=checkedIds.map(id=>{
     const r=rows[id];
-    /*
-     * Fix #8 — CATATAN:
-     * Kedua field (pegawai_nip & pegawai_list) dikirim karena keduanya
-     * berasal dari sumber yang sama dalam satu operasi sehingga tetap
-     * sinkron. Jika skema DB hanya membutuhkan salah satu, hapus field
-     * yang tidak diperlukan untuk menyederhanakan struktur data.
-     */
     const pegawaiList=r.pegawaiNIPs.map(nip=>{const p=allPegawai.find(x=>x['NIP']===nip);return p?p['NAMA']:nip;});
     const selesai=r.waktuSelesai&&r.waktuSelesai!==r.waktuMulai?r.waktuSelesai:null;
     return{
