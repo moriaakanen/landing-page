@@ -34,7 +34,6 @@
 
   .page{min-height:calc(100vh - 44px - 52px);display:grid;grid-template-columns:1fr 500px}
 
-  /* LEFT */
   .left{background:var(--navy);padding:56px 52px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
   .left::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(200,168,75,0.07) 1px,transparent 1px);background-size:30px 30px}
   .left::after{content:'';position:absolute;bottom:-100px;right:-100px;width:420px;height:420px;border:70px solid rgba(200,168,75,0.05);border-radius:50%}
@@ -64,7 +63,6 @@
   .l-stat-num{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--gold);display:block;line-height:1;margin-bottom:3px}
   .l-stat-label{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.3px}
 
-  /* RIGHT */
   .right{background:var(--white);display:flex;align-items:center;justify-content:center;padding:48px 52px;border-left:1px solid var(--border)}
 
   .login-wrap{width:100%;max-width:360px;animation:fadeUp 0.7s ease 0.1s both}
@@ -76,14 +74,12 @@
   .form-title{font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--navy);margin-bottom:6px;line-height:1.2}
   .form-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.6}
 
-  /* Alert */
   .alert{padding:11px 13px;border-radius:6px;font-size:13px;line-height:1.5;margin-bottom:18px;display:none;gap:8px;align-items:flex-start}
   .alert.show{display:flex;animation:fadeUp 0.3s ease}
   .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
   .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
   .alert.warning{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
 
-  /* Form */
   .form-group{margin-bottom:16px}
   .form-label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:7px;letter-spacing:0.2px}
   .form-label span{color:var(--red);margin-left:2px}
@@ -98,7 +94,6 @@
   .error-msg{font-size:11px;color:var(--red);margin-top:4px;display:none}
   .error-msg.show{display:block}
 
-  /* Attempt counter */
   .attempt-info{font-size:11px;color:var(--muted);text-align:right;margin-top:-10px;margin-bottom:14px}
   .attempt-info.warn{color:#92400e}
 
@@ -109,7 +104,6 @@
   .btn-submit.loading::after{content:'';position:absolute;top:50%;left:50%;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;transform:translate(-50%,-50%);animation:spin 0.7s linear infinite}
   @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 
-  /* Success */
   .success-screen{display:none;flex-direction:column;align-items:center;text-align:center;gap:14px}
   .success-screen.show{display:flex;animation:fadeUp 0.4s ease}
   .success-icon-wrap{width:60px;height:60px;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both}
@@ -149,8 +143,6 @@
 </div>
 
 <div class="page">
-
-  <!-- LEFT -->
   <div class="left">
     <div class="left-inner">
       <div class="portal-logo">
@@ -178,11 +170,9 @@
     </div>
   </div>
 
-  <!-- RIGHT -->
   <div class="right">
     <div class="login-wrap">
 
-      <!-- Form login -->
       <div id="login-section">
         <div class="security-badge"><span class="s-dot"></span> Koneksi Aman & Terenkripsi</div>
         <h2 class="form-title">Masuk ke Portal</h2>
@@ -230,7 +220,6 @@
         </div>
       </div>
 
-      <!-- Success screen -->
       <div class="success-screen" id="success-screen">
         <div class="success-icon-wrap">✓</div>
         <div class="success-title" id="success-title">Berhasil Masuk</div>
@@ -247,39 +236,35 @@
   <div class="footer-links"><a href="#">Bantuan</a><a href="#">Kebijakan Privasi</a><a href="#">Hubungi Kami</a></div>
 </div>
 
+<!-- Fix #6: Gunakan config.js terpusat, hapus duplikasi konstanta -->
+<script src="config.js"></script>
 <script>
-  const SUPABASE_URL = 'https://jsmmtqeoukkgugorrvmg.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzbW10cWVvdWtrZ3Vnb3Jydm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTg2NzksImV4cCI6MjA5MTY3NDY3OX0.O03NscRcj4RcNx-P3j65hO7XXLRSkbyJcwpcArpqHBQ';
-
-  // Max percobaan login
-  const MAX_ATTEMPTS = 5;
+  /*
+   * Fix #2 — CATATAN KEAMANAN:
+   * Lockout di bawah hanya berjalan di sisi klien (localStorage) dan dapat
+   * di-bypass dengan mudah. Untuk keamanan nyata, implementasikan pencatatan
+   * percobaan gagal di RPC `verify_login` di database Supabase.
+   */
+  const MAX_ATTEMPTS    = 5;
   const LOCKOUT_MINUTES = 10;
 
-  // Redirect jika sudah login — gunakan replace agar tidak ada history loop
+  // Redirect jika sudah login
   try {
     const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
     if (s && s.expires_at && Date.now() < s.expires_at) {
-      if (s.must_change_password) {
-        window.location.replace('ganti-password.html');
-      } else {
-        window.location.replace('index.html');
-      }
+      window.location.replace(s.must_change_password ? 'ganti-password.html' : 'index.html');
     }
   } catch(e) { localStorage.removeItem('nova_user'); }
 
-  // Cek lockout
   function getLockout() {
     try { return JSON.parse(localStorage.getItem('nova_lockout') || 'null'); } catch(e) { return null; }
   }
   function setLockout(attempts) {
-    if (attempts >= MAX_ATTEMPTS) {
-      localStorage.setItem('nova_lockout', JSON.stringify({
-        until: Date.now() + LOCKOUT_MINUTES * 60 * 1000,
-        attempts
-      }));
-    } else {
-      localStorage.setItem('nova_lockout', JSON.stringify({ attempts, until: null }));
-    }
+    localStorage.setItem('nova_lockout', JSON.stringify(
+      attempts >= MAX_ATTEMPTS
+        ? { until: Date.now() + LOCKOUT_MINUTES * 60 * 1000, attempts }
+        : { attempts, until: null }
+    ));
   }
   function clearLockout() { localStorage.removeItem('nova_lockout'); }
 
@@ -292,7 +277,7 @@
       document.getElementById('btn-submit').disabled = true;
       return true;
     }
-    if (lk.until && Date.now() >= lk.until) { clearLockout(); }
+    if (lk.until && Date.now() >= lk.until) clearLockout();
     return false;
   }
 
@@ -307,7 +292,6 @@
     } else { el.textContent = ''; }
   }
 
-  // Alert helpers
   function showAlert(msg, type = 'error') {
     const icons = { error: '⚠️', success: '✅', warning: '⚠️' };
     document.getElementById('alert-icon').textContent = icons[type] || '⚠️';
@@ -332,7 +316,6 @@
     btn.classList.toggle('loading', v);
   }
 
-  // Panggil Supabase RPC
   async function callRPC(fn, params) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
       method: 'POST',
@@ -346,7 +329,6 @@
     return res.json();
   }
 
-  // Handle login
   async function handleLogin() {
     clearErrors();
     if (checkLockout()) return;
@@ -354,7 +336,6 @@
     const username = document.getElementById('input-username').value.trim().toLowerCase();
     const password = document.getElementById('input-password').value;
 
-    // Validasi kosong
     let valid = true;
     if (!username) { showErr('err-username', 'input-username'); valid = false; }
     if (!password) { showErr('err-password', 'input-password'); valid = false; }
@@ -367,7 +348,6 @@
         p_password: password
       });
 
-      // Login gagal — data kosong
       if (!data || !Array.isArray(data) || data.length === 0) {
         const lk = getLockout();
         const attempts = (lk?.attempts || 0) + 1;
@@ -384,11 +364,8 @@
         return;
       }
 
-      // Login berhasil
       clearLockout();
       const user = data[0];
-
-      // Simpan sesi (berlaku 8 jam)
       const session = {
         id: user.id,
         username: user.username,
@@ -398,21 +375,10 @@
       };
       localStorage.setItem('nova_user', JSON.stringify(session));
 
-      // Cek apakah harus ganti password
       if (user.must_change_password) {
-        showSuccessScreen(
-          'Ganti Kata Sandi',
-          'Login berhasil. Anda diwajibkan mengganti kata sandi default...',
-          'ganti-password.html',
-          1500
-        );
+        showSuccessScreen('Ganti Kata Sandi', 'Login berhasil. Anda diwajibkan mengganti kata sandi default...', 'ganti-password.html', 1500);
       } else {
-        showSuccessScreen(
-          'Berhasil Masuk',
-          'Identitas terverifikasi. Mengalihkan ke portal...',
-          'index.html',
-          2000
-        );
+        showSuccessScreen('Berhasil Masuk', 'Identitas terverifikasi. Mengalihkan ke portal...', 'index.html', 2000);
       }
 
     } catch(e) {
@@ -427,8 +393,6 @@
     sc.classList.add('show');
     document.getElementById('success-title').textContent = title;
     document.getElementById('success-msg').textContent = msg;
-
-    // Animasi progress bar
     const fill = document.getElementById('progress-fill');
     fill.style.transition = `width ${delay}ms linear`;
     setTimeout(() => { fill.style.width = '100%'; }, 50);
@@ -444,7 +408,6 @@
       : '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
   }
 
-  // Init
   updateAttemptInfo();
   checkLockout();
   document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
