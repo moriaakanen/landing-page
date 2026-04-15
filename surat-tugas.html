@@ -595,7 +595,7 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════
-   CONFIG
+   CONFIG & STATE
 ═══════════════════════════════════════════════════════ */
 const SB_URL='https://jsmmtqeoukkgugorrvmg.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzbW10cWVvdWtrZ3Vnb3Jydm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTg2NzksImV4cCI6MjA5MTY3NDY3OX0.O03NscRcj4RcNx-P3j65hO7XXLRSkbyJcwpcArpqHBQ';
@@ -723,175 +723,134 @@ function showDetail(s){
 let drpRowId=null;
 let drpYear=new Date().getFullYear();
 let drpMonth=new Date().getMonth();
-// state per row: {start:'YYYY-MM-DD'|null, end:'YYYY-MM-DD'|null, selecting: 0=idle,1=waiting-end}
-// stored in rows[id].drp
+// drpPhase: 0 = menunggu klik pertama, 1 = menunggu klik kedua (end)
+let drpPhase=0;
 
 function drpOpen(rowId){
-  // Toggle: jika sudah open untuk baris yang sama, tutup
-  if(drpRowId===rowId && document.getElementById('drp-popup').classList.contains('open')){
-    drpClose();return;
+  const popup=document.getElementById('drp-popup');
+  // Toggle tutup jika klik trigger yang sama
+  if(drpRowId===rowId && popup.classList.contains('open')){
+    drpClose(); return;
   }
   drpRowId=rowId;
-  const trigger=document.getElementById(`drp-trigger-${rowId}`);
-  if(!trigger)return;
-
   const r=rows[rowId];
-  if(r.waktuMulai&&!r._drpWaitingEnd){
+
+  // Tentukan bulan yang ditampilkan
+  if(r.waktuMulai){
     const d=new Date(r.waktuMulai+'T00:00:00');
-    drpYear=d.getFullYear();drpMonth=d.getMonth();
+    drpYear=d.getFullYear(); drpMonth=d.getMonth();
   } else {
-    drpYear=new Date().getFullYear();drpMonth=new Date().getMonth();
+    drpYear=new Date().getFullYear(); drpMonth=new Date().getMonth();
   }
 
-  const popup=document.getElementById('drp-popup');
+  // Phase: jika sudah ada range lengkap, mulai dari fase 0
+  drpPhase = 0;
+
+  // Posisikan dulu sebelum tampilkan agar getBoundingClientRect akurat
+  const trigger=document.getElementById(`drp-trigger-${rowId}`);
+  const rect=trigger.getBoundingClientRect();
+  const pH=330, pW=284;
+  const winH=window.innerHeight, winW=window.innerWidth;
+  let top=rect.bottom+4, left=rect.left;
+  if(top+pH>winH-8) top=Math.max(8, rect.top-pH-4);
+  if(left+pW>winW-8) left=winW-pW-8;
+  if(left<8) left=8;
+  popup.style.top=top+'px';
+  popup.style.left=left+'px';
+
   popup.classList.add('open');
   drpRender();
-  setTimeout(()=>positionPopupEl(popup,trigger),0);
-}
-
-function positionPopupEl(popup,trigger){
-  const rect=trigger.getBoundingClientRect();
-  const winH=window.innerHeight;
-  const winW=window.innerWidth;
-  const pRect=popup.getBoundingClientRect();
-  const pH=pRect.height||300;
-  const pW=pRect.width||260;
-
-  let top=rect.bottom+4;
-  let left=rect.left;
-  if(top+pH>winH-8)top=Math.max(8,rect.top-pH-4);
-  if(left+pW>winW-8)left=winW-pW-8;
-  if(left<8)left=8;
-
-  popup.style.top=top+'px';
-  popup.style.left=left+'px';
-}
-
-function positionPopup(popupId,trigger){
-  const popup=document.getElementById(popupId);
-  const rect=trigger.getBoundingClientRect();
-  const winH=window.innerHeight;
-  const winW=window.innerWidth;
-  const pH=320, pW=280;
-
-  let top=rect.bottom+4;
-  let left=rect.left;
-  if(top+pH>winH-8)top=rect.top-pH-4;
-  if(left+pW>winW-8)left=winW-pW-8;
-  if(left<8)left=8;
-
-  popup.style.top=top+'px';
-  popup.style.left=left+'px';
-  popup.style.width=pW+'px';
 }
 
 function drpClose(){
   document.getElementById('drp-popup').classList.remove('open');
   drpRowId=null;
+  drpPhase=0;
 }
 
 function drpRender(){
   const popup=document.getElementById('drp-popup');
-  if(!popup.classList.contains('open'))return;
+  if(!popup.classList.contains('open')) return;
 
-  // header
   document.getElementById('drp-header-label').textContent=`${BULAN_ID[drpMonth]} ${drpYear}`;
-
-  // day names
   const dayNames=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
   document.getElementById('drp-day-names').innerHTML=dayNames.map(d=>`<div class="drp-day-name">${d}</div>`).join('');
 
-  const r=drpRowId!=null?rows[drpRowId]:{};
-  const startStr=r?r.waktuMulai:null;
-  const endStr=(r&&!r._drpWaitingEnd)?r.waktuSelesai:null; // only show range when confirmed
+  const r=drpRowId!=null ? rows[drpRowId] : {};
+  const startStr=r.waktuMulai||'';
+  // Saat fase 1 (menunggu end), jangan tampilkan range dulu
+  const endStr=(drpPhase===0) ? (r.waktuSelesai||'') : '';
 
-  // first day of month
-  const firstDay=new Date(drpYear,drpMonth,1).getDay(); // 0=Sun
+  const firstDay=new Date(drpYear,drpMonth,1).getDay();
   const daysInMonth=new Date(drpYear,drpMonth+1,0).getDate();
   const today=toDateStr(new Date());
 
   let html='';
-  // empty cells before
   for(let i=0;i<firstDay;i++) html+=`<div class="drp-day drp-day-empty"></div>`;
   for(let d=1;d<=daysInMonth;d++){
     const ds=`${drpYear}-${String(drpMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     let cls='drp-day';
-    if(ds===today)cls+=' drp-day-today';
-    if(startStr&&endStr&&startStr!==endStr){
-      if(ds===startStr)cls+=' drp-day-start';
-      else if(ds===endStr)cls+=' drp-day-end';
-      else if(ds>startStr&&ds<endStr)cls+=' drp-day-in-range';
-    } else if(startStr&&ds===startStr){
-      cls+=endStr===startStr?' drp-day-single':' drp-day-start';
+    if(ds===today) cls+=' drp-day-today';
+    if(startStr && endStr && startStr!==endStr){
+      if(ds===startStr) cls+=' drp-day-start';
+      else if(ds===endStr) cls+=' drp-day-end';
+      else if(ds>startStr && ds<endStr) cls+=' drp-day-in-range';
+    } else if(startStr && ds===startStr){
+      cls+=(endStr===startStr)?' drp-day-single':' drp-day-start';
     }
-    html+=`<div class="${cls}" data-date="${ds}" onclick="drpClickDay('${ds}')">${d}</div>`;
+    html+=`<div class="${cls}" onclick="drpClickDay('${ds}')">${d}</div>`;
   }
   document.getElementById('drp-days').innerHTML=html;
 
-  // footer text
   let footerText='Klik tanggal mulai';
-  if(startStr&&r._drpWaitingEnd)footerText=`Mulai: ${fmtWaktu(startStr,null)} — klik tanggal selesai`;
-  else if(startStr&&endStr)footerText=fmtWaktu(startStr,endStr===startStr?null:endStr);
+  if(drpPhase===1 && startStr) footerText=`Mulai: ${fmtWaktu(startStr,null)} — klik tanggal selesai`;
+  else if(drpPhase===0 && startStr && endStr) footerText=fmtWaktu(startStr, endStr===startStr?null:endStr);
   document.getElementById('drp-selected-text').textContent=footerText;
 }
 
 function drpClickDay(ds){
-  if(drpRowId==null)return;
+  if(drpRowId==null) return;
   const r=rows[drpRowId];
 
-  // State: fase 1 = belum ada start atau sudah complete (mulai ulang)
-  //        fase 2 = sudah ada start, belum ada end (menunggu klik kedua)
-  const fase2 = r.waktuMulai && !r._drpWaitingEnd;
-
-  if(!r.waktuMulai || r._drpWaitingEnd===false){
-    // Fase 1: set start, tunggu klik kedua
+  if(drpPhase===0){
+    // KLIK PERTAMA: set tanggal mulai, masuk fase menunggu klik kedua
     r.waktuMulai=ds;
     r.waktuSelesai='';
-    r._drpWaitingEnd=true; // sekarang menunggu klik kedua
+    drpPhase=1;
+    drpUpdateTrigger(drpRowId);
+    drpRender();
+    // Kalender TETAP TERBUKA
   } else {
-    // Fase 2: klik kedua → set end
+    // KLIK KEDUA: set tanggal selesai, tutup kalender
     if(ds===r.waktuMulai){
-      // Klik tanggal yang sama → single date
+      // Tanggal sama → single date
       r.waktuSelesai=ds;
-    } else if(ds<r.waktuMulai){
-      // Lebih awal → swap: start=baru, end=lama
+    } else if(ds < r.waktuMulai){
+      // Klik lebih awal → swap
       r.waktuSelesai=r.waktuMulai;
       r.waktuMulai=ds;
     } else {
-      // Normal range
       r.waktuSelesai=ds;
     }
-    r._drpWaitingEnd=false;
+    drpPhase=0;
     drpUpdateTrigger(drpRowId);
     drpRender();
-    // Tutup kalender setelah klik kedua dengan delay singkat
-    setTimeout(()=>drpClose(),250);
-    return;
+    setTimeout(()=>drpClose(), 200);
   }
-
-  drpUpdateTrigger(drpRowId);
-  drpRender();
 }
 
 function drpUpdateTrigger(rowId){
   const r=rows[rowId];
   const trigger=document.getElementById(`drp-trigger-${rowId}`);
-  if(!trigger)return;
+  if(!trigger) return;
   const txt=trigger.querySelector('.drp-trigger-text');
   const ph=trigger.querySelector('.drp-trigger-placeholder');
-  const mulai=r.waktuMulai;
-  const selesai=r.waktuSelesai;
-  if(!mulai){
-    txt.textContent='';ph.style.display='';
-  } else if(r._drpWaitingEnd){
-    // Masih menunggu klik kedua — tampilkan mulai saja
-    txt.textContent=fmtWaktu(mulai,null)+' — …';ph.style.display='none';
-  } else if(selesai===mulai||!selesai){
-    // Single date atau hanya mulai
-    txt.textContent=fmtWaktu(mulai,null);ph.style.display='none';
-  } else {
-    txt.textContent=fmtWaktu(mulai,selesai);ph.style.display='none';
-  }
+  const m=r.waktuMulai, s=r.waktuSelesai;
+  if(!m){ txt.textContent=''; ph.style.display=''; return; }
+  ph.style.display='none';
+  if(!s) txt.textContent=fmtWaktu(m,null)+' — …';
+  else if(s===m) txt.textContent=fmtWaktu(m,null);
+  else txt.textContent=fmtWaktu(m,s);
 }
 
 function toDateStr(d){
@@ -899,23 +858,27 @@ function toDateStr(d){
 }
 
 // Nav buttons
-document.getElementById('drp-prev').onclick=function(){
-  drpMonth--;if(drpMonth<0){drpMonth=11;drpYear--;}drpRender();
+document.getElementById('drp-prev').onclick=function(e){
+  e.stopPropagation();
+  drpMonth--; if(drpMonth<0){drpMonth=11;drpYear--;} drpRender();
 };
-document.getElementById('drp-next').onclick=function(){
-  drpMonth++;if(drpMonth>11){drpMonth=0;drpYear++;}drpRender();
+document.getElementById('drp-next').onclick=function(e){
+  e.stopPropagation();
+  drpMonth++; if(drpMonth>11){drpMonth=0;drpYear++;} drpRender();
 };
-document.getElementById('drp-clear').onclick=function(){
+document.getElementById('drp-clear').onclick=function(e){
+  e.stopPropagation();
   if(drpRowId!=null){
     rows[drpRowId].waktuMulai='';
     rows[drpRowId].waktuSelesai='';
-    rows[drpRowId]._drpWaitingEnd=false;
+    drpPhase=0;
     drpUpdateTrigger(drpRowId);
     drpRender();
   }
 };
-document.getElementById('drp-header-label').onclick=function(){
-  drpYear=new Date().getFullYear();drpMonth=new Date().getMonth();drpRender();
+document.getElementById('drp-header-label').onclick=function(e){
+  e.stopPropagation();
+  drpYear=new Date().getFullYear(); drpMonth=new Date().getMonth(); drpRender();
 };
 
 
@@ -925,31 +888,43 @@ document.getElementById('drp-header-label').onclick=function(){
 let pegRowId=null;
 let pegFocusIdx=-1;
 let pegFilteredList=[];
+let pegJustOpened=false; // flag untuk mencegah langsung tertutup setelah dibuka
 
 function pegOpen(rowId){
-  // Toggle: jika popup sudah open untuk baris yang sama, tutup
-  if(pegRowId===rowId && document.getElementById('peg-popup').classList.contains('open')){
-    pegClose();return;
+  const popup=document.getElementById('peg-popup');
+  // Toggle tutup jika klik trigger yang sama saat popup sudah terbuka
+  if(pegRowId===rowId && popup.classList.contains('open')){
+    pegClose(); return;
   }
   pegRowId=rowId;
   pegFocusIdx=-1;
   const trigger=document.getElementById(`peg-trigger-${rowId}`);
-  if(!trigger)return;
+  if(!trigger) return;
 
-  const popup=document.getElementById('peg-popup');
+  // Hitung posisi dari trigger SEBELUM tampilkan popup
+  const rect=trigger.getBoundingClientRect();
+  const pH=240, pW=280;
+  const winH=window.innerHeight, winW=window.innerWidth;
+  let top=rect.bottom+2, left=rect.left;
+  if(top+pH>winH-8) top=Math.max(8, rect.top-pH-2);
+  if(left+pW>winW-8) left=winW-pW-8;
+  if(left<8) left=8;
+  popup.style.top=top+'px';
+  popup.style.left=left+'px';
+  popup.style.width=Math.max(pW, rect.width)+'px';
+
   popup.classList.add('open');
-  // Position after visible
-  setTimeout(()=>positionPopupEl(popup,trigger),0);
+  pegJustOpened=true; // set flag agar outside-click tidak langsung tutup
 
   const si=document.getElementById('peg-search');
   si.value='';
   pegFilterList('');
-  setTimeout(()=>si.focus(),80);
+  setTimeout(()=>{ si.focus(); pegJustOpened=false; }, 50);
 }
 
 function pegClose(){
   document.getElementById('peg-popup').classList.remove('open');
-  pegRowId=null;pegFocusIdx=-1;
+  pegRowId=null; pegFocusIdx=-1;
 }
 
 function pegFilterList(q){
@@ -1068,6 +1043,7 @@ document.addEventListener('click',function(e){
     }
   }
   if(pegPopup.classList.contains('open')){
+    if(pegJustOpened) return; // jangan tutup jika baru saja dibuka
     const trigger=pegRowId!=null?document.getElementById(`peg-trigger-${pegRowId}`):null;
     if(!pegPopup.contains(e.target)&&(!trigger||!trigger.contains(e.target))){
       pegClose();
@@ -1084,7 +1060,7 @@ function addRows(n){
   for(let i=0;i<n;i++){
     rowIdCounter++;
     const id=rowIdCounter;
-    rows[id]={checked:false,perihal:'',waktuMulai:'',waktuSelesai:'',_drpWaitingEnd:false,tujuan:'',pegawaiNIPs:[]};
+    rows[id]={checked:false,perihal:'',waktuMulai:'',waktuSelesai:'',tujuan:'',pegawaiNIPs:[]};
     renderRow(id);
   }
   updateBulkCounters();
