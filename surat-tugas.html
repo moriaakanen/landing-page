@@ -7,168 +7,256 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#f5f4f0;--white:#ffffff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--red:#c0392b;--sidebar-w:260px;}
+  :root{
+    --bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;
+    --gold:#c8a84b;--gold-light:#f5edda;
+    --text:#1a1a2e;--muted:#6b7280;
+    --border:#e2ddd6;--border2:#d1ccc3;
+    --red:#c0392b;--success:#1a7a4a;
+    --sidebar-w:260px;
+  }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
 
-  .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200;}
-  .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0;}
-  .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-  .brand-name{font-size:14px;font-weight:700;color:white;letter-spacing:0.5px;line-height:1}
-  .brand-tag{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;text-transform:uppercase}
+  /* ── TOPBAR ── */
+  .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200}
+  .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0}
+  .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .brand-name{font-size:14px;font-weight:700;color:white;letter-spacing:.5px;line-height:1}
+  .brand-tag{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
   .topbar-right{display:flex;align-items:center;gap:14px}
-  .topbar-time{font-size:11px;color:rgba(255,255,255,0.35)}
-  .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);}
-  .topbar-username{font-size:13px;color:rgba(255,255,255,0.75);font-weight:500}
-  .btn-logout{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.2s;}
-  .btn-logout:hover{border-color:rgba(255,255,255,0.4);color:rgba(255,255,255,0.9)}
-  .layout{display:flex;flex:1;min-height:0}
-  .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
-  .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px;}
-  .nav-group-label{font-size:10px;font-weight:600;color:var(--border2);letter-spacing:1.2px;text-transform:uppercase;padding:16px 20px 6px;margin-top:4px;}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;text-decoration:none;user-select:none;transition:background 0.15s,color 0.15s;}
-  .nav-item:hover{background:var(--bg);color:var(--navy)}
-  .nav-item.active{background:var(--gold-light);color:var(--navy);border-left-color:var(--gold);font-weight:600;}
-  .nav-item-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--bg);flex-shrink:0;transition:background 0.15s;}
-  .nav-item.active .nav-item-icon{background:rgba(200,168,75,0.2)}
-  .nav-item:hover .nav-item-icon{background:var(--border)}
-  .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7;}
-  .sidebar-footer strong{color:var(--navy);font-weight:600}
-  .main{flex:1;overflow-y:auto;padding:36px 40px}
+  .topbar-time{font-size:11px;color:rgba(255,255,255,.35)}
+  .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
+  .topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
+  .btn-logout{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s}
+  .btn-logout:hover{border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.9)}
 
-  .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap;}
-  .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  /* ── LAYOUT ── */
+  .layout{display:flex;flex:1;min-height:0}
+  .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+  .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
+  .nav-group-label{font-size:10px;font-weight:600;color:var(--border2);letter-spacing:1.2px;text-transform:uppercase;padding:16px 20px 6px;margin-top:4px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;text-decoration:none;user-select:none;transition:background .15s,color .15s}
+  .nav-item:hover{background:var(--bg);color:var(--navy)}
+  .nav-item.active{background:var(--gold-light);color:var(--navy);border-left-color:var(--gold);font-weight:600}
+  .nav-item-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--bg);flex-shrink:0;transition:background .15s}
+  .nav-item.active .nav-item-icon{background:rgba(200,168,75,.2)}
+  .nav-item:hover .nav-item-icon{background:var(--border)}
+  .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
+  .sidebar-footer strong{color:var(--navy);font-weight:600}
+
+  /* ── MAIN ── */
+  .main{flex:1;overflow-y:auto;padding:32px 36px}
+
+  /* ── PAGE HEADER ── */
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap}
+  .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
-  .page-title{font-family:'Fraunces',serif;font-size:clamp(22px,2.5vw,30px);font-weight:300;color:var(--navy);line-height:1.2;}
+  .page-title{font-family:'Fraunces',serif;font-size:clamp(22px,2.5vw,30px);font-weight:300;color:var(--navy);line-height:1.2}
   .page-title em{font-style:italic;color:var(--gold)}
   .page-desc{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.7}
 
-  .btn-primary{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.15s;white-space:nowrap;}
-  .btn-primary:hover{background:var(--navy2);transform:translateY(-1px)}
+  /* ── TABS ── */
+  .tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:24px}
+  .tab{padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .2s,border-color .2s;user-select:none}
+  .tab:hover{color:var(--navy)}
+  .tab.active{color:var(--navy);border-bottom-color:var(--navy);font-weight:600}
+  .tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;background:var(--bg);border:1px solid var(--border2);border-radius:100px;font-size:10px;font-weight:600;color:var(--muted);margin-left:6px}
+  .tab.active .tab-count{background:var(--navy);border-color:var(--navy);color:white}
 
-  .stats-row{display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
-  .stat-pill{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:12px 18px;display:flex;align-items:center;gap:10px;flex:1;min-width:130px;}
-  .stat-pill-icon{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-  .stat-pill-num{font-size:20px;font-weight:700;color:var(--navy);line-height:1}
-  .stat-pill-label{font-size:11px;color:var(--muted);margin-top:2px}
+  /* ── VIEW PANEL ── */
+  .view-panel{display:none}
+  .view-panel.active{display:block}
 
-  .filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
-  .search-wrap{position:relative;flex:1;min-width:200px;}
-  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
-  .search-input{width:100%;padding:9px 12px 9px 34px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s;}
+  /* ── STATS ── */
+  .stats-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+  .stat-pill{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:11px 16px;display:flex;align-items:center;gap:10px;flex:1;min-width:120px}
+  .stat-pill-icon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+  .stat-pill-num{font-size:18px;font-weight:700;color:var(--navy);line-height:1}
+  .stat-pill-label{font-size:11px;color:var(--muted);margin-top:1px}
+
+  /* ── FILTER BAR ── */
+  .filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .search-wrap{position:relative;flex:1;min-width:180px}
+  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none}
+  .search-input{width:100%;padding:8px 12px 8px 32px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .2s}
   .search-input:focus{border-color:var(--navy)}
   .search-input::placeholder{color:#b8b3ac}
-  .filter-select{padding:9px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;}
+  .filter-select{padding:8px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer}
   .filter-select:focus{border-color:var(--navy)}
 
-  .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,0.05);}
-  .table-head{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
-  .table-head-title{font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:0.8px;text-transform:uppercase;}
-  .table-head-count{font-size:11px;color:rgba(255,255,255,0.35);}
-  table{width:100%;border-collapse:collapse;}
-  thead th{background:#f9f8f5;padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;}
-  tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
-  tbody tr:last-child{border-bottom:none}
-  tbody tr:hover{background:#fafaf8}
-  tbody td{padding:13px 16px;font-size:13px;color:var(--text);vertical-align:middle;}
-
-  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;}
-  .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
+  /* ── LIST TABLE ── */
+  .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.05)}
+  .table-head{background:var(--navy);padding:13px 20px;display:flex;align-items:center;justify-content:space-between}
+  .table-head-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.8px;text-transform:uppercase}
+  .table-head-count{font-size:11px;color:rgba(255,255,255,.35)}
+  table.list-table{width:100%;border-collapse:collapse}
+  table.list-table thead th{background:#f9f8f5;padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+  table.list-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+  table.list-table tbody tr:last-child{border-bottom:none}
+  table.list-table tbody tr:hover{background:#fafaf8}
+  table.list-table tbody td{padding:11px 14px;font-size:13px;color:var(--text);vertical-align:middle}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
+  .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
   .badge.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
   .badge.disetujui{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
   .badge.ditolak{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
   .badge.draft{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1}
-
-  .btn-action{padding:5px 12px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--navy);cursor:pointer;transition:all 0.2s;}
-  .btn-action:hover{background:var(--gold-light);border-color:var(--gold)}
-  .table-empty{padding:48px 24px;text-align:center;}
-  .table-empty-icon{font-size:28px;opacity:0.3;margin-bottom:10px}
+  .btn-sm{padding:4px 10px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s}
+  .btn-sm:hover{background:var(--gold-light);border-color:var(--gold)}
+  .table-empty{padding:40px 24px;text-align:center}
+  .table-empty-icon{font-size:26px;opacity:.3;margin-bottom:8px}
   .table-empty-text{font-size:13px;color:var(--muted)}
 
-  /* MODAL */
-  .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,0.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.25s;}
-  .modal-overlay.open{opacity:1;pointer-events:all;}
-  .modal{background:var(--white);border-radius:12px;width:100%;max-width:660px;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:transform 0.25s;box-shadow:0 20px 60px rgba(13,35,64,0.2);}
-  .modal-overlay.open .modal{transform:translateY(0)}
-  .modal-header{background:var(--navy);padding:24px 28px;position:relative;overflow:hidden;}
-  .modal-header::before{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border:20px solid rgba(200,168,75,0.08);border-radius:50%;}
-  .modal-header-icon{width:40px;height:40px;background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.3);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:12px;position:relative;z-index:1;}
-  .modal-title{font-family:'Fraunces',serif;font-size:20px;font-weight:300;color:white;position:relative;z-index:1;}
-  .modal-title em{font-style:italic;color:var(--gold)}
-  .modal-sub{font-size:12px;color:rgba(255,255,255,0.45);margin-top:4px;position:relative;z-index:1;}
-  .modal-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.1);border:none;border-radius:5px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.6);font-size:16px;transition:all 0.2s;z-index:2;}
-  .modal-close:hover{background:rgba(255,255,255,0.2);color:white}
-  .modal-body{padding:28px}
-  .form-section{margin-bottom:22px}
-  .form-section-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
-  .form-row.single{grid-template-columns:1fr}
-  .form-group{display:flex;flex-direction:column;gap:6px;}
-  .form-label{font-size:12px;font-weight:600;color:var(--navy)}
-  .form-label span{color:var(--red);margin-left:2px}
-  .form-input,.form-select,.form-textarea{padding:10px 13px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;width:100%;}
-  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,0.07)}
-  .form-input::placeholder,.form-textarea::placeholder{color:#b8b3ac}
-  .form-input.err,.form-select.err,.form-textarea.err{border-color:var(--red)}
-  .form-textarea{resize:vertical;min-height:80px;line-height:1.6}
-  .err-msg{font-size:11px;color:var(--red);display:none}
-  .err-msg.show{display:block}
-  .form-hint{font-size:11px;color:var(--muted)}
+  /* ── BULK ENTRY ── */
+  .bulk-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .bulk-toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .bulk-toolbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
-  .pegawai-picker{border:1.5px solid var(--border2);border-radius:7px;overflow:hidden;}
-  .pegawai-picker-search{border-bottom:1px solid var(--border);}
-  .pegawai-picker-input{width:100%;padding:9px 13px;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;background:var(--white);}
-  .pegawai-picker-input::placeholder{color:#b8b3ac}
-  .pegawai-list{max-height:150px;overflow-y:auto;}
-  .pegawai-item{display:flex;align-items:center;gap:10px;padding:9px 13px;cursor:pointer;transition:background 0.15s;border-bottom:1px solid var(--border);}
-  .pegawai-item:last-child{border-bottom:none}
-  .pegawai-item:hover{background:var(--bg)}
-  .pegawai-item.selected{background:var(--gold-light)}
-  .pegawai-item input[type=checkbox]{accent-color:var(--navy);flex-shrink:0;cursor:pointer;}
-  .pegawai-item-name{font-size:13px;font-weight:500;color:var(--navy)}
-  .pegawai-item-nip{font-size:11px;color:var(--muted)}
-  .selected-tags{display:flex;flex-wrap:wrap;gap:6px;padding:10px 13px;min-height:40px;background:#fafaf8;border-top:1px solid var(--border);}
-  .pegawai-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 10px;background:var(--gold-light);border:1px solid rgba(200,168,75,0.4);border-radius:100px;font-size:11px;font-weight:600;color:#7a5c10;}
-  .pegawai-tag-remove{background:none;border:none;cursor:pointer;color:#a07020;font-size:14px;padding:0;line-height:1;display:flex;align-items:center;}
-  .pegawai-tag-remove:hover{color:var(--red)}
-  .pegawai-empty{padding:20px;text-align:center;font-size:12px;color:var(--muted);}
+  .btn-outline{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s;white-space:nowrap}
+  .btn-outline:hover{border-color:var(--navy);background:var(--bg)}
+  .btn-outline.danger{color:var(--red);border-color:#fecaca}
+  .btn-outline.danger:hover{background:#fef2f2;border-color:var(--red)}
 
-  .modal-footer{padding:20px 28px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:10px;background:#fafaf8;}
-  .btn-cancel{padding:10px 20px;background:transparent;border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.2s;}
-  .btn-cancel:hover{border-color:var(--navy);color:var(--navy)}
-  .btn-submit{padding:10px 24px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.15s;position:relative;overflow:hidden;}
-  .btn-submit:hover:not(:disabled){background:var(--navy2);transform:translateY(-1px)}
-  .btn-submit:disabled{opacity:0.55;cursor:not-allowed;transform:none}
-  .btn-submit.loading{color:transparent}
-  .btn-submit.loading::after{content:'';position:absolute;top:50%;left:50%;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;transform:translate(-50%,-50%);animation:spin 0.7s linear infinite}
+  .btn-primary{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,transform .15s;white-space:nowrap}
+  .btn-primary:hover{background:var(--navy2);transform:translateY(-1px)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .btn-primary.loading{color:transparent;pointer-events:none}
+  .btn-primary.loading::after{content:'';position:absolute;top:50%;left:50%;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;transform:translate(-50%,-50%);animation:spin .7s linear infinite}
   @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 
-  .alert{padding:11px 13px;border-radius:6px;font-size:13px;line-height:1.5;margin-bottom:16px;display:none;gap:8px;align-items:flex-start;}
-  .alert.show{display:flex;animation:fadeUp 0.3s ease}
+  .send-btn-wrap{position:relative}
+
+  /* Selected counter pill */
+  .selected-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--gold-light);border:1px solid rgba(200,168,75,.5);border-radius:100px;font-size:12px;font-weight:600;color:#7a5c10}
+  .selected-pill.zero{background:var(--bg);border-color:var(--border2);color:var(--muted)}
+
+  /* ── BULK TABLE WRAP ── */
+  .bulk-table-outer{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.05)}
+
+  .bulk-table-header{background:var(--navy);padding:13px 0 13px 16px;display:grid;align-items:center;font-size:11px;font-weight:600;color:rgba(255,255,255,.55);letter-spacing:.8px;text-transform:uppercase;gap:0;
+    grid-template-columns: 42px 36px 28px 130px 110px 1fr 140px 120px 110px 110px;
+  }
+  .bulk-table-header span{padding:0 8px}
+
+  .bulk-table-body{overflow-x:auto}
+
+  /* Each row */
+  .bulk-row{display:grid;align-items:center;border-bottom:1px solid var(--border);transition:background .15s;
+    grid-template-columns: 42px 36px 28px 130px 110px 1fr 140px 120px 110px 110px;
+  }
+  .bulk-row:last-child{border-bottom:none}
+  .bulk-row:hover{background:#fafaf8}
+  .bulk-row.checked{background:#fffbf0}
+  .bulk-row.has-error{background:#fff8f8}
+
+  .bulk-cell{padding:7px 6px;display:flex;align-items:center}
+  .bulk-cell.center{justify-content:center}
+  .bulk-cell.row-num{font-size:11px;color:var(--muted);font-weight:600;justify-content:center}
+
+  /* Checkbox */
+  .bulk-check{width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0}
+
+  /* Delete row btn */
+  .del-row{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 4px;border-radius:4px;transition:color .2s,background .2s;line-height:1}
+  .del-row:hover{color:var(--red);background:#fef2f2}
+
+  /* Editable cell */
+  .cell-input{
+    width:100%;padding:6px 8px;
+    border:1.5px solid transparent;
+    border-radius:5px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:12px;color:var(--text);
+    background:transparent;
+    outline:none;
+    transition:border-color .15s,background .15s;
+    min-width:0;
+  }
+  .cell-input:hover{border-color:var(--border2);background:var(--white)}
+  .cell-input:focus{border-color:var(--navy);background:var(--white);box-shadow:0 0 0 2px rgba(13,35,64,.06)}
+  .cell-input::placeholder{color:#ccc;font-size:11px}
+  .cell-input.err{border-color:#fca5a5!important;background:#fff5f5!important}
+  input[type=date].cell-input{font-size:11px}
+
+  /* Pegawai cell — dropdown */
+  .peg-wrap{position:relative;width:100%}
+  .peg-input{width:100%;padding:6px 8px;border:1.5px solid transparent;border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:var(--text);background:transparent;outline:none;transition:border-color .15s,background .15s;cursor:pointer;min-width:0}
+  .peg-input:hover,.peg-input:focus{border-color:var(--navy);background:var(--white)}
+  .peg-input.err{border-color:#fca5a5!important;background:#fff5f5!important}
+  .peg-dropdown{position:absolute;top:calc(100% + 2px);left:0;right:0;min-width:220px;background:var(--white);border:1.5px solid var(--navy);border-radius:7px;box-shadow:0 8px 24px rgba(13,35,64,.15);z-index:300;overflow:hidden;display:none}
+  .peg-dropdown.open{display:block}
+  .peg-dd-search{padding:8px 10px;border-bottom:1px solid var(--border)}
+  .peg-dd-input{width:100%;padding:5px 8px;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;outline:none}
+  .peg-dd-list{max-height:160px;overflow-y:auto}
+  .peg-dd-item{padding:8px 12px;font-size:12px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--border)}
+  .peg-dd-item:last-child{border-bottom:none}
+  .peg-dd-item:hover{background:var(--gold-light)}
+  .peg-dd-item.selected{background:var(--gold-light);font-weight:600}
+  .peg-dd-name{font-weight:500;color:var(--navy)}
+  .peg-dd-nip{font-size:10px;color:var(--muted)}
+  .peg-tags{display:flex;flex-wrap:wrap;gap:3px;padding:4px 6px;min-height:28px;cursor:pointer}
+  .peg-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;background:var(--gold-light);border:1px solid rgba(200,168,75,.4);border-radius:100px;font-size:10px;font-weight:600;color:#7a5c10;white-space:nowrap}
+  .peg-tag-x{background:none;border:none;cursor:pointer;color:#a07020;font-size:12px;padding:0;line-height:1}
+  .peg-tag-x:hover{color:var(--red)}
+  .peg-placeholder{font-size:11px;color:#ccc;padding:4px 2px}
+
+  /* Error tooltip */
+  .row-errors{grid-column:1/-1;padding:4px 16px 6px;display:none}
+  .row-errors.show{display:flex;flex-wrap:wrap;gap:4px}
+  .row-err-item{font-size:10px;color:var(--red);background:#fff5f5;border:1px solid #fca5a5;border-radius:4px;padding:2px 7px}
+
+  /* Add row */
+  .add-row-bar{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#fafaf8}
+
+  /* Bottom action bar */
+  .action-bar{
+    position:sticky;bottom:0;
+    background:var(--white);
+    border-top:2px solid var(--border);
+    padding:14px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    flex-wrap:wrap;
+    box-shadow:0 -4px 20px rgba(13,35,64,.08);
+    margin-top:16px;
+    border-radius:0 0 10px 10px;
+  }
+  .action-bar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .action-bar-info{font-size:13px;color:var(--muted)}
+  .action-bar-info strong{color:var(--navy)}
+
+  /* Alert */
+  .alert{padding:11px 14px;border-radius:7px;font-size:13px;line-height:1.5;margin-bottom:14px;display:none;gap:8px;align-items:flex-start}
+  .alert.show{display:flex;animation:fadeUp .3s ease}
   .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
   .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+  .alert.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
 
-  .skel{background:linear-gradient(90deg,rgba(13,35,64,0.05) 25%,rgba(13,35,64,0.1) 50%,rgba(13,35,64,0.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px;}
+  /* Skeleton */
+  .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px}
   @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-  .fade-in{animation:fadeUp 0.5s ease both}
-  .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px;}
+  .fade-in{animation:fadeUp .5s ease both}
 
-  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 20px}.topbar-time{display:none}.form-row{grid-template-columns:1fr}}
+  .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
+
+  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.topbar-time{display:none}}
   @media(max-width:600px){
-    .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left 0.25s ease;box-shadow:4px 0 20px rgba(13,35,64,0.12)}
-    .sidebar.open{left:0}.layout{display:block}.main{padding:20px 16px}.menu-toggle{display:flex!important}
-    .stats-row{flex-wrap:wrap}.stat-pill{min-width:calc(50% - 7px)}
-    table thead{display:none}
-    tbody tr{display:block;padding:12px 16px;border-bottom:1px solid var(--border);}
-    tbody td{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;}
-    tbody td::before{content:attr(data-label);font-weight:600;color:var(--muted);font-size:11px;margin-right:8px;white-space:nowrap;flex-shrink:0;}
+    .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
+    .sidebar.open{left:0}.layout{display:block}.menu-toggle{display:flex!important}
+    .stats-row{flex-wrap:wrap}.stat-pill{min-width:calc(50% - 6px)}
   }
+
+  /* Scrollbar bulk table */
+  .bulk-table-body::-webkit-scrollbar{height:6px}
+  .bulk-table-body::-webkit-scrollbar-track{background:var(--bg)}
+  .bulk-table-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 </style>
 </head>
 <body>
 
+<!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-brand">
     <div class="brand-emblem">🏛</div>
@@ -185,6 +273,7 @@
   </div>
 </div>
 
+<!-- LAYOUT -->
 <div class="layout">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-section-label">Menu Utama</div>
@@ -195,142 +284,140 @@
   </aside>
 
   <main class="main">
+
+    <!-- PAGE HEADER -->
     <div class="page-header fade-in">
       <div>
         <div class="page-eyebrow">Persuratan</div>
         <h1 class="page-title">Surat <em>Tugas</em></h1>
-        <p class="page-desc">Daftar pengajuan surat tugas Anda. Setiap pengajuan akan diverifikasi oleh administrator.</p>
+        <p class="page-desc">Kelola pengajuan surat tugas. Gunakan mode Bulk Entry untuk membuat banyak surat sekaligus.</p>
       </div>
-      <button class="btn-primary" onclick="openModal()">＋ Buat Surat Tugas</button>
     </div>
 
-    <!-- STATS -->
-    <div class="stats-row fade-in" style="animation-delay:0.05s">
-      <div class="stat-pill"><div class="stat-pill-icon" style="background:#e8f0fe">📋</div><div><div class="stat-pill-num" id="st-total">—</div><div class="stat-pill-label">Total Pengajuan</div></div></div>
-      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef3c7">⏳</div><div><div class="stat-pill-num" id="st-menunggu">—</div><div class="stat-pill-label">Menunggu</div></div></div>
-      <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">✅</div><div><div class="stat-pill-num" id="st-disetujui">—</div><div class="stat-pill-label">Disetujui</div></div></div>
-      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef2f2">❌</div><div><div class="stat-pill-num" id="st-ditolak">—</div><div class="stat-pill-label">Ditolak</div></div></div>
+    <!-- TABS -->
+    <div class="tabs fade-in" style="animation-delay:.05s">
+      <div class="tab active" onclick="switchTab('list')">Daftar Surat <span class="tab-count" id="tc-list">0</span></div>
+      <div class="tab" onclick="switchTab('bulk')">✦ Bulk Entry <span class="tab-count" id="tc-bulk">0</span></div>
     </div>
 
-    <!-- FILTER -->
-    <div class="filter-bar fade-in" style="animation-delay:0.1s">
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" type="text" id="search-input" placeholder="Cari nomor atau perihal surat..." oninput="filterTable()">
-      </div>
-      <select class="filter-select" id="filter-status" onchange="filterTable()">
-        <option value="">Semua Status</option>
-        <option value="menunggu">Menunggu</option>
-        <option value="disetujui">Disetujui</option>
-        <option value="ditolak">Ditolak</option>
-        <option value="draft">Draft</option>
-      </select>
-    </div>
+    <!-- ═══ TAB: LIST ═══ -->
+    <div class="view-panel active" id="panel-list">
 
-    <!-- TABLE -->
-    <div class="table-wrap fade-in" style="animation-delay:0.15s">
-      <div class="table-head">
-        <span class="table-head-title">Daftar Surat Tugas</span>
-        <span class="table-head-count" id="table-count">Memuat...</span>
+      <!-- Stats -->
+      <div class="stats-row fade-in" style="animation-delay:.1s">
+        <div class="stat-pill"><div class="stat-pill-icon" style="background:#e8f0fe">📋</div><div><div class="stat-pill-num" id="st-total">—</div><div class="stat-pill-label">Total</div></div></div>
+        <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef3c7">⏳</div><div><div class="stat-pill-num" id="st-menunggu">—</div><div class="stat-pill-label">Menunggu</div></div></div>
+        <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">✅</div><div><div class="stat-pill-num" id="st-disetujui">—</div><div class="stat-pill-label">Disetujui</div></div></div>
+        <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef2f2">❌</div><div><div class="stat-pill-num" id="st-ditolak">—</div><div class="stat-pill-label">Ditolak</div></div></div>
       </div>
-      <div id="table-area">
-        <table><thead><tr><th>Nomor Surat</th><th>Perihal</th><th>Tujuan</th><th>Berangkat</th><th>Kembali</th><th>Pegawai</th><th>Status</th><th></th></tr></thead>
-        <tbody><tr><td colspan="8"><div style="padding:16px;display:flex;flex-direction:column;gap:10px">
-          <div class="skel" style="height:38px;border-radius:6px"></div>
-          <div class="skel" style="height:38px;border-radius:6px"></div>
-          <div class="skel" style="height:38px;border-radius:6px"></div>
-        </div></td></tr></tbody></table>
+
+      <!-- Filter -->
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" type="text" id="search-input" placeholder="Cari nomor atau perihal surat..." oninput="filterTable()">
+        </div>
+        <select class="filter-select" id="filter-status" onchange="filterTable()">
+          <option value="">Semua Status</option>
+          <option value="menunggu">Menunggu</option>
+          <option value="disetujui">Disetujui</option>
+          <option value="ditolak">Ditolak</option>
+          <option value="draft">Draft</option>
+        </select>
       </div>
-    </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Daftar Surat Tugas</span>
+          <span class="table-head-count" id="table-count">Memuat...</span>
+        </div>
+        <div id="table-area">
+          <table class="list-table"><thead><tr><th>Nomor Surat</th><th>Perihal</th><th>Tujuan</th><th>Berangkat</th><th>Kembali</th><th>Pegawai</th><th>Status</th><th></th></tr></thead>
+          <tbody><tr><td colspan="8"><div style="padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div class="skel" style="height:36px;border-radius:5px"></div>
+            <div class="skel" style="height:36px;border-radius:5px"></div>
+            <div class="skel" style="height:36px;border-radius:5px"></div>
+          </div></td></tr></tbody></table>
+        </div>
+      </div>
+    </div><!-- /panel-list -->
+
+    <!-- ═══ TAB: BULK ENTRY ═══ -->
+    <div class="view-panel" id="panel-bulk">
+
+      <div class="alert info show" style="margin-bottom:16px">
+        <span>💡</span>
+        <span>Isi tabel di bawah secara langsung. Anda bisa <strong>copy-paste dari Excel</strong> — klik sel pertama lalu paste (Ctrl+V). Gunakan <strong>Tab</strong> untuk pindah kolom, <strong>Enter</strong> untuk baris baru. Centang surat yang ingin dikirim, lalu klik <strong>"Kirim yang Dipilih"</strong>.</span>
+      </div>
+
+      <div id="bulk-alert" class="alert"><span id="bulk-alert-icon"></span><span id="bulk-alert-text"></span></div>
+
+      <!-- Toolbar -->
+      <div class="bulk-toolbar">
+        <div class="bulk-toolbar-left">
+          <!-- Check all -->
+          <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--navy);user-select:none;padding:7px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;transition:all .2s" onmouseenter="this.style.borderColor='var(--navy)'" onmouseleave="this.style.borderColor='var(--border2)'">
+            <input type="checkbox" id="check-all" onclick="toggleCheckAll(this.checked)" style="width:15px;height:15px;accent-color:var(--navy);cursor:pointer">
+            Pilih Semua
+          </label>
+          <div class="selected-pill zero" id="selected-pill">0 dipilih</div>
+        </div>
+        <div class="bulk-toolbar-right">
+          <button class="btn-outline danger" id="btn-del-checked" onclick="deleteChecked()" style="display:none">🗑 Hapus Dipilih</button>
+          <button class="btn-outline" onclick="addRows(5)">＋ 5 Baris</button>
+          <button class="btn-outline" onclick="addRows(1)">＋ 1 Baris</button>
+          <button class="btn-outline" onclick="clearAll()" title="Kosongkan semua baris">↺ Reset</button>
+        </div>
+      </div>
+
+      <!-- Bulk Table -->
+      <div class="bulk-table-outer">
+        <!-- Header -->
+        <div class="bulk-table-header">
+          <span style="text-align:center">✓</span>
+          <span style="text-align:center">No</span>
+          <span></span>
+          <span>Nomor Surat *</span>
+          <span>Tgl. Surat *</span>
+          <span>Perihal *</span>
+          <span>Tujuan *</span>
+          <span>Tgl. Berangkat *</span>
+          <span>Tgl. Kembali</span>
+          <span>Pegawai *</span>
+        </div>
+
+        <div class="bulk-table-body">
+          <div id="bulk-rows"></div>
+        </div>
+
+        <!-- Add row bar -->
+        <div class="add-row-bar">
+          <button class="btn-outline" onclick="addRows(1)" style="font-size:12px;padding:6px 14px">＋ Tambah Baris</button>
+          <span style="font-size:11px;color:var(--muted)" id="row-count-label">0 baris</span>
+        </div>
+      </div>
+
+      <!-- Bottom action bar -->
+      <div class="action-bar">
+        <div class="action-bar-left">
+          <div class="action-bar-info">
+            <strong id="ab-checked">0</strong> surat dipilih &nbsp;·&nbsp; <strong id="ab-total">0</strong> total baris
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn-outline" onclick="addRows(1)">＋ Tambah Baris</button>
+          <div class="send-btn-wrap">
+            <button class="btn-primary" id="btn-send" onclick="submitChecked()" disabled>
+              <span id="btn-send-text">Kirim yang Dipilih (0)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /panel-bulk -->
+
   </main>
-</div>
-
-<!-- MODAL -->
-<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-  <div class="modal" id="modal">
-    <div class="modal-header">
-      <div class="modal-header-icon">📄</div>
-      <h2 class="modal-title">Buat Surat <em>Tugas</em></h2>
-      <p class="modal-sub">Isi formulir berikut. Pengajuan akan dikirim ke administrator untuk disetujui.</p>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="alert" id="form-alert"><span id="alert-icon"></span><span id="alert-text"></span></div>
-
-      <div class="form-section">
-        <div class="form-section-title">Informasi Surat</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Nomor Surat <span>*</span></label>
-            <input class="form-input" id="f-nomor" type="text" placeholder="Contoh: ST/001/IV/2026">
-            <span class="err-msg" id="e-nomor">Nomor surat wajib diisi</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Tanggal Surat <span>*</span></label>
-            <input class="form-input" id="f-tanggal-surat" type="date">
-            <span class="err-msg" id="e-tanggal-surat">Tanggal surat wajib diisi</span>
-          </div>
-        </div>
-        <div class="form-row single">
-          <div class="form-group">
-            <label class="form-label">Perihal <span>*</span></label>
-            <input class="form-input" id="f-perihal" type="text" placeholder="Perihal / judul surat tugas">
-            <span class="err-msg" id="e-perihal">Perihal wajib diisi</span>
-          </div>
-        </div>
-        <div class="form-row single">
-          <div class="form-group">
-            <label class="form-label">Tujuan Penugasan <span>*</span></label>
-            <input class="form-input" id="f-tujuan" type="text" placeholder="Kota / instansi tujuan">
-            <span class="err-msg" id="e-tujuan">Tujuan wajib diisi</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">Waktu Penugasan</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Tanggal Berangkat <span>*</span></label>
-            <input class="form-input" id="f-tgl-berangkat" type="date" onchange="checkTanggal()">
-            <span class="err-msg" id="e-tgl-berangkat">Tanggal berangkat wajib diisi</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Tanggal Kembali</label>
-            <input class="form-input" id="f-tgl-kembali" type="date" onchange="checkTanggal()">
-            <span class="err-msg" id="e-tgl-kembali">Tidak boleh sebelum tanggal berangkat</span>
-          </div>
-        </div>
-        <div class="form-row single">
-          <div class="form-group">
-            <label class="form-label">Keperluan / Keterangan</label>
-            <textarea class="form-textarea" id="f-keperluan" placeholder="Jelaskan keperluan penugasan secara singkat..."></textarea>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">Pegawai yang Ditugaskan <span style="color:var(--red);font-size:13px">*</span></div>
-        <p class="form-hint" style="margin-bottom:10px">Pilih satu atau lebih pegawai yang akan ditugaskan.</p>
-        <div class="pegawai-picker">
-          <div class="pegawai-picker-search">
-            <input class="pegawai-picker-input" id="pegawai-search" type="text" placeholder="🔍  Cari nama atau NIP..." oninput="filterPegawai()">
-          </div>
-          <div class="pegawai-list" id="pegawai-list">
-            <div class="pegawai-empty">Memuat data pegawai...</div>
-          </div>
-          <div class="selected-tags" id="selected-tags">
-            <span style="font-size:11px;color:var(--muted);align-self:center">Belum ada pegawai dipilih</span>
-          </div>
-        </div>
-        <span class="err-msg" id="e-pegawai">Pilih minimal satu pegawai</span>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Batal</button>
-      <button class="btn-submit" id="btn-submit" onclick="submitForm()">Kirim Pengajuan</button>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -339,72 +426,50 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const H={'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json'};
 
 let SESSION=null;
-function checkSession(){try{const s=JSON.parse(localStorage.getItem('nova_user')||'null');if(!s){window.location.replace('login.html');return null;}if(s.expires_at&&Date.now()>s.expires_at){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}if(s.must_change_password){window.location.replace('ganti-password.html');return null;}return s;}catch(e){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}}
+let allPegawai=[];
+let allSurat=[];
+let rowIdCounter=0;
+const rows={}; // rowId -> {checked, nomor, tglSurat, perihal, tujuan, tglBerangkat, tglKembali, pegawaiNIPs:[]}
+
+/* ── SESSION ── */
+function checkSession(){
+  try{
+    const s=JSON.parse(localStorage.getItem('nova_user')||'null');
+    if(!s){window.location.replace('login.html');return null;}
+    if(s.expires_at&&Date.now()>s.expires_at){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}
+    if(s.must_change_password){window.location.replace('ganti-password.html');return null;}
+    return s;
+  }catch(e){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}
+}
 function logout(){localStorage.removeItem('nova_user');window.location.replace('login.html');}
 function updateClock(){document.getElementById('topbar-time').textContent=new Date().toLocaleString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 updateClock();setInterval(updateClock,1000);
 function setTopbarUser(s){const name=s.full_name||s.username||'Pengguna';const i=name.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);document.getElementById('topbar-avatar').textContent=i;document.getElementById('topbar-username').textContent=name;}
 
-/* ── PEGAWAI PICKER ── */
-let allPegawai=[];
-let selectedNIP=new Set();
+/* ── TABS ── */
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['list','bulk'][i]===tab));
+  document.getElementById('panel-list').classList.toggle('active',tab==='list');
+  document.getElementById('panel-bulk').classList.toggle('active',tab==='bulk');
+}
 
+/* ── LOAD PEGAWAI ── */
 async function loadPegawai(){
   try{
     const res=await fetch(`${SB_URL}/rest/v1/data%20pegawai?select=id,NAMA,NIP&order=NAMA.asc`,{headers:H});
     if(!res.ok)throw new Error();
     allPegawai=await res.json();
-    renderPegawaiList(allPegawai);
-  }catch(e){document.getElementById('pegawai-list').innerHTML='<div class="pegawai-empty">Gagal memuat data pegawai.</div>';}
+  }catch(e){console.warn('Gagal load pegawai',e);}
 }
 
-function renderPegawaiList(list){
-  const el=document.getElementById('pegawai-list');
-  if(!list.length){el.innerHTML='<div class="pegawai-empty">Tidak ada hasil.</div>';return;}
-  el.innerHTML=list.map(p=>{
-    const nip=p['NIP']||'';const nama=p['NAMA']||'-';
-    const checked=selectedNIP.has(nip)?'checked':'';
-    const sel=selectedNIP.has(nip)?' selected':'';
-    const safeNama=nama.replace(/'/g,"\\'");
-    return `<div class="pegawai-item${sel}" onclick="togglePegawai('${nip}','${safeNama}')">
-      <input type="checkbox" ${checked} onclick="event.stopPropagation();togglePegawai('${nip}','${safeNama}')">
-      <div><div class="pegawai-item-name">${nama}</div><div class="pegawai-item-nip">NIP ${nip||'—'}</div></div>
-    </div>`;
-  }).join('');
-}
-
-function filterPegawai(){
-  const q=document.getElementById('pegawai-search').value.toLowerCase();
-  renderPegawaiList(allPegawai.filter(p=>(p['NAMA']||'').toLowerCase().includes(q)||(p['NIP']||'').includes(q)));
-}
-
-function togglePegawai(nip,nama){
-  if(selectedNIP.has(nip))selectedNIP.delete(nip);
-  else selectedNIP.add(nip);
-  filterPegawai();
-  renderSelectedTags();
-}
-
-function renderSelectedTags(){
-  const el=document.getElementById('selected-tags');
-  if(!selectedNIP.size){el.innerHTML='<span style="font-size:11px;color:var(--muted);align-self:center">Belum ada pegawai dipilih</span>';return;}
-  el.innerHTML=[...selectedNIP].map(nip=>{
-    const p=allPegawai.find(x=>x['NIP']===nip);
-    const nama=p?p['NAMA']:nip;
-    const safeNama=(nama||'').replace(/'/g,"\\'");
-    return `<span class="pegawai-tag">${nama}<button class="pegawai-tag-remove" onclick="togglePegawai('${nip}','${safeNama}')">×</button></span>`;
-  }).join('');
-}
-
-/* ── SURAT TUGAS DATA ── */
-let allSurat=[];
-
+/* ── LOAD SURAT ── */
 async function loadSurat(){
   try{
     const res=await fetch(`${SB_URL}/rest/v1/surat_tugas?user_id=eq.${encodeURIComponent(SESSION.id)}&order=created_at.desc`,{headers:H});
     if(!res.ok)throw new Error();
     allSurat=await res.json();
     updateStats();renderTable(allSurat);
+    document.getElementById('tc-list').textContent=allSurat.length;
   }catch(e){
     document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">⚠️</div><div class="table-empty-text">Gagal memuat data. Muat ulang halaman.</div></div>';
   }
@@ -418,141 +483,445 @@ function updateStats(){
 }
 
 function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});}
-
-function badgeHTML(status){
-  const m={menunggu:['menunggu','Menunggu'],disetujui:['disetujui','Disetujui'],ditolak:['ditolak','Ditolak'],draft:['draft','Draft']};
-  const[cls,lbl]=m[status]||['draft',status||'Draft'];
-  return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;
-}
+function badgeHTML(status){const m={menunggu:['menunggu','Menunggu'],disetujui:['disetujui','Disetujui'],ditolak:['ditolak','Ditolak'],draft:['draft','Draft']};const[cls,lbl]=m[status]||['draft',status||'Draft'];return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;}
 
 function renderTable(data){
   document.getElementById('table-count').textContent=`${data.length} surat`;
   if(!data.length){
-    document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Belum ada surat tugas. Klik "+ Buat Surat Tugas" untuk membuat pengajuan baru.</div></div>';
+    document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Belum ada surat tugas. Gunakan tab Bulk Entry untuk membuat surat baru.</div></div>';
     return;
   }
   const rows=data.map(s=>`<tr>
-    <td data-label="Nomor"><strong style="color:var(--navy);font-size:12px">${s.nomor_surat||'—'}</strong></td>
-    <td data-label="Perihal" style="max-width:180px"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${s.perihal||'—'}</span></td>
-    <td data-label="Tujuan">${s.tujuan||'—'}</td>
-    <td data-label="Berangkat">${fmtDate(s.tanggal_berangkat)}</td>
-    <td data-label="Kembali">${fmtDate(s.tanggal_kembali)}</td>
-    <td data-label="Pegawai"><span style="font-size:11px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td>
-    <td data-label="Status">${badgeHTML(s.status)}</td>
-    <td><button class="btn-action" onclick='showDetail(${JSON.stringify(s)})'>Detail</button></td>
+    <td><strong style="color:var(--navy);font-size:12px">${s.nomor_surat||'—'}</strong></td>
+    <td style="max-width:160px"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${s.perihal||'—'}</span></td>
+    <td>${s.tujuan||'—'}</td>
+    <td>${fmtDate(s.tanggal_berangkat)}</td>
+    <td>${fmtDate(s.tanggal_kembali)}</td>
+    <td><span style="font-size:11px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td>
+    <td>${badgeHTML(s.status)}</td>
+    <td><button class="btn-sm" onclick='showDetail(${JSON.stringify(s).replace(/'/g,"&#39;")})'>Detail</button></td>
   </tr>`).join('');
-  document.getElementById('table-area').innerHTML=`<table><thead><tr><th>Nomor Surat</th><th>Perihal</th><th>Tujuan</th><th>Berangkat</th><th>Kembali</th><th>Pegawai</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+  document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Nomor Surat</th><th>Perihal</th><th>Tujuan</th><th>Berangkat</th><th>Kembali</th><th>Pegawai</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function filterTable(){
   const q=document.getElementById('search-input').value.toLowerCase();
   const st=document.getElementById('filter-status').value;
   const f=allSurat.filter(s=>(!q||(s.nomor_surat||'').toLowerCase().includes(q)||(s.perihal||'').toLowerCase().includes(q))&&(!st||s.status===st));
-  renderTable(f);
-  document.getElementById('table-count').textContent=`${f.length} surat`;
+  renderTable(f);document.getElementById('table-count').textContent=`${f.length} surat`;
 }
 
 function showDetail(s){
-  const pegawai=(s.pegawai_list||[]).join(', ')||'—';
-  alert(`DETAIL SURAT TUGAS\n\nNomor      : ${s.nomor_surat||'—'}\nTanggal    : ${fmtDate(s.tanggal_surat)}\nPerihal    : ${s.perihal||'—'}\nTujuan     : ${s.tujuan||'—'}\nBerangkat  : ${fmtDate(s.tanggal_berangkat)}\nKembali    : ${fmtDate(s.tanggal_kembali)}\nStatus     : ${s.status||'—'}\nPegawai    : ${pegawai}\nKeperluan  : ${s.keperluan||'—'}`);
+  alert(`DETAIL SURAT TUGAS\n\nNomor     : ${s.nomor_surat||'—'}\nTanggal   : ${fmtDate(s.tanggal_surat)}\nPerihal   : ${s.perihal||'—'}\nTujuan    : ${s.tujuan||'—'}\nBerangkat : ${fmtDate(s.tanggal_berangkat)}\nKembali   : ${fmtDate(s.tanggal_kembali)}\nStatus    : ${s.status||'—'}\nPegawai   : ${(s.pegawai_list||[]).join(', ')||'—'}\nKeperluan : ${s.keperluan||'—'}`);
 }
 
-/* ── MODAL ── */
-function openModal(){
-  selectedNIP=new Set();
-  ['f-nomor','f-tanggal-surat','f-perihal','f-tujuan','f-tgl-berangkat','f-tgl-kembali','f-keperluan'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('pegawai-search').value='';
-  document.querySelectorAll('.err-msg').forEach(e=>e.classList.remove('show'));
-  document.querySelectorAll('.form-input,.form-textarea').forEach(e=>e.classList.remove('err'));
-  document.getElementById('form-alert').className='alert';
-  const btn=document.getElementById('btn-submit');btn.disabled=false;btn.classList.remove('loading');
-  renderPegawaiList(allPegawai);renderSelectedTags();
-  document.getElementById('modal-overlay').classList.add('open');
-  document.body.style.overflow='hidden';
+/* ═══════════════════════════════════════
+   BULK ENTRY
+═══════════════════════════════════════ */
+
+function getRowIds(){return Object.keys(rows);}
+
+function addRows(n){
+  for(let i=0;i<n;i++){
+    rowIdCounter++;
+    const id=rowIdCounter;
+    rows[id]={checked:false,nomor:'',tglSurat:'',perihal:'',tujuan:'',tglBerangkat:'',tglKembali:'',pegawaiNIPs:[]};
+    renderRow(id);
+  }
+  updateBulkCounters();
 }
 
-function closeModal(){
-  document.getElementById('modal-overlay').classList.remove('open');
-  document.body.style.overflow='';
+function renderRow(id){
+  const container=document.getElementById('bulk-rows');
+  const rowNum=getRowIds().indexOf(String(id))+1;
+  const div=document.createElement('div');
+  div.className='bulk-row';
+  div.id=`row-${id}`;
+  div.innerHTML=`
+    <div class="bulk-cell center">
+      <input type="checkbox" class="bulk-check" id="chk-${id}" onchange="onRowCheck(${id},this.checked)">
+    </div>
+    <div class="bulk-cell row-num" id="rn-${id}">${rowNum}</div>
+    <div class="bulk-cell center">
+      <button class="del-row" title="Hapus baris" onclick="deleteRow(${id})">✕</button>
+    </div>
+    <div class="bulk-cell">
+      <input class="cell-input" id="f-nomor-${id}" type="text" placeholder="ST/001/IV/2026"
+        value="" oninput="setVal(${id},'nomor',this.value)" onkeydown="handleKey(event,${id},0)"
+        onpaste="handlePaste(event,${id})">
+    </div>
+    <div class="bulk-cell">
+      <input class="cell-input" id="f-tgl-surat-${id}" type="date"
+        value="" oninput="setVal(${id},'tglSurat',this.value)" onkeydown="handleKey(event,${id},1)">
+    </div>
+    <div class="bulk-cell">
+      <input class="cell-input" id="f-perihal-${id}" type="text" placeholder="Perihal surat tugas"
+        value="" oninput="setVal(${id},'perihal',this.value)" onkeydown="handleKey(event,${id},2)">
+    </div>
+    <div class="bulk-cell">
+      <input class="cell-input" id="f-tujuan-${id}" type="text" placeholder="Kota / instansi"
+        value="" oninput="setVal(${id},'tujuan',this.value)" onkeydown="handleKey(event,${id},3)">
+    </div>
+    <div class="bulk-cell">
+      <input class="cell-input" id="f-tgl-brkt-${id}" type="date"
+        value="" oninput="setVal(${id},'tglBerangkat',this.value);checkTgl(${id})" onkeydown="handleKey(event,${id},4)">
+    </div>
+    <div class="bulk-cell">
+      <input class="cell-input" id="f-tgl-kbli-${id}" type="date"
+        value="" oninput="setVal(${id},'tglKembali',this.value);checkTgl(${id})" onkeydown="handleKey(event,${id},5)">
+    </div>
+    <div class="bulk-cell" style="overflow:visible;position:relative">
+      ${buildPegawaiCell(id)}
+    </div>
+    <div class="row-errors" id="errs-${id}"></div>
+  `;
+  container.appendChild(div);
 }
 
-function handleOverlayClick(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
-
-function checkTanggal(){
-  const a=document.getElementById('f-tgl-berangkat').value;
-  const b=document.getElementById('f-tgl-kembali').value;
-  const err=document.getElementById('e-tgl-kembali');
-  const inp=document.getElementById('f-tgl-kembali');
-  if(a&&b&&b<a){err.classList.add('show');inp.classList.add('err');}
-  else{err.classList.remove('show');inp.classList.remove('err');}
+function buildPegawaiCell(id){
+  return `<div class="peg-wrap" id="pegwrap-${id}">
+    <div class="peg-tags" id="pegtags-${id}" onclick="openPegDD(${id})" tabindex="0" onkeydown="if(event.key==='Enter')openPegDD(${id})">
+      <span class="peg-placeholder" id="peg-placeholder-${id}">Pilih pegawai...</span>
+    </div>
+    <div class="peg-dropdown" id="pegdd-${id}">
+      <div class="peg-dd-search"><input class="peg-dd-input" id="pegdd-search-${id}" type="text" placeholder="Cari nama / NIP..." oninput="filterPegDD(${id})" onclick="event.stopPropagation()"></div>
+      <div class="peg-dd-list" id="pegdd-list-${id}"></div>
+    </div>
+  </div>`;
 }
 
-function showAlert(msg,type='error'){
-  document.getElementById('alert-icon').textContent=type==='success'?'✅':'⚠️';
-  document.getElementById('alert-text').textContent=msg;
-  document.getElementById('form-alert').className=`alert ${type} show`;
-  document.getElementById('form-alert').scrollIntoView({behavior:'smooth',block:'nearest'});
+// Open pegawai dropdown for a row
+let activePegDD=null;
+function openPegDD(id){
+  // Close any open dropdown
+  if(activePegDD!==null&&activePegDD!==id){closePegDD(activePegDD);}
+  activePegDD=id;
+  const dd=document.getElementById(`pegdd-${id}`);
+  dd.classList.add('open');
+  document.getElementById(`pegdd-search-${id}`).value='';
+  renderPegDDList(id,allPegawai);
+  document.getElementById(`pegdd-search-${id}`).focus();
+}
+function closePegDD(id){
+  const dd=document.getElementById(`pegdd-${id}`);
+  if(dd)dd.classList.remove('open');
+  if(activePegDD===id)activePegDD=null;
 }
 
-async function submitForm(){
-  document.querySelectorAll('.err-msg').forEach(e=>e.classList.remove('show'));
-  document.querySelectorAll('.form-input,.form-textarea').forEach(e=>e.classList.remove('err'));
-  document.getElementById('form-alert').className='alert';
+// Close dropdown when clicking outside
+document.addEventListener('click',function(e){
+  if(activePegDD===null)return;
+  const wrap=document.getElementById(`pegwrap-${activePegDD}`);
+  if(wrap&&!wrap.contains(e.target))closePegDD(activePegDD);
+});
 
-  const nomor=document.getElementById('f-nomor').value.trim();
-  const tglSurat=document.getElementById('f-tanggal-surat').value;
-  const perihal=document.getElementById('f-perihal').value.trim();
-  const tujuan=document.getElementById('f-tujuan').value.trim();
-  const tglBerangkat=document.getElementById('f-tgl-berangkat').value;
-  const tglKembali=document.getElementById('f-tgl-kembali').value;
-  const keperluan=document.getElementById('f-keperluan').value.trim();
+function filterPegDD(id){
+  const q=document.getElementById(`pegdd-search-${id}`).value.toLowerCase();
+  renderPegDDList(id,allPegawai.filter(p=>(p['NAMA']||'').toLowerCase().includes(q)||(p['NIP']||'').includes(q)));
+}
 
-  let ok=true;
-  if(!nomor){document.getElementById('e-nomor').classList.add('show');document.getElementById('f-nomor').classList.add('err');ok=false;}
-  if(!tglSurat){document.getElementById('e-tanggal-surat').classList.add('show');document.getElementById('f-tanggal-surat').classList.add('err');ok=false;}
-  if(!perihal){document.getElementById('e-perihal').classList.add('show');document.getElementById('f-perihal').classList.add('err');ok=false;}
-  if(!tujuan){document.getElementById('e-tujuan').classList.add('show');document.getElementById('f-tujuan').classList.add('err');ok=false;}
-  if(!tglBerangkat){document.getElementById('e-tgl-berangkat').classList.add('show');document.getElementById('f-tgl-berangkat').classList.add('err');ok=false;}
-  if(tglKembali&&tglBerangkat&&tglKembali<tglBerangkat){document.getElementById('e-tgl-kembali').classList.add('show');document.getElementById('f-tgl-kembali').classList.add('err');ok=false;}
-  if(!selectedNIP.size){document.getElementById('e-pegawai').classList.add('show');ok=false;}
-  if(!ok){showAlert('Lengkapi semua kolom yang wajib diisi.');return;}
+function renderPegDDList(id,list){
+  const el=document.getElementById(`pegdd-list-${id}`);
+  if(!list.length){el.innerHTML='<div style="padding:12px;text-align:center;font-size:12px;color:var(--muted)">Tidak ada hasil</div>';return;}
+  const niPs=rows[id]?rows[id].pegawaiNIPs:[];
+  el.innerHTML=list.map(p=>{
+    const nip=p['NIP']||'';const nama=p['NAMA']||'-';
+    const sel=niPs.includes(nip)?' selected':'';
+    return `<div class="peg-dd-item${sel}" onclick="togglePegDD(${id},'${nip}','${nama.replace(/'/g,"\\'")}')">
+      <div class="peg-dd-name">${nama}</div>
+      <div class="peg-dd-nip">NIP ${nip||'—'}</div>
+    </div>`;
+  }).join('');
+}
 
-  const pegawaiList=[...selectedNIP].map(nip=>{const p=allPegawai.find(x=>x['NIP']===nip);return p?p['NAMA']:nip;});
+function togglePegDD(id,nip,nama){
+  if(!rows[id])return;
+  const arr=rows[id].pegawaiNIPs;
+  const idx=arr.indexOf(nip);
+  if(idx>=0)arr.splice(idx,1);
+  else arr.push(nip);
+  renderPegTags(id);
+  renderPegDDList(id,allPegawai.filter(p=>{const q=document.getElementById(`pegdd-search-${id}`).value.toLowerCase();return!q||(p['NAMA']||'').toLowerCase().includes(q)||(p['NIP']||'').includes(q);}));
+}
 
-  const payload={
-    user_id:SESSION.id,
-    nomor_surat:nomor,
-    tanggal_surat:tglSurat,
-    perihal,
-    tujuan,
-    tanggal_berangkat:tglBerangkat,
-    tanggal_kembali:tglKembali||null,
-    keperluan:keperluan||null,
-    pegawai_nip:[...selectedNIP],
-    pegawai_list:pegawaiList,
-    status:'menunggu',
-    created_at:new Date().toISOString()
-  };
+function renderPegTags(id){
+  if(!rows[id])return;
+  const container=document.getElementById(`pegtags-${id}`);
+  const ph=document.getElementById(`peg-placeholder-${id}`);
+  const niPs=rows[id].pegawaiNIPs;
+  if(!niPs.length){
+    if(ph)ph.style.display='';
+    // Remove existing tags
+    container.querySelectorAll('.peg-tag').forEach(t=>t.remove());
+    return;
+  }
+  if(ph)ph.style.display='none';
+  // Rebuild tags
+  container.querySelectorAll('.peg-tag').forEach(t=>t.remove());
+  niPs.forEach(nip=>{
+    const p=allPegawai.find(x=>x['NIP']===nip);
+    const nama=p?p['NAMA']:nip;
+    const tag=document.createElement('span');
+    tag.className='peg-tag';
+    tag.innerHTML=`${nama}<button class="peg-tag-x" onclick="event.stopPropagation();togglePegDD(${id},'${nip}','${(nama||'').replace(/'/g,"\\'")}')">×</button>`;
+    container.insertBefore(tag,ph||null);
+  });
+}
 
-  const btn=document.getElementById('btn-submit');
-  btn.disabled=true;btn.classList.add('loading');
+/* ── Row data helpers ── */
+function setVal(id,field,val){if(rows[id])rows[id][field]=val;}
+function checkTgl(id){
+  if(!rows[id])return;
+  const a=rows[id].tglBerangkat,b=rows[id].tglKembali;
+  const inp=document.getElementById(`f-tgl-kbli-${id}`);
+  if(inp)inp.classList.toggle('err',!!(a&&b&&b<a));
+}
 
-  try{
-    const res=await fetch(`${SB_URL}/rest/v1/surat_tugas`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(payload)});
-    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||`HTTP ${res.status}`);}
-    closeModal();
-    await loadSurat();
-  }catch(e){
-    showAlert(`Gagal mengirim: ${e.message}. Pastikan tabel surat_tugas sudah dibuat di Supabase.`);
-    btn.disabled=false;btn.classList.remove('loading');
+/* ── Keyboard navigation: Tab moves between cols, Enter adds new row ── */
+const COL_IDS=['nomor','tgl-surat','perihal','tujuan','tgl-brkt','tgl-kbli'];
+function handleKey(e,id,colIdx){
+  if(e.key==='Tab'){
+    e.preventDefault();
+    const nextCol=colIdx+1;
+    if(nextCol<COL_IDS.length){
+      const nextId=`f-${COL_IDS[nextCol]}-${id}`;
+      document.getElementById(nextId)?.focus();
+    } else {
+      // Move to next row's first col
+      const ids=getRowIds();const idx=ids.indexOf(String(id));
+      const nextRowId=ids[idx+1];
+      if(nextRowId)document.getElementById(`f-nomor-${nextRowId}`)?.focus();
+      else{addRows(1);setTimeout(()=>{const newIds=getRowIds();document.getElementById(`f-nomor-${newIds[newIds.length-1]}`)?.focus();},50);}
+    }
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    addRows(1);
+    setTimeout(()=>{const ids=getRowIds();document.getElementById(`f-nomor-${ids[ids.length-1]}`)?.focus();},50);
   }
 }
 
+/* ── Paste handler: supports paste from Excel (tab-separated) ── */
+function handlePaste(e,startId){
+  const text=e.clipboardData?.getData('text')||'';
+  if(!text.includes('\t')&&!text.includes('\n'))return; // normal paste
+  e.preventDefault();
+  const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());
+  const ids=getRowIds();
+  const startIdx=ids.indexOf(String(startId));
+  lines.forEach((line,li)=>{
+    const cells=line.split('\t');
+    let rowId=ids[startIdx+li];
+    if(!rowId){addRows(1);rowId=getRowIds()[getRowIds().length-1];}
+    const fields=['nomor','tglSurat','perihal','tujuan','tglBerangkat','tglKembali'];
+    const inputIds=['nomor','tgl-surat','perihal','tujuan','tgl-brkt','tgl-kbli'];
+    cells.forEach((val,ci)=>{
+      if(ci>=fields.length)return;
+      val=val.trim();
+      if(rows[rowId])rows[rowId][fields[ci]]=val;
+      const inp=document.getElementById(`f-${inputIds[ci]}-${rowId}`);
+      if(inp)inp.value=val;
+    });
+  });
+  updateBulkCounters();
+}
+
+/* ── Check / uncheck ── */
+function onRowCheck(id,checked){
+  if(rows[id])rows[id].checked=checked;
+  document.getElementById(`row-${id}`)?.classList.toggle('checked',checked);
+  syncCheckAll();
+  updateBulkCounters();
+}
+
+function toggleCheckAll(checked){
+  getRowIds().forEach(id=>{
+    rows[id].checked=checked;
+    const chk=document.getElementById(`chk-${id}`);
+    if(chk)chk.checked=checked;
+    document.getElementById(`row-${id}`)?.classList.toggle('checked',checked);
+  });
+  updateBulkCounters();
+}
+
+function syncCheckAll(){
+  const ids=getRowIds();
+  const allChecked=ids.length>0&&ids.every(id=>rows[id].checked);
+  const someChecked=ids.some(id=>rows[id].checked);
+  const ca=document.getElementById('check-all');
+  if(ca){ca.checked=allChecked;ca.indeterminate=!allChecked&&someChecked;}
+}
+
+function updateBulkCounters(){
+  const ids=getRowIds();
+  const checkedCount=ids.filter(id=>rows[id].checked).length;
+  const total=ids.length;
+
+  // Selected pill
+  const pill=document.getElementById('selected-pill');
+  pill.textContent=`${checkedCount} dipilih`;
+  pill.className='selected-pill'+(checkedCount===0?' zero':'');
+
+  // Action bar
+  document.getElementById('ab-checked').textContent=checkedCount;
+  document.getElementById('ab-total').textContent=total;
+
+  // Send button
+  const btn=document.getElementById('btn-send');
+  btn.disabled=checkedCount===0;
+  document.getElementById('btn-send-text').textContent=`Kirim yang Dipilih (${checkedCount})`;
+
+  // Delete checked button
+  document.getElementById('btn-del-checked').style.display=checkedCount>0?'':'none';
+
+  // Row count label
+  document.getElementById('row-count-label').textContent=`${total} baris`;
+
+  // Tab count
+  document.getElementById('tc-bulk').textContent=total;
+}
+
+/* ── Delete row ── */
+function deleteRow(id){
+  delete rows[id];
+  document.getElementById(`row-${id}`)?.remove();
+  reNumberRows();
+  syncCheckAll();
+  updateBulkCounters();
+}
+
+function deleteChecked(){
+  const checked=getRowIds().filter(id=>rows[id].checked);
+  if(!checked.length)return;
+  if(!confirm(`Hapus ${checked.length} baris yang dipilih?`))return;
+  checked.forEach(id=>deleteRow(id));
+}
+
+function reNumberRows(){
+  getRowIds().forEach((id,i)=>{
+    const el=document.getElementById(`rn-${id}`);
+    if(el)el.textContent=i+1;
+  });
+}
+
+function clearAll(){
+  if(!getRowIds().length)return;
+  if(!confirm('Kosongkan semua baris?'))return;
+  document.getElementById('bulk-rows').innerHTML='';
+  Object.keys(rows).forEach(k=>delete rows[k]);
+  document.getElementById('check-all').checked=false;
+  document.getElementById('check-all').indeterminate=false;
+  updateBulkCounters();
+}
+
+/* ── Validate & Submit ── */
+function validateRow(id){
+  const r=rows[id];
+  const errs=[];
+  if(!r.nomor.trim())errs.push('Nomor surat wajib diisi');
+  if(!r.tglSurat)errs.push('Tanggal surat wajib diisi');
+  if(!r.perihal.trim())errs.push('Perihal wajib diisi');
+  if(!r.tujuan.trim())errs.push('Tujuan wajib diisi');
+  if(!r.tglBerangkat)errs.push('Tanggal berangkat wajib diisi');
+  if(r.tglKembali&&r.tglBerangkat&&r.tglKembali<r.tglBerangkat)errs.push('Tgl. kembali tidak boleh sebelum berangkat');
+  if(!r.pegawaiNIPs.length)errs.push('Pilih minimal satu pegawai');
+  return errs;
+}
+
+function showRowErrors(id,errs){
+  const el=document.getElementById(`errs-${id}`);
+  const rowEl=document.getElementById(`row-${id}`);
+  if(!el)return;
+  if(!errs.length){el.classList.remove('show');rowEl?.classList.remove('has-error');return;}
+  el.classList.add('show');
+  rowEl?.classList.add('has-error');
+  el.innerHTML=errs.map(e=>`<span class="row-err-item">⚠ ${e}</span>`).join('');
+}
+
+function clearRowErrors(id){showRowErrors(id,[]);}
+
+async function submitChecked(){
+  const checkedIds=getRowIds().filter(id=>rows[id].checked);
+  if(!checkedIds.length)return;
+
+  // Clear previous errors
+  checkedIds.forEach(id=>clearRowErrors(id));
+  document.getElementById('bulk-alert').className='alert';
+
+  // Validate all checked rows
+  let hasError=false;
+  checkedIds.forEach(id=>{
+    const errs=validateRow(id);
+    if(errs.length){showRowErrors(id,errs);hasError=true;}
+  });
+  if(hasError){
+    showBulkAlert('Beberapa baris memiliki kesalahan. Periksa kembali baris yang ditandai merah.','error');
+    return;
+  }
+
+  // Build payloads
+  const payloads=checkedIds.map(id=>{
+    const r=rows[id];
+    const pegawaiList=r.pegawaiNIPs.map(nip=>{const p=allPegawai.find(x=>x['NIP']===nip);return p?p['NAMA']:nip;});
+    return{
+      user_id:SESSION.id,
+      nomor_surat:r.nomor.trim(),
+      tanggal_surat:r.tglSurat,
+      perihal:r.perihal.trim(),
+      tujuan:r.tujuan.trim(),
+      tanggal_berangkat:r.tglBerangkat,
+      tanggal_kembali:r.tglKembali||null,
+      keperluan:null,
+      pegawai_nip:r.pegawaiNIPs,
+      pegawai_list:pegawaiList,
+      status:'menunggu',
+      created_at:new Date().toISOString()
+    };
+  });
+
+  const btn=document.getElementById('btn-send');
+  btn.disabled=true;btn.classList.add('loading');
+
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/surat_tugas`,{
+      method:'POST',
+      headers:{...H,'Prefer':'return=minimal'},
+      body:JSON.stringify(payloads)
+    });
+    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||`HTTP ${res.status}`);}
+
+    // Remove submitted rows
+    checkedIds.forEach(id=>deleteRow(id));
+    reNumberRows();
+    syncCheckAll();
+    updateBulkCounters();
+
+    showBulkAlert(`✅ ${checkedIds.length} surat tugas berhasil dikirim dan menunggu persetujuan administrator.`,'success');
+    await loadSurat();
+    document.getElementById('tc-list').textContent=allSurat.length;
+
+  }catch(e){
+    showBulkAlert(`Gagal mengirim: ${e.message}. Pastikan tabel surat_tugas sudah dibuat di Supabase.`,'error');
+  }finally{
+    btn.disabled=false;btn.classList.remove('loading');
+    updateBulkCounters();
+  }
+}
+
+function showBulkAlert(msg,type='error'){
+  document.getElementById('bulk-alert-icon').textContent=type==='success'?'✅':'⚠️';
+  document.getElementById('bulk-alert-text').textContent=msg;
+  document.getElementById('bulk-alert').className=`alert ${type} show`;
+  document.getElementById('bulk-alert').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ── INIT ── */
 async function init(){
   SESSION=checkSession();
   if(!SESSION)return;
   setTopbarUser(SESSION);
   await Promise.all([loadSurat(),loadPegawai()]);
+  // Start with 5 empty rows
+  addRows(5);
 }
 init();
 </script>
