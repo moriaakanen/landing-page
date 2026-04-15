@@ -132,26 +132,54 @@
     </div>
   </main>
 </div>
+
+<!-- Fix #6: Gunakan config.js terpusat, hapus duplikasi SB_URL/SB_KEY -->
+<script src="config.js"></script>
 <script>
-  const SB_URL='https://jsmmtqeoukkgugorrvmg.supabase.co';
-  const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzbW10cWVvdWtrZ3Vnb3Jydm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTg2NzksImV4cCI6MjA5MTY3NDY3OX0.O03NscRcj4RcNx-P3j65hO7XXLRSkbyJcwpcArpqHBQ';
-  function checkSession(){try{const s=JSON.parse(localStorage.getItem('nova_user')||'null');if(!s){window.location.replace('login.html');return null;}if(s.expires_at&&Date.now()>s.expires_at){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}if(s.must_change_password){window.location.replace('ganti-password.html');return null;}return s;}catch(e){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}}
+  /*
+   * Fix #9 — CATATAN:
+   * Nama tabel "data pegawai" mengandung spasi sehingga harus di-encode di URL.
+   * Sebaiknya rename tabel menjadi "data_pegawai" di Supabase dashboard
+   * untuk menghindari potensi masalah encoding di masa depan.
+   */
+  function checkSession(){
+    try{
+      const s=JSON.parse(localStorage.getItem('nova_user')||'null');
+      if(!s){window.location.replace('login.html');return null;}
+      if(s.expires_at&&Date.now()>s.expires_at){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}
+      if(s.must_change_password){window.location.replace('ganti-password.html');return null;}
+      return s;
+    }catch(e){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}
+  }
   function logout(){localStorage.removeItem('nova_user');window.location.replace('login.html');}
   function updateClock(){document.getElementById('topbar-time').textContent=new Date().toLocaleString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});}
   updateClock();setInterval(updateClock,1000);
-  function setTopbarUser(s){const name=s.full_name||s.username||'Pengguna';const i=name.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);document.getElementById('topbar-avatar').textContent=i;document.getElementById('topbar-username').textContent=name;}
+  function setTopbarUser(s){
+    const name=s.full_name||s.username||'Pengguna';
+    const i=name.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('topbar-avatar').textContent=i;
+    document.getElementById('topbar-username').textContent=name;
+  }
   async function fetchProfil(userId){
     const card=document.getElementById('profil-card');
     try{
-      const res=await fetch(`${SB_URL}/rest/v1/data%20pegawai?id=eq.${encodeURIComponent(userId)}&select=*&limit=1`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      // Fix #9 catatan: "data%20pegawai" → idealnya rename ke "data_pegawai"
+      const res=await fetch(`${SUPABASE_URL}/rest/v1/data%20pegawai?id=eq.${encodeURIComponent(userId)}&select=*&limit=1`,{
+        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`}
+      });
       if(!res.ok)throw new Error();
       const data=await res.json();
-      if(!data||!data.length){card.innerHTML=`<div class="profil-banner"></div><div class="empty-state"><div class="empty-icon">🗂</div><div class="empty-title">Data Tidak Ditemukan</div><div class="empty-desc">Data pegawai untuk akun ini belum tersedia.</div></div>`;return;}
+      if(!data||!data.length){
+        card.innerHTML=`<div class="profil-banner"></div><div class="empty-state"><div class="empty-icon">🗂</div><div class="empty-title">Data Tidak Ditemukan</div><div class="empty-desc">Data pegawai untuk akun ini belum tersedia.</div></div>`;
+        return;
+      }
       const p=data[0];const nama=p['NAMA']||'-';const nip=p['NIP']||'-';
       const ini=nama.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);
       const f=(label,value,full)=>{const val=value&&String(value).trim()?String(value).trim():null;return`<div class="data-field${full?' full':''}"><div class="data-field-label">${label}</div><div class="data-field-val${val?'':' empty'}">${val||'Tidak tersedia'}</div></div>`;};
       card.innerHTML=`<div class="profil-banner"></div><div class="profil-identity"><div class="profil-avatar">${ini}</div><div class="profil-namebox"><div class="profil-nama">${nama}</div><div class="profil-nip">NIP ${nip}</div></div></div><div class="profil-divider"></div><div class="profil-data"><div class="data-grid">${f('Nama Lengkap',p['NAMA'],true)}${f('NIP',p['NIP'])}${f('Nomor Seri Karpeg',p['NOMOR SERI KARPEG'])}${f('Tempat / Tanggal Lahir',p['TEMPAT/TANGGAL LAHIR'])}${f('Jenis Kelamin',p['JENIS KELAMIN'])}${f('Agama',p['AGAMA'])}${f('Pendidikan Terakhir',p['PENDIDIKAN TERAKHIR'])}${f('Unit Kerja',p['UNIT KERJA'])}${f('Jabatan',p['JABATAN'])}${f('Golongan / Ruang',p['GOLONGAN/RUANG']||p['GOLONGAN']||p['GOL/RUANG'])}${f('TMT Golongan',p['TMT GOLONGAN']||p['TMT GOL'])}${f('Masa Kerja',p['MASA KERJA'])}</div></div>`;
-    }catch(e){card.innerHTML=`<div class="profil-banner"></div><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Gagal Memuat Data</div><div class="empty-desc">Terjadi kesalahan. Muat ulang halaman.</div></div>`;}
+    }catch(e){
+      card.innerHTML=`<div class="profil-banner"></div><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Gagal Memuat Data</div><div class="empty-desc">Terjadi kesalahan. Muat ulang halaman.</div></div>`;
+    }
   }
   function init(){const s=checkSession();if(!s)return;setTopbarUser(s);fetchProfil(s.id);}
   init();
