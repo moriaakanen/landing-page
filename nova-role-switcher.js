@@ -1,59 +1,9 @@
 /**
  * ROLE SWITCHER — nova-role-switcher.js
- * Tambahkan file ini ke semua halaman Portal NOVA.
+ * Portal NOVA · versi multi-role
  * Diload SETELAH config.js
- *
- * Cara pakai:
- * 1. Tambahkan <script src="nova-role-switcher.js"></script> setelah config.js
- * 2. Ganti blok topbar-right dengan HTML di bawah (lihat komentar TOPBAR HTML)
- * 3. Hapus tombol <button class="btn-logout"> yang lama (sudah ada di dalam dropdown)
- * 4. Panggil initRoleSwitcher(session, isAdminPage) di akhir fungsi init()
  */
 
-/* ═══════════════════════════════════════════
-   TOPBAR HTML — ganti .topbar-right dengan ini
-   ═══════════════════════════════════════════
-
-<div class="topbar-right">
-  <span class="topbar-time" id="topbar-time"></span>
-  <div class="user-switcher" id="user-switcher">
-    <button class="user-switcher-btn" id="user-switcher-btn"
-      onclick="toggleUserDropdown()" aria-expanded="false" type="button">
-      <div class="topbar-avatar" id="topbar-avatar">—</div>
-      <span class="topbar-username" id="topbar-username">Pengguna</span>
-      <span class="active-role-badge" id="active-role-badge">Admin</span>
-      <span class="user-switcher-caret">▼</span>
-    </button>
-    <div class="user-switcher-dropdown" id="user-switcher-dropdown">
-      <div class="usd-header">
-        <div class="usd-header-name" id="usd-header-name">Pengguna</div>
-        <div class="usd-header-label">Akun aktif · Ganti tampilan role</div>
-      </div>
-      <div class="usd-section-label">Tampilkan sebagai</div>
-      <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')" type="button">
-        <div class="usd-role-icon admin">👑</div>
-        <div><div class="usd-role-name">Administrator</div><div class="usd-role-desc">Akses penuh semua menu</div></div>
-        <span class="usd-check">✓</span>
-      </button>
-      <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')" type="button">
-        <div class="usd-role-icon user">👤</div>
-        <div><div class="usd-role-name">User</div><div class="usd-role-desc">Akses standar pegawai</div></div>
-        <span class="usd-check">✓</span>
-      </button>
-      <div class="usd-divider"></div>
-      <button class="usd-logout" onclick="logout()" type="button">
-        <span>🚪</span> Keluar dari Portal
-      </button>
-    </div>
-  </div>
-  <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-</div>
-
-*/
-
-/* ═══════════════════════════════════════════
-   CSS — tambahkan ke dalam <style> setiap halaman
-   ═══════════════════════════════════════════ */
 (function injectCSS() {
   const css = `
   .user-switcher{position:relative}
@@ -90,59 +40,60 @@
   document.head.appendChild(style);
 })();
 
-/* ═══════════════════════════════════════════
-   FUNGSI UTAMA
-   ═══════════════════════════════════════════ */
-
 /**
- * Ambil role aktif dari session
+ * Ambil daftar role yang dimiliki user dari session.
+ * Prioritas: field roles (array) → field role (string) → cek ADMIN_USERS
  */
+function _getSessionRoles(session) {
+  if (!session) return ['user'];
+  if (Array.isArray(session.roles) && session.roles.length) return session.roles;
+  if (session.role) return [session.role];
+  return ADMIN_USERS.includes(session.username) ? ['admin', 'user'] : ['user'];
+}
+
 function getActiveRole() {
   try {
     const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
-    return s?.active_role || (ADMIN_USERS.includes(s?.username) ? 'admin' : 'user');
+    if (!s) return 'user';
+    if (s.active_role) return s.active_role;
+    return _getSessionRoles(s).includes('admin') ? 'admin' : 'user';
   } catch(e) { return 'user'; }
 }
 
 /**
- * Ganti role tampilan
- * @param {string} role - 'admin' | 'user'
+ * Ganti role tampilan — dipanggil dari tombol dropdown topbar.
+ * Hanya izinkan switch ke role yang memang dimiliki user.
  */
 function switchViewRole(role) {
   try {
     const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
     if (!s) return;
-    if (role === 'admin' && !ADMIN_USERS.includes(s.username)) return;
+    const allowedRoles = _getSessionRoles(s);
+    if (!allowedRoles.includes(role)) return;
     s.active_role = role;
     localStorage.setItem('nova_user', JSON.stringify(s));
   } catch(e) {}
 
   closeUserDropdown();
 
-  // Redirect ke halaman yang sesuai
   if (role === 'user') {
     window.location.replace('index.html');
   } else {
-    // Jika sudah di halaman admin, cukup reload UI
     applyRoleSidebar(role);
     applyRoleBadge(role);
   }
 }
 
-/**
- * Update tampilan sidebar sesuai role
- */
 function applyRoleSidebar(role) {
   const isAdmin = role === 'admin';
   const adminNav = document.getElementById('admin-nav');
   if (adminNav) adminNav.style.display = isAdmin ? 'block' : 'none';
+  const adminFooterBadge = document.getElementById('admin-footer-badge');
+  if (adminFooterBadge) adminFooterBadge.style.display = isAdmin ? 'block' : 'none';
   const sidebarBadge = document.getElementById('sidebar-admin-badge');
   if (sidebarBadge) sidebarBadge.style.display = isAdmin ? 'inline-flex' : 'none';
 }
 
-/**
- * Update badge role di topbar
- */
 function applyRoleBadge(role) {
   const isAdmin = role === 'admin';
   const badge = document.getElementById('active-role-badge');
@@ -151,40 +102,44 @@ function applyRoleBadge(role) {
     badge.className = `active-role-badge ${role}`;
   }
   const optAdmin = document.getElementById('usd-opt-admin');
-  const optUser = document.getElementById('usd-opt-user');
+  const optUser  = document.getElementById('usd-opt-user');
   if (optAdmin) optAdmin.classList.toggle('active', isAdmin);
-  if (optUser) optUser.classList.toggle('active', !isAdmin);
+  if (optUser)  optUser.classList.toggle('active', !isAdmin);
 }
 
 /**
- * Inisialisasi role switcher — panggil ini di init() setiap halaman
- * @param {object} session - object session dari localStorage
- * @param {boolean} isAdminPage - apakah halaman ini membutuhkan akses admin
+ * Inisialisasi role switcher — panggil di init() setiap halaman.
+ * @param {object}  session      - object session dari localStorage
+ * @param {boolean} isAdminPage  - apakah halaman ini membutuhkan akses admin
  */
 function initRoleSwitcher(session, isAdminPage = false) {
   if (!session) return;
+
   // Set default active_role jika belum ada
   if (!session.active_role) {
-    session.active_role = ADMIN_USERS.includes(session.username) ? 'admin' : 'user';
+    const roles = _getSessionRoles(session);
+    session.active_role = roles.includes('admin') ? 'admin' : 'user';
     localStorage.setItem('nova_user', JSON.stringify(session));
   }
 
-  // Redirect jika halaman admin tapi role aktif adalah user
+  // Redirect jika halaman admin tapi role aktif bukan admin
   if (isAdminPage && session.active_role !== 'admin') {
     window.location.replace('index.html');
     return;
   }
 
-  // Update nama di dropdown
+  // Update nama di header dropdown
   const name = session.full_name || session.username || 'Pengguna';
   const usdName = document.getElementById('usd-header-name');
   if (usdName) usdName.textContent = name;
 
-  // Sembunyikan opsi admin jika bukan admin
+  // Tampilkan/sembunyikan opsi sesuai role yang dimiliki user
+  const allowedRoles = _getSessionRoles(session);
+
   const optAdmin = document.getElementById('usd-opt-admin');
-  if (optAdmin && !ADMIN_USERS.includes(session.username)) {
-    optAdmin.style.display = 'none';
-  }
+  const optUser  = document.getElementById('usd-opt-user');
+  if (optAdmin) optAdmin.style.display = allowedRoles.includes('admin') ? '' : 'none';
+  if (optUser)  optUser.style.display  = allowedRoles.includes('user')  ? '' : 'none';
 
   applyRoleBadge(session.active_role);
   applyRoleSidebar(session.active_role);
