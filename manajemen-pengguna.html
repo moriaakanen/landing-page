@@ -537,7 +537,7 @@
   const TABLE_PENGGUNA = 'users';
   const H = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 
-  let SESSION = null, allPengguna = [], selectedUserId = null, selectedUserName = '';
+  let SESSION = null, allPengguna = [], userMap = {}, selectedUserId = null, selectedUserName = '';
   let newUserRole = 'user'; // kept for compat
 
   /* ══ ROLE SWITCHER ══ */
@@ -641,6 +641,7 @@
       const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?select=id,username,full_name,must_change_password,created_at,role&order=full_name.asc`, { headers: H });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       allPengguna = await res.json();
+      userMap = {}; allPengguna.forEach(u => { userMap[u.id] = u; });
       updateStats(); filterTable();
     } catch(e) {
       document.getElementById('table-area').innerHTML = `<div class="table-empty"><div class="table-empty-icon">⚠️</div><div class="table-empty-text">Gagal memuat data pengguna.<br>Periksa nama tabel dan kebijakan RLS di Supabase.</div></div>`;
@@ -685,7 +686,6 @@
       const ini = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
       const isProtected = ADMIN_USERS.includes(u.username);
       const roles = getRoles(u);
-      const rolesEsc = JSON.stringify(roles).replace(/'/g,"\'");
       const roleBadges = roles.map(r =>
         r === 'admin'
           ? `<span class="badge role-admin">👑 Admin</span>`
@@ -713,7 +713,7 @@
         <td style="font-size:12px;color:var(--muted)">${tanggal}</td>
         <td style="text-align:right">
           <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
-            <button class="btn-sm" onclick="openEdit(${u.id},'${esc(name)}','${rolesEsc}','${esc(u.username||'')}')">✏️ Role</button>
+            <button class="btn-sm" onclick="openEdit(${u.id})">✏️ Role</button>
             <button class="btn-sm warn" onclick="openReset(${u.id},'${esc(name)}')">🔑 Reset Sandi</button>
             ${hapusBtn}
           </div>
@@ -768,17 +768,18 @@
     renderChips();
   }
 
-  function openEdit(userId, userName, rolesData, username) {
-    selectedUserId = userId; selectedUserName = userName;
-    try { editRoles = typeof rolesData === 'string' ? JSON.parse(rolesData) : (Array.isArray(rolesData) ? rolesData : [rolesData]); }
-    catch(e) { editRoles = [rolesData || 'user']; }
-    if (!Array.isArray(editRoles) || !editRoles.length) editRoles = ['user'];
+  function openEdit(userId) {
+    const u = userMap[userId];
+    if (!u) return;
+    selectedUserId = userId;
+    selectedUserName = u.full_name || u.username || '-';
+    editRoles = getRoles(u).slice(); // copy
 
-    const ini = userName.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const ini = selectedUserName.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('edit-avatar').textContent = ini;
-    document.getElementById('edit-display-name').textContent = userName;
-    document.getElementById('edit-display-username').textContent = '@' + username;
-    const isSelf = SESSION && username === SESSION.username;
+    document.getElementById('edit-display-name').textContent = selectedUserName;
+    document.getElementById('edit-display-username').textContent = '@' + (u.username || '');
+    const isSelf = SESSION && u.username === SESSION.username;
     const selfWarn = document.getElementById('edit-self-warning');
     if (selfWarn) selfWarn.classList.toggle('show', isSelf && !editRoles.includes('admin'));
     document.getElementById('edit-alert').className = 'alert';
