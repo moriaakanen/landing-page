@@ -206,7 +206,7 @@
   .bulk-row:hover{background:#fafaf8}
   .bulk-row.checked{background:#fffbf0}
   .bulk-row.has-error{background:#fff8f8}
-  .bulk-cell{padding:0;display:flex;align-items:flex-start;border-right:1px solid var(--border);position:relative}
+  .bulk-cell{padding:0;display:flex;align-items:flex-start;border-right:1px solid var(--border);position:relative;align-self:stretch}
   .bulk-cell:last-child{border-right:none}
   .bulk-cell.center{justify-content:center;align-items:center;padding:8px 4px;min-height:38px}
   .bulk-cell.row-num{font-size:11px;color:var(--muted);font-weight:600;justify-content:center;align-items:center;padding:8px 4px;min-height:38px}
@@ -964,10 +964,16 @@ function addRows(n){
   }
   updateBulkCounters();
 }
-/* FIX: reset ke 'auto' lalu baca scrollHeight agar kalkulasi akurat di semua browser */
-function syncTextareaHeight(ta){
-  ta.style.height='auto';
-  ta.style.height=ta.scrollHeight+'px';
+/* FIX: CSS Grid tidak otomatis reflow tinggi baris saat textarea diubah via JS.
+   Solusi: set minHeight pada .bulk-row langsung agar seluruh row ikut melebar. */
+function syncTextareaHeight(ta) {
+  ta.style.height = 'auto';
+  const h = ta.scrollHeight;
+  ta.style.height = h + 'px';
+  const row = ta.closest('.bulk-row');
+  if (row) {
+    row.style.minHeight = Math.max(38, h) + 'px';
+  }
 }
 
 function renderRow(id){
