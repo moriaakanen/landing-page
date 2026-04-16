@@ -25,41 +25,8 @@
   .brand-tag{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
   .topbar-right{display:flex;align-items:center;gap:14px}
   .topbar-time{font-size:11px;color:rgba(255,255,255,.35)}
-
-  /* ── ROLE SWITCHER ── */
-  .user-switcher{position:relative}
-  .user-switcher-btn{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 6px;border-radius:7px;cursor:pointer;transition:background .2s;border:1px solid transparent;background:transparent;font-family:inherit}
-  .user-switcher-btn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.1)}
   .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
   .topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
-  .user-switcher-caret{font-size:9px;color:rgba(255,255,255,.4);transition:transform .2s;margin-left:2px}
-  .user-switcher-btn[aria-expanded="true"] .user-switcher-caret{transform:rotate(180deg)}
-  .user-switcher-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 40px rgba(13,35,64,.18);min-width:240px;overflow:hidden;z-index:500;animation:dropDown .15s ease;display:none}
-  .user-switcher-dropdown.open{display:block}
-  @keyframes dropDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-  .usd-header{padding:14px 16px;border-bottom:1px solid var(--border);background:#fafaf8}
-  .usd-header-name{font-size:13px;font-weight:700;color:var(--navy)}
-  .usd-header-label{font-size:11px;color:var(--muted);margin-top:2px}
-  .usd-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:10px 16px 4px}
-  .usd-role-option{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;transition:background .15s;border:none;background:transparent;width:100%;text-align:left;font-family:inherit}
-  .usd-role-option:hover{background:var(--bg)}
-  .usd-role-option.active{background:var(--gold-light)}
-  .usd-role-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-  .usd-role-icon.user{background:#f1f5f9}
-  .usd-role-icon.admin{background:rgba(200,168,75,.15)}
-  .usd-role-name{font-size:13px;font-weight:600;color:var(--navy)}
-  .usd-role-desc{font-size:11px;color:var(--muted)}
-  .usd-check{margin-left:auto;font-size:13px;color:var(--gold);display:none}
-  .usd-role-option.active .usd-check{display:block}
-  .usd-divider{height:1px;background:var(--border);margin:4px 0}
-  .usd-logout{display:flex;align-items:center;gap:8px;padding:9px 16px;cursor:pointer;transition:background .15s;border:none;background:transparent;width:100%;text-align:left;font-family:inherit;font-size:13px;color:#991b1b;font-weight:500}
-  .usd-logout:hover{background:#fef2f2}
-  .active-role-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:100px;font-size:10px;font-weight:600;letter-spacing:.3px;margin-left:4px}
-  .active-role-badge.admin{background:rgba(200,168,75,.2);color:#7a5c10;border:1px solid rgba(200,168,75,.4)}
-  .active-role-badge.user{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15)}
-
-  .btn-logout{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s}
-  .btn-logout:hover{border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.9)}
   .layout{display:flex;flex:1;min-height:0}
   .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
   .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
@@ -121,9 +88,7 @@
   .badge.ganti-sandi{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
   .badge.role-admin{background:rgba(200,168,75,.15);color:#7a5c10;border:1px solid rgba(200,168,75,.4)}
   .badge.role-user{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1}
-  .badge.role-admin{background:rgba(200,168,75,.15);color:#7a5c10;border:1px solid rgba(200,168,75,.4)}
   .roles-cell{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
-  /* role toggle chips dalam modal */
   .role-chips{display:flex;flex-direction:column;gap:10px}
   .role-chip{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:2px solid var(--border2);border-radius:10px;cursor:pointer;transition:all .2s;user-select:none}
   .role-chip:hover{border-color:var(--border);background:var(--bg)}
@@ -143,8 +108,6 @@
   .role-chip-warning.show{display:block}
   .user-cell{display:flex;align-items:center;gap:10px}
   .user-avatar-sm{width:32px;height:32px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0}
-  .user-cell-name{font-size:13px;font-weight:600;color:var(--navy);line-height:1.3;cursor:pointer;border-bottom:1.5px dashed var(--border2);transition:color .15s,border-color .15s;display:inline}
-  .user-cell-name:hover{color:var(--gold);border-color:var(--gold)}
   .user-cell-name-plain{font-size:13px;font-weight:600;color:var(--navy);line-height:1.3}
   .user-cell-username{font-size:11px;color:var(--muted)}
   .table-empty{padding:48px 24px;text-align:center}
@@ -239,8 +202,6 @@
   </div>
   <div class="topbar-right">
     <span class="topbar-time" id="topbar-time"></span>
-
-    <!-- ROLE SWITCHER -->
     <div class="user-switcher" id="user-switcher">
       <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false" type="button">
         <div class="topbar-avatar" id="topbar-avatar">—</div>
@@ -254,29 +215,20 @@
           <div class="usd-header-label">Akun aktif · Ganti tampilan role</div>
         </div>
         <div class="usd-section-label">Tampilkan sebagai</div>
-        <button class="usd-role-option" id="usd-opt-admin" onclick="switchRole('admin')" type="button">
+        <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')" type="button">
           <div class="usd-role-icon admin">👑</div>
-          <div>
-            <div class="usd-role-name">Administrator</div>
-            <div class="usd-role-desc">Akses penuh semua menu</div>
-          </div>
+          <div><div class="usd-role-name">Administrator</div><div class="usd-role-desc">Akses penuh semua menu</div></div>
           <span class="usd-check">✓</span>
         </button>
-        <button class="usd-role-option" id="usd-opt-user" onclick="switchRole('user')" type="button">
+        <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')" type="button">
           <div class="usd-role-icon user">👤</div>
-          <div>
-            <div class="usd-role-name">User</div>
-            <div class="usd-role-desc">Akses standar pegawai</div>
-          </div>
+          <div><div class="usd-role-name">User</div><div class="usd-role-desc">Akses standar pegawai</div></div>
           <span class="usd-check">✓</span>
         </button>
         <div class="usd-divider"></div>
-        <button class="usd-logout" onclick="logout()" type="button">
-          <span>🚪</span> Keluar dari Portal
-        </button>
+        <button class="usd-logout" onclick="logout()" type="button"><span>🚪</span> Keluar dari Portal</button>
       </div>
     </div>
-
     <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
   </div>
 </div>
@@ -287,9 +239,11 @@
     <a class="nav-item" href="index.html"><div class="nav-item-icon">👤</div>Profil Saya</a>
     <div class="nav-group-label">Persuratan</div>
     <a class="nav-item" href="surat-tugas.html"><div class="nav-item-icon">📄</div>Surat Tugas</a>
-    <div class="nav-group-label">Administrasi</div>
-    <a class="nav-item" href="admin-surat-tugas.html"><div class="nav-item-icon">✅</div>Persetujuan Surat</a>
-    <a class="nav-item active" href="manajemen-pengguna.html"><div class="nav-item-icon">👥</div>Manajemen Pengguna</a>
+    <div id="admin-nav">
+      <div class="nav-group-label">Administrasi</div>
+      <a class="nav-item" href="admin-surat-tugas.html"><div class="nav-item-icon">✅</div>Persetujuan Surat</a>
+      <a class="nav-item active" href="manajemen-pengguna.html"><div class="nav-item-icon">👥</div>Manajemen Pengguna</a>
+    </div>
     <div class="sidebar-footer">
       <strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>© 2026 Pemerintah RI<br>
       <span class="admin-badge" id="sidebar-admin-badge">🔑 Administrator</span>
@@ -301,11 +255,9 @@
       <div>
         <div class="page-eyebrow">Administrasi</div>
         <h1 class="page-title">Manajemen <em>Pengguna</em></h1>
-        <p class="page-desc">Kelola akun pengguna: tambah, atur role, reset kata sandi, dan hapus. <strong>Klik nama pengguna</strong> untuk mengubah role-nya.</p>
+        <p class="page-desc">Kelola akun pengguna: tambah, atur role, reset kata sandi, dan hapus.</p>
       </div>
-      <button class="btn-primary fade-in" style="animation-delay:.1s" onclick="openModal('modal-tambah')">
-        ＋ Tambah Pengguna
-      </button>
+      <button class="btn-primary fade-in" style="animation-delay:.1s" onclick="openModal('modal-tambah')">＋ Tambah Pengguna</button>
     </div>
 
     <div id="page-alert" class="alert"><span id="page-alert-icon"></span><span id="page-alert-text"></span></div>
@@ -352,7 +304,7 @@
   </main>
 </div>
 
-<!-- ═══ MODAL: KELOLA ROLE (multi-role) ═══ -->
+<!-- ═══ MODAL: KELOLA ROLE ═══ -->
 <div class="modal-overlay" id="modal-edit" style="display:none" onclick="if(event.target===this)closeModal('modal-edit')">
   <div class="modal">
     <div class="modal-header">
@@ -489,9 +441,7 @@
     <div class="modal-body" style="text-align:center;padding:28px 24px">
       <div class="confirm-icon warn">🔑</div>
       <div class="confirm-title" style="margin-top:12px">Reset Kata Sandi?</div>
-      <p class="confirm-desc" style="margin-top:8px">
-        Kata sandi <strong id="reset-target-name">pengguna ini</strong> akan diatur ulang. Pengguna akan diminta mengganti kata sandinya saat login berikutnya.
-      </p>
+      <p class="confirm-desc" style="margin-top:8px">Kata sandi <strong id="reset-target-name">pengguna ini</strong> akan diatur ulang. Pengguna akan diminta mengganti kata sandinya saat login berikutnya.</p>
       <div class="form-group" style="margin-top:16px;text-align:left">
         <label class="form-label">Kata Sandi Baru <span>*</span></label>
         <div class="input-wrap">
@@ -521,9 +471,7 @@
     <div class="modal-body" style="text-align:center;padding:28px 24px">
       <div class="confirm-icon danger">🗑</div>
       <div class="confirm-title" style="margin-top:12px">Hapus Akun Pengguna?</div>
-      <p class="confirm-desc" style="margin-top:8px">
-        Akun <strong id="hapus-target-name">pengguna ini</strong> akan dihapus secara permanen. Tindakan ini <strong>tidak dapat dibatalkan</strong>.
-      </p>
+      <p class="confirm-desc" style="margin-top:8px">Akun <strong id="hapus-target-name">pengguna ini</strong> akan dihapus secara permanen. Tindakan ini <strong>tidak dapat dibatalkan</strong>.</p>
     </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-hapus')">Batal</button>
@@ -533,72 +481,14 @@
 </div>
 
 <script src="config.js"></script>
+<script src="nova-role-switcher.js"></script>
 <script>
   const TABLE_PENGGUNA = 'users';
   const H = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 
   let SESSION = null, allPengguna = [], userMap = {}, selectedUserId = null, selectedUserName = '';
-  let newUserRole = 'user'; // kept for compat
-
-  /* ══ ROLE SWITCHER ══ */
-  function getActiveRole() {
-    try { return JSON.parse(localStorage.getItem('nova_user')||'null')?.active_role || 'admin'; } catch(e) { return 'admin'; }
-  }
-
-  function switchRole(role) {
-    if (!SESSION) return;
-    // Hanya izinkan switch ke admin jika memang terdaftar sebagai admin
-    if (role === 'admin' && !ADMIN_USERS.includes(SESSION.username)) return;
-    SESSION.active_role = role;
-    localStorage.setItem('nova_user', JSON.stringify(SESSION));
-    closeUserDropdown();
-    applyRoleUI(role);
-    // Jika switch ke user dan halaman ini butuh admin, redirect
-    if (role === 'user') {
-      window.location.replace('index.html');
-    }
-  }
-
-  function applyRoleUI(role) {
-    const isAdmin = role === 'admin';
-    // Topbar badge
-    const badge = document.getElementById('active-role-badge');
-    if (badge) {
-      badge.textContent = isAdmin ? 'Admin' : 'User';
-      badge.className = `active-role-badge ${role}`;
-    }
-    // Dropdown active state
-    const optAdmin = document.getElementById('usd-opt-admin');
-    const optUser = document.getElementById('usd-opt-user');
-    if (optAdmin) optAdmin.classList.toggle('active', isAdmin);
-    if (optUser) optUser.classList.toggle('active', !isAdmin);
-    // Sidebar admin nav
-    const adminNav = document.getElementById('admin-nav');
-    if (adminNav) adminNav.style.display = isAdmin ? 'block' : 'none';
-    // Sidebar admin badge
-    const sidebarBadge = document.getElementById('sidebar-admin-badge');
-    if (sidebarBadge) sidebarBadge.style.display = isAdmin ? 'inline-flex' : 'none';
-  }
-
-  function toggleUserDropdown() {
-    const dropdown = document.getElementById('user-switcher-dropdown');
-    const btn = document.getElementById('user-switcher-btn');
-    const isOpen = dropdown.classList.contains('open');
-    dropdown.classList.toggle('open', !isOpen);
-    btn.setAttribute('aria-expanded', String(!isOpen));
-  }
-
-  function closeUserDropdown() {
-    const dropdown = document.getElementById('user-switcher-dropdown');
-    const btn = document.getElementById('user-switcher-btn');
-    dropdown.classList.remove('open');
-    btn.setAttribute('aria-expanded', 'false');
-  }
-
-  document.addEventListener('click', function(e) {
-    const switcher = document.getElementById('user-switcher');
-    if (switcher && !switcher.contains(e.target)) closeUserDropdown();
-  });
+  let newUserRoles = ['user'];
+  let newUserRole  = 'user'; // backward compat
 
   /* ══ SESSION ══ */
   function checkSession() {
@@ -607,12 +497,10 @@
       if (!s) { window.location.replace('login.html'); return null; }
       if (s.expires_at && Date.now() > s.expires_at) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
       if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
-      // Set default active_role jika belum ada
       if (!s.active_role) {
         s.active_role = ADMIN_USERS.includes(s.username) ? 'admin' : 'user';
         localStorage.setItem('nova_user', JSON.stringify(s));
       }
-      // Halaman ini butuh admin — cek active_role
       if (s.active_role !== 'admin' || !ADMIN_USERS.includes(s.username)) {
         window.location.replace('index.html'); return null;
       }
@@ -638,11 +526,17 @@
     document.getElementById('table-area').innerHTML = `<table class="list-table"><thead><tr><th>Pengguna</th><th>Role</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th></tr></thead><tbody><tr><td colspan="5"><div style="padding:16px;display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div></td></tr></tbody></table>`;
     document.getElementById('table-count').textContent = 'Memuat...';
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?select=id,username,full_name,must_change_password,created_at,role&order=full_name.asc`, { headers: H });
+      // Sertakan kolom 'roles' (array) agar multi-role terbaca dengan benar
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?select=id,username,full_name,must_change_password,created_at,role,roles&order=full_name.asc`,
+        { headers: H }
+      );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       allPengguna = await res.json();
-      userMap = {}; allPengguna.forEach(u => { userMap[u.id] = u; });
-      updateStats(); filterTable();
+      userMap = {};
+      allPengguna.forEach(u => { userMap[u.id] = u; });
+      updateStats();
+      filterTable();
     } catch(e) {
       document.getElementById('table-area').innerHTML = `<div class="table-empty"><div class="table-empty-icon">⚠️</div><div class="table-empty-text">Gagal memuat data pengguna.<br>Periksa nama tabel dan kebijakan RLS di Supabase.</div></div>`;
       document.getElementById('table-count').textContent = 'Error';
@@ -650,26 +544,26 @@
   }
 
   function updateStats() {
-    document.getElementById('st-total').textContent = allPengguna.length;
-    document.getElementById('st-aktif').textContent = allPengguna.filter(u => !u.must_change_password).length;
-    document.getElementById('st-ganti').textContent = allPengguna.filter(u => u.must_change_password).length;
-    document.getElementById('st-admin').textContent = allPengguna.filter(u => getRoles(u).includes('admin')).length;
+    document.getElementById('st-total').textContent   = allPengguna.length;
+    document.getElementById('st-aktif').textContent   = allPengguna.filter(u => !u.must_change_password).length;
+    document.getElementById('st-ganti').textContent   = allPengguna.filter(u => u.must_change_password).length;
+    document.getElementById('st-admin').textContent   = allPengguna.filter(u => getRoles(u).includes('admin')).length;
   }
 
   function filterTable() {
-    const q = document.getElementById('search-input').value.toLowerCase();
+    const q  = document.getElementById('search-input').value.toLowerCase();
     const st = document.getElementById('filter-status').value;
     const rl = document.getElementById('filter-role').value;
     let f = allPengguna;
-    if (q) f = f.filter(u => (u.full_name||'').toLowerCase().includes(q) || (u.username||'').toLowerCase().includes(q));
+    if (q)  f = f.filter(u => (u.full_name||'').toLowerCase().includes(q) || (u.username||'').toLowerCase().includes(q));
     if (st === 'aktif') f = f.filter(u => !u.must_change_password);
     if (st === 'ganti') f = f.filter(u => u.must_change_password);
     if (rl) f = f.filter(u => getRoles(u).includes(rl));
     renderTable(f);
   }
 
+  /* Ambil array roles dari object user — mendukung field roles (array) dan role (string) */
   function getRoles(u) {
-    // Support both old string 'role' and new array 'roles'
     if (Array.isArray(u.roles) && u.roles.length) return u.roles;
     if (u.role) return [u.role];
     return ['user'];
@@ -683,7 +577,7 @@
     }
     const rows = data.map(u => {
       const name = u.full_name || u.username || '-';
-      const ini = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      const ini  = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
       const isProtected = ADMIN_USERS.includes(u.username);
       const roles = getRoles(u);
       const roleBadges = roles.map(r =>
@@ -728,13 +622,13 @@
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
-  function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+  function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
   function closeModal(id) { document.getElementById(id).style.display = 'none'; }
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') ['modal-edit','modal-tambah','modal-reset','modal-hapus'].forEach(id => closeModal(id));
   });
 
-  /* ══ KELOLA ROLE (multi) ══ */
+  /* ══ KELOLA ROLE ══ */
   let editRoles = [];
 
   function renderChips() {
@@ -762,7 +656,7 @@
     }
     document.getElementById('edit-alert').className = 'alert';
     const username = document.getElementById('edit-display-username').textContent.replace('@','');
-    const isSelf = SESSION && username === SESSION.username;
+    const isSelf   = SESSION && username === SESSION.username;
     const selfWarn = document.getElementById('edit-self-warning');
     if (selfWarn) selfWarn.classList.toggle('show', isSelf && !editRoles.includes('admin'));
     renderChips();
@@ -771,17 +665,19 @@
   function openEdit(userId) {
     const u = userMap[userId];
     if (!u) return;
-    selectedUserId = userId;
+    selectedUserId   = userId;
     selectedUserName = u.full_name || u.username || '-';
-    editRoles = getRoles(u).slice(); // copy
+    editRoles        = getRoles(u).slice(); // copy
 
     const ini = selectedUserName.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    document.getElementById('edit-avatar').textContent = ini;
-    document.getElementById('edit-display-name').textContent = selectedUserName;
+    document.getElementById('edit-avatar').textContent          = ini;
+    document.getElementById('edit-display-name').textContent    = selectedUserName;
     document.getElementById('edit-display-username').textContent = '@' + (u.username || '');
-    const isSelf = SESSION && u.username === SESSION.username;
+
+    const isSelf   = SESSION && u.username === SESSION.username;
     const selfWarn = document.getElementById('edit-self-warning');
     if (selfWarn) selfWarn.classList.toggle('show', isSelf && !editRoles.includes('admin'));
+
     document.getElementById('edit-alert').className = 'alert';
     renderChips();
     openModal('modal-edit');
@@ -791,33 +687,77 @@
     if (!editRoles.length) return;
     const btn = document.getElementById('btn-edit-submit');
     btn.disabled = true; btn.classList.add('loading');
+
     try {
+      // Primary role: admin jika salah satu role adalah admin
       const primaryRole = editRoles.includes('admin') ? 'admin' : editRoles[0];
+
       const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`, {
-        method: 'PATCH', headers: { ...H, 'Prefer': 'return=minimal' },
+        method: 'PATCH',
+        headers: { ...H, 'Prefer': 'return=minimal' },
+        // Simpan KEDUANYA: role (string, primary) dan roles (array, lengkap)
         body: JSON.stringify({ role: primaryRole, roles: editRoles })
       });
+
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      // ── Update data lokal di userMap agar tabel langsung ter-refresh ──
+      if (userMap[selectedUserId]) {
+        userMap[selectedUserId].role  = primaryRole;
+        userMap[selectedUserId].roles = editRoles.slice();
+        // Update juga di allPengguna
+        const idx = allPengguna.findIndex(u => u.id === selectedUserId);
+        if (idx >= 0) {
+          allPengguna[idx].role  = primaryRole;
+          allPengguna[idx].roles = editRoles.slice();
+        }
+      }
+
+      // ── Sinkronisasi session jika admin sedang mengedit akunnya sendiri ──
+      const editedUsername = document.getElementById('edit-display-username').textContent.replace('@','');
+      if (SESSION && editedUsername === SESSION.username) {
+        SESSION.role   = primaryRole;
+        SESSION.roles  = editRoles.slice();
+        // Jika active_role saat ini tidak ada di editRoles, reset ke role pertama
+        if (!editRoles.includes(SESSION.active_role)) {
+          SESSION.active_role = editRoles[0];
+        }
+        localStorage.setItem('nova_user', JSON.stringify(SESSION));
+
+        // Redirect jika admin mencabut akses adminnya sendiri
+        if (SESSION.active_role !== 'admin') {
+          closeModal('modal-edit');
+          showPageAlert('✅ Role diperbarui. Anda tidak lagi memiliki akses admin.', 'success');
+          setTimeout(() => window.location.replace('index.html'), 1500);
+          return;
+        }
+      }
+
       closeModal('modal-edit');
       const rolesLabel = editRoles.map(r => r === 'admin' ? '👑 Admin' : '👤 User').join(' + ');
       showPageAlert(`✅ Role ${selectedUserName} diperbarui: ${rolesLabel}.`, 'success');
-      await loadPengguna();
+
+      // Re-render tabel dari data lokal yang sudah di-update (tanpa fetch ulang)
+      filterTable();
+
     } catch(e) {
       document.getElementById('edit-alert-icon').textContent = '⚠️';
       document.getElementById('edit-alert-text').textContent = `Gagal: ${e.message}`;
       document.getElementById('edit-alert').className = 'alert error show';
-    } finally { btn.disabled = false; btn.classList.remove('loading'); }
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }
   }
 
-    /* ══ TAMBAH PENGGUNA ══ */
-  let newUserRoles = ['user']; // default user
+  /* ══ TAMBAH PENGGUNA ══ */
   function selectNewRole(role) {
-    newUserRole = role; // keep backward compat
+    newUserRole = role;
     const idx = newUserRoles.indexOf(role);
     if (idx >= 0 && newUserRoles.length > 1) newUserRoles.splice(idx, 1);
     else if (idx < 0) newUserRoles.push(role);
-    else newUserRoles = [role]; // tetap satu jika sudah satu-satunya
-    document.getElementById('new-role-opt-user').className = 'role-option' + (newUserRoles.includes('user') ? ' sel-user' : '');
+    else newUserRoles = [role];
+    document.getElementById('new-role-opt-user').className  = 'role-option' + (newUserRoles.includes('user')  ? ' sel-user'  : '');
     document.getElementById('new-role-opt-admin').className = 'role-option' + (newUserRoles.includes('admin') ? ' sel-admin' : '');
   }
 
@@ -830,84 +770,121 @@
     const bars = ['msb1','msb2','msb3','msb4'];
     const label = document.getElementById('modal-strength-label');
     let cls = met<=2?'weak':met<=3?'medium':'strong', txt = met<=2?'Lemah':met<=3?'Sedang':'Kuat';
-    bars.forEach((id,i)=>{ const el=document.getElementById(id);el.className='strength-bar';if(met>=2&&i===0)el.classList.add(cls);if(met>=3&&i<=1)el.classList.add(cls);if(met>=4&&i<=2)el.classList.add(cls);if(met>=5&&i<=3)el.classList.add(cls); });
+    bars.forEach((id,i)=>{const el=document.getElementById(id);el.className='strength-bar';if(met>=2&&i===0)el.classList.add(cls);if(met>=3&&i<=1)el.classList.add(cls);if(met>=4&&i<=2)el.classList.add(cls);if(met>=5&&i<=3)el.classList.add(cls);});
     label.className=`strength-label ${cls}`;label.textContent=`Kekuatan: ${txt}`;
   }
   function togglePassModal() { const inp=document.getElementById('inp-password');inp.type=inp.type==='text'?'password':'text'; }
   function togglePassReset() { const inp=document.getElementById('inp-reset-password');inp.type=inp.type==='text'?'password':'text'; }
 
   async function submitTambah() {
-    const nama=document.getElementById('inp-nama').value.trim();
-    const username=document.getElementById('inp-username').value.trim().toLowerCase();
-    const password=document.getElementById('inp-password').value;
-    const mustChange=document.getElementById('inp-must-change').checked;
-    let valid=true;
+    const nama      = document.getElementById('inp-nama').value.trim();
+    const username  = document.getElementById('inp-username').value.trim().toLowerCase();
+    const password  = document.getElementById('inp-password').value;
+    const mustChange= document.getElementById('inp-must-change').checked;
+    let valid = true;
     document.querySelectorAll('#modal-tambah .error-msg').forEach(e=>e.classList.remove('show'));
     document.querySelectorAll('#modal-tambah .form-input').forEach(i=>i.classList.remove('error'));
     document.getElementById('tambah-alert').className='alert';
-    if(!nama){showFieldError('inp-nama','err-nama');valid=false;}
-    if(!username||/\s/.test(username)){showFieldError('inp-username','err-username');valid=false;}
-    if(!password||password.length<6){showFieldError('inp-password','err-password');valid=false;}
-    if(!valid)return;
-    const btn=document.getElementById('btn-tambah-submit');btn.disabled=true;btn.classList.add('loading');
+    if (!nama)                     { showFieldError('inp-nama','err-nama'); valid=false; }
+    if (!username||/\s/.test(username)) { showFieldError('inp-username','err-username'); valid=false; }
+    if (!password||password.length<6)   { showFieldError('inp-password','err-password'); valid=false; }
+    if (!valid) return;
+    const btn = document.getElementById('btn-tambah-submit');
+    btn.disabled = true; btn.classList.add('loading');
     try {
-      let ok=false;
-      const rpcRes=await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`,{method:'POST',headers:H,body:JSON.stringify({p_username:username,p_full_name:nama,p_password:password,p_must_change:mustChange,p_role:newUserRoles[0],p_roles:newUserRoles})});
-      ok=rpcRes.ok;
-      if(!ok){
-        const insertRes=await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({username,full_name:nama,password_hash:password,must_change_password:mustChange,role:newUserRoles[0],roles:newUserRoles})});
-        ok=insertRes.ok;
-        if(!ok){const err=await insertRes.json().catch(()=>({}));throw new Error(err.message||`HTTP ${insertRes.status}`);}
+      let ok = false;
+      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`,{method:'POST',headers:H,body:JSON.stringify({p_username:username,p_full_name:nama,p_password:password,p_must_change:mustChange,p_role:newUserRoles[0],p_roles:newUserRoles})});
+      ok = rpcRes.ok;
+      if (!ok) {
+        const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({username,full_name:nama,password_hash:password,must_change_password:mustChange,role:newUserRoles[0],roles:newUserRoles})});
+        ok = insertRes.ok;
+        if (!ok) { const err=await insertRes.json().catch(()=>({}));throw new Error(err.message||`HTTP ${insertRes.status}`); }
       }
       showPageAlert(`✅ Pengguna @${username} berhasil ditambahkan dengan role: ${newUserRoles.join(', ')}.`,'success');
       closeModal('modal-tambah');
-      document.getElementById('inp-nama').value='';document.getElementById('inp-username').value='';document.getElementById('inp-password').value='';
+      document.getElementById('inp-nama').value='';
+      document.getElementById('inp-username').value='';
+      document.getElementById('inp-password').value='';
       document.getElementById('modal-strength-wrap').style.display='none';
-      newUserRoles = ['user']; selectNewRole('user');
+      newUserRoles=['user']; selectNewRole('user');
       await loadPengguna();
     } catch(e) { showModalAlert('tambah',`Gagal menambahkan pengguna: ${e.message}`); }
-    finally { btn.disabled=false;btn.classList.remove('loading'); }
+    finally { btn.disabled=false; btn.classList.remove('loading'); }
   }
 
   /* ══ RESET PASSWORD ══ */
-  function openReset(userId,userName){selectedUserId=userId;selectedUserName=userName;document.getElementById('reset-target-name').textContent=userName;document.getElementById('inp-reset-password').value='';document.getElementById('err-reset-password').classList.remove('show');openModal('modal-reset');}
-  async function submitReset(){
-    const newPass=document.getElementById('inp-reset-password').value;
-    if(!newPass||newPass.length<6){document.getElementById('err-reset-password').classList.add('show');return;}
+  function openReset(userId, userName) {
+    selectedUserId   = userId;
+    selectedUserName = userName;
+    document.getElementById('reset-target-name').textContent = userName;
+    document.getElementById('inp-reset-password').value = '';
     document.getElementById('err-reset-password').classList.remove('show');
-    const btn=document.getElementById('btn-reset-submit');btn.disabled=true;btn.classList.add('loading');
-    try{
-      let ok=false;
-      const rpcRes=await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`,{method:'POST',headers:H,body:JSON.stringify({p_user_id:selectedUserId,p_new_password:newPass})});
-      ok=rpcRes.ok;
-      if(!ok){const patchRes=await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({password_hash:newPass,must_change_password:true})});ok=patchRes.ok;if(!ok)throw new Error(`HTTP ${patchRes.status}`);}
-      showPageAlert(`🔑 Kata sandi ${selectedUserName} berhasil direset.`,'success');closeModal('modal-reset');await loadPengguna();
-    }catch(e){showPageAlert(`Gagal reset: ${e.message}`,'error');closeModal('modal-reset');}
-    finally{btn.disabled=false;btn.classList.remove('loading');}
+    openModal('modal-reset');
+  }
+  async function submitReset() {
+    const newPass = document.getElementById('inp-reset-password').value;
+    if (!newPass||newPass.length<6) { document.getElementById('err-reset-password').classList.add('show'); return; }
+    document.getElementById('err-reset-password').classList.remove('show');
+    const btn = document.getElementById('btn-reset-submit');
+    btn.disabled=true; btn.classList.add('loading');
+    try {
+      let ok = false;
+      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`,{method:'POST',headers:H,body:JSON.stringify({p_user_id:selectedUserId,p_new_password:newPass})});
+      ok = rpcRes.ok;
+      if (!ok) {
+        const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({password_hash:newPass,must_change_password:true})});
+        ok = patchRes.ok;
+        if (!ok) throw new Error(`HTTP ${patchRes.status}`);
+      }
+      showPageAlert(`🔑 Kata sandi ${selectedUserName} berhasil direset.`,'success');
+      closeModal('modal-reset');
+      await loadPengguna();
+    } catch(e) { showPageAlert(`Gagal reset: ${e.message}`,'error'); closeModal('modal-reset'); }
+    finally { btn.disabled=false; btn.classList.remove('loading'); }
   }
 
   /* ══ HAPUS PENGGUNA ══ */
-  function openHapus(userId,userName){selectedUserId=userId;selectedUserName=userName;document.getElementById('hapus-target-name').textContent=userName;openModal('modal-hapus');}
-  async function submitHapus(){
-    const btn=document.getElementById('btn-hapus-submit');btn.disabled=true;btn.classList.add('loading');
-    try{
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,{method:'DELETE',headers:H});
-      if(!res.ok)throw new Error(`HTTP ${res.status}`);
-      showPageAlert(`🗑 Akun ${selectedUserName} berhasil dihapus.`,'success');closeModal('modal-hapus');await loadPengguna();
-    }catch(e){showPageAlert(`Gagal menghapus: ${e.message}`,'error');closeModal('modal-hapus');}
-    finally{btn.disabled=false;btn.classList.remove('loading');}
+  function openHapus(userId, userName) {
+    selectedUserId   = userId;
+    selectedUserName = userName;
+    document.getElementById('hapus-target-name').textContent = userName;
+    openModal('modal-hapus');
+  }
+  async function submitHapus() {
+    const btn = document.getElementById('btn-hapus-submit');
+    btn.disabled=true; btn.classList.add('loading');
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,{method:'DELETE',headers:H});
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      showPageAlert(`🗑 Akun ${selectedUserName} berhasil dihapus.`,'success');
+      closeModal('modal-hapus');
+      await loadPengguna();
+    } catch(e) { showPageAlert(`Gagal menghapus: ${e.message}`,'error'); closeModal('modal-hapus'); }
+    finally { btn.disabled=false; btn.classList.remove('loading'); }
   }
 
   /* ══ ALERT HELPERS ══ */
-  function showPageAlert(msg,type='error'){document.getElementById('page-alert-icon').textContent=type==='success'?'✅':'⚠️';document.getElementById('page-alert-text').textContent=msg;document.getElementById('page-alert').className=`alert ${type} show`;setTimeout(()=>{document.getElementById('page-alert').className='alert';},5000);}
-  function showModalAlert(modal,msg){document.getElementById(`${modal}-alert-icon`).textContent='⚠️';document.getElementById(`${modal}-alert-text`).textContent=msg;document.getElementById(`${modal}-alert`).className='alert error show';}
-  function showFieldError(inputId,errId){document.getElementById(inputId).classList.add('error');document.getElementById(errId).classList.add('show');}
+  function showPageAlert(msg, type='error') {
+    document.getElementById('page-alert-icon').textContent = type==='success'?'✅':'⚠️';
+    document.getElementById('page-alert-text').textContent = msg;
+    document.getElementById('page-alert').className = `alert ${type} show`;
+    setTimeout(()=>{ document.getElementById('page-alert').className='alert'; }, 5000);
+  }
+  function showModalAlert(modal, msg) {
+    document.getElementById(`${modal}-alert-icon`).textContent = '⚠️';
+    document.getElementById(`${modal}-alert-text`).textContent = msg;
+    document.getElementById(`${modal}-alert`).className = 'alert error show';
+  }
+  function showFieldError(inputId, errId) {
+    document.getElementById(inputId).classList.add('error');
+    document.getElementById(errId).classList.add('show');
+  }
 
-  function init(){
-    SESSION=checkSession();
-    if(!SESSION)return;
+  function init() {
+    SESSION = checkSession();
+    if (!SESSION) return;
     setTopbarUser(SESSION);
-    applyRoleUI(SESSION.active_role || 'admin');
+    initRoleSwitcher(SESSION, true);
     loadPengguna();
   }
   init();
