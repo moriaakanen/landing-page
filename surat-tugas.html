@@ -355,7 +355,7 @@
 
     <div class="tabs fade-in" style="animation-delay:.05s">
       <div class="tab active" onclick="switchTab('list')">Daftar Surat <span class="tab-count" id="tc-list">0</span></div>
-      <div class="tab" onclick="switchTab('bulk')">✦ Bulk Entry <span class="tab-count" id="tc-bulk">0</span></div>
+      <div class="tab" onclick="switchTab('bulk')">✦ Minta Surat Tugas <span class="tab-count" id="tc-bulk">0</span></div>
     </div>
 
     <!-- ═══ TAB LIST ═══ -->
@@ -398,7 +398,7 @@
     <div class="view-panel" id="panel-bulk">
       <div class="alert info show" style="margin-bottom:16px">
         <span>💡</span>
-        <span>Isi tabel langsung di bawah. Support <strong>copy-paste dari Excel</strong> (Tab-separated) — klik sel Perihal lalu paste. Gunakan <strong>Tab</strong> untuk pindah kolom, <strong>Enter</strong> untuk baris baru. Centang baris yang ingin dikirim lalu klik <strong>"Kirim yang Dipilih"</strong>.</span>
+        <span>Isi tabel langsung di bawah. Support <strong>copy-paste dari Excel</strong> (Tab-separated) — klik sel Perihal lalu paste. Gunakan <strong>Tab</strong> atau <strong>Enter</strong> untuk pindah ke baris berikutnya, <strong>Shift+Enter</strong> untuk baris baru di dalam sel yang sama. Centang baris yang ingin dikirim lalu klik <strong>"Kirim yang Dipilih"</strong>.</span>
       </div>
       <div id="bulk-alert" class="alert"><span id="bulk-alert-icon"></span><span id="bulk-alert-text"></span></div>
 
@@ -878,7 +878,8 @@ function pegToggle(nip){
   pegRenderList();
 }
 
-/* FIX: pegRenderTags menggunakan r.pegawaiNames, bukan lookup allPegawai */
+/* FIX: pegRenderTags menggunakan r.pegawaiNames, bukan lookup allPegawai.
+   FIX X button: simpan rowId di data-rowid agar tombol X bekerja meski popup tertutup */
 function pegRenderTags(rowId){
   const trigger=document.getElementById(`peg-trigger-${rowId}`);
   if(!trigger||!rows[rowId])return;
@@ -889,20 +890,35 @@ function pegRenderTags(rowId){
   if(!niPs.length){if(ph)ph.style.display='';return;}
   if(ph)ph.style.display='none';
   niPs.forEach(nip=>{
-    /* Ambil nama dari pegawaiNames yang sudah disimpan saat pemilihan */
     const nama=(r.pegawaiNames&&r.pegawaiNames[nip])||nip;
     const tag=document.createElement('span');
     tag.className='peg-tag';tag.title=nama;
     const namaTrunc=nama.length>18?nama.slice(0,16)+'…':nama;
-    tag.innerHTML=`${esc(namaTrunc)}<button class="peg-tag-x" data-nip="${esc(nip)}">×</button>`;
+    tag.innerHTML=`${esc(namaTrunc)}<button class="peg-tag-x" data-nip="${esc(nip)}" data-rowid="${rowId}">×</button>`;
     trigger.insertBefore(tag,ph||null);
   });
   trigger.querySelectorAll('.peg-tag-x').forEach(btn=>{
     btn.onclick=function(e){
       e.stopPropagation();
-      pegToggle(this.dataset.nip);
+      /* Gunakan data-rowid langsung, tidak bergantung pada pegRowId (yang null saat popup tutup) */
+      const rid=parseInt(this.dataset.rowid,10);
+      pegRemoveFromRow(rid,this.dataset.nip);
     };
   });
+}
+
+/* Fungsi baru: hapus pegawai dari row tanpa memerlukan popup terbuka */
+function pegRemoveFromRow(rowId,nip){
+  if(!rows[rowId])return;
+  const r=rows[rowId];
+  const idx=r.pegawaiNIPs.indexOf(nip);
+  if(idx>=0){
+    r.pegawaiNIPs.splice(idx,1);
+    if(r.pegawaiNames)delete r.pegawaiNames[nip];
+  }
+  pegRenderTags(rowId);
+  /* Jika popup kebetulan sedang terbuka untuk row ini, refresh list-nya juga */
+  if(pegRowId==rowId)pegRenderList();
 }
 
 /* FIX: Perkuat search dengan keyup sebagai fallback */
@@ -1032,10 +1048,14 @@ function handleKey(e,id,colIdx){
       if(nextId){const el=document.getElementById(`f-perihal-${nextId}`);if(el)el.focus();}
       else{addRows(1);setTimeout(()=>{const ni=getRowIds();const el=document.getElementById(`f-perihal-${ni[ni.length-1]}`);if(el)el.focus();},50);}
     }
-  } else if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){
-    e.preventDefault();addRows(1);
-    setTimeout(()=>{const ids=getRowIds();const el=document.getElementById(`f-perihal-${ids[ids.length-1]}`);if(el)el.focus();},50);
+  } else if(e.key==='Enter'&&!e.shiftKey){
+    /* Enter tanpa Shift → baris baru (berlaku untuk textarea maupun elemen lain) */
+    e.preventDefault();
+    const ids=getRowIds();const idx=ids.indexOf(String(id));const nextId=ids[idx+1];
+    if(nextId){const el=document.getElementById(`f-perihal-${nextId}`);if(el)el.focus();}
+    else{addRows(1);setTimeout(()=>{const ni=getRowIds();const el=document.getElementById(`f-perihal-${ni[ni.length-1]}`);if(el)el.focus();},50);}
   }
+  /* Shift+Enter → biarkan default (newline di dalam textarea) */
 }
 
 function handlePaste(e,startId){
@@ -1205,7 +1225,7 @@ async function init(){
   SESSION=checkSession();if(!SESSION)return;
   setTopbarUser(SESSION);
   await Promise.all([loadSurat(),loadPegawai()]);
-  addRows(5);
+  addRows(1);
 }
 init();
 </script>
