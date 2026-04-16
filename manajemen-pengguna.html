@@ -389,29 +389,20 @@
 <script>
   /*
    * ══════════════════════════════════════════════════
-   * CATATAN UNTUK DEVELOPER:
+   * UPDATE: Nama tabel diubah dari 'akun' ke 'users'
+   * sesuai struktur database Supabase.
    *
-   * 1. Tabel pengguna diasumsikan bernama "akun".
-   *    Sesuaikan TABLE_PENGGUNA jika berbeda.
-   *
-   * 2. Untuk tambah pengguna (dengan bcrypt), buat RPC di Supabase:
-   *      create or replace function buat_pengguna(
-   *        p_username text, p_full_name text,
-   *        p_password text, p_must_change boolean
-   *      ) returns void ...
-   *    Jika belum ada RPC, fitur tambah menggunakan INSERT langsung
-   *    dengan password plain (TIDAK AMAN untuk produksi).
-   *
-   * 3. Untuk reset password, buat RPC:
-   *      create or replace function reset_password_admin(
-   *        p_user_id uuid, p_new_password text
-   *      ) returns void ...
-   *
-   * 4. Pastikan RLS di tabel "akun" mengizinkan SELECT, DELETE
-   *    oleh anon key (atau gunakan service_role key di RPC).
+   * Kolom yang digunakan:
+   *   id                  → integer (primary key)
+   *   username            → text
+   *   full_name           → text
+   *   password_hash       → text
+   *   must_change_password→ boolean
+   *   created_at          → timestamp with time zone
+   *   last_login          → timestamp with time zone
    * ══════════════════════════════════════════════════
    */
-  const TABLE_PENGGUNA = 'akun'; // ← Sesuaikan nama tabel di sini
+  const TABLE_PENGGUNA = 'users'; // ← Sudah disesuaikan
 
   const H = {
     'apikey': SUPABASE_ANON_KEY,
@@ -433,7 +424,6 @@
         localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
       }
       if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
-      // Guard: hanya administrator yang boleh masuk
       if (!ADMIN_USERS.includes(s.username)) {
         window.location.replace('index.html'); return null;
       }
@@ -524,9 +514,10 @@
         ? new Date(u.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'})
         : '—';
       // Proteksi: akun admin tidak bisa dihapus
+      // id bertipe integer — tidak perlu encodeURIComponent tapi tetap aman
       const hapusBtn = isAdmin
         ? `<button class="btn-sm" disabled style="opacity:.4;cursor:not-allowed" title="Akun administrator tidak dapat dihapus">🗑</button>`
-        : `<button class="btn-sm danger" onclick="openHapus('${esc(u.id)}','${esc(name)}')">🗑 Hapus</button>`;
+        : `<button class="btn-sm danger" onclick="openHapus(${u.id},'${esc(name)}')">🗑 Hapus</button>`;
       return `<tr>
         <td>
           <div class="user-cell">
@@ -541,7 +532,7 @@
         <td style="font-size:12px;color:var(--muted)">${tanggal}</td>
         <td style="text-align:right">
           <div style="display:flex;gap:6px;justify-content:flex-end">
-            <button class="btn-sm warn" onclick="openReset('${esc(u.id)}','${esc(name)}')">🔑 Reset Sandi</button>
+            <button class="btn-sm warn" onclick="openReset(${u.id},'${esc(name)}')">🔑 Reset Sandi</button>
             ${hapusBtn}
           </div>
         </td>
@@ -564,9 +555,9 @@
   /* ── MODAL HELPERS ── */
   function openModal(id) { document.getElementById(id).style.display = 'flex'; }
   function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') {
-    ['modal-tambah','modal-reset','modal-hapus'].forEach(id => closeModal(id));
-  }});
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') ['modal-tambah','modal-reset','modal-hapus'].forEach(id => closeModal(id));
+  });
 
   /* ── TAMBAH PENGGUNA ── */
   function checkStrengthModal() {
@@ -599,7 +590,7 @@
   }
 
   async function submitTambah() {
-    const nama = document.getElementById('inp-nama').value.trim();
+    const nama     = document.getElementById('inp-nama').value.trim();
     const username = document.getElementById('inp-username').value.trim().toLowerCase();
     const password = document.getElementById('inp-password').value;
     const mustChange = document.getElementById('inp-must-change').checked;
@@ -618,24 +609,35 @@
     btn.disabled = true; btn.classList.add('loading');
     try {
       /*
-       * Coba via RPC buat_pengguna (dengan bcrypt) terlebih dahulu.
-       * Jika RPC tidak ada, fallback ke INSERT langsung (password plain — ubah sesuai kebutuhan).
+       * Coba via RPC buat_pengguna (dengan bcrypt hash di server) terlebih dahulu.
+       * Jika RPC belum dibuat, fallback ke INSERT langsung dengan password_hash plain.
+       * CATATAN: Untuk keamanan produksi, gunakan RPC agar password di-hash dengan bcrypt.
        */
+      let ok = false;
       const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`, {
         method: 'POST', headers: H,
         body: JSON.stringify({ p_username: username, p_full_name: nama, p_password: password, p_must_change: mustChange })
       });
-      let ok = rpcRes.ok;
+      ok = rpcRes.ok;
 
       if (!ok) {
-        // Fallback: INSERT langsung (password disimpan plain — gunakan hanya jika password sudah di-hash di sisi lain)
+        // Fallback: INSERT langsung ke tabel users
+        // password_hash diisi dengan nilai password (pastikan di-hash di server/RPC untuk produksi)
         const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}`, {
           method: 'POST',
           headers: { ...H, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ username, full_name: nama, password, must_change_password: mustChange })
+          body: JSON.stringify({
+            username,
+            full_name: nama,
+            password_hash: password,        // ← sesuai nama kolom 'password_hash'
+            must_change_password: mustChange
+          })
         });
         ok = insertRes.ok;
-        if (!ok) { const err = await insertRes.json().catch(() => ({})); throw new Error(err.message || `HTTP ${insertRes.status}`); }
+        if (!ok) {
+          const err = await insertRes.json().catch(() => ({}));
+          throw new Error(err.message || `HTTP ${insertRes.status}`);
+        }
       }
 
       showPageAlert(`✅ Pengguna @${username} berhasil ditambahkan.`, 'success');
@@ -654,7 +656,8 @@
 
   /* ── RESET PASSWORD ── */
   function openReset(userId, userName) {
-    selectedUserId = userId; selectedUserName = userName;
+    selectedUserId = userId;
+    selectedUserName = userName;
     document.getElementById('reset-target-name').textContent = userName;
     document.getElementById('inp-reset-password').value = '';
     document.getElementById('err-reset-password').classList.remove('show');
@@ -673,21 +676,29 @@
     try {
       /*
        * Coba via RPC reset_password_admin (agar bcrypt ditangani server).
-       * Fallback: PATCH langsung (password plain).
+       * Fallback: PATCH langsung ke kolom password_hash.
+       * id bertipe integer — gunakan langsung tanpa encodeURIComponent.
        */
+      let ok = false;
       const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`, {
         method: 'POST', headers: H,
         body: JSON.stringify({ p_user_id: selectedUserId, p_new_password: newPass })
       });
-      let ok = rpcRes.ok;
+      ok = rpcRes.ok;
+
       if (!ok) {
-        const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${encodeURIComponent(selectedUserId)}`, {
-          method: 'PATCH', headers: { ...H, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ password: newPass, must_change_password: true })
-        });
+        const patchRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,
+          {
+            method: 'PATCH',
+            headers: { ...H, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ password_hash: newPass, must_change_password: true })
+          }
+        );
         ok = patchRes.ok;
         if (!ok) throw new Error(`HTTP ${patchRes.status}`);
       }
+
       showPageAlert(`🔑 Kata sandi @${selectedUserName} berhasil direset.`, 'success');
       closeModal('modal-reset');
       await loadPengguna();
@@ -701,7 +712,8 @@
 
   /* ── HAPUS PENGGUNA ── */
   function openHapus(userId, userName) {
-    selectedUserId = userId; selectedUserName = userName;
+    selectedUserId = userId;
+    selectedUserName = userName;
     document.getElementById('hapus-target-name').textContent = userName;
     openModal('modal-hapus');
   }
@@ -710,9 +722,11 @@
     const btn = document.getElementById('btn-hapus-submit');
     btn.disabled = true; btn.classList.add('loading');
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${encodeURIComponent(selectedUserId)}`, {
-        method: 'DELETE', headers: H
-      });
+      // id bertipe integer — gunakan langsung tanpa encodeURIComponent
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,
+        { method: 'DELETE', headers: H }
+      );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       showPageAlert(`🗑 Akun @${selectedUserName} berhasil dihapus.`, 'success');
       closeModal('modal-hapus');
