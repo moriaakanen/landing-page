@@ -25,8 +25,39 @@
   .brand-tag{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
   .topbar-right{display:flex;align-items:center;gap:14px}
   .topbar-time{font-size:11px;color:rgba(255,255,255,.35)}
+
+  /* ── ROLE SWITCHER ── */
+  .user-switcher{position:relative}
+  .user-switcher-btn{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 6px;border-radius:7px;cursor:pointer;transition:background .2s;border:1px solid transparent;background:transparent;font-family:inherit}
+  .user-switcher-btn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.1)}
   .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
   .topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
+  .user-switcher-caret{font-size:9px;color:rgba(255,255,255,.4);transition:transform .2s;margin-left:2px}
+  .user-switcher-btn[aria-expanded="true"] .user-switcher-caret{transform:rotate(180deg)}
+  .user-switcher-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 40px rgba(13,35,64,.18);min-width:240px;overflow:hidden;z-index:500;animation:dropDown .15s ease;display:none}
+  .user-switcher-dropdown.open{display:block}
+  @keyframes dropDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .usd-header{padding:14px 16px;border-bottom:1px solid var(--border);background:#fafaf8}
+  .usd-header-name{font-size:13px;font-weight:700;color:var(--navy)}
+  .usd-header-label{font-size:11px;color:var(--muted);margin-top:2px}
+  .usd-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:10px 16px 4px}
+  .usd-role-option{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;transition:background .15s;border:none;background:transparent;width:100%;text-align:left;font-family:inherit}
+  .usd-role-option:hover{background:var(--bg)}
+  .usd-role-option.active{background:var(--gold-light)}
+  .usd-role-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .usd-role-icon.user{background:#f1f5f9}
+  .usd-role-icon.admin{background:rgba(200,168,75,.15)}
+  .usd-role-name{font-size:13px;font-weight:600;color:var(--navy)}
+  .usd-role-desc{font-size:11px;color:var(--muted)}
+  .usd-check{margin-left:auto;font-size:13px;color:var(--gold);display:none}
+  .usd-role-option.active .usd-check{display:block}
+  .usd-divider{height:1px;background:var(--border);margin:4px 0}
+  .usd-logout{display:flex;align-items:center;gap:8px;padding:9px 16px;cursor:pointer;transition:background .15s;border:none;background:transparent;width:100%;text-align:left;font-family:inherit;font-size:13px;color:#991b1b;font-weight:500}
+  .usd-logout:hover{background:#fef2f2}
+  .active-role-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:100px;font-size:10px;font-weight:600;letter-spacing:.3px;margin-left:4px}
+  .active-role-badge.admin{background:rgba(200,168,75,.2);color:#7a5c10;border:1px solid rgba(200,168,75,.4)}
+  .active-role-badge.user{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15)}
+
   .btn-logout{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s}
   .btn-logout:hover{border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.9)}
   .layout{display:flex;flex:1;min-height:0}
@@ -128,8 +159,6 @@
   .error-msg{font-size:11px;color:var(--red);display:none}
   .error-msg.show{display:block}
   .form-hint{font-size:11px;color:var(--muted);line-height:1.6}
-
-  /* ── ROLE SELECTOR ── */
   .role-selector{display:flex;gap:10px;margin-top:2px}
   .role-option{flex:1;border:2px solid var(--border2);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .2s;position:relative;user-select:none}
   .role-option:hover{border-color:var(--border);background:var(--bg)}
@@ -142,13 +171,10 @@
   .role-option-check{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .2s;color:transparent;background:transparent}
   .role-option.sel-user .role-option-check{background:#6366f1;border-color:#6366f1;color:white}
   .role-option.sel-admin .role-option-check{background:var(--gold);border-color:var(--gold);color:white}
-
-  /* ── PROFIL MODAL HEADER ── */
   .profil-modal-head{display:flex;align-items:center;gap:14px;padding:16px 24px;background:var(--bg);border-bottom:1px solid var(--border)}
   .profil-modal-avatar{width:44px;height:44px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--gold);flex-shrink:0}
   .profil-modal-name{font-size:14px;font-weight:700;color:var(--navy)}
   .profil-modal-username{font-size:12px;color:var(--muted);margin-top:1px}
-
   .strength-wrap{margin-top:6px}
   .strength-bars{display:flex;gap:4px;margin-bottom:4px}
   .strength-bar{flex:1;height:3px;background:var(--border);border-radius:100px;transition:background .3s}
@@ -192,11 +218,44 @@
   </div>
   <div class="topbar-right">
     <span class="topbar-time" id="topbar-time"></span>
-    <div style="display:flex;align-items:center;gap:8px">
-      <div class="topbar-avatar" id="topbar-avatar">—</div>
-      <span class="topbar-username" id="topbar-username">Pengguna</span>
+
+    <!-- ROLE SWITCHER -->
+    <div class="user-switcher" id="user-switcher">
+      <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false" type="button">
+        <div class="topbar-avatar" id="topbar-avatar">—</div>
+        <span class="topbar-username" id="topbar-username">Pengguna</span>
+        <span class="active-role-badge admin" id="active-role-badge">Admin</span>
+        <span class="user-switcher-caret">▼</span>
+      </button>
+      <div class="user-switcher-dropdown" id="user-switcher-dropdown">
+        <div class="usd-header">
+          <div class="usd-header-name" id="usd-header-name">Pengguna</div>
+          <div class="usd-header-label">Akun aktif · Ganti tampilan role</div>
+        </div>
+        <div class="usd-section-label">Tampilkan sebagai</div>
+        <button class="usd-role-option" id="usd-opt-admin" onclick="switchRole('admin')" type="button">
+          <div class="usd-role-icon admin">👑</div>
+          <div>
+            <div class="usd-role-name">Administrator</div>
+            <div class="usd-role-desc">Akses penuh semua menu</div>
+          </div>
+          <span class="usd-check">✓</span>
+        </button>
+        <button class="usd-role-option" id="usd-opt-user" onclick="switchRole('user')" type="button">
+          <div class="usd-role-icon user">👤</div>
+          <div>
+            <div class="usd-role-name">User</div>
+            <div class="usd-role-desc">Akses standar pegawai</div>
+          </div>
+          <span class="usd-check">✓</span>
+        </button>
+        <div class="usd-divider"></div>
+        <button class="usd-logout" onclick="logout()" type="button">
+          <span>🚪</span> Keluar dari Portal
+        </button>
+      </div>
     </div>
-    <button class="btn-logout" onclick="logout()">Keluar</button>
+
     <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
   </div>
 </div>
@@ -212,7 +271,7 @@
     <a class="nav-item active" href="manajemen-pengguna.html"><div class="nav-item-icon">👥</div>Manajemen Pengguna</a>
     <div class="sidebar-footer">
       <strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>© 2026 Pemerintah RI<br>
-      <span class="admin-badge">🔑 Administrator</span>
+      <span class="admin-badge" id="sidebar-admin-badge">🔑 Administrator</span>
     </div>
   </aside>
 
@@ -272,7 +331,7 @@
   </main>
 </div>
 
-<!-- ═══ MODAL: EDIT ROLE (klik nama) ═══ -->
+<!-- ═══ MODAL: EDIT ROLE ═══ -->
 <div class="modal-overlay" id="modal-edit" style="display:none" onclick="if(event.target===this)closeModal('modal-edit')">
   <div class="modal">
     <div class="modal-header">
@@ -454,26 +513,100 @@
   let SESSION = null, allPengguna = [], selectedUserId = null, selectedUserName = '';
   let selectedRole = 'user', newUserRole = 'user';
 
+  /* ══ ROLE SWITCHER ══ */
+  function getActiveRole() {
+    try { return JSON.parse(localStorage.getItem('nova_user')||'null')?.active_role || 'admin'; } catch(e) { return 'admin'; }
+  }
+
+  function switchRole(role) {
+    if (!SESSION) return;
+    // Hanya izinkan switch ke admin jika memang terdaftar sebagai admin
+    if (role === 'admin' && !ADMIN_USERS.includes(SESSION.username)) return;
+    SESSION.active_role = role;
+    localStorage.setItem('nova_user', JSON.stringify(SESSION));
+    closeUserDropdown();
+    applyRoleUI(role);
+    // Jika switch ke user dan halaman ini butuh admin, redirect
+    if (role === 'user') {
+      window.location.replace('index.html');
+    }
+  }
+
+  function applyRoleUI(role) {
+    const isAdmin = role === 'admin';
+    // Topbar badge
+    const badge = document.getElementById('active-role-badge');
+    if (badge) {
+      badge.textContent = isAdmin ? 'Admin' : 'User';
+      badge.className = `active-role-badge ${role}`;
+    }
+    // Dropdown active state
+    const optAdmin = document.getElementById('usd-opt-admin');
+    const optUser = document.getElementById('usd-opt-user');
+    if (optAdmin) optAdmin.classList.toggle('active', isAdmin);
+    if (optUser) optUser.classList.toggle('active', !isAdmin);
+    // Sidebar admin nav
+    const adminNav = document.getElementById('admin-nav');
+    if (adminNav) adminNav.style.display = isAdmin ? 'block' : 'none';
+    // Sidebar admin badge
+    const sidebarBadge = document.getElementById('sidebar-admin-badge');
+    if (sidebarBadge) sidebarBadge.style.display = isAdmin ? 'inline-flex' : 'none';
+  }
+
+  function toggleUserDropdown() {
+    const dropdown = document.getElementById('user-switcher-dropdown');
+    const btn = document.getElementById('user-switcher-btn');
+    const isOpen = dropdown.classList.contains('open');
+    dropdown.classList.toggle('open', !isOpen);
+    btn.setAttribute('aria-expanded', String(!isOpen));
+  }
+
+  function closeUserDropdown() {
+    const dropdown = document.getElementById('user-switcher-dropdown');
+    const btn = document.getElementById('user-switcher-btn');
+    dropdown.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  document.addEventListener('click', function(e) {
+    const switcher = document.getElementById('user-switcher');
+    if (switcher && !switcher.contains(e.target)) closeUserDropdown();
+  });
+
+  /* ══ SESSION ══ */
   function checkSession() {
     try {
       const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
       if (!s) { window.location.replace('login.html'); return null; }
       if (s.expires_at && Date.now() > s.expires_at) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
       if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
-      if (!ADMIN_USERS.includes(s.username)) { window.location.replace('index.html'); return null; }
+      // Set default active_role jika belum ada
+      if (!s.active_role) {
+        s.active_role = ADMIN_USERS.includes(s.username) ? 'admin' : 'user';
+        localStorage.setItem('nova_user', JSON.stringify(s));
+      }
+      // Halaman ini butuh admin — cek active_role
+      if (s.active_role !== 'admin' || !ADMIN_USERS.includes(s.username)) {
+        window.location.replace('index.html'); return null;
+      }
       return s;
     } catch(e) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
   }
+
   function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
   function updateClock() { document.getElementById('topbar-time').textContent = new Date().toLocaleString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
   updateClock(); setInterval(updateClock, 1000);
+
   function setTopbarUser(s) {
     const name = s.full_name || s.username || 'Pengguna';
     const i = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('topbar-avatar').textContent = i;
     document.getElementById('topbar-username').textContent = name;
+    const usdName = document.getElementById('usd-header-name');
+    if (usdName) usdName.textContent = name;
   }
 
+  /* ══ LOAD DATA ══ */
   async function loadPengguna() {
     document.getElementById('table-area').innerHTML = `<table class="list-table"><thead><tr><th>Pengguna</th><th>Role</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th></tr></thead><tbody><tr><td colspan="5"><div style="padding:16px;display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div></td></tr></tbody></table>`;
     document.getElementById('table-count').textContent = 'Memuat...';
@@ -568,7 +701,6 @@
     document.getElementById('edit-display-username').textContent = '@' + username;
     const isSelf = SESSION && username === SESSION.username;
     document.getElementById('edit-self-warning').style.display = isSelf ? 'block' : 'none';
-    // Set tampilan role selector
     document.getElementById('role-opt-user').className = 'role-option' + (selectedRole === 'user' ? ' sel-user' : '');
     document.getElementById('role-opt-admin').className = 'role-option' + (selectedRole === 'admin' ? ' sel-admin' : '');
     document.getElementById('edit-alert').className = 'alert';
@@ -689,7 +821,13 @@
   function showModalAlert(modal,msg){document.getElementById(`${modal}-alert-icon`).textContent='⚠️';document.getElementById(`${modal}-alert-text`).textContent=msg;document.getElementById(`${modal}-alert`).className='alert error show';}
   function showFieldError(inputId,errId){document.getElementById(inputId).classList.add('error');document.getElementById(errId).classList.add('show');}
 
-  function init(){SESSION=checkSession();if(!SESSION)return;setTopbarUser(SESSION);loadPengguna();}
+  function init(){
+    SESSION=checkSession();
+    if(!SESSION)return;
+    setTopbarUser(SESSION);
+    applyRoleUI(SESSION.active_role || 'admin');
+    loadPengguna();
+  }
   init();
 </script>
 </body>
