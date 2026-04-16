@@ -1002,6 +1002,7 @@ function renderRow(id){
       <div class="cell-textarea-wrap">
         <textarea class="cell-input" id="f-perihal-${id}" placeholder="Perihal surat tugas…"
           oninput="rows[${id}].perihal=this.value;syncTextareaHeight(this)"
+          onblur="rows[${id}].perihal=this.value"
           onkeydown="handleKey(event,${id},0)"
           onpaste="handlePaste(event,${id})" rows="1"></textarea>
       </div>
@@ -1019,6 +1020,7 @@ function renderRow(id){
       <div class="cell-textarea-wrap">
         <textarea class="cell-input" id="f-tujuan-${id}" placeholder="Kota / instansi…"
           oninput="rows[${id}].tujuan=this.value;syncTextareaHeight(this)"
+          onblur="rows[${id}].tujuan=this.value"
           onkeydown="handleKey(event,${id},2)" rows="1"></textarea>
       </div>
     </div>
@@ -1147,11 +1149,25 @@ function clearAll(){
 }
 
 function validateRow(id){
-  const r=rows[id];const errs=[];
-  if(!r.perihal.trim())errs.push('Perihal wajib diisi');
+  const r=rows[id];
+  if(!r)return['Data baris tidak ditemukan'];
+  const errs=[];
+
+  /* Baca langsung dari DOM — ini source of truth yang paling akurat.
+     Ini menghindari mismatch antara tampilan dan data di rows[]. */
+  const perihalEl=document.getElementById(`f-perihal-${id}`);
+  const tujuanEl=document.getElementById(`f-tujuan-${id}`);
+  const perihal=perihalEl?perihalEl.value.trim():r.perihal.trim();
+  const tujuan=tujuanEl?tujuanEl.value.trim():r.tujuan.trim();
+
+  /* Sync balik ke rows[] agar payload submit juga benar */
+  r.perihal=perihal;
+  r.tujuan=tujuan;
+
+  if(!perihal)errs.push('Perihal wajib diisi');
   if(!r.waktuMulai)errs.push('Tanggal mulai wajib diisi');
   if(r.waktuSelesai&&r.waktuMulai&&r.waktuSelesai<r.waktuMulai)errs.push('Tgl. selesai lebih awal dari mulai');
-  if(!r.tujuan.trim())errs.push('Tujuan wajib diisi');
+  if(!tujuan)errs.push('Tujuan wajib diisi');
   if(!r.pegawaiNIPs.length)errs.push('Pilih minimal satu pegawai');
   return errs;
 }
