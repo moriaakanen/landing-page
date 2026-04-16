@@ -1039,23 +1039,21 @@ function renderRow(id){
 }
 
 function handleKey(e,id,colIdx){
-  if(e.key==='Tab'&&!e.shiftKey){
+  /* Tab atau Enter (tanpa Shift) → pindah ke kolom berikutnya dalam baris,
+     jika sudah kolom terakhir → baris berikutnya (atau buat baris baru).
+     Shift+Enter → biarkan default (newline di dalam textarea). */
+  if((e.key==='Tab'&&!e.shiftKey)||(e.key==='Enter'&&!e.shiftKey)){
     e.preventDefault();
     const focusOrder=[`f-perihal-${id}`,`drp-trigger-${id}`,`f-tujuan-${id}`,`peg-trigger-${id}`];
-    if(colIdx+1<focusOrder.length){const el=document.getElementById(focusOrder[colIdx+1]);if(el)el.focus();}
-    else{
+    if(colIdx+1<focusOrder.length){
+      const el=document.getElementById(focusOrder[colIdx+1]);if(el)el.focus();
+    } else {
       const ids=getRowIds();const idx=ids.indexOf(String(id));const nextId=ids[idx+1];
       if(nextId){const el=document.getElementById(`f-perihal-${nextId}`);if(el)el.focus();}
       else{addRows(1);setTimeout(()=>{const ni=getRowIds();const el=document.getElementById(`f-perihal-${ni[ni.length-1]}`);if(el)el.focus();},50);}
     }
-  } else if(e.key==='Enter'&&!e.shiftKey){
-    /* Enter tanpa Shift → baris baru (berlaku untuk textarea maupun elemen lain) */
-    e.preventDefault();
-    const ids=getRowIds();const idx=ids.indexOf(String(id));const nextId=ids[idx+1];
-    if(nextId){const el=document.getElementById(`f-perihal-${nextId}`);if(el)el.focus();}
-    else{addRows(1);setTimeout(()=>{const ni=getRowIds();const el=document.getElementById(`f-perihal-${ni[ni.length-1]}`);if(el)el.focus();},50);}
   }
-  /* Shift+Enter → biarkan default (newline di dalam textarea) */
+  /* Shift+Enter → default browser (newline di textarea) */
 }
 
 function handlePaste(e,startId){
@@ -1169,6 +1167,16 @@ function clearRowErrors(id){showRowErrors(id,[]);}
 async function submitChecked(){
   const checkedIds=getRowIds().filter(id=>rows[id].checked);
   if(!checkedIds.length)return;
+
+  /* FIX VALIDASI: Sync nilai textarea dari DOM ke rows[] sebelum validasi.
+     Ini memastikan nilai yang terlihat di layar = nilai yang divalidasi,
+     mengatasi kasus di mana oninput tidak terpanggil (misal: undo, autofill, dll). */
+  getRowIds().forEach(id=>{
+    const p=document.getElementById(`f-perihal-${id}`);
+    const t=document.getElementById(`f-tujuan-${id}`);
+    if(p&&rows[id])rows[id].perihal=p.value;
+    if(t&&rows[id])rows[id].tujuan=t.value;
+  });
   checkedIds.forEach(id=>clearRowErrors(id));
   document.getElementById('bulk-alert').className='alert';
   let hasErr=false;
