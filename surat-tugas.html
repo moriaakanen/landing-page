@@ -606,7 +606,7 @@ function renderTable(data){
   data.forEach(s=>{ suratMap[s.id]=s; });
   const r=data.map(s=>`<tr>
     <td style="max-width:220px;white-space:normal;word-break:break-word;line-height:1.5">${esc(s.perihal)||'—'}</td>
-    <td style="white-space:nowrap;font-size:12px">${esc(fmtWaktu(s.waktu_mulai,s.waktu_selesai))}</td>
+    <td style="white-space:nowrap;font-size:12px">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td>
     <td>${esc(s.tujuan)||'—'}</td>
     <td><span style="font-size:11px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td>
     <td>${badgeHTML(s.status)}</td>
@@ -633,7 +633,7 @@ function showDetail(id){
     </div>`;
   document.getElementById('modal-body').innerHTML=`
     ${field('Perihal', esc(s.perihal))}
-    ${field('Waktu Pelaksanaan', esc(fmtWaktu(s.waktu_mulai, s.waktu_selesai)))}
+    ${field('Waktu Pelaksanaan', esc(fmtWaktu(s.tanggal_berangkat, s.tanggal_kembali)))}
     ${field('Tujuan', esc(s.tujuan))}
     ${field('Status', badgeHTML(s.status))}
     ${field('Pegawai', (s.pegawai_list||[]).map(esc).join(', ')||'—')}
@@ -1201,14 +1201,13 @@ async function submitChecked(){
 
   const payloads=checkedIds.map(id=>{
     const r=rows[id];
-    /* FIX: gunakan pegawaiNames untuk mendapatkan nama yang sudah tersimpan */
     const pegawaiList=r.pegawaiNIPs.map(nip=>(r.pegawaiNames&&r.pegawaiNames[nip])||nip);
-    const selesai=r.waktuSelesai&&r.waktuSelesai!==r.waktuMulai?r.waktuSelesai:null;
+    const kembali=r.waktuSelesai&&r.waktuSelesai!==r.waktuMulai?r.waktuSelesai:null;
     return{
       user_id:SESSION.id,
       perihal:r.perihal.trim(),
-      waktu_mulai:r.waktuMulai,
-      waktu_selesai:selesai,
+      tanggal_berangkat:r.waktuMulai,
+      tanggal_kembali:kembali,
       tujuan:r.tujuan.trim(),
       pegawai_nip:r.pegawaiNIPs,
       pegawai_list:pegawaiList,
