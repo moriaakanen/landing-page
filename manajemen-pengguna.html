@@ -18,8 +18,6 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
-
-  /* ── TOPBAR ── */
   .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200}
   .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0}
   .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
@@ -31,8 +29,6 @@
   .topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
   .btn-logout{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s}
   .btn-logout:hover{border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.9)}
-
-  /* ── LAYOUT ── */
   .layout{display:flex;flex:1;min-height:0}
   .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
   .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
@@ -46,38 +42,28 @@
   .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
   .sidebar-footer strong{color:var(--navy);font-weight:600}
   .admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.35);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--gold);margin-top:4px;letter-spacing:.3px}
-
-  /* ── MAIN ── */
   .main{flex:1;overflow-y:auto;padding:32px 36px}
-
-  /* ── PAGE HEADER ── */
   .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap}
   .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
   .page-title{font-family:'Fraunces',serif;font-size:clamp(22px,2.5vw,30px);font-weight:300;color:var(--navy);line-height:1.2}
   .page-title em{font-style:italic;color:var(--gold)}
   .page-desc{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.7}
-
-  /* ── STATS ── */
   .stats-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
   .stat-pill{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:11px 16px;display:flex;align-items:center;gap:10px;flex:1;min-width:120px}
   .stat-pill-icon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
   .stat-pill-num{font-size:18px;font-weight:700;color:var(--navy);line-height:1}
   .stat-pill-label{font-size:11px;color:var(--muted);margin-top:1px}
-
-  /* ── FILTER & TOOLBAR ── */
   .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
   .search-wrap{position:relative;flex:1;min-width:200px}
   .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none}
   .search-input{width:100%;padding:8px 12px 8px 32px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .2s}
   .search-input:focus{border-color:var(--navy)}
   .search-input::placeholder{color:#b8b3ac}
-
-  /* ── BUTTONS ── */
-  .btn-primary{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,transform .15s,box-shadow .2s;white-space:nowrap;box-shadow:0 2px 8px rgba(13,35,64,.2)}
+  .btn-primary{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,transform .15s,box-shadow .2s;white-space:nowrap;box-shadow:0 2px 8px rgba(13,35,64,.2);position:relative}
   .btn-primary:hover:not(:disabled){background:var(--navy2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(13,35,64,.25)}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
-  .btn-primary.loading{color:transparent;pointer-events:none;position:relative}
+  .btn-primary.loading{color:transparent;pointer-events:none}
   .btn-primary.loading::after{content:'';position:absolute;top:50%;left:50%;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;transform:translate(-50%,-50%);animation:spin .7s linear infinite}
   .btn-outline{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s;white-space:nowrap}
   .btn-outline:hover{border-color:var(--navy);background:var(--bg)}
@@ -88,8 +74,6 @@
   .btn-sm.warn{color:#92400e;border-color:#fde68a}
   .btn-sm.warn:hover{background:#fffbeb;border-color:#f59e0b}
   @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-
-  /* ── TABLE ── */
   .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.05)}
   .table-head{background:var(--navy);padding:13px 20px;display:flex;align-items:center;justify-content:space-between}
   .table-head-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.8px;text-transform:uppercase}
@@ -100,29 +84,24 @@
   table.list-table tbody tr:last-child{border-bottom:none}
   table.list-table tbody tr:hover{background:#fafaf8}
   table.list-table tbody td{padding:12px 16px;font-size:13px;color:var(--text);vertical-align:middle}
-
   .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
   .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
   .badge.aktif{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
   .badge.ganti-sandi{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
-  .badge.admin{background:rgba(200,168,75,.15);color:#7a5c10;border:1px solid rgba(200,168,75,.35)}
-
+  .badge.role-admin{background:rgba(200,168,75,.15);color:#7a5c10;border:1px solid rgba(200,168,75,.4)}
+  .badge.role-user{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1}
   .user-cell{display:flex;align-items:center;gap:10px}
   .user-avatar-sm{width:32px;height:32px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0}
-  .user-cell-name{font-size:13px;font-weight:600;color:var(--navy);line-height:1.3}
+  .user-cell-name{font-size:13px;font-weight:600;color:var(--navy);line-height:1.3;cursor:pointer;border-bottom:1.5px dashed var(--border2);transition:color .15s,border-color .15s;display:inline}
+  .user-cell-name:hover{color:var(--gold);border-color:var(--gold)}
   .user-cell-username{font-size:11px;color:var(--muted)}
-
   .table-empty{padding:48px 24px;text-align:center}
   .table-empty-icon{font-size:28px;opacity:.3;margin-bottom:10px}
   .table-empty-text{font-size:13px;color:var(--muted)}
-
-  /* ── ALERT ── */
   .alert{padding:11px 14px;border-radius:7px;font-size:13px;line-height:1.5;margin-bottom:16px;display:none;gap:8px;align-items:flex-start}
   .alert.show{display:flex;animation:fadeUp .3s ease}
   .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
   .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
-
-  /* ── MODAL ── */
   .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeOverlay .2s ease}
   @keyframes fadeOverlay{from{opacity:0}to{opacity:1}}
   .modal{background:var(--white);border-radius:12px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 20px 60px rgba(13,35,64,.3);animation:slideUp .25s ease}
@@ -134,8 +113,6 @@
   .modal-close:hover{color:white;background:rgba(255,255,255,.1)}
   .modal-body{padding:22px 24px;display:flex;flex-direction:column;gap:16px}
   .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
-
-  /* ── FORM IN MODAL ── */
   .form-group{display:flex;flex-direction:column;gap:6px}
   .form-label{font-size:12px;font-weight:600;color:var(--navy)}
   .form-label span{color:var(--red);margin-left:2px}
@@ -152,6 +129,26 @@
   .error-msg.show{display:block}
   .form-hint{font-size:11px;color:var(--muted);line-height:1.6}
 
+  /* ── ROLE SELECTOR ── */
+  .role-selector{display:flex;gap:10px;margin-top:2px}
+  .role-option{flex:1;border:2px solid var(--border2);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .2s;position:relative;user-select:none}
+  .role-option:hover{border-color:var(--border);background:var(--bg)}
+  .role-option.sel-user{border-color:#6366f1;background:#f5f3ff}
+  .role-option.sel-admin{border-color:var(--gold);background:var(--gold-light)}
+  .role-option input[type=radio]{position:absolute;opacity:0;width:0;height:0}
+  .role-option-icon{font-size:22px;margin-bottom:6px}
+  .role-option-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:3px}
+  .role-option-desc{font-size:11px;color:var(--muted);line-height:1.5}
+  .role-option-check{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .2s;color:transparent;background:transparent}
+  .role-option.sel-user .role-option-check{background:#6366f1;border-color:#6366f1;color:white}
+  .role-option.sel-admin .role-option-check{background:var(--gold);border-color:var(--gold);color:white}
+
+  /* ── PROFIL MODAL HEADER ── */
+  .profil-modal-head{display:flex;align-items:center;gap:14px;padding:16px 24px;background:var(--bg);border-bottom:1px solid var(--border)}
+  .profil-modal-avatar{width:44px;height:44px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--gold);flex-shrink:0}
+  .profil-modal-name{font-size:14px;font-weight:700;color:var(--navy)}
+  .profil-modal-username{font-size:12px;color:var(--muted);margin-top:1px}
+
   .strength-wrap{margin-top:6px}
   .strength-bars{display:flex;gap:4px;margin-bottom:4px}
   .strength-bar{flex:1;height:3px;background:var(--border);border-radius:100px;transition:background .3s}
@@ -162,33 +159,27 @@
   .strength-label.weak{color:#ef4444}
   .strength-label.medium{color:#d97706}
   .strength-label.strong{color:var(--success)}
-
   .checkbox-row{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
   .checkbox-row input{width:15px;height:15px;accent-color:var(--navy);cursor:pointer;flex-shrink:0}
   .checkbox-row span{font-size:13px;color:var(--text)}
-
-  /* ── KONFIRMASI MODAL ── */
   .confirm-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 4px}
   .confirm-icon.danger{background:#fef2f2;border:2px solid #fecaca}
   .confirm-icon.warn{background:#fffbeb;border:2px solid #fde68a}
   .confirm-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--navy);text-align:center}
   .confirm-desc{font-size:13px;color:var(--muted);text-align:center;line-height:1.7}
   .confirm-desc strong{color:var(--navy)}
-
-  /* ── SKELETON ── */
   .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px}
   @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .fade-in{animation:fadeUp .5s ease both}
-
   .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
   @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.topbar-time{display:none}}
   @media(max-width:600px){
     .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
     .sidebar.open{left:0}.layout{display:block}.menu-toggle{display:flex!important}
     .stats-row{flex-wrap:wrap}.stat-pill{min-width:calc(50% - 6px)}
-    .modal{max-width:100%}
-    .toolbar{flex-direction:column;align-items:stretch}
+    .modal{max-width:100%}.toolbar{flex-direction:column;align-items:stretch}
+    .role-selector{flex-direction:column}
   }
 </style>
 </head>
@@ -217,6 +208,7 @@
     <div class="nav-group-label">Persuratan</div>
     <a class="nav-item" href="surat-tugas.html"><div class="nav-item-icon">📄</div>Surat Tugas</a>
     <div class="nav-group-label">Administrasi</div>
+    <a class="nav-item" href="admin-surat-tugas.html"><div class="nav-item-icon">✅</div>Persetujuan Surat</a>
     <a class="nav-item active" href="manajemen-pengguna.html"><div class="nav-item-icon">👥</div>Manajemen Pengguna</a>
     <div class="sidebar-footer">
       <strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>© 2026 Pemerintah RI<br>
@@ -229,7 +221,7 @@
       <div>
         <div class="page-eyebrow">Administrasi</div>
         <h1 class="page-title">Manajemen <em>Pengguna</em></h1>
-        <p class="page-desc">Kelola akun pengguna sistem: tambah, reset kata sandi, dan hapus akun.</p>
+        <p class="page-desc">Kelola akun pengguna: tambah, atur role, reset kata sandi, dan hapus. <strong>Klik nama pengguna</strong> untuk mengubah role-nya.</p>
       </div>
       <button class="btn-primary fade-in" style="animation-delay:.1s" onclick="openModal('modal-tambah')">
         ＋ Tambah Pengguna
@@ -242,6 +234,7 @@
       <div class="stat-pill"><div class="stat-pill-icon" style="background:#e8f0fe">👥</div><div><div class="stat-pill-num" id="st-total">—</div><div class="stat-pill-label">Total Pengguna</div></div></div>
       <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">✅</div><div><div class="stat-pill-num" id="st-aktif">—</div><div class="stat-pill-label">Aktif</div></div></div>
       <div class="stat-pill"><div class="stat-pill-icon" style="background:#fffbeb">🔑</div><div><div class="stat-pill-num" id="st-ganti">—</div><div class="stat-pill-label">Harus Ganti Sandi</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:var(--gold-light)">👑</div><div><div class="stat-pill-num" id="st-admin">—</div><div class="stat-pill-label">Administrator</div></div></div>
     </div>
 
     <div class="toolbar fade-in" style="animation-delay:.12s">
@@ -254,6 +247,11 @@
         <option value="aktif">Aktif</option>
         <option value="ganti">Harus Ganti Sandi</option>
       </select>
+      <select class="form-input no-icon" id="filter-role" style="width:auto;padding:8px 12px;cursor:pointer" onchange="filterTable()">
+        <option value="">Semua Role</option>
+        <option value="admin">Admin</option>
+        <option value="user">User</option>
+      </select>
       <button class="btn-outline" onclick="loadPengguna()">↺ Muat Ulang</button>
     </div>
 
@@ -263,17 +261,61 @@
         <span class="table-head-count" id="table-count">Memuat...</span>
       </div>
       <div id="table-area">
-        <table class="list-table"><thead><tr><th>Pengguna</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th></tr></thead>
-        <tbody>
-          <tr><td colspan="4"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
-            <div class="skel" style="height:44px;border-radius:6px"></div>
-            <div class="skel" style="height:44px;border-radius:6px"></div>
-            <div class="skel" style="height:44px;border-radius:6px"></div>
-          </div></td></tr>
-        </tbody></table>
+        <table class="list-table"><thead><tr><th>Pengguna</th><th>Role</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th></tr></thead>
+        <tbody><tr><td colspan="5"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+          <div class="skel" style="height:44px;border-radius:6px"></div>
+          <div class="skel" style="height:44px;border-radius:6px"></div>
+          <div class="skel" style="height:44px;border-radius:6px"></div>
+        </div></td></tr></tbody></table>
       </div>
     </div>
   </main>
+</div>
+
+<!-- ═══ MODAL: EDIT ROLE (klik nama) ═══ -->
+<div class="modal-overlay" id="modal-edit" style="display:none" onclick="if(event.target===this)closeModal('modal-edit')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit <em>Role Pengguna</em></span>
+      <button class="modal-close" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+    <div class="profil-modal-head">
+      <div class="profil-modal-avatar" id="edit-avatar">—</div>
+      <div>
+        <div class="profil-modal-name" id="edit-display-name">—</div>
+        <div class="profil-modal-username" id="edit-display-username">—</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="edit-alert" class="alert"><span id="edit-alert-icon"></span><span id="edit-alert-text"></span></div>
+      <div class="form-group">
+        <label class="form-label">Pilih Role <span>*</span></label>
+        <div class="role-selector">
+          <div class="role-option" id="role-opt-user" onclick="selectRole('user')">
+            <input type="radio" name="role-edit" value="user">
+            <div class="role-option-check" id="role-check-user">✓</div>
+            <div class="role-option-icon">👤</div>
+            <div class="role-option-title">User</div>
+            <div class="role-option-desc">Akses standar. Bisa melihat profil dan mengajukan surat tugas.</div>
+          </div>
+          <div class="role-option" id="role-opt-admin" onclick="selectRole('admin')">
+            <input type="radio" name="role-edit" value="admin">
+            <div class="role-option-check" id="role-check-admin">✓</div>
+            <div class="role-option-icon">👑</div>
+            <div class="role-option-title">Administrator</div>
+            <div class="role-option-desc">Akses penuh. Bisa menyetujui surat dan mengelola pengguna.</div>
+          </div>
+        </div>
+      </div>
+      <div id="edit-self-warning" style="display:none;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.6">
+        ⚠️ Anda sedang mengedit akun Anda sendiri. Mengubah role menjadi <strong>user</strong> akan mencabut akses administrator Anda segera setelah disimpan.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-edit')">Batal</button>
+      <button class="btn-primary" id="btn-edit-submit" onclick="submitEdit()">💾 Simpan Role</button>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ MODAL: TAMBAH PENGGUNA ═══ -->
@@ -319,11 +361,30 @@
         </div>
         <span class="error-msg" id="err-password">Kata sandi wajib diisi (min. 6 karakter)</span>
       </div>
+      <div class="form-group">
+        <label class="form-label">Role <span>*</span></label>
+        <div class="role-selector">
+          <div class="role-option sel-user" id="new-role-opt-user" onclick="selectNewRole('user')">
+            <input type="radio" name="new-role" value="user" checked>
+            <div class="role-option-check" id="new-role-check-user">✓</div>
+            <div class="role-option-icon">👤</div>
+            <div class="role-option-title">User</div>
+            <div class="role-option-desc">Akses standar.</div>
+          </div>
+          <div class="role-option" id="new-role-opt-admin" onclick="selectNewRole('admin')">
+            <input type="radio" name="new-role" value="admin">
+            <div class="role-option-check" id="new-role-check-admin">✓</div>
+            <div class="role-option-icon">👑</div>
+            <div class="role-option-title">Administrator</div>
+            <div class="role-option-desc">Akses penuh.</div>
+          </div>
+        </div>
+      </div>
       <label class="checkbox-row">
         <input type="checkbox" id="inp-must-change" checked>
         <span>Pengguna wajib ganti kata sandi saat pertama login</span>
       </label>
-      <div class="form-hint">💡 Setelah akun dibuat, sampaikan username dan kata sandi awal kepada pengguna secara langsung.</div>
+      <div class="form-hint">💡 Sampaikan username dan kata sandi awal kepada pengguna secara langsung.</div>
     </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-tambah')">Batal</button>
@@ -343,7 +404,7 @@
       <div class="confirm-icon warn">🔑</div>
       <div class="confirm-title" style="margin-top:12px">Reset Kata Sandi?</div>
       <p class="confirm-desc" style="margin-top:8px">
-        Kata sandi <strong id="reset-target-name">pengguna ini</strong> akan diatur ulang ke kata sandi baru yang Anda tentukan. Pengguna akan diminta mengganti kata sandinya saat login berikutnya.
+        Kata sandi <strong id="reset-target-name">pengguna ini</strong> akan diatur ulang. Pengguna akan diminta mengganti kata sandinya saat login berikutnya.
       </p>
       <div class="form-group" style="margin-top:16px;text-align:left">
         <label class="form-label">Kata Sandi Baru <span>*</span></label>
@@ -354,7 +415,7 @@
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
-        <span class="error-msg" id="err-reset-password">Kata sandi baru wajib diisi</span>
+        <span class="error-msg" id="err-reset-password">Kata sandi wajib diisi (min. 6 karakter)</span>
       </div>
     </div>
     <div class="modal-footer">
@@ -387,55 +448,24 @@
 
 <script src="config.js"></script>
 <script>
-  /*
-   * ══════════════════════════════════════════════════
-   * UPDATE: Nama tabel diubah dari 'akun' ke 'users'
-   * sesuai struktur database Supabase.
-   *
-   * Kolom yang digunakan:
-   *   id                  → integer (primary key)
-   *   username            → text
-   *   full_name           → text
-   *   password_hash       → text
-   *   must_change_password→ boolean
-   *   created_at          → timestamp with time zone
-   *   last_login          → timestamp with time zone
-   * ══════════════════════════════════════════════════
-   */
-  const TABLE_PENGGUNA = 'users'; // ← Sudah disesuaikan
+  const TABLE_PENGGUNA = 'users';
+  const H = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 
-  const H = {
-    'apikey': SUPABASE_ANON_KEY,
-    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-    'Content-Type': 'application/json'
-  };
+  let SESSION = null, allPengguna = [], selectedUserId = null, selectedUserName = '';
+  let selectedRole = 'user', newUserRole = 'user';
 
-  let SESSION = null;
-  let allPengguna = [];
-  let selectedUserId = null;
-  let selectedUserName = '';
-
-  /* ── SESSION & AUTH ── */
   function checkSession() {
     try {
       const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
       if (!s) { window.location.replace('login.html'); return null; }
-      if (s.expires_at && Date.now() > s.expires_at) {
-        localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
-      }
+      if (s.expires_at && Date.now() > s.expires_at) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
       if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
-      if (!ADMIN_USERS.includes(s.username)) {
-        window.location.replace('index.html'); return null;
-      }
+      if (!ADMIN_USERS.includes(s.username)) { window.location.replace('index.html'); return null; }
       return s;
     } catch(e) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
   }
   function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
-  function updateClock() {
-    document.getElementById('topbar-time').textContent = new Date().toLocaleString('id-ID', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-  }
+  function updateClock() { document.getElementById('topbar-time').textContent = new Date().toLocaleString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
   updateClock(); setInterval(updateClock, 1000);
   function setTopbarUser(s) {
     const name = s.full_name || s.username || 'Pengguna';
@@ -444,31 +474,16 @@
     document.getElementById('topbar-username').textContent = name;
   }
 
-  /* ── LOAD DATA ── */
   async function loadPengguna() {
-    document.getElementById('table-area').innerHTML = `
-      <table class="list-table"><thead><tr><th>Pengguna</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th></tr></thead>
-      <tbody><tr><td colspan="4"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
-        <div class="skel" style="height:44px;border-radius:6px"></div>
-        <div class="skel" style="height:44px;border-radius:6px"></div>
-        <div class="skel" style="height:44px;border-radius:6px"></div>
-      </div></td></tr></tbody></table>`;
+    document.getElementById('table-area').innerHTML = `<table class="list-table"><thead><tr><th>Pengguna</th><th>Role</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th></tr></thead><tbody><tr><td colspan="5"><div style="padding:16px;display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div></td></tr></tbody></table>`;
     document.getElementById('table-count').textContent = 'Memuat...';
     try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?select=id,username,full_name,must_change_password,created_at&order=full_name.asc`,
-        { headers: H }
-      );
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?select=id,username,full_name,must_change_password,created_at,role&order=full_name.asc`, { headers: H });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       allPengguna = await res.json();
-      updateStats();
-      filterTable();
+      updateStats(); filterTable();
     } catch(e) {
-      document.getElementById('table-area').innerHTML = `
-        <div class="table-empty">
-          <div class="table-empty-icon">⚠️</div>
-          <div class="table-empty-text">Gagal memuat data pengguna.<br>Periksa nama tabel (TABLE_PENGGUNA="${TABLE_PENGGUNA}") dan kebijakan RLS di Supabase.</div>
-        </div>`;
+      document.getElementById('table-area').innerHTML = `<div class="table-empty"><div class="table-empty-icon">⚠️</div><div class="table-empty-text">Gagal memuat data pengguna.<br>Periksa nama tabel dan kebijakan RLS di Supabase.</div></div>`;
       document.getElementById('table-count').textContent = 'Error';
     }
   }
@@ -477,57 +492,49 @@
     document.getElementById('st-total').textContent = allPengguna.length;
     document.getElementById('st-aktif').textContent = allPengguna.filter(u => !u.must_change_password).length;
     document.getElementById('st-ganti').textContent = allPengguna.filter(u => u.must_change_password).length;
+    document.getElementById('st-admin').textContent = allPengguna.filter(u => (u.role||'user') === 'admin').length;
   }
 
   function filterTable() {
     const q = document.getElementById('search-input').value.toLowerCase();
     const st = document.getElementById('filter-status').value;
-    let filtered = allPengguna;
-    if (q) filtered = filtered.filter(u =>
-      (u.full_name || '').toLowerCase().includes(q) ||
-      (u.username || '').toLowerCase().includes(q)
-    );
-    if (st === 'aktif') filtered = filtered.filter(u => !u.must_change_password);
-    if (st === 'ganti') filtered = filtered.filter(u => u.must_change_password);
-    renderTable(filtered);
+    const rl = document.getElementById('filter-role').value;
+    let f = allPengguna;
+    if (q) f = f.filter(u => (u.full_name||'').toLowerCase().includes(q) || (u.username||'').toLowerCase().includes(q));
+    if (st === 'aktif') f = f.filter(u => !u.must_change_password);
+    if (st === 'ganti') f = f.filter(u => u.must_change_password);
+    if (rl) f = f.filter(u => (u.role||'user') === rl);
+    renderTable(f);
   }
 
   function renderTable(data) {
     document.getElementById('table-count').textContent = `${data.length} pengguna`;
     if (!data.length) {
-      document.getElementById('table-area').innerHTML = `
-        <div class="table-empty">
-          <div class="table-empty-icon">👥</div>
-          <div class="table-empty-text">Tidak ada pengguna ditemukan.</div>
-        </div>`;
+      document.getElementById('table-area').innerHTML = `<div class="table-empty"><div class="table-empty-icon">👥</div><div class="table-empty-text">Tidak ada pengguna ditemukan.</div></div>`;
       return;
     }
     const rows = data.map(u => {
       const name = u.full_name || u.username || '-';
       const ini = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
-      const isAdmin = ADMIN_USERS.includes(u.username);
-      const statusBadge = u.must_change_password
-        ? `<span class="badge ganti-sandi"><span class="badge-dot"></span>Harus Ganti Sandi</span>`
-        : `<span class="badge aktif"><span class="badge-dot"></span>Aktif</span>`;
-      const adminBadge = isAdmin ? `<span class="badge admin" style="margin-left:4px">👑 Admin</span>` : '';
-      const tanggal = u.created_at
-        ? new Date(u.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'})
-        : '—';
-      // Proteksi: akun admin tidak bisa dihapus
-      // id bertipe integer — tidak perlu encodeURIComponent tapi tetap aman
-      const hapusBtn = isAdmin
-        ? `<button class="btn-sm" disabled style="opacity:.4;cursor:not-allowed" title="Akun administrator tidak dapat dihapus">🗑</button>`
+      const isProtected = ADMIN_USERS.includes(u.username);
+      const role = u.role || 'user';
+      const roleBadge = role === 'admin' ? `<span class="badge role-admin">👑 Admin</span>` : `<span class="badge role-user">👤 User</span>`;
+      const statusBadge = u.must_change_password ? `<span class="badge ganti-sandi"><span class="badge-dot"></span>Harus Ganti Sandi</span>` : `<span class="badge aktif"><span class="badge-dot"></span>Aktif</span>`;
+      const tanggal = u.created_at ? new Date(u.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}) : '—';
+      const hapusBtn = isProtected
+        ? `<button class="btn-sm" disabled style="opacity:.4;cursor:not-allowed" title="Akun administrator utama tidak dapat dihapus">🗑</button>`
         : `<button class="btn-sm danger" onclick="openHapus(${u.id},'${esc(name)}')">🗑 Hapus</button>`;
       return `<tr>
         <td>
           <div class="user-cell">
             <div class="user-avatar-sm">${esc(ini)}</div>
             <div>
-              <div class="user-cell-name">${esc(name)} ${adminBadge}</div>
-              <div class="user-cell-username">@${esc(u.username || '—')}</div>
+              <span class="user-cell-name" onclick="openEdit(${u.id},'${esc(name)}','${esc(role)}','${esc(u.username||'')}')" title="Klik untuk ubah role">${esc(name)}</span>
+              <div class="user-cell-username">@${esc(u.username||'—')}</div>
             </div>
           </div>
         </td>
+        <td>${roleBadge}</td>
         <td>${statusBadge}</td>
         <td style="font-size:12px;color:var(--muted)">${tanggal}</td>
         <td style="text-align:right">
@@ -538,230 +545,151 @@
         </td>
       </tr>`;
     }).join('');
-    document.getElementById('table-area').innerHTML = `
-      <table class="list-table">
-        <thead><tr><th>Pengguna</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
+    document.getElementById('table-area').innerHTML = `<table class="list-table"><thead><tr><th>Pengguna</th><th>Role</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 
   function esc(str) {
     if (str == null) return '';
-    return String(str)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
-  /* ── MODAL HELPERS ── */
   function openModal(id) { document.getElementById(id).style.display = 'flex'; }
   function closeModal(id) { document.getElementById(id).style.display = 'none'; }
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') ['modal-tambah','modal-reset','modal-hapus'].forEach(id => closeModal(id));
+    if (e.key === 'Escape') ['modal-edit','modal-tambah','modal-reset','modal-hapus'].forEach(id => closeModal(id));
   });
 
-  /* ── TAMBAH PENGGUNA ── */
+  /* ══ EDIT ROLE ══ */
+  function openEdit(userId, userName, role, username) {
+    selectedUserId = userId; selectedUserName = userName; selectedRole = role || 'user';
+    const ini = userName.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    document.getElementById('edit-avatar').textContent = ini;
+    document.getElementById('edit-display-name').textContent = userName;
+    document.getElementById('edit-display-username').textContent = '@' + username;
+    const isSelf = SESSION && username === SESSION.username;
+    document.getElementById('edit-self-warning').style.display = isSelf ? 'block' : 'none';
+    // Set tampilan role selector
+    document.getElementById('role-opt-user').className = 'role-option' + (selectedRole === 'user' ? ' sel-user' : '');
+    document.getElementById('role-opt-admin').className = 'role-option' + (selectedRole === 'admin' ? ' sel-admin' : '');
+    document.getElementById('edit-alert').className = 'alert';
+    openModal('modal-edit');
+  }
+
+  function selectRole(role) {
+    selectedRole = role;
+    document.getElementById('role-opt-user').className = 'role-option' + (role === 'user' ? ' sel-user' : '');
+    document.getElementById('role-opt-admin').className = 'role-option' + (role === 'admin' ? ' sel-admin' : '');
+  }
+
+  async function submitEdit() {
+    const btn = document.getElementById('btn-edit-submit');
+    btn.disabled = true; btn.classList.add('loading');
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`, {
+        method: 'PATCH', headers: { ...H, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ role: selectedRole })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      closeModal('modal-edit');
+      showPageAlert(`✅ Role ${selectedUserName} berhasil diubah menjadi "${selectedRole}".`, 'success');
+      await loadPengguna();
+    } catch(e) {
+      document.getElementById('edit-alert-icon').textContent = '⚠️';
+      document.getElementById('edit-alert-text').textContent = `Gagal mengubah role: ${e.message}`;
+      document.getElementById('edit-alert').className = 'alert error show';
+    } finally { btn.disabled = false; btn.classList.remove('loading'); }
+  }
+
+  /* ══ TAMBAH PENGGUNA ══ */
+  function selectNewRole(role) {
+    newUserRole = role;
+    document.getElementById('new-role-opt-user').className = 'role-option' + (role === 'user' ? ' sel-user' : '');
+    document.getElementById('new-role-opt-admin').className = 'role-option' + (role === 'admin' ? ' sel-admin' : '');
+  }
+
   function checkStrengthModal() {
     const p = document.getElementById('inp-password').value;
     const wrap = document.getElementById('modal-strength-wrap');
     if (!p) { wrap.style.display = 'none'; return; }
     wrap.style.display = 'block';
-    const met = [p.length >= 6, /[A-Z]/.test(p), /[a-z]/.test(p), /[0-9]/.test(p), /[^A-Za-z0-9]/.test(p)].filter(Boolean).length;
+    const met = [p.length>=6,/[A-Z]/.test(p),/[a-z]/.test(p),/[0-9]/.test(p),/[^A-Za-z0-9]/.test(p)].filter(Boolean).length;
     const bars = ['msb1','msb2','msb3','msb4'];
     const label = document.getElementById('modal-strength-label');
-    let cls = met <= 2 ? 'weak' : met <= 3 ? 'medium' : 'strong';
-    let txt = met <= 2 ? 'Lemah' : met <= 3 ? 'Sedang' : 'Kuat';
-    bars.forEach((id, i) => {
-      const el = document.getElementById(id); el.className = 'strength-bar';
-      if (met >= 2 && i === 0) el.classList.add(cls);
-      if (met >= 3 && i <= 1) el.classList.add(cls);
-      if (met >= 4 && i <= 2) el.classList.add(cls);
-      if (met >= 5 && i <= 3) el.classList.add(cls);
-    });
-    label.className = `strength-label ${cls}`;
-    label.textContent = `Kekuatan: ${txt}`;
+    let cls = met<=2?'weak':met<=3?'medium':'strong', txt = met<=2?'Lemah':met<=3?'Sedang':'Kuat';
+    bars.forEach((id,i)=>{ const el=document.getElementById(id);el.className='strength-bar';if(met>=2&&i===0)el.classList.add(cls);if(met>=3&&i<=1)el.classList.add(cls);if(met>=4&&i<=2)el.classList.add(cls);if(met>=5&&i<=3)el.classList.add(cls); });
+    label.className=`strength-label ${cls}`;label.textContent=`Kekuatan: ${txt}`;
   }
-  function togglePassModal() {
-    const inp = document.getElementById('inp-password');
-    inp.type = inp.type === 'text' ? 'password' : 'text';
-  }
-  function togglePassReset() {
-    const inp = document.getElementById('inp-reset-password');
-    inp.type = inp.type === 'text' ? 'password' : 'text';
-  }
+  function togglePassModal() { const inp=document.getElementById('inp-password');inp.type=inp.type==='text'?'password':'text'; }
+  function togglePassReset() { const inp=document.getElementById('inp-reset-password');inp.type=inp.type==='text'?'password':'text'; }
 
   async function submitTambah() {
-    const nama     = document.getElementById('inp-nama').value.trim();
-    const username = document.getElementById('inp-username').value.trim().toLowerCase();
-    const password = document.getElementById('inp-password').value;
-    const mustChange = document.getElementById('inp-must-change').checked;
-
-    let valid = true;
-    document.querySelectorAll('#modal-tambah .error-msg').forEach(e => e.classList.remove('show'));
-    document.querySelectorAll('#modal-tambah .form-input').forEach(i => i.classList.remove('error'));
-    document.getElementById('tambah-alert').className = 'alert';
-
-    if (!nama) { showFieldError('inp-nama','err-nama'); valid = false; }
-    if (!username || /\s/.test(username)) { showFieldError('inp-username','err-username'); valid = false; }
-    if (!password || password.length < 6) { showFieldError('inp-password','err-password'); valid = false; }
-    if (!valid) return;
-
-    const btn = document.getElementById('btn-tambah-submit');
-    btn.disabled = true; btn.classList.add('loading');
+    const nama=document.getElementById('inp-nama').value.trim();
+    const username=document.getElementById('inp-username').value.trim().toLowerCase();
+    const password=document.getElementById('inp-password').value;
+    const mustChange=document.getElementById('inp-must-change').checked;
+    let valid=true;
+    document.querySelectorAll('#modal-tambah .error-msg').forEach(e=>e.classList.remove('show'));
+    document.querySelectorAll('#modal-tambah .form-input').forEach(i=>i.classList.remove('error'));
+    document.getElementById('tambah-alert').className='alert';
+    if(!nama){showFieldError('inp-nama','err-nama');valid=false;}
+    if(!username||/\s/.test(username)){showFieldError('inp-username','err-username');valid=false;}
+    if(!password||password.length<6){showFieldError('inp-password','err-password');valid=false;}
+    if(!valid)return;
+    const btn=document.getElementById('btn-tambah-submit');btn.disabled=true;btn.classList.add('loading');
     try {
-      /*
-       * Coba via RPC buat_pengguna (dengan bcrypt hash di server) terlebih dahulu.
-       * Jika RPC belum dibuat, fallback ke INSERT langsung dengan password_hash plain.
-       * CATATAN: Untuk keamanan produksi, gunakan RPC agar password di-hash dengan bcrypt.
-       */
-      let ok = false;
-      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`, {
-        method: 'POST', headers: H,
-        body: JSON.stringify({ p_username: username, p_full_name: nama, p_password: password, p_must_change: mustChange })
-      });
-      ok = rpcRes.ok;
-
-      if (!ok) {
-        // Fallback: INSERT langsung ke tabel users
-        // password_hash diisi dengan nilai password (pastikan di-hash di server/RPC untuk produksi)
-        const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}`, {
-          method: 'POST',
-          headers: { ...H, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({
-            username,
-            full_name: nama,
-            password_hash: password,        // ← sesuai nama kolom 'password_hash'
-            must_change_password: mustChange
-          })
-        });
-        ok = insertRes.ok;
-        if (!ok) {
-          const err = await insertRes.json().catch(() => ({}));
-          throw new Error(err.message || `HTTP ${insertRes.status}`);
-        }
+      let ok=false;
+      const rpcRes=await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`,{method:'POST',headers:H,body:JSON.stringify({p_username:username,p_full_name:nama,p_password:password,p_must_change:mustChange,p_role:newUserRole})});
+      ok=rpcRes.ok;
+      if(!ok){
+        const insertRes=await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({username,full_name:nama,password_hash:password,must_change_password:mustChange,role:newUserRole})});
+        ok=insertRes.ok;
+        if(!ok){const err=await insertRes.json().catch(()=>({}));throw new Error(err.message||`HTTP ${insertRes.status}`);}
       }
-
-      showPageAlert(`✅ Pengguna @${username} berhasil ditambahkan.`, 'success');
+      showPageAlert(`✅ Pengguna @${username} berhasil ditambahkan sebagai ${newUserRole}.`,'success');
       closeModal('modal-tambah');
-      document.getElementById('inp-nama').value = '';
-      document.getElementById('inp-username').value = '';
-      document.getElementById('inp-password').value = '';
-      document.getElementById('modal-strength-wrap').style.display = 'none';
+      document.getElementById('inp-nama').value='';document.getElementById('inp-username').value='';document.getElementById('inp-password').value='';
+      document.getElementById('modal-strength-wrap').style.display='none';
+      selectNewRole('user');
       await loadPengguna();
-    } catch(e) {
-      showModalAlert('tambah', `Gagal menambahkan pengguna: ${e.message}`);
-    } finally {
-      btn.disabled = false; btn.classList.remove('loading');
-    }
+    } catch(e) { showModalAlert('tambah',`Gagal menambahkan pengguna: ${e.message}`); }
+    finally { btn.disabled=false;btn.classList.remove('loading'); }
   }
 
-  /* ── RESET PASSWORD ── */
-  function openReset(userId, userName) {
-    selectedUserId = userId;
-    selectedUserName = userName;
-    document.getElementById('reset-target-name').textContent = userName;
-    document.getElementById('inp-reset-password').value = '';
+  /* ══ RESET PASSWORD ══ */
+  function openReset(userId,userName){selectedUserId=userId;selectedUserName=userName;document.getElementById('reset-target-name').textContent=userName;document.getElementById('inp-reset-password').value='';document.getElementById('err-reset-password').classList.remove('show');openModal('modal-reset');}
+  async function submitReset(){
+    const newPass=document.getElementById('inp-reset-password').value;
+    if(!newPass||newPass.length<6){document.getElementById('err-reset-password').classList.add('show');return;}
     document.getElementById('err-reset-password').classList.remove('show');
-    openModal('modal-reset');
+    const btn=document.getElementById('btn-reset-submit');btn.disabled=true;btn.classList.add('loading');
+    try{
+      let ok=false;
+      const rpcRes=await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`,{method:'POST',headers:H,body:JSON.stringify({p_user_id:selectedUserId,p_new_password:newPass})});
+      ok=rpcRes.ok;
+      if(!ok){const patchRes=await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({password_hash:newPass,must_change_password:true})});ok=patchRes.ok;if(!ok)throw new Error(`HTTP ${patchRes.status}`);}
+      showPageAlert(`🔑 Kata sandi ${selectedUserName} berhasil direset.`,'success');closeModal('modal-reset');await loadPengguna();
+    }catch(e){showPageAlert(`Gagal reset: ${e.message}`,'error');closeModal('modal-reset');}
+    finally{btn.disabled=false;btn.classList.remove('loading');}
   }
 
-  async function submitReset() {
-    const newPass = document.getElementById('inp-reset-password').value;
-    document.getElementById('err-reset-password').classList.remove('show');
-    if (!newPass || newPass.length < 6) {
-      document.getElementById('err-reset-password').classList.add('show'); return;
-    }
-
-    const btn = document.getElementById('btn-reset-submit');
-    btn.disabled = true; btn.classList.add('loading');
-    try {
-      /*
-       * Coba via RPC reset_password_admin (agar bcrypt ditangani server).
-       * Fallback: PATCH langsung ke kolom password_hash.
-       * id bertipe integer — gunakan langsung tanpa encodeURIComponent.
-       */
-      let ok = false;
-      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`, {
-        method: 'POST', headers: H,
-        body: JSON.stringify({ p_user_id: selectedUserId, p_new_password: newPass })
-      });
-      ok = rpcRes.ok;
-
-      if (!ok) {
-        const patchRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,
-          {
-            method: 'PATCH',
-            headers: { ...H, 'Prefer': 'return=minimal' },
-            body: JSON.stringify({ password_hash: newPass, must_change_password: true })
-          }
-        );
-        ok = patchRes.ok;
-        if (!ok) throw new Error(`HTTP ${patchRes.status}`);
-      }
-
-      showPageAlert(`🔑 Kata sandi @${selectedUserName} berhasil direset.`, 'success');
-      closeModal('modal-reset');
-      await loadPengguna();
-    } catch(e) {
-      showPageAlert(`Gagal reset kata sandi: ${e.message}`, 'error');
-      closeModal('modal-reset');
-    } finally {
-      btn.disabled = false; btn.classList.remove('loading');
-    }
+  /* ══ HAPUS PENGGUNA ══ */
+  function openHapus(userId,userName){selectedUserId=userId;selectedUserName=userName;document.getElementById('hapus-target-name').textContent=userName;openModal('modal-hapus');}
+  async function submitHapus(){
+    const btn=document.getElementById('btn-hapus-submit');btn.disabled=true;btn.classList.add('loading');
+    try{
+      const res=await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,{method:'DELETE',headers:H});
+      if(!res.ok)throw new Error(`HTTP ${res.status}`);
+      showPageAlert(`🗑 Akun ${selectedUserName} berhasil dihapus.`,'success');closeModal('modal-hapus');await loadPengguna();
+    }catch(e){showPageAlert(`Gagal menghapus: ${e.message}`,'error');closeModal('modal-hapus');}
+    finally{btn.disabled=false;btn.classList.remove('loading');}
   }
 
-  /* ── HAPUS PENGGUNA ── */
-  function openHapus(userId, userName) {
-    selectedUserId = userId;
-    selectedUserName = userName;
-    document.getElementById('hapus-target-name').textContent = userName;
-    openModal('modal-hapus');
-  }
+  /* ══ ALERT HELPERS ══ */
+  function showPageAlert(msg,type='error'){document.getElementById('page-alert-icon').textContent=type==='success'?'✅':'⚠️';document.getElementById('page-alert-text').textContent=msg;document.getElementById('page-alert').className=`alert ${type} show`;setTimeout(()=>{document.getElementById('page-alert').className='alert';},5000);}
+  function showModalAlert(modal,msg){document.getElementById(`${modal}-alert-icon`).textContent='⚠️';document.getElementById(`${modal}-alert-text`).textContent=msg;document.getElementById(`${modal}-alert`).className='alert error show';}
+  function showFieldError(inputId,errId){document.getElementById(inputId).classList.add('error');document.getElementById(errId).classList.add('show');}
 
-  async function submitHapus() {
-    const btn = document.getElementById('btn-hapus-submit');
-    btn.disabled = true; btn.classList.add('loading');
-    try {
-      // id bertipe integer — gunakan langsung tanpa encodeURIComponent
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,
-        { method: 'DELETE', headers: H }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      showPageAlert(`🗑 Akun @${selectedUserName} berhasil dihapus.`, 'success');
-      closeModal('modal-hapus');
-      await loadPengguna();
-    } catch(e) {
-      showPageAlert(`Gagal menghapus pengguna: ${e.message}`, 'error');
-      closeModal('modal-hapus');
-    } finally {
-      btn.disabled = false; btn.classList.remove('loading');
-    }
-  }
-
-  /* ── ALERT HELPERS ── */
-  function showPageAlert(msg, type = 'error') {
-    document.getElementById('page-alert-icon').textContent = type === 'success' ? '✅' : '⚠️';
-    document.getElementById('page-alert-text').textContent = msg;
-    document.getElementById('page-alert').className = `alert ${type} show`;
-    setTimeout(() => { document.getElementById('page-alert').className = 'alert'; }, 5000);
-  }
-  function showModalAlert(modal, msg) {
-    document.getElementById(`${modal}-alert-icon`).textContent = '⚠️';
-    document.getElementById(`${modal}-alert-text`).textContent = msg;
-    document.getElementById(`${modal}-alert`).className = 'alert error show';
-  }
-  function showFieldError(inputId, errId) {
-    document.getElementById(inputId).classList.add('error');
-    document.getElementById(errId).classList.add('show');
-  }
-
-  /* ── INIT ── */
-  function init() {
-    SESSION = checkSession(); if (!SESSION) return;
-    setTopbarUser(SESSION);
-    loadPengguna();
-  }
+  function init(){SESSION=checkSession();if(!SESSION)return;setTopbarUser(SESSION);loadPengguna();}
   init();
 </script>
 </body>
