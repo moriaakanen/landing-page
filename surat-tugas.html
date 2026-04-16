@@ -45,6 +45,7 @@
   .nav-item:hover .nav-item-icon{background:var(--border)}
   .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
   .sidebar-footer strong{color:var(--navy);font-weight:600}
+  .admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.35);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--gold);margin-top:4px;letter-spacing:.3px}
 
   /* ── MAIN ── */
   .main{flex:1;overflow-y:auto;padding:32px 36px}
@@ -108,63 +109,19 @@
   .table-empty-text{font-size:13px;color:var(--muted)}
 
   /* ── MODAL DETAIL ── */
-  .modal-overlay{
-    position:fixed;inset:0;
-    background:rgba(13,35,64,0.55);
-    z-index:1000;
-    display:flex;align-items:center;justify-content:center;
-    padding:24px;
-    animation:fadeOverlay .2s ease;
-  }
+  .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,0.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeOverlay .2s ease;}
   @keyframes fadeOverlay{from{opacity:0}to{opacity:1}}
-  .modal{
-    background:var(--white);
-    border-radius:12px;
-    width:100%;max-width:480px;
-    overflow:hidden;
-    box-shadow:0 20px 60px rgba(13,35,64,.3);
-    animation:slideUp .25s ease;
-  }
+  .modal{background:var(--white);border-radius:12px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(13,35,64,.3);animation:slideUp .25s ease;}
   @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-  .modal-header{
-    background:var(--navy);
-    padding:18px 24px;
-    display:flex;align-items:center;justify-content:space-between;
-  }
-  .modal-title{
-    font-family:'Fraunces',serif;
-    font-size:18px;font-weight:300;color:white;
-  }
-  .modal-close{
-    background:none;border:none;
-    color:rgba(255,255,255,.5);
-    font-size:18px;cursor:pointer;
-    padding:2px 6px;border-radius:4px;
-    transition:color .2s,background .2s;line-height:1;
-  }
+  .modal-header{background:var(--navy);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .modal-title{font-family:'Fraunces',serif;font-size:18px;font-weight:300;color:white;}
+  .modal-close{background:none;border:none;color:rgba(255,255,255,.5);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color .2s,background .2s;line-height:1}
   .modal-close:hover{color:white;background:rgba(255,255,255,.1)}
   .modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:14px}
-  .modal-field-label{
-    font-size:10px;font-weight:600;
-    color:var(--muted);letter-spacing:1px;text-transform:uppercase;
-    margin-bottom:3px;
-  }
-  .modal-field-val{
-    font-size:14px;font-weight:500;color:var(--navy);
-    line-height:1.55;word-break:break-word;
-  }
-  .modal-footer{
-    padding:14px 24px;
-    border-top:1px solid var(--border);
-    display:flex;justify-content:flex-end;
-  }
-  .btn-modal-close{
-    padding:8px 18px;background:var(--navy);color:white;
-    border:none;border-radius:6px;
-    font-family:'Plus Jakarta Sans',sans-serif;
-    font-size:13px;font-weight:600;cursor:pointer;
-    transition:background .2s;
-  }
+  .modal-field-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+  .modal-field-val{font-size:14px;font-weight:500;color:var(--navy);line-height:1.55;word-break:break-word;}
+  .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;}
+  .btn-modal-close{padding:8px 18px;background:var(--navy);color:white;border:none;border-radius:6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s;}
   .btn-modal-close:hover{background:var(--navy2)}
 
   /* ── BULK ENTRY ── */
@@ -186,22 +143,13 @@
 
   /* ── BULK TABLE ── */
   .bulk-table-outer{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.05)}
-  .bulk-table-header{
-    background:var(--navy);padding:12px 0 12px 10px;display:grid;align-items:center;
-    font-size:10px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:.8px;text-transform:uppercase;
-    grid-template-columns:40px 34px 28px minmax(180px,1.4fr) 160px minmax(120px,.8fr) minmax(160px,1fr);
-    min-width:700px;
-  }
+  .bulk-table-header{background:var(--navy);padding:12px 0 12px 10px;display:grid;align-items:center;font-size:10px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:.8px;text-transform:uppercase;grid-template-columns:40px 34px 28px minmax(180px,1.4fr) 160px minmax(120px,.8fr) minmax(160px,1fr);min-width:700px;}
   .bulk-table-header span{padding:0 6px}
   .bulk-table-body{overflow-x:auto}
   .bulk-table-body::-webkit-scrollbar{height:6px}
   .bulk-table-body::-webkit-scrollbar-track{background:var(--bg)}
   .bulk-table-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-  .bulk-row{
-    display:grid;border-bottom:1px solid var(--border);transition:background .15s;
-    grid-template-columns:40px 34px 28px minmax(180px,1.4fr) 160px minmax(120px,.8fr) minmax(160px,1fr);
-    min-width:700px;min-height:136px;
-  }
+  .bulk-row{display:grid;border-bottom:1px solid var(--border);transition:background .15s;grid-template-columns:40px 34px 28px minmax(180px,1.4fr) 160px minmax(120px,.8fr) minmax(160px,1fr);min-width:700px;min-height:136px;}
   .bulk-row:last-child{border-bottom:none}
   .bulk-row:hover{background:#fafaf8}
   .bulk-row.checked{background:#fffbf0}
@@ -341,7 +289,21 @@
     <a class="nav-item" href="index.html"><div class="nav-item-icon">👤</div>Profil Saya</a>
     <div class="nav-group-label">Persuratan</div>
     <a class="nav-item active" href="surat-tugas.html"><div class="nav-item-icon">📄</div>Surat Tugas</a>
-    <div class="sidebar-footer"><strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>© 2026 Pemerintah RI</div>
+
+    <!-- ADMIN MENU — hanya tampil untuk administrator -->
+    <div id="admin-nav" style="display:none">
+      <div class="nav-group-label">Administrasi</div>
+      <a class="nav-item" href="manajemen-pengguna.html">
+        <div class="nav-item-icon">👥</div>Manajemen Pengguna
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>© 2026 Pemerintah RI
+      <div id="admin-footer-badge" style="display:none;margin-top:6px">
+        <span class="admin-badge">🔑 Administrator</span>
+      </div>
+    </div>
   </aside>
 
   <main class="main">
@@ -496,11 +458,8 @@
 function esc(str){
   if(str==null)return'';
   return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -548,16 +507,10 @@ const BULAN_ID=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustu
 function fmtWaktu(mulai,selesai){
   if(!mulai)return'—';
   const a=new Date(mulai+'T00:00:00');
-  if(!selesai||selesai===mulai){
-    return`${a.getDate()} ${BULAN_ID[a.getMonth()]} ${a.getFullYear()}`;
-  }
+  if(!selesai||selesai===mulai){return`${a.getDate()} ${BULAN_ID[a.getMonth()]} ${a.getFullYear()}`;}
   const b=new Date(selesai+'T00:00:00');
-  if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()){
-    return`${a.getDate()} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;
-  }
-  if(a.getFullYear()===b.getFullYear()){
-    return`${a.getDate()} ${BULAN_ID[a.getMonth()]} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;
-  }
+  if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()){return`${a.getDate()} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;}
+  if(a.getFullYear()===b.getFullYear()){return`${a.getDate()} ${BULAN_ID[a.getMonth()]} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;}
   return`${a.getDate()} ${BULAN_ID[a.getMonth()]} ${a.getFullYear()} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;
 }
 
@@ -567,7 +520,6 @@ async function loadPegawai(){
     const res=await fetch(`${SUPABASE_URL}/rest/v1/data%20pegawai?select=id,NAMA,NIP&order=NAMA.asc`,{headers:H});
     if(!res.ok)throw new Error(`HTTP ${res.status}`);
     allPegawai=await res.json();
-    console.log('Pegawai loaded:',allPegawai.length);
   }catch(e){console.error('Gagal load pegawai',e);}
 }
 
@@ -603,7 +555,7 @@ function renderTable(data){
     document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Belum ada surat tugas. Gunakan tab <strong>Minta Surat Tugas</strong> untuk membuat pengajuan baru.</div></div>';
     return;
   }
-  data.forEach(s=>{ suratMap[s.id]=s; });
+  data.forEach(s=>{suratMap[s.id]=s;});
   const r=data.map(s=>`<tr>
     <td style="max-width:220px;white-space:normal;word-break:break-word;line-height:1.5">${esc(s.perihal)||'—'}</td>
     <td style="white-space:nowrap;font-size:12px">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td>
@@ -624,28 +576,18 @@ function filterTable(){
 
 /* ── MODAL DETAIL ── */
 function showDetail(id){
-  const s=suratMap[id];
-  if(!s)return;
-  const field=(label,val)=>`
-    <div>
-      <div class="modal-field-label">${label}</div>
-      <div class="modal-field-val">${val||'—'}</div>
-    </div>`;
+  const s=suratMap[id];if(!s)return;
+  const field=(label,val)=>`<div><div class="modal-field-label">${label}</div><div class="modal-field-val">${val||'—'}</div></div>`;
   document.getElementById('modal-body').innerHTML=`
-    ${field('Perihal', esc(s.perihal))}
-    ${field('Waktu Pelaksanaan', esc(fmtWaktu(s.tanggal_berangkat, s.tanggal_kembali)))}
-    ${field('Tujuan', esc(s.tujuan))}
-    ${field('Status', badgeHTML(s.status))}
-    ${field('Pegawai', (s.pegawai_list||[]).map(esc).join(', ')||'—')}
-  `;
+    ${field('Perihal',esc(s.perihal))}
+    ${field('Waktu Pelaksanaan',esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali)))}
+    ${field('Tujuan',esc(s.tujuan))}
+    ${field('Status',badgeHTML(s.status))}
+    ${field('Pegawai',(s.pegawai_list||[]).map(esc).join(', ')||'—')}`;
   document.getElementById('detail-modal').style.display='flex';
 }
-function closeDetailModal(){
-  document.getElementById('detail-modal').style.display='none';
-}
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape') closeDetailModal();
-});
+function closeDetailModal(){document.getElementById('detail-modal').style.display='none';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDetailModal();});
 
 /* ═══════════════════════════════════════════════════════
    DATE RANGE PICKER
@@ -671,16 +613,11 @@ function drpOpen(rowId){
   if(left+pW>winW-8)left=winW-pW-8;
   if(left<8)left=8;
   popup.style.top=top+'px';popup.style.left=left+'px';
-  popup.classList.add('open');
-  drpRender();
+  popup.classList.add('open');drpRender();
 }
-function drpClose(){
-  document.getElementById('drp-popup').classList.remove('open');
-  drpRowId=null;drpPhase=0;
-}
+function drpClose(){document.getElementById('drp-popup').classList.remove('open');drpRowId=null;drpPhase=0;}
 function drpRender(){
-  const popup=document.getElementById('drp-popup');
-  if(!popup.classList.contains('open'))return;
+  const popup=document.getElementById('drp-popup');if(!popup.classList.contains('open'))return;
   document.getElementById('drp-header-label').textContent=`${BULAN_ID[drpMonth]} ${drpYear}`;
   const dayNames=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
   document.getElementById('drp-day-names').innerHTML=dayNames.map(d=>`<div class="drp-day-name">${d}</div>`).join('');
@@ -700,46 +637,34 @@ function drpRender(){
       if(ds===startStr)cls+=' drp-day-start';
       else if(ds===endStr)cls+=' drp-day-end';
       else if(ds>startStr&&ds<endStr)cls+=' drp-day-in-range';
-    } else if(startStr&&ds===startStr){
-      cls+=(endStr===startStr)?' drp-day-single':' drp-day-start';
-    }
+    }else if(startStr&&ds===startStr){cls+=(endStr===startStr)?' drp-day-single':' drp-day-start';}
     html+=`<div class="${cls}" data-date="${ds}">${d}</div>`;
   }
   document.getElementById('drp-days').innerHTML=html;
-
   document.getElementById('drp-days').onclick=function(e){
     const day=e.target.closest('.drp-day');
     if(!day||day.classList.contains('drp-day-empty')||day.classList.contains('drp-day-disabled'))return;
     drpClickDay(day.dataset.date);
   };
-
   let footerText='Klik tanggal mulai';
   if(drpPhase===1&&startStr)footerText=`Mulai: ${fmtWaktu(startStr,null)} — klik tanggal selesai`;
   else if(drpPhase===0&&startStr&&endStr)footerText=fmtWaktu(startStr,endStr===startStr?null:endStr);
   document.getElementById('drp-selected-text').textContent=footerText;
 }
-
 function drpClickDay(ds){
   if(drpRowId==null)return;
   const r=rows[drpRowId];
-  if(drpPhase===0){
-    r.waktuMulai=ds;r.waktuSelesai='';drpPhase=1;
-    drpUpdateTrigger(drpRowId);drpRender();
-  } else {
+  if(drpPhase===0){r.waktuMulai=ds;r.waktuSelesai='';drpPhase=1;drpUpdateTrigger(drpRowId);drpRender();}
+  else{
     if(ds===r.waktuMulai){r.waktuSelesai=ds;}
     else if(ds<r.waktuMulai){r.waktuSelesai=r.waktuMulai;r.waktuMulai=ds;}
     else{r.waktuSelesai=ds;}
-    drpPhase=0;drpUpdateTrigger(drpRowId);drpRender();
-    setTimeout(()=>drpClose(),200);
+    drpPhase=0;drpUpdateTrigger(drpRowId);drpRender();setTimeout(()=>drpClose(),200);
   }
 }
-
 function drpUpdateTrigger(rowId){
-  const r=rows[rowId];
-  const trigger=document.getElementById(`drp-trigger-${rowId}`);
-  if(!trigger)return;
-  const txt=trigger.querySelector('.drp-trigger-text');
-  const ph=trigger.querySelector('.drp-trigger-placeholder');
+  const r=rows[rowId];const trigger=document.getElementById(`drp-trigger-${rowId}`);if(!trigger)return;
+  const txt=trigger.querySelector('.drp-trigger-text');const ph=trigger.querySelector('.drp-trigger-placeholder');
   const m=r.waktuMulai,s=r.waktuSelesai;
   if(!m){txt.textContent='';ph.style.display='';return;}
   ph.style.display='none';
@@ -747,22 +672,14 @@ function drpUpdateTrigger(rowId){
   else if(s===m)txt.textContent=fmtWaktu(m,null);
   else txt.textContent=fmtWaktu(m,s);
 }
-function toDateStr(d){
-  return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-document.getElementById('drp-prev').onclick=function(e){
-  e.stopPropagation();drpMonth--;if(drpMonth<0){drpMonth=11;drpYear--;}drpRender();
-};
-document.getElementById('drp-next').onclick=function(e){
-  e.stopPropagation();drpMonth++;if(drpMonth>11){drpMonth=0;drpYear++;}drpRender();
-};
+function toDateStr(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+document.getElementById('drp-prev').onclick=function(e){e.stopPropagation();drpMonth--;if(drpMonth<0){drpMonth=11;drpYear--;}drpRender();};
+document.getElementById('drp-next').onclick=function(e){e.stopPropagation();drpMonth++;if(drpMonth>11){drpMonth=0;drpYear++;}drpRender();};
 document.getElementById('drp-clear').onclick=function(e){
   e.stopPropagation();
   if(drpRowId!=null){rows[drpRowId].waktuMulai='';rows[drpRowId].waktuSelesai='';drpPhase=0;drpUpdateTrigger(drpRowId);drpRender();}
 };
-document.getElementById('drp-header-label').onclick=function(e){
-  e.stopPropagation();drpYear=new Date().getFullYear();drpMonth=new Date().getMonth();drpRender();
-};
+document.getElementById('drp-header-label').onclick=function(e){e.stopPropagation();drpYear=new Date().getFullYear();drpMonth=new Date().getMonth();drpRender();};
 
 /* ═══════════════════════════════════════════════════════
    PEGAWAI DROPDOWN
@@ -776,190 +693,101 @@ function pegOpen(rowId){
   const popup=document.getElementById('peg-popup');
   if(pegRowId===rowId&&popup.classList.contains('open')){pegClose();return;}
   pegRowId=rowId;pegFocusIdx=-1;
-  const trigger=document.getElementById(`peg-trigger-${rowId}`);
-  if(!trigger)return;
+  const trigger=document.getElementById(`peg-trigger-${rowId}`);if(!trigger)return;
   const rect=trigger.getBoundingClientRect();
   const pH=240,pW=280,winH=window.innerHeight,winW=window.innerWidth;
   let top=rect.bottom+2,left=rect.left;
   if(top+pH>winH-8)top=Math.max(8,rect.top-pH-2);
-  if(left+pW>winW-8)left=winW-pW-8;
-  if(left<8)left=8;
+  if(left+pW>winW-8)left=winW-pW-8;if(left<8)left=8;
   popup.style.top=top+'px';popup.style.left=left+'px';
   popup.style.width=Math.max(pW,rect.width)+'px';
-  popup.classList.add('open');
-  pegJustOpened=true;
-  const si=document.getElementById('peg-search');
-  si.value='';
-  pegFilterList('');
+  popup.classList.add('open');pegJustOpened=true;
+  const si=document.getElementById('peg-search');si.value='';pegFilterList('');
   setTimeout(()=>{si.focus();pegJustOpened=false;},50);
 }
-function pegClose(){
-  document.getElementById('peg-popup').classList.remove('open');
-  pegRowId=null;pegFocusIdx=-1;
-}
-
-/* FIX: pegFilterList menggunakan trim() untuk antisipasi spasi di data */
+function pegClose(){document.getElementById('peg-popup').classList.remove('open');pegRowId=null;pegFocusIdx=-1;}
 function pegFilterList(q){
   q=q.toLowerCase().trim();
-  pegFilteredList=q
-    ? allPegawai.filter(p=>
-        (p['NAMA']||'').toLowerCase().includes(q) ||
-        String(p['NIP']||'').trim().includes(q)
-      )
-    : [...allPegawai];
+  pegFilteredList=q?allPegawai.filter(p=>(p['NAMA']||'').toLowerCase().includes(q)||String(p['NIP']||'').trim().includes(q)):[...allPegawai];
   pegRenderList();
 }
-
 function pegRenderList(){
-  const list=document.getElementById('peg-list');
-  if(!list)return;
-  if(!allPegawai.length){
-    list.innerHTML='<div class="peg-empty">Data pegawai belum dimuat.<br><small>Periksa koneksi atau muat ulang halaman.</small></div>';
-    return;
-  }
+  const list=document.getElementById('peg-list');if(!list)return;
+  if(!allPegawai.length){list.innerHTML='<div class="peg-empty">Data pegawai belum dimuat.<br><small>Periksa koneksi atau muat ulang halaman.</small></div>';return;}
   if(!pegFilteredList.length){list.innerHTML='<div class="peg-empty">Tidak ada hasil</div>';return;}
-  /* FIX: gunakan pegawaiNames untuk cek selected, bukan hanya NIP mentah */
   const sel=pegRowId!=null?(rows[pegRowId]?.pegawaiNIPs||[]):[];
   list.innerHTML=pegFilteredList.map((p,i)=>{
-    const nip=String(p['NIP']||'').trim();
-    const nama=p['NAMA']||'-';
-    const isSel=sel.includes(nip);
+    const nip=String(p['NIP']||'').trim();const nama=p['NAMA']||'-';const isSel=sel.includes(nip);
     return`<div class="peg-item${isSel?' selected':''}" data-nip="${esc(nip)}" data-idx="${i}">
       <div class="peg-item-check">${isSel?'✓':''}</div>
-      <div style="flex:1">
-        <div class="peg-item-name">${esc(nama)}</div>
-        <div class="peg-item-nip">NIP ${esc(nip)||'—'}</div>
-      </div>
+      <div style="flex:1"><div class="peg-item-name">${esc(nama)}</div><div class="peg-item-nip">NIP ${esc(nip)||'—'}</div></div>
     </div>`;
   }).join('');
   pegScrollToFocus();
 }
-
-/* Delegasi event di peg-list */
 document.getElementById('peg-list').addEventListener('click',function(e){
-  const item=e.target.closest('.peg-item');
-  if(!item)return;
-  pegToggle(item.dataset.nip||'');
+  const item=e.target.closest('.peg-item');if(!item)return;pegToggle(item.dataset.nip||'');
 });
 document.getElementById('peg-list').addEventListener('mouseover',function(e){
-  const item=e.target.closest('.peg-item');
-  if(!item)return;
-  pegSetFocus(parseInt(item.dataset.idx,10));
+  const item=e.target.closest('.peg-item');if(!item)return;pegSetFocus(parseInt(item.dataset.idx,10));
 });
-
 function pegSetFocus(idx){
-  pegFocusIdx=idx;
-  document.querySelectorAll('#peg-list .peg-item').forEach((el,i)=>el.classList.toggle('focused',i===idx));
+  pegFocusIdx=idx;document.querySelectorAll('#peg-list .peg-item').forEach((el,i)=>el.classList.toggle('focused',i===idx));
 }
 function pegScrollToFocus(){
-  if(pegFocusIdx<0)return;
-  const items=document.querySelectorAll('#peg-list .peg-item');
-  const el=items[pegFocusIdx];if(el)el.scrollIntoView({block:'nearest'});
+  if(pegFocusIdx<0)return;const items=document.querySelectorAll('#peg-list .peg-item');const el=items[pegFocusIdx];if(el)el.scrollIntoView({block:'nearest'});
 }
-
-/* FIX UTAMA: pegToggle menyimpan nama langsung ke pegawaiNames saat pemilihan,
-   sehingga tag tidak perlu lookup ulang (yang sering gagal akibat perbedaan format NIP) */
 function pegToggle(nip){
-  if(pegRowId==null)return;
-  const r=rows[pegRowId];
-  if(!r.pegawaiNames)r.pegawaiNames={};
-  const arr=r.pegawaiNIPs;
-  const idx=arr.indexOf(nip);
-  if(idx>=0){
-    arr.splice(idx,1);
-    delete r.pegawaiNames[nip];
-  } else {
-    arr.push(nip);
-    /* Simpan nama saat ini sebelum re-render, pakai trim() untuk antisipasi spasi */
-    const found=allPegawai.find(x=>String(x['NIP']||'').trim()===String(nip).trim());
-    r.pegawaiNames[nip]=found ? (found['NAMA']||nip) : nip;
-  }
-  pegRenderTags(pegRowId);
-  pegRenderList();
+  if(pegRowId==null)return;const r=rows[pegRowId];if(!r.pegawaiNames)r.pegawaiNames={};
+  const arr=r.pegawaiNIPs;const idx=arr.indexOf(nip);
+  if(idx>=0){arr.splice(idx,1);delete r.pegawaiNames[nip];}
+  else{arr.push(nip);const found=allPegawai.find(x=>String(x['NIP']||'').trim()===String(nip).trim());r.pegawaiNames[nip]=found?(found['NAMA']||nip):nip;}
+  pegRenderTags(pegRowId);pegRenderList();
 }
-
-/* FIX: pegRenderTags menggunakan r.pegawaiNames, bukan lookup allPegawai.
-   FIX X button: simpan rowId di data-rowid agar tombol X bekerja meski popup tertutup */
 function pegRenderTags(rowId){
-  const trigger=document.getElementById(`peg-trigger-${rowId}`);
-  if(!trigger||!rows[rowId])return;
-  const r=rows[rowId];
-  const niPs=r.pegawaiNIPs;
-  const ph=trigger.querySelector('.peg-placeholder');
+  const trigger=document.getElementById(`peg-trigger-${rowId}`);if(!trigger||!rows[rowId])return;
+  const r=rows[rowId];const niPs=r.pegawaiNIPs;const ph=trigger.querySelector('.peg-placeholder');
   trigger.querySelectorAll('.peg-tag').forEach(t=>t.remove());
   if(!niPs.length){if(ph)ph.style.display='';return;}
   if(ph)ph.style.display='none';
   niPs.forEach(nip=>{
     const nama=(r.pegawaiNames&&r.pegawaiNames[nip])||nip;
-    const tag=document.createElement('span');
-    tag.className='peg-tag';tag.title=nama;
+    const tag=document.createElement('span');tag.className='peg-tag';tag.title=nama;
     const namaTrunc=nama.length>18?nama.slice(0,16)+'…':nama;
     tag.innerHTML=`${esc(namaTrunc)}<button class="peg-tag-x" data-nip="${esc(nip)}" data-rowid="${rowId}">×</button>`;
     trigger.insertBefore(tag,ph||null);
   });
   trigger.querySelectorAll('.peg-tag-x').forEach(btn=>{
-    btn.onclick=function(e){
-      e.stopPropagation();
-      /* Gunakan data-rowid langsung, tidak bergantung pada pegRowId (yang null saat popup tutup) */
-      const rid=parseInt(this.dataset.rowid,10);
-      pegRemoveFromRow(rid,this.dataset.nip);
-    };
+    btn.onclick=function(e){e.stopPropagation();const rid=parseInt(this.dataset.rowid,10);pegRemoveFromRow(rid,this.dataset.nip);};
   });
 }
-
-/* Fungsi baru: hapus pegawai dari row tanpa memerlukan popup terbuka */
 function pegRemoveFromRow(rowId,nip){
-  if(!rows[rowId])return;
-  const r=rows[rowId];
-  const idx=r.pegawaiNIPs.indexOf(nip);
-  if(idx>=0){
-    r.pegawaiNIPs.splice(idx,1);
-    if(r.pegawaiNames)delete r.pegawaiNames[nip];
-  }
-  pegRenderTags(rowId);
-  /* Jika popup kebetulan sedang terbuka untuk row ini, refresh list-nya juga */
-  if(pegRowId==rowId)pegRenderList();
+  if(!rows[rowId])return;const r=rows[rowId];const idx=r.pegawaiNIPs.indexOf(nip);
+  if(idx>=0){r.pegawaiNIPs.splice(idx,1);if(r.pegawaiNames)delete r.pegawaiNames[nip];}
+  pegRenderTags(rowId);if(pegRowId==rowId)pegRenderList();
 }
-
-/* FIX: Perkuat search dengan keyup sebagai fallback */
 document.getElementById('peg-search').addEventListener('keydown',function(e){
   if(e.key==='ArrowDown'){e.preventDefault();pegFocusIdx=Math.min(pegFocusIdx+1,pegFilteredList.length-1);pegSetFocus(pegFocusIdx);pegScrollToFocus();}
   else if(e.key==='ArrowUp'){e.preventDefault();pegFocusIdx=Math.max(pegFocusIdx-1,0);pegSetFocus(pegFocusIdx);pegScrollToFocus();}
   else if(e.key==='Enter'){e.preventDefault();if(pegFocusIdx>=0&&pegFilteredList[pegFocusIdx])pegToggle(String(pegFilteredList[pegFocusIdx]['NIP']||'').trim());}
   else if(e.key==='Escape')pegClose();
 });
-document.getElementById('peg-search').addEventListener('input',function(){
-  pegFocusIdx=-1;
-  pegFilterList(this.value);
-});
+document.getElementById('peg-search').addEventListener('input',function(){pegFocusIdx=-1;pegFilterList(this.value);});
 document.getElementById('peg-search').addEventListener('keyup',function(e){
-  if(['ArrowDown','ArrowUp','Enter','Escape'].includes(e.key))return;
-  pegFocusIdx=-1;
-  pegFilterList(this.value);
+  if(['ArrowDown','ArrowUp','Enter','Escape'].includes(e.key))return;pegFocusIdx=-1;pegFilterList(this.value);
 });
 
 /* ── Close popups on outside click ── */
 document.addEventListener('click',function(e){
-  const drpPopup=document.getElementById('drp-popup');
-  const pegPopup=document.getElementById('peg-popup');
-
+  const drpPopup=document.getElementById('drp-popup');const pegPopup=document.getElementById('peg-popup');
   if(drpPopup.classList.contains('open')){
     const trigger=drpRowId!=null?document.getElementById(`drp-trigger-${drpRowId}`):null;
-    if(
-      document.contains(e.target) &&
-      !drpPopup.contains(e.target) &&
-      (!trigger||!trigger.contains(e.target))
-    ) drpClose();
+    if(document.contains(e.target)&&!drpPopup.contains(e.target)&&(!trigger||!trigger.contains(e.target)))drpClose();
   }
-
   if(pegPopup.classList.contains('open')){
     if(pegJustOpened)return;
     const trigger=pegRowId!=null?document.getElementById(`peg-trigger-${pegRowId}`):null;
-    if(
-      document.contains(e.target) &&
-      !pegPopup.contains(e.target) &&
-      (!trigger||!trigger.contains(e.target))
-    ) pegClose();
+    if(document.contains(e.target)&&!pegPopup.contains(e.target)&&(!trigger||!trigger.contains(e.target)))pegClose();
   }
 });
 
@@ -967,158 +795,99 @@ document.addEventListener('click',function(e){
    BULK ROWS
 ═══════════════════════════════════════════════════════ */
 function getRowIds(){return Object.keys(rows);}
-
-/* FIX: tambahkan pegawaiNames:{} pada inisialisasi row */
 function addRows(n){
   for(let i=0;i<n;i++){
-    rowIdCounter++;
-    const id=rowIdCounter;
+    rowIdCounter++;const id=rowIdCounter;
     rows[id]={checked:false,perihal:'',waktuMulai:'',waktuSelesai:'',tujuan:'',pegawaiNIPs:[],pegawaiNames:{}};
     renderRow(id);
   }
   updateBulkCounters();
 }
-/* FIX: CSS Grid tidak otomatis reflow tinggi baris saat textarea diubah via JS.
-   Solusi: set minHeight pada .bulk-row langsung agar seluruh row ikut melebar. */
-function syncTextareaHeight(ta) {
-  ta.style.height = 'auto';
-  const h = ta.scrollHeight;
-  ta.style.height = h + 'px';
-  const row = ta.closest('.bulk-row');
-  if (row) {
-    row.style.minHeight = Math.max(38, h) + 'px';
-  }
+function syncTextareaHeight(ta){
+  ta.style.height='auto';const h=ta.scrollHeight;ta.style.height=h+'px';
+  const row=ta.closest('.bulk-row');if(row)row.style.minHeight=Math.max(38,h)+'px';
 }
-
 function renderRow(id){
   const container=document.getElementById('bulk-rows');
-  const div=document.createElement('div');
-  div.className='bulk-row';div.id=`row-${id}`;
+  const div=document.createElement('div');div.className='bulk-row';div.id=`row-${id}`;
   div.innerHTML=`
     <div class="bulk-cell center"><input type="checkbox" class="bulk-check" id="chk-${id}" onchange="onRowCheck(${id},this.checked)"></div>
     <div class="bulk-cell row-num" id="rn-${id}">${getRowIds().length}</div>
     <div class="bulk-cell center"><button class="del-row" onclick="deleteRow(${id})">✕</button></div>
-    <div class="bulk-cell" style="overflow:hidden">
-      <div class="cell-textarea-wrap">
-        <textarea class="cell-input" id="f-perihal-${id}" placeholder="Perihal surat tugas…"
-          oninput="rows[${id}].perihal=this.value;syncTextareaHeight(this)"
-          onblur="rows[${id}].perihal=this.value"
-          onkeydown="handleKey(event,${id},0)"
-          onpaste="handlePaste(event,${id})" rows="1"></textarea>
+    <div class="bulk-cell" style="overflow:hidden"><div class="cell-textarea-wrap">
+      <textarea class="cell-input" id="f-perihal-${id}" placeholder="Perihal surat tugas…"
+        oninput="rows[${id}].perihal=this.value;syncTextareaHeight(this)"
+        onblur="rows[${id}].perihal=this.value" onkeydown="handleKey(event,${id},0)"
+        onpaste="handlePaste(event,${id})" rows="1"></textarea>
+    </div></div>
+    <div class="bulk-cell" style="overflow:visible"><div class="drp-wrap">
+      <button class="drp-trigger" id="drp-trigger-${id}" onclick="drpOpen(${id})" onkeydown="handleKey(event,${id},1)" type="button">
+        <span class="drp-trigger-text"></span>
+        <span class="drp-trigger-placeholder">Pilih tanggal…</span>
+        <span class="drp-icon">📅</span>
+      </button>
+    </div></div>
+    <div class="bulk-cell" style="overflow:hidden"><div class="cell-textarea-wrap">
+      <textarea class="cell-input" id="f-tujuan-${id}" placeholder="Kota / instansi…"
+        oninput="rows[${id}].tujuan=this.value;syncTextareaHeight(this)"
+        onblur="rows[${id}].tujuan=this.value" onkeydown="handleKey(event,${id},2)" rows="1"></textarea>
+    </div></div>
+    <div class="bulk-cell" style="overflow:visible"><div class="peg-wrap">
+      <div class="peg-trigger" id="peg-trigger-${id}" onclick="pegOpen(${id})"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();pegOpen(${id})}" tabindex="0">
+        <span class="peg-placeholder">Pilih pegawai…</span>
       </div>
-    </div>
-    <div class="bulk-cell" style="overflow:visible">
-      <div class="drp-wrap">
-        <button class="drp-trigger" id="drp-trigger-${id}" onclick="drpOpen(${id})" onkeydown="handleKey(event,${id},1)" type="button">
-          <span class="drp-trigger-text"></span>
-          <span class="drp-trigger-placeholder">Pilih tanggal…</span>
-          <span class="drp-icon">📅</span>
-        </button>
-      </div>
-    </div>
-    <div class="bulk-cell" style="overflow:hidden">
-      <div class="cell-textarea-wrap">
-        <textarea class="cell-input" id="f-tujuan-${id}" placeholder="Kota / instansi…"
-          oninput="rows[${id}].tujuan=this.value;syncTextareaHeight(this)"
-          onblur="rows[${id}].tujuan=this.value"
-          onkeydown="handleKey(event,${id},2)" rows="1"></textarea>
-      </div>
-    </div>
-    <div class="bulk-cell" style="overflow:visible">
-      <div class="peg-wrap">
-        <div class="peg-trigger" id="peg-trigger-${id}" onclick="pegOpen(${id})"
-          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();pegOpen(${id})}" tabindex="0">
-          <span class="peg-placeholder">Pilih pegawai…</span>
-        </div>
-      </div>
-    </div>
-    <div class="row-errors" id="errs-${id}"></div>
-  `;
+    </div></div>
+    <div class="row-errors" id="errs-${id}"></div>`;
   container.appendChild(div);
-  const ta1=div.querySelector(`#f-perihal-${id}`);
-  const ta2=div.querySelector(`#f-tujuan-${id}`);
+  const ta1=div.querySelector(`#f-perihal-${id}`);const ta2=div.querySelector(`#f-tujuan-${id}`);
   if(ta1)syncTextareaHeight(ta1);if(ta2)syncTextareaHeight(ta2);
 }
-
 function handleKey(e,id,colIdx){
-  /* Tab atau Enter (tanpa Shift) → pindah ke kolom berikutnya dalam baris,
-     jika sudah kolom terakhir → baris berikutnya (atau buat baris baru).
-     Shift+Enter → biarkan default (newline di dalam textarea). */
   if((e.key==='Tab'&&!e.shiftKey)||(e.key==='Enter'&&!e.shiftKey)){
     e.preventDefault();
     const focusOrder=[`f-perihal-${id}`,`drp-trigger-${id}`,`f-tujuan-${id}`,`peg-trigger-${id}`];
-    if(colIdx+1<focusOrder.length){
-      const el=document.getElementById(focusOrder[colIdx+1]);if(el)el.focus();
-    } else {
+    if(colIdx+1<focusOrder.length){const el=document.getElementById(focusOrder[colIdx+1]);if(el)el.focus();}
+    else{
       const ids=getRowIds();const idx=ids.indexOf(String(id));const nextId=ids[idx+1];
       if(nextId){const el=document.getElementById(`f-perihal-${nextId}`);if(el)el.focus();}
       else{addRows(1);setTimeout(()=>{const ni=getRowIds();const el=document.getElementById(`f-perihal-${ni[ni.length-1]}`);if(el)el.focus();},50);}
     }
   }
-  /* Shift+Enter → default browser (newline di textarea) */
 }
-
 function handlePaste(e,startId){
   const text=e.clipboardData?.getData('text')||'';
   if(!text.includes('\t')&&!text.includes('\n'))return;
   e.preventDefault();
   const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());
-  const ids=getRowIds();
-  const startIdx=ids.indexOf(String(startId));
+  const ids=getRowIds();const startIdx=ids.indexOf(String(startId));
   lines.forEach((line,li)=>{
-    const cells=line.split('\t');
-    let rowId=ids[startIdx+li];
+    const cells=line.split('\t');let rowId=ids[startIdx+li];
     if(!rowId){addRows(1);rowId=getRowIds()[getRowIds().length-1];}
-    const maps=[
-      {field:'perihal',elId:`f-perihal-${rowId}`},
-      {field:'waktuMulai',elId:null},
-      {field:'waktuSelesai',elId:null},
-      {field:'tujuan',elId:`f-tujuan-${rowId}`},
-    ];
-    cells.forEach((val,ci)=>{
-      if(ci>=maps.length)return;
-      val=val.trim();
-      const m=maps[ci];
-      if(rows[rowId])rows[rowId][m.field]=val;
-      if(m.elId){const inp=document.getElementById(m.elId);if(inp){inp.value=val;syncTextareaHeight(inp);}}
-    });
+    const maps=[{field:'perihal',elId:`f-perihal-${rowId}`},{field:'waktuMulai',elId:null},{field:'waktuSelesai',elId:null},{field:'tujuan',elId:`f-tujuan-${rowId}`}];
+    cells.forEach((val,ci)=>{if(ci>=maps.length)return;val=val.trim();const m=maps[ci];if(rows[rowId])rows[rowId][m.field]=val;if(m.elId){const inp=document.getElementById(m.elId);if(inp){inp.value=val;syncTextareaHeight(inp);}}});
     drpUpdateTrigger(rowId);
   });
-  reNumberRows();
-  updateBulkCounters();
+  reNumberRows();updateBulkCounters();
 }
-
 function onRowCheck(id,checked){
   if(rows[id])rows[id].checked=checked;
   document.getElementById(`row-${id}`)?.classList.toggle('checked',checked);
   syncCheckAll();updateBulkCounters();
 }
 function toggleCheckAll(checked){
-  getRowIds().forEach(id=>{
-    rows[id].checked=checked;
-    const chk=document.getElementById(`chk-${id}`);if(chk)chk.checked=checked;
-    document.getElementById(`row-${id}`)?.classList.toggle('checked',checked);
-  });
+  getRowIds().forEach(id=>{rows[id].checked=checked;const chk=document.getElementById(`chk-${id}`);if(chk)chk.checked=checked;document.getElementById(`row-${id}`)?.classList.toggle('checked',checked);});
   updateBulkCounters();
 }
 function syncCheckAll(){
-  const ids=getRowIds();
-  const allCk=ids.length>0&&ids.every(id=>rows[id].checked);
-  const someCk=ids.some(id=>rows[id].checked);
-  const ca=document.getElementById('check-all');
-  if(ca){ca.checked=allCk;ca.indeterminate=!allCk&&someCk;}
+  const ids=getRowIds();const allCk=ids.length>0&&ids.every(id=>rows[id].checked);const someCk=ids.some(id=>rows[id].checked);
+  const ca=document.getElementById('check-all');if(ca){ca.checked=allCk;ca.indeterminate=!allCk&&someCk;}
 }
 function updateBulkCounters(){
-  const ids=getRowIds();
-  const checked=ids.filter(id=>rows[id].checked).length;
-  const total=ids.length;
-  const pill=document.getElementById('selected-pill');
-  pill.textContent=`${checked} dipilih`;
-  pill.className='selected-pill'+(checked===0?' zero':'');
-  document.getElementById('ab-checked').textContent=checked;
-  document.getElementById('ab-total').textContent=total;
-  const btn=document.getElementById('btn-send');
-  btn.disabled=checked===0;
+  const ids=getRowIds();const checked=ids.filter(id=>rows[id].checked).length;const total=ids.length;
+  const pill=document.getElementById('selected-pill');pill.textContent=`${checked} dipilih`;pill.className='selected-pill'+(checked===0?' zero':'');
+  document.getElementById('ab-checked').textContent=checked;document.getElementById('ab-total').textContent=total;
+  const btn=document.getElementById('btn-send');btn.disabled=checked===0;
   document.getElementById('btn-send-text').textContent=`Kirim yang Dipilih (${checked})`;
   document.getElementById('btn-del-checked').style.display=checked>0?'':'none';
   document.getElementById('row-count-label').textContent=`${total} baris`;
@@ -1130,40 +899,22 @@ function deleteRow(id){
   reNumberRows();syncCheckAll();updateBulkCounters();
 }
 function deleteChecked(){
-  const checked=getRowIds().filter(id=>rows[id].checked);
-  if(!checked.length)return;
-  if(!confirm(`Hapus ${checked.length} baris yang dipilih?`))return;
-  checked.forEach(id=>deleteRow(id));
+  const checked=getRowIds().filter(id=>rows[id].checked);if(!checked.length)return;
+  if(!confirm(`Hapus ${checked.length} baris yang dipilih?`))return;checked.forEach(id=>deleteRow(id));
 }
-function reNumberRows(){
-  getRowIds().forEach((id,i)=>{const el=document.getElementById(`rn-${id}`);if(el)el.textContent=i+1;});
-}
+function reNumberRows(){getRowIds().forEach((id,i)=>{const el=document.getElementById(`rn-${id}`);if(el)el.textContent=i+1;});}
 function clearAll(){
-  if(!getRowIds().length)return;
-  if(!confirm('Kosongkan semua baris?'))return;
-  drpClose();pegClose();
-  document.getElementById('bulk-rows').innerHTML='';
+  if(!getRowIds().length)return;if(!confirm('Kosongkan semua baris?'))return;
+  drpClose();pegClose();document.getElementById('bulk-rows').innerHTML='';
   Object.keys(rows).forEach(k=>delete rows[k]);
   const ca=document.getElementById('check-all');if(ca){ca.checked=false;ca.indeterminate=false;}
   updateBulkCounters();
 }
-
 function validateRow(id){
-  const r=rows[id];
-  if(!r)return['Data baris tidak ditemukan'];
-  const errs=[];
-
-  /* Baca langsung dari DOM — ini source of truth yang paling akurat.
-     Ini menghindari mismatch antara tampilan dan data di rows[]. */
-  const perihalEl=document.getElementById(`f-perihal-${id}`);
-  const tujuanEl=document.getElementById(`f-tujuan-${id}`);
-  const perihal=perihalEl?perihalEl.value.trim():r.perihal.trim();
-  const tujuan=tujuanEl?tujuanEl.value.trim():r.tujuan.trim();
-
-  /* Sync balik ke rows[] agar payload submit juga benar */
-  r.perihal=perihal;
-  r.tujuan=tujuan;
-
+  const r=rows[id];if(!r)return['Data baris tidak ditemukan'];const errs=[];
+  const perihalEl=document.getElementById(`f-perihal-${id}`);const tujuanEl=document.getElementById(`f-tujuan-${id}`);
+  const perihal=perihalEl?perihalEl.value.trim():r.perihal.trim();const tujuan=tujuanEl?tujuanEl.value.trim():r.tujuan.trim();
+  r.perihal=perihal;r.tujuan=tujuan;
   if(!perihal)errs.push('Perihal wajib diisi');
   if(!r.waktuMulai)errs.push('Tanggal mulai wajib diisi');
   if(r.waktuSelesai&&r.waktuMulai&&r.waktuSelesai<r.waktuMulai)errs.push('Tgl. selesai lebih awal dari mulai');
@@ -1172,8 +923,7 @@ function validateRow(id){
   return errs;
 }
 function showRowErrors(id,errs){
-  const el=document.getElementById(`errs-${id}`);const rowEl=document.getElementById(`row-${id}`);
-  if(!el)return;
+  const el=document.getElementById(`errs-${id}`);const rowEl=document.getElementById(`row-${id}`);if(!el)return;
   if(!errs.length){el.classList.remove('show');rowEl?.classList.remove('has-error');return;}
   el.classList.add('show');rowEl?.classList.add('has-error');
   el.innerHTML=errs.map(e=>`<span class="row-err-item">⚠ ${esc(e)}</span>`).join('');
@@ -1181,61 +931,27 @@ function showRowErrors(id,errs){
 function clearRowErrors(id){showRowErrors(id,[]);}
 
 async function submitChecked(){
-  const checkedIds=getRowIds().filter(id=>rows[id].checked);
-  if(!checkedIds.length)return;
-
-  /* FIX VALIDASI: Sync nilai textarea dari DOM ke rows[] sebelum validasi.
-     Ini memastikan nilai yang terlihat di layar = nilai yang divalidasi,
-     mengatasi kasus di mana oninput tidak terpanggil (misal: undo, autofill, dll). */
-  getRowIds().forEach(id=>{
-    const p=document.getElementById(`f-perihal-${id}`);
-    const t=document.getElementById(`f-tujuan-${id}`);
-    if(p&&rows[id])rows[id].perihal=p.value;
-    if(t&&rows[id])rows[id].tujuan=t.value;
-  });
-  checkedIds.forEach(id=>clearRowErrors(id));
-  document.getElementById('bulk-alert').className='alert';
+  const checkedIds=getRowIds().filter(id=>rows[id].checked);if(!checkedIds.length)return;
+  getRowIds().forEach(id=>{const p=document.getElementById(`f-perihal-${id}`);const t=document.getElementById(`f-tujuan-${id}`);if(p&&rows[id])rows[id].perihal=p.value;if(t&&rows[id])rows[id].tujuan=t.value;});
+  checkedIds.forEach(id=>clearRowErrors(id));document.getElementById('bulk-alert').className='alert';
   let hasErr=false;
   checkedIds.forEach(id=>{const errs=validateRow(id);if(errs.length){showRowErrors(id,errs);hasErr=true;}});
   if(hasErr){showBulkAlert('Beberapa baris memiliki kesalahan. Periksa baris yang ditandai merah.','error');return;}
-
   const payloads=checkedIds.map(id=>{
-    const r=rows[id];
-    const pegawaiList=r.pegawaiNIPs.map(nip=>(r.pegawaiNames&&r.pegawaiNames[nip])||nip);
+    const r=rows[id];const pegawaiList=r.pegawaiNIPs.map(nip=>(r.pegawaiNames&&r.pegawaiNames[nip])||nip);
     const kembali=r.waktuSelesai&&r.waktuSelesai!==r.waktuMulai?r.waktuSelesai:null;
-    return{
-      user_id:SESSION.id,
-      perihal:r.perihal.trim(),
-      tanggal_berangkat:r.waktuMulai,
-      tanggal_kembali:kembali,
-      tujuan:r.tujuan.trim(),
-      pegawai_nip:r.pegawaiNIPs,
-      pegawai_list:pegawaiList,
-      status:'menunggu',
-      created_at:new Date().toISOString()
-    };
+    return{user_id:SESSION.id,perihal:r.perihal.trim(),tanggal_berangkat:r.waktuMulai,tanggal_kembali:kembali,tujuan:r.tujuan.trim(),pegawai_nip:r.pegawaiNIPs,pegawai_list:pegawaiList,status:'menunggu',created_at:new Date().toISOString()};
   });
-
-  const btn=document.getElementById('btn-send');
-  btn.disabled=true;btn.classList.add('loading');
+  const btn=document.getElementById('btn-send');btn.disabled=true;btn.classList.add('loading');
   try{
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas`,{
-      method:'POST',
-      headers:{...H,'Prefer':'return=minimal'},
-      body:JSON.stringify(payloads)
-    });
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(payloads)});
     if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||`HTTP ${res.status}`);}
-    checkedIds.forEach(id=>deleteRow(id));
-    reNumberRows();syncCheckAll();updateBulkCounters();
+    checkedIds.forEach(id=>deleteRow(id));reNumberRows();syncCheckAll();updateBulkCounters();
     showBulkAlert(`✅ ${checkedIds.length} surat tugas berhasil dikirim dan menunggu persetujuan administrator.`,'success');
     await loadSurat();
-  }catch(e){
-    showBulkAlert(`Gagal mengirim: ${e.message}.`,'error');
-  }finally{
-    btn.disabled=false;btn.classList.remove('loading');updateBulkCounters();
-  }
+  }catch(e){showBulkAlert(`Gagal mengirim: ${e.message}.`,'error');}
+  finally{btn.disabled=false;btn.classList.remove('loading');updateBulkCounters();}
 }
-
 function showBulkAlert(msg,type='error'){
   document.getElementById('bulk-alert-icon').textContent=type==='success'?'✅':'⚠️';
   document.getElementById('bulk-alert-text').textContent=msg;
@@ -1247,6 +963,13 @@ function showBulkAlert(msg,type='error'){
 async function init(){
   SESSION=checkSession();if(!SESSION)return;
   setTopbarUser(SESSION);
+
+  // Tampilkan menu admin jika user adalah administrator
+  if(ADMIN_USERS.includes(SESSION.username)){
+    document.getElementById('admin-nav').style.display='block';
+    document.getElementById('admin-footer-badge').style.display='block';
+  }
+
   await Promise.all([loadSurat(),loadPegawai()]);
   addRows(1);
 }
