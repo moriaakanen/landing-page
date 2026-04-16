@@ -488,13 +488,11 @@
   </div>
 </div>
 
-<!-- Fix #6: Gunakan config.js terpusat -->
 <script src="config.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════════ */
-// Fix XSS: escape semua data dari DB sebelum dimasukkan ke innerHTML
 function esc(str){
   if(str==null)return'';
   return String(str)
@@ -513,7 +511,6 @@ const H={'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}
 let SESSION=null;
 let allPegawai=[];
 let allSurat=[];
-// Map untuk menyimpan data surat berdasarkan id (hindari serialisasi di onclick attr)
 const suratMap={};
 let rowIdCounter=0;
 const rows={};
@@ -606,8 +603,6 @@ function renderTable(data){
     document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Belum ada surat tugas. Gunakan tab Bulk Entry untuk membuat surat baru.</div></div>';
     return;
   }
-  // Fix XSS: gunakan esc() untuk semua data dari DB
-  // Fix onclick: simpan data di suratMap, passing hanya id
   data.forEach(s=>{ suratMap[s.id]=s; });
   const r=data.map(s=>`<tr>
     <td style="max-width:220px;white-space:normal;word-break:break-word;line-height:1.5">${esc(s.perihal)||'—'}</td>
@@ -712,7 +707,6 @@ function drpRender(){
   }
   document.getElementById('drp-days').innerHTML=html;
 
-  // Pasang event listener via delegasi (bukan onclick attr) agar tidak perlu stopPropagation
   document.getElementById('drp-days').onclick=function(e){
     const day=e.target.closest('.drp-day');
     if(!day||day.classList.contains('drp-day-empty')||day.classList.contains('drp-day-disabled'))return;
@@ -725,12 +719,6 @@ function drpRender(){
   document.getElementById('drp-selected-text').textContent=footerText;
 }
 
-/*
- * FIX KALENDER: drpClickDay tidak lagi menerima event,
- * sehingga tidak perlu stopPropagation.
- * Panggilan drpRender() di sini aman karena listener
- * dipasang via delegasi di drp-days, bukan di tiap .drp-day.
- */
 function drpClickDay(ds){
   if(drpRowId==null)return;
   const r=rows[drpRowId];
@@ -801,24 +789,27 @@ function pegOpen(rowId){
   popup.classList.add('open');
   pegJustOpened=true;
   const si=document.getElementById('peg-search');
-  si.value='';pegFilterList('');
+  si.value='';
+  pegFilterList('');
   setTimeout(()=>{si.focus();pegJustOpened=false;},50);
 }
 function pegClose(){
   document.getElementById('peg-popup').classList.remove('open');
   pegRowId=null;pegFocusIdx=-1;
 }
+
+/* FIX: pegFilterList menggunakan trim() untuk antisipasi spasi di data */
 function pegFilterList(q){
-  q=q.toLowerCase();
-  pegFilteredList=q?allPegawai.filter(p=>(p['NAMA']||'').toLowerCase().includes(q)||(p['NIP']||'').includes(q)):allPegawai;
+  q=q.toLowerCase().trim();
+  pegFilteredList=q
+    ? allPegawai.filter(p=>
+        (p['NAMA']||'').toLowerCase().includes(q) ||
+        String(p['NIP']||'').trim().includes(q)
+      )
+    : [...allPegawai];
   pegRenderList();
 }
 
-/*
- * FIX PEGAWAI: Gunakan event delegation di peg-list
- * agar klik pada item tidak menyebabkan popup tertutup
- * akibat re-render list (target menjadi detached dari DOM).
- */
 function pegRenderList(){
   const list=document.getElementById('peg-list');
   if(!list)return;
@@ -827,9 +818,11 @@ function pegRenderList(){
     return;
   }
   if(!pegFilteredList.length){list.innerHTML='<div class="peg-empty">Tidak ada hasil</div>';return;}
+  /* FIX: gunakan pegawaiNames untuk cek selected, bukan hanya NIP mentah */
   const sel=pegRowId!=null?(rows[pegRowId]?.pegawaiNIPs||[]):[];
   list.innerHTML=pegFilteredList.map((p,i)=>{
-    const nip=p['NIP']||'';const nama=p['NAMA']||'-';
+    const nip=String(p['NIP']||'').trim();
+    const nama=p['NAMA']||'-';
     const isSel=sel.includes(nip);
     return`<div class="peg-item${isSel?' selected':''}" data-nip="${esc(nip)}" data-idx="${i}">
       <div class="peg-item-check">${isSel?'✓':''}</div>
@@ -842,7 +835,7 @@ function pegRenderList(){
   pegScrollToFocus();
 }
 
-// Pasang satu listener delegasi di peg-list (bukan per item)
+/* Delegasi event di peg-list */
 document.getElementById('peg-list').addEventListener('click',function(e){
   const item=e.target.closest('.peg-item');
   if(!item)return;
@@ -863,33 +856,47 @@ function pegScrollToFocus(){
   const items=document.querySelectorAll('#peg-list .peg-item');
   const el=items[pegFocusIdx];if(el)el.scrollIntoView({block:'nearest'});
 }
+
+/* FIX UTAMA: pegToggle menyimpan nama langsung ke pegawaiNames saat pemilihan,
+   sehingga tag tidak perlu lookup ulang (yang sering gagal akibat perbedaan format NIP) */
 function pegToggle(nip){
   if(pegRowId==null)return;
-  const r=rows[pegRowId];const arr=r.pegawaiNIPs;const idx=arr.indexOf(nip);
-  if(idx>=0)arr.splice(idx,1);else arr.push(nip);
+  const r=rows[pegRowId];
+  if(!r.pegawaiNames)r.pegawaiNames={};
+  const arr=r.pegawaiNIPs;
+  const idx=arr.indexOf(nip);
+  if(idx>=0){
+    arr.splice(idx,1);
+    delete r.pegawaiNames[nip];
+  } else {
+    arr.push(nip);
+    /* Simpan nama saat ini sebelum re-render, pakai trim() untuk antisipasi spasi */
+    const found=allPegawai.find(x=>String(x['NIP']||'').trim()===String(nip).trim());
+    r.pegawaiNames[nip]=found ? (found['NAMA']||nip) : nip;
+  }
   pegRenderTags(pegRowId);
-  // Re-render list tanpa menutup popup (aman karena listener ada di parent, bukan di item)
   pegRenderList();
 }
+
+/* FIX: pegRenderTags menggunakan r.pegawaiNames, bukan lookup allPegawai */
 function pegRenderTags(rowId){
   const trigger=document.getElementById(`peg-trigger-${rowId}`);
   if(!trigger||!rows[rowId])return;
-  const niPs=rows[rowId].pegawaiNIPs;
+  const r=rows[rowId];
+  const niPs=r.pegawaiNIPs;
   const ph=trigger.querySelector('.peg-placeholder');
   trigger.querySelectorAll('.peg-tag').forEach(t=>t.remove());
   if(!niPs.length){if(ph)ph.style.display='';return;}
   if(ph)ph.style.display='none';
   niPs.forEach(nip=>{
-    const p=allPegawai.find(x=>x['NIP']===nip);
-    const nama=p?p['NAMA']:nip;
+    /* Ambil nama dari pegawaiNames yang sudah disimpan saat pemilihan */
+    const nama=(r.pegawaiNames&&r.pegawaiNames[nip])||nip;
     const tag=document.createElement('span');
     tag.className='peg-tag';tag.title=nama;
     const namaTrunc=nama.length>18?nama.slice(0,16)+'…':nama;
-    // Gunakan data-nip agar tidak perlu inline JS
     tag.innerHTML=`${esc(namaTrunc)}<button class="peg-tag-x" data-nip="${esc(nip)}">×</button>`;
     trigger.insertBefore(tag,ph||null);
   });
-  // Delegasi event untuk tombol × di tag
   trigger.querySelectorAll('.peg-tag-x').forEach(btn=>{
     btn.onclick=function(e){
       e.stopPropagation();
@@ -897,23 +904,25 @@ function pegRenderTags(rowId){
     };
   });
 }
+
+/* FIX: Perkuat search dengan keyup sebagai fallback */
 document.getElementById('peg-search').addEventListener('keydown',function(e){
   if(e.key==='ArrowDown'){e.preventDefault();pegFocusIdx=Math.min(pegFocusIdx+1,pegFilteredList.length-1);pegSetFocus(pegFocusIdx);pegScrollToFocus();}
   else if(e.key==='ArrowUp'){e.preventDefault();pegFocusIdx=Math.max(pegFocusIdx-1,0);pegSetFocus(pegFocusIdx);pegScrollToFocus();}
-  else if(e.key==='Enter'){e.preventDefault();if(pegFocusIdx>=0&&pegFilteredList[pegFocusIdx])pegToggle(pegFilteredList[pegFocusIdx]['NIP']||'');}
+  else if(e.key==='Enter'){e.preventDefault();if(pegFocusIdx>=0&&pegFilteredList[pegFocusIdx])pegToggle(String(pegFilteredList[pegFocusIdx]['NIP']||'').trim());}
   else if(e.key==='Escape')pegClose();
 });
-document.getElementById('peg-search').addEventListener('input',function(){pegFocusIdx=-1;pegFilterList(this.value);});
+document.getElementById('peg-search').addEventListener('input',function(){
+  pegFocusIdx=-1;
+  pegFilterList(this.value);
+});
+document.getElementById('peg-search').addEventListener('keyup',function(e){
+  if(['ArrowDown','ArrowUp','Enter','Escape'].includes(e.key))return;
+  pegFocusIdx=-1;
+  pegFilterList(this.value);
+});
 
-/* ── Close popups on outside click ──
- * FIX UTAMA: Tambahkan pengecekan document.contains(e.target).
- * Ketika drpRender() atau pegRenderList() dipanggil di dalam handler klik,
- * elemen yang diklik (e.target) dihapus dari DOM (detached).
- * Akibatnya popup.contains(e.target) mengembalikan false,
- * dan outside-click handler salah mengira ini klik di luar popup,
- * lalu menutup popup. Dengan document.contains(e.target), kita
- * abaikan event jika targetnya sudah tidak ada di DOM.
- */
+/* ── Close popups on outside click ── */
 document.addEventListener('click',function(e){
   const drpPopup=document.getElementById('drp-popup');
   const pegPopup=document.getElementById('peg-popup');
@@ -942,8 +951,15 @@ document.addEventListener('click',function(e){
    BULK ROWS
 ═══════════════════════════════════════════════════════ */
 function getRowIds(){return Object.keys(rows);}
+
+/* FIX: tambahkan pegawaiNames:{} pada inisialisasi row */
 function addRows(n){
-  for(let i=0;i<n;i++){rowIdCounter++;const id=rowIdCounter;rows[id]={checked:false,perihal:'',waktuMulai:'',waktuSelesai:'',tujuan:'',pegawaiNIPs:[]};renderRow(id);}
+  for(let i=0;i<n;i++){
+    rowIdCounter++;
+    const id=rowIdCounter;
+    rows[id]={checked:false,perihal:'',waktuMulai:'',waktuSelesai:'',tujuan:'',pegawaiNIPs:[],pegawaiNames:{}};
+    renderRow(id);
+  }
   updateBulkCounters();
 }
 function syncTextareaHeight(ta){ta.style.height='0px';ta.style.height=ta.scrollHeight+'px';}
@@ -1131,7 +1147,8 @@ async function submitChecked(){
 
   const payloads=checkedIds.map(id=>{
     const r=rows[id];
-    const pegawaiList=r.pegawaiNIPs.map(nip=>{const p=allPegawai.find(x=>x['NIP']===nip);return p?p['NAMA']:nip;});
+    /* FIX: gunakan pegawaiNames untuk mendapatkan nama yang sudah tersimpan */
+    const pegawaiList=r.pegawaiNIPs.map(nip=>(r.pegawaiNames&&r.pegawaiNames[nip])||nip);
     const selesai=r.waktuSelesai&&r.waktuSelesai!==r.waktuMulai?r.waktuSelesai:null;
     return{
       user_id:SESSION.id,
