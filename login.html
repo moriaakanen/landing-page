@@ -236,15 +236,8 @@
   <div class="footer-links"><a href="#">Bantuan</a><a href="#">Kebijakan Privasi</a><a href="#">Hubungi Kami</a></div>
 </div>
 
-<!-- Fix #6: Gunakan config.js terpusat, hapus duplikasi konstanta -->
 <script src="config.js"></script>
 <script>
-  /*
-   * Fix #2 — CATATAN KEAMANAN:
-   * Lockout di bawah hanya berjalan di sisi klien (localStorage) dan dapat
-   * di-bypass dengan mudah. Untuk keamanan nyata, implementasikan pencatatan
-   * percobaan gagal di RPC `verify_login` di database Supabase.
-   */
   const MAX_ATTEMPTS    = 5;
   const LOCKOUT_MINUTES = 10;
 
@@ -366,12 +359,31 @@
 
       clearLockout();
       const user = data[0];
+
+      // ── Bangun daftar roles ──────────────────────────────────────────
+      // Mendukung field 'roles' (array) dan 'role' (string) dari DB.
+      // _getSessionRoles() di nova-role-switcher.js akan baca field ini.
+      let rolesArr = null;
+      if (Array.isArray(user.roles) && user.roles.length) {
+        rolesArr = user.roles;
+      } else if (user.role) {
+        rolesArr = [user.role];
+      } else if (ADMIN_USERS.includes(user.username)) {
+        rolesArr = ['admin', 'user'];
+      } else {
+        rolesArr = ['user'];
+      }
+      // ────────────────────────────────────────────────────────────────
+
       const session = {
-        id: user.id,
-        username: user.username,
-        full_name: user.full_name,
+        id:                   user.id,
+        username:             user.username,
+        full_name:            user.full_name,
         must_change_password: user.must_change_password,
-        expires_at: Date.now() + 8 * 60 * 60 * 1000
+        expires_at:           Date.now() + 8 * 60 * 60 * 1000,
+        // Field role info — dipakai oleh nova-role-switcher.js
+        role:                 user.role  || null,
+        roles:                rolesArr,
       };
       localStorage.setItem('nova_user', JSON.stringify(session));
 
