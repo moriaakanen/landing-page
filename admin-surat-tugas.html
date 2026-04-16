@@ -7,19 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;
-    --gold:#c8a84b;--gold-light:#f5edda;
-    --text:#1a1a2e;--muted:#6b7280;
-    --border:#e2ddd6;--border2:#d1ccc3;
-    --red:#c0392b;--success:#1a7a4a;
-    --sidebar-w:260px;
-  }
+  :root{--bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--red:#c0392b;--success:#1a7a4a;--sidebar-w:260px;}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
-
-  /* ── TOPBAR ── */
   .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200}
   .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0}
   .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
@@ -29,10 +20,6 @@
   .topbar-time{font-size:11px;color:rgba(255,255,255,.35)}
   .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
   .topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
-  .btn-logout{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s}
-  .btn-logout:hover{border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.9)}
-
-  /* ── LAYOUT ── */
   .layout{display:flex;flex:1;min-height:0}
   .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
   .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
@@ -46,26 +33,18 @@
   .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
   .sidebar-footer strong{color:var(--navy);font-weight:600}
   .admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.35);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--gold);margin-top:4px;letter-spacing:.3px}
-
-  /* ── MAIN ── */
   .main{flex:1;overflow-y:auto;padding:32px 36px}
-
-  /* ── PAGE HEADER ── */
   .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap}
   .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
   .page-title{font-family:'Fraunces',serif;font-size:clamp(22px,2.5vw,30px);font-weight:300;color:var(--navy);line-height:1.2}
   .page-title em{font-style:italic;color:var(--gold)}
   .page-desc{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.7}
-
-  /* ── STATS ── */
   .stats-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
   .stat-pill{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:11px 16px;display:flex;align-items:center;gap:10px;flex:1;min-width:120px}
   .stat-pill-icon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
   .stat-pill-num{font-size:18px;font-weight:700;color:var(--navy);line-height:1}
   .stat-pill-label{font-size:11px;color:var(--muted);margin-top:1px}
-
-  /* ── FILTER ── */
   .filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
   .search-wrap{position:relative;flex:1;min-width:200px}
   .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none}
@@ -74,8 +53,6 @@
   .search-input::placeholder{color:#b8b3ac}
   .filter-select{padding:8px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;transition:border-color .2s}
   .filter-select:focus{border-color:var(--navy)}
-
-  /* ── BUTTONS ── */
   .btn-primary{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,transform .15s;white-space:nowrap;position:relative}
   .btn-primary:hover:not(:disabled){background:var(--navy2);transform:translateY(-1px)}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
@@ -90,8 +67,6 @@
   .btn-sm{padding:4px 10px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--navy)}
   .btn-sm:hover{background:var(--gold-light);border-color:var(--gold)}
   @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-
-  /* ── TABLE ── */
   .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.05)}
   .table-head{background:var(--navy);padding:13px 20px;display:flex;align-items:center;justify-content:space-between}
   .table-head-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.8px;text-transform:uppercase}
@@ -102,24 +77,18 @@
   table.list-table tbody tr:last-child{border-bottom:none}
   table.list-table tbody tr:hover{background:#fafaf8}
   table.list-table tbody td{padding:11px 14px;font-size:13px;color:var(--text);vertical-align:middle}
-
   .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
   .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
   .badge.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
   .badge.disetujui{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
   .badge.ditolak{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
-
   .table-empty{padding:48px 24px;text-align:center}
   .table-empty-icon{font-size:28px;opacity:.3;margin-bottom:10px}
   .table-empty-text{font-size:13px;color:var(--muted)}
-
-  /* ── ALERT ── */
   .alert{padding:11px 14px;border-radius:7px;font-size:13px;line-height:1.5;margin-bottom:16px;display:none;gap:8px;align-items:flex-start}
   .alert.show{display:flex;animation:fadeUp .3s ease}
   .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
   .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
-
-  /* ── MODAL ── */
   .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeOverlay .2s ease}
   @keyframes fadeOverlay{from{opacity:0}to{opacity:1}}
   .modal{background:var(--white);border-radius:12px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 20px 60px rgba(13,35,64,.3);animation:slideUp .25s ease}
@@ -134,8 +103,6 @@
   .modal-close:hover{color:white;background:rgba(255,255,255,.1)}
   .modal-body{padding:22px 24px;display:flex;flex-direction:column;gap:14px}
   .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
-
-  /* ── FORM ── */
   .form-group{display:flex;flex-direction:column;gap:6px}
   .form-label{font-size:12px;font-weight:600;color:var(--navy)}
   .form-label span{color:var(--red);margin-left:2px}
@@ -147,21 +114,16 @@
   .form-textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.07)}
   .error-msg{font-size:11px;color:var(--red);display:none}
   .error-msg.show{display:block}
-
-  /* ── DETAIL FIELDS ── */
   .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .detail-field{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:12px 14px}
   .detail-field.full{grid-column:1/-1}
   .detail-field-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
   .detail-field-val{font-size:13px;font-weight:600;color:var(--navy);line-height:1.5;word-break:break-word}
   .detail-field-val.empty{color:var(--muted);font-weight:400;font-style:italic}
-
-  /* ── SKELETON ── */
   .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px}
   @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .fade-in{animation:fadeUp .5s ease both}
-
   .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
   @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.topbar-time{display:none}}
   @media(max-width:600px){
@@ -181,11 +143,34 @@
   </div>
   <div class="topbar-right">
     <span class="topbar-time" id="topbar-time"></span>
-    <div style="display:flex;align-items:center;gap:8px">
-      <div class="topbar-avatar" id="topbar-avatar">—</div>
-      <span class="topbar-username" id="topbar-username">Pengguna</span>
+    <!-- ROLE SWITCHER -->
+    <div class="user-switcher" id="user-switcher">
+      <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false" type="button">
+        <div class="topbar-avatar" id="topbar-avatar">—</div>
+        <span class="topbar-username" id="topbar-username">Pengguna</span>
+        <span class="active-role-badge admin" id="active-role-badge">Admin</span>
+        <span class="user-switcher-caret">▼</span>
+      </button>
+      <div class="user-switcher-dropdown" id="user-switcher-dropdown">
+        <div class="usd-header">
+          <div class="usd-header-name" id="usd-header-name">Pengguna</div>
+          <div class="usd-header-label">Akun aktif · Ganti tampilan role</div>
+        </div>
+        <div class="usd-section-label">Tampilkan sebagai</div>
+        <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')" type="button">
+          <div class="usd-role-icon admin">👑</div>
+          <div><div class="usd-role-name">Administrator</div><div class="usd-role-desc">Akses penuh semua menu</div></div>
+          <span class="usd-check">✓</span>
+        </button>
+        <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')" type="button">
+          <div class="usd-role-icon user">👤</div>
+          <div><div class="usd-role-name">User</div><div class="usd-role-desc">Akses standar pegawai</div></div>
+          <span class="usd-check">✓</span>
+        </button>
+        <div class="usd-divider"></div>
+        <button class="usd-logout" onclick="logout()" type="button"><span>🚪</span> Keluar dari Portal</button>
+      </div>
     </div>
-    <button class="btn-logout" onclick="logout()">Keluar</button>
     <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
   </div>
 </div>
@@ -196,12 +181,14 @@
     <a class="nav-item" href="index.html"><div class="nav-item-icon">👤</div>Profil Saya</a>
     <div class="nav-group-label">Persuratan</div>
     <a class="nav-item" href="surat-tugas.html"><div class="nav-item-icon">📄</div>Surat Tugas</a>
-    <div class="nav-group-label">Administrasi</div>
-    <a class="nav-item active" href="admin-surat-tugas.html"><div class="nav-item-icon">✅</div>Persetujuan Surat</a>
-    <a class="nav-item" href="manajemen-pengguna.html"><div class="nav-item-icon">👥</div>Manajemen Pengguna</a>
+    <div id="admin-nav">
+      <div class="nav-group-label">Administrasi</div>
+      <a class="nav-item active" href="admin-surat-tugas.html"><div class="nav-item-icon">✅</div>Persetujuan Surat</a>
+      <a class="nav-item" href="manajemen-pengguna.html"><div class="nav-item-icon">👥</div>Manajemen Pengguna</a>
+    </div>
     <div class="sidebar-footer">
       <strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>© 2026 Pemerintah RI<br>
-      <span class="admin-badge">🔑 Administrator</span>
+      <span class="admin-badge" id="sidebar-admin-badge">🔑 Administrator</span>
     </div>
   </aside>
 
@@ -210,7 +197,7 @@
       <div>
         <div class="page-eyebrow">Administrasi</div>
         <h1 class="page-title">Persetujuan <em>Surat Tugas</em></h1>
-        <p class="page-desc">Tinjau, setujui, atau tolak pengajuan surat tugas dari pegawai. Isi nomor surat dan tanggal surat saat menyetujui.</p>
+        <p class="page-desc">Tinjau, setujui, atau tolak pengajuan surat tugas dari pegawai.</p>
       </div>
       <button class="btn-outline fade-in" style="animation-delay:.1s" onclick="loadSurat()">↺ Muat Ulang</button>
     </div>
@@ -245,20 +232,18 @@
       <div id="table-area">
         <table class="list-table">
           <thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead>
-          <tbody>
-            <tr><td colspan="6"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
-              <div class="skel" style="height:44px;border-radius:6px"></div>
-              <div class="skel" style="height:44px;border-radius:6px"></div>
-              <div class="skel" style="height:44px;border-radius:6px"></div>
-            </div></td></tr>
-          </tbody>
+          <tbody><tr><td colspan="6"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+            <div class="skel" style="height:44px;border-radius:6px"></div>
+            <div class="skel" style="height:44px;border-radius:6px"></div>
+            <div class="skel" style="height:44px;border-radius:6px"></div>
+          </div></td></tr></tbody>
         </table>
       </div>
     </div>
   </main>
 </div>
 
-<!-- ═══ MODAL: DETAIL ═══ -->
+<!-- MODAL DETAIL -->
 <div class="modal-overlay" id="modal-detail" style="display:none" onclick="if(event.target===this)closeModal('modal-detail')">
   <div class="modal">
     <div class="modal-header detail">
@@ -273,7 +258,7 @@
   </div>
 </div>
 
-<!-- ═══ MODAL: SETUJUI ═══ -->
+<!-- MODAL SETUJUI -->
 <div class="modal-overlay" id="modal-approve" style="display:none" onclick="if(event.target===this)closeModal('modal-approve')">
   <div class="modal">
     <div class="modal-header approve">
@@ -282,9 +267,7 @@
     </div>
     <div class="modal-body">
       <div id="approve-alert" class="alert"><span id="approve-alert-icon"></span><span id="approve-alert-text"></span></div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6">
-        Anda akan menyetujui surat tugas: <strong id="approve-perihal" style="color:var(--navy)"></strong>
-      </p>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6">Menyetujui: <strong id="approve-perihal" style="color:var(--navy)"></strong></p>
       <div class="form-group">
         <label class="form-label">Nomor Surat <span>*</span></label>
         <input type="text" class="form-input" id="inp-nomor-surat" placeholder="cth: 800/123/IV/2026" autocomplete="off">
@@ -297,19 +280,17 @@
       </div>
       <div class="form-group">
         <label class="form-label">Catatan Admin <span style="color:var(--muted);font-weight:400">(opsional)</span></label>
-        <textarea class="form-textarea" id="inp-catatan-approve" placeholder="Catatan atau instruksi tambahan untuk pegawai..."></textarea>
+        <textarea class="form-textarea" id="inp-catatan-approve" placeholder="Catatan tambahan..."></textarea>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-approve')">Batal</button>
-      <button class="btn-primary" id="btn-approve-submit" onclick="submitApprove()" style="background:#1a7a4a">
-        ✅ Setujui Surat
-      </button>
+      <button class="btn-primary" id="btn-approve-submit" onclick="submitApprove()" style="background:#1a7a4a">✅ Setujui Surat</button>
     </div>
   </div>
 </div>
 
-<!-- ═══ MODAL: TOLAK ═══ -->
+<!-- MODAL TOLAK -->
 <div class="modal-overlay" id="modal-reject" style="display:none" onclick="if(event.target===this)closeModal('modal-reject')">
   <div class="modal">
     <div class="modal-header reject">
@@ -318,59 +299,39 @@
     </div>
     <div class="modal-body">
       <div id="reject-alert" class="alert"><span id="reject-alert-icon"></span><span id="reject-alert-text"></span></div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6">
-        Anda akan menolak surat tugas: <strong id="reject-perihal" style="color:var(--navy)"></strong>
-      </p>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6">Menolak: <strong id="reject-perihal" style="color:var(--navy)"></strong></p>
       <div class="form-group">
         <label class="form-label">Alasan Penolakan <span>*</span></label>
-        <textarea class="form-textarea" id="inp-catatan-reject" placeholder="Tuliskan alasan penolakan surat tugas ini..."></textarea>
+        <textarea class="form-textarea" id="inp-catatan-reject" placeholder="Tuliskan alasan penolakan..."></textarea>
         <span class="error-msg" id="err-catatan-reject">Alasan penolakan wajib diisi</span>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-reject')">Batal</button>
-      <button class="btn-primary" id="btn-reject-submit" onclick="submitReject()" style="background:#c0392b">
-        ❌ Tolak Surat
-      </button>
+      <button class="btn-primary" id="btn-reject-submit" onclick="submitReject()" style="background:#c0392b">❌ Tolak Surat</button>
     </div>
   </div>
 </div>
 
 <script src="config.js"></script>
+<script src="nova-role-switcher.js"></script>
 <script>
-  const H = {
-    'apikey': SUPABASE_ANON_KEY,
-    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-    'Content-Type': 'application/json'
-  };
+  const H = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+  let SESSION = null, allSurat = [], suratMap = {}, selectedId = null;
 
-  let SESSION = null;
-  let allSurat = [];
-  let suratMap = {};
-  let selectedId = null;
-
-  /* ── SESSION ── */
   function checkSession() {
     try {
       const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
       if (!s) { window.location.replace('login.html'); return null; }
-      if (s.expires_at && Date.now() > s.expires_at) {
-        localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
-      }
+      if (s.expires_at && Date.now() > s.expires_at) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
       if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
-      // Hanya admin yang boleh akses
-      if (!ADMIN_USERS.includes(s.username)) {
-        window.location.replace('index.html'); return null;
-      }
+      if (!s.active_role) { s.active_role = ADMIN_USERS.includes(s.username) ? 'admin' : 'user'; localStorage.setItem('nova_user', JSON.stringify(s)); }
+      if (!ADMIN_USERS.includes(s.username) || s.active_role !== 'admin') { window.location.replace('index.html'); return null; }
       return s;
     } catch(e) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
   }
   function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
-  function updateClock() {
-    document.getElementById('topbar-time').textContent = new Date().toLocaleString('id-ID', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-  }
+  function updateClock() { document.getElementById('topbar-time').textContent = new Date().toLocaleString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
   updateClock(); setInterval(updateClock, 1000);
   function setTopbarUser(s) {
     const name = s.full_name || s.username || 'Pengguna';
@@ -379,287 +340,71 @@
     document.getElementById('topbar-username').textContent = name;
   }
 
-  /* ── HELPERS ── */
-  function esc(str) {
-    if (str == null) return '';
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
-
+  function esc(str) { if (str==null)return''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
   const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  function fmtTgl(str) {
-    if (!str) return '—';
-    const d = new Date(str + 'T00:00:00');
-    return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
-  }
-  function fmtWaktu(mulai, selesai) {
-    if (!mulai) return '—';
-    if (!selesai || selesai === mulai) return fmtTgl(mulai);
-    const a = new Date(mulai+'T00:00:00'), b = new Date(selesai+'T00:00:00');
-    if (a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear())
-      return `${a.getDate()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;
-    if (a.getFullYear()===b.getFullYear())
-      return `${a.getDate()} ${BULAN[a.getMonth()]} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;
-    return `${fmtTgl(mulai)} s.d. ${fmtTgl(selesai)}`;
-  }
+  function fmtTgl(str) { if(!str)return'—'; const d=new Date(str+'T00:00:00'); return`${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`; }
+  function fmtWaktu(mulai,selesai) { if(!mulai)return'—'; if(!selesai||selesai===mulai)return fmtTgl(mulai); const a=new Date(mulai+'T00:00:00'),b=new Date(selesai+'T00:00:00'); if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear())return`${a.getDate()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`; if(a.getFullYear()===b.getFullYear())return`${a.getDate()} ${BULAN[a.getMonth()]} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`; return`${fmtTgl(mulai)} s.d. ${fmtTgl(selesai)}`; }
+  function badgeHTML(status) { const m={menunggu:['menunggu','⏳ Menunggu'],disetujui:['disetujui','✅ Disetujui'],ditolak:['ditolak','❌ Ditolak']}; const[cls,lbl]=m[status]||['menunggu',status]; return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`; }
 
-  function badgeHTML(status) {
-    const m = {
-      menunggu: ['menunggu','⏳ Menunggu'],
-      disetujui: ['disetujui','✅ Disetujui'],
-      ditolak: ['ditolak','❌ Ditolak']
-    };
-    const [cls, lbl] = m[status] || ['menunggu', status];
-    return `<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;
-  }
-
-  /* ── LOAD DATA ── */
   async function loadSurat() {
-    document.getElementById('table-area').innerHTML = `
-      <table class="list-table">
-        <thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead>
-        <tbody><tr><td colspan="6"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
-          <div class="skel" style="height:44px;border-radius:6px"></div>
-          <div class="skel" style="height:44px;border-radius:6px"></div>
-          <div class="skel" style="height:44px;border-radius:6px"></div>
-        </div></td></tr></tbody></table>`;
-    document.getElementById('table-count').textContent = 'Memuat...';
+    document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead><tbody><tr><td colspan="6"><div style="padding:16px;display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div></td></tr></tbody></table>`;
+    document.getElementById('table-count').textContent='Memuat...';
     try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/surat_tugas?select=*&order=created_at.desc`,
-        { headers: H }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      allSurat = await res.json();
-      allSurat.forEach(s => { suratMap[s.id] = s; });
-      updateStats();
-      filterTable();
+      const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?select=*&order=created_at.desc`,{headers:H});
+      if(!res.ok)throw new Error(`HTTP ${res.status}`);
+      allSurat=await res.json();
+      allSurat.forEach(s=>{suratMap[s.id]=s;});
+      updateStats(); filterTable();
     } catch(e) {
-      document.getElementById('table-area').innerHTML = `
-        <div class="table-empty">
-          <div class="table-empty-icon">⚠️</div>
-          <div class="table-empty-text">Gagal memuat data surat tugas.<br>Periksa koneksi dan kebijakan RLS di Supabase.</div>
-        </div>`;
-      document.getElementById('table-count').textContent = 'Error';
+      document.getElementById('table-area').innerHTML=`<div class="table-empty"><div class="table-empty-icon">⚠️</div><div class="table-empty-text">Gagal memuat data.</div></div>`;
+      document.getElementById('table-count').textContent='Error';
     }
   }
-
-  function updateStats() {
-    document.getElementById('st-total').textContent = allSurat.length;
-    document.getElementById('st-menunggu').textContent = allSurat.filter(s => s.status === 'menunggu').length;
-    document.getElementById('st-disetujui').textContent = allSurat.filter(s => s.status === 'disetujui').length;
-    document.getElementById('st-ditolak').textContent = allSurat.filter(s => s.status === 'ditolak').length;
-  }
-
-  function filterTable() {
-    const q = document.getElementById('search-input').value.toLowerCase();
-    const st = document.getElementById('filter-status').value;
-    let filtered = allSurat;
-    if (q) filtered = filtered.filter(s =>
-      (s.perihal||'').toLowerCase().includes(q) ||
-      (s.tujuan||'').toLowerCase().includes(q)
-    );
-    if (st) filtered = filtered.filter(s => s.status === st);
-    renderTable(filtered);
-  }
-
+  function updateStats() { document.getElementById('st-total').textContent=allSurat.length; document.getElementById('st-menunggu').textContent=allSurat.filter(s=>s.status==='menunggu').length; document.getElementById('st-disetujui').textContent=allSurat.filter(s=>s.status==='disetujui').length; document.getElementById('st-ditolak').textContent=allSurat.filter(s=>s.status==='ditolak').length; }
+  function filterTable() { const q=document.getElementById('search-input').value.toLowerCase(); const st=document.getElementById('filter-status').value; let f=allSurat; if(q)f=f.filter(s=>(s.perihal||'').toLowerCase().includes(q)||(s.tujuan||'').toLowerCase().includes(q)); if(st)f=f.filter(s=>s.status===st); renderTable(f); }
   function renderTable(data) {
-    document.getElementById('table-count').textContent = `${data.length} surat`;
-    if (!data.length) {
-      document.getElementById('table-area').innerHTML = `
-        <div class="table-empty">
-          <div class="table-empty-icon">📭</div>
-          <div class="table-empty-text">Tidak ada surat tugas ditemukan.</div>
-        </div>`;
-      return;
-    }
-    const rows = data.map(s => {
-      const isMenunggu = s.status === 'menunggu';
-      const aksiBtn = isMenunggu
-        ? `<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
-             <button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button>
-             <button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button>
-             <button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button>
-           </div>`
-        : `<div style="display:flex;gap:6px;justify-content:flex-end">
-             <button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button>
-           </div>`;
-      return `<tr>
-        <td style="max-width:200px;word-break:break-word;line-height:1.5">${esc(s.perihal)||'—'}</td>
-        <td style="font-size:12px;white-space:nowrap">${esc(fmtWaktu(s.tanggal_berangkat, s.tanggal_kembali))}</td>
-        <td>${esc(s.tujuan)||'—'}</td>
-        <td><span style="font-size:12px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td>
-        <td>${badgeHTML(s.status)}</td>
-        <td>${aksiBtn}</td>
-      </tr>`;
-    }).join('');
-    document.getElementById('table-area').innerHTML = `
-      <table class="list-table">
-        <thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
+    document.getElementById('table-count').textContent=`${data.length} surat`;
+    if(!data.length){document.getElementById('table-area').innerHTML=`<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Tidak ada surat tugas ditemukan.</div></div>`;return;}
+    const rows=data.map(s=>{const isMenunggu=s.status==='menunggu';const aksiBtn=isMenunggu?`<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button><button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button><button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button></div>`:`<div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button></div>`;return`<tr><td style="max-width:200px;word-break:break-word;line-height:1.5">${esc(s.perihal)||'—'}</td><td style="font-size:12px;white-space:nowrap">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td><td>${esc(s.tujuan)||'—'}</td><td><span style="font-size:12px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td><td>${badgeHTML(s.status)}</td><td>${aksiBtn}</td></tr>`;}).join('');
+    document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
+  function openModal(id){document.getElementById(id).style.display='flex';}
+  function closeModal(id){document.getElementById(id).style.display='none';}
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')['modal-detail','modal-approve','modal-reject'].forEach(id=>closeModal(id));});
 
-  /* ── MODAL HELPERS ── */
-  function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') ['modal-detail','modal-approve','modal-reject'].forEach(id => closeModal(id));
-  });
-
-  /* ── DETAIL MODAL ── */
   function openDetail(id) {
-    const s = suratMap[id]; if (!s) return;
-    const f = (label, val, full) => {
-      const v = val && String(val).trim() ? String(val).trim() : null;
-      return `<div class="detail-field${full?' full':''}">
-        <div class="detail-field-label">${label}</div>
-        <div class="detail-field-val${v?'':' empty'}">${v ? esc(v) : 'Tidak tersedia'}</div>
-      </div>`;
-    };
-    const pegawaiStr = (s.pegawai_list||[]).length ? s.pegawai_list.map(esc).join(', ') : null;
-    document.getElementById('modal-detail-body').innerHTML = `
-      <div class="detail-grid">
-        ${f('Status', s.status === 'menunggu' ? '⏳ Menunggu Persetujuan' : s.status === 'disetujui' ? '✅ Disetujui' : '❌ Ditolak')}
-        ${f('Tanggal Pengajuan', s.created_at ? new Date(s.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) : null)}
-        ${f('Perihal', s.perihal, true)}
-        ${f('Tujuan', s.tujuan, true)}
-        ${f('Tanggal Berangkat', fmtTgl(s.tanggal_berangkat))}
-        ${f('Tanggal Kembali', fmtTgl(s.tanggal_kembali))}
-        ${f('Pegawai', pegawaiStr, true)}
-        ${s.nomor_surat ? f('Nomor Surat', s.nomor_surat) : ''}
-        ${s.tanggal_surat ? f('Tanggal Surat', fmtTgl(s.tanggal_surat)) : ''}
-        ${s.catatan_admin ? f('Catatan Admin', s.catatan_admin, true) : ''}
-      </div>`;
-
-    const actions = document.getElementById('modal-detail-actions');
-    if (s.status === 'menunggu') {
-      actions.innerHTML = `
-        <div style="display:flex;gap:8px">
-          <button class="btn-approve" onclick="closeModal('modal-detail');openApprove(${s.id})">✅ Setujui</button>
-          <button class="btn-reject" onclick="closeModal('modal-detail');openReject(${s.id})">❌ Tolak</button>
-        </div>`;
-    } else {
-      actions.innerHTML = '';
-    }
+    const s=suratMap[id];if(!s)return;
+    const f=(label,val,full)=>{const v=val&&String(val).trim()?String(val).trim():null;return`<div class="detail-field${full?' full':''}"><div class="detail-field-label">${label}</div><div class="detail-field-val${v?'':' empty'}">${v?esc(v):'Tidak tersedia'}</div></div>`;};
+    const pegawaiStr=(s.pegawai_list||[]).length?s.pegawai_list.map(esc).join(', '):null;
+    document.getElementById('modal-detail-body').innerHTML=`<div class="detail-grid">${f('Status',s.status==='menunggu'?'⏳ Menunggu':s.status==='disetujui'?'✅ Disetujui':'❌ Ditolak')}${f('Tanggal Pengajuan',s.created_at?new Date(s.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):null)}${f('Perihal',s.perihal,true)}${f('Tujuan',s.tujuan,true)}${f('Tanggal Berangkat',fmtTgl(s.tanggal_berangkat))}${f('Tanggal Kembali',fmtTgl(s.tanggal_kembali))}${f('Pegawai',pegawaiStr,true)}${s.nomor_surat?f('Nomor Surat',s.nomor_surat):''}${s.tanggal_surat?f('Tanggal Surat',fmtTgl(s.tanggal_surat)):''}${s.catatan_admin?f('Catatan Admin',s.catatan_admin,true):''}</div>`;
+    const actions=document.getElementById('modal-detail-actions');
+    if(s.status==='menunggu'){actions.innerHTML=`<div style="display:flex;gap:8px"><button class="btn-approve" onclick="closeModal('modal-detail');openApprove(${s.id})">✅ Setujui</button><button class="btn-reject" onclick="closeModal('modal-detail');openReject(${s.id})">❌ Tolak</button></div>`;}else{actions.innerHTML='';}
     openModal('modal-detail');
   }
-
-  /* ── APPROVE MODAL ── */
-  function openApprove(id) {
-    selectedId = id;
-    const s = suratMap[id]; if (!s) return;
-    document.getElementById('approve-perihal').textContent = s.perihal || '—';
-    document.getElementById('inp-nomor-surat').value = s.nomor_surat || '';
-    document.getElementById('inp-tanggal-surat').value = s.tanggal_surat || new Date().toISOString().slice(0,10);
-    document.getElementById('inp-catatan-approve').value = s.catatan_admin || '';
-    document.getElementById('err-nomor-surat').classList.remove('show');
-    document.getElementById('err-tanggal-surat').classList.remove('show');
-    document.getElementById('approve-alert').className = 'alert';
-    openModal('modal-approve');
-  }
-
+  function openApprove(id) { selectedId=id; const s=suratMap[id];if(!s)return; document.getElementById('approve-perihal').textContent=s.perihal||'—'; document.getElementById('inp-nomor-surat').value=s.nomor_surat||''; document.getElementById('inp-tanggal-surat').value=s.tanggal_surat||new Date().toISOString().slice(0,10); document.getElementById('inp-catatan-approve').value=s.catatan_admin||''; document.getElementById('err-nomor-surat').classList.remove('show'); document.getElementById('err-tanggal-surat').classList.remove('show'); document.getElementById('approve-alert').className='alert'; openModal('modal-approve'); }
   async function submitApprove() {
-    const nomor = document.getElementById('inp-nomor-surat').value.trim();
-    const tanggal = document.getElementById('inp-tanggal-surat').value;
-    const catatan = document.getElementById('inp-catatan-approve').value.trim();
-
-    let valid = true;
-    if (!nomor) { document.getElementById('err-nomor-surat').classList.add('show'); document.getElementById('inp-nomor-surat').classList.add('error'); valid = false; }
-    else { document.getElementById('err-nomor-surat').classList.remove('show'); document.getElementById('inp-nomor-surat').classList.remove('error'); }
-    if (!tanggal) { document.getElementById('err-tanggal-surat').classList.add('show'); document.getElementById('inp-tanggal-surat').classList.add('error'); valid = false; }
-    else { document.getElementById('err-tanggal-surat').classList.remove('show'); document.getElementById('inp-tanggal-surat').classList.remove('error'); }
-    if (!valid) return;
-
-    const btn = document.getElementById('btn-approve-submit');
-    btn.disabled = true; btn.classList.add('loading');
-    try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${selectedId}`,
-        {
-          method: 'PATCH',
-          headers: { ...H, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({
-            status: 'disetujui',
-            nomor_surat: nomor,
-            tanggal_surat: tanggal,
-            catatan_admin: catatan || null
-          })
-        }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      closeModal('modal-approve');
-      showPageAlert('✅ Surat tugas berhasil disetujui.', 'success');
-      await loadSurat();
-    } catch(e) {
-      document.getElementById('approve-alert-icon').textContent = '⚠️';
-      document.getElementById('approve-alert-text').textContent = `Gagal menyetujui: ${e.message}`;
-      document.getElementById('approve-alert').className = 'alert error show';
-    } finally {
-      btn.disabled = false; btn.classList.remove('loading');
-    }
+    const nomor=document.getElementById('inp-nomor-surat').value.trim(),tanggal=document.getElementById('inp-tanggal-surat').value,catatan=document.getElementById('inp-catatan-approve').value.trim();
+    let valid=true;
+    if(!nomor){document.getElementById('err-nomor-surat').classList.add('show');document.getElementById('inp-nomor-surat').classList.add('error');valid=false;}else{document.getElementById('err-nomor-surat').classList.remove('show');document.getElementById('inp-nomor-surat').classList.remove('error');}
+    if(!tanggal){document.getElementById('err-tanggal-surat').classList.add('show');document.getElementById('inp-tanggal-surat').classList.add('error');valid=false;}else{document.getElementById('err-tanggal-surat').classList.remove('show');document.getElementById('inp-tanggal-surat').classList.remove('error');}
+    if(!valid)return;
+    const btn=document.getElementById('btn-approve-submit');btn.disabled=true;btn.classList.add('loading');
+    try{const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${selectedId}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({status:'disetujui',nomor_surat:nomor,tanggal_surat:tanggal,catatan_admin:catatan||null})});if(!res.ok)throw new Error(`HTTP ${res.status}`);closeModal('modal-approve');showPageAlert('✅ Surat tugas berhasil disetujui.','success');await loadSurat();}catch(e){document.getElementById('approve-alert-icon').textContent='⚠️';document.getElementById('approve-alert-text').textContent=`Gagal: ${e.message}`;document.getElementById('approve-alert').className='alert error show';}finally{btn.disabled=false;btn.classList.remove('loading');}
   }
-
-  /* ── REJECT MODAL ── */
-  function openReject(id) {
-    selectedId = id;
-    const s = suratMap[id]; if (!s) return;
-    document.getElementById('reject-perihal').textContent = s.perihal || '—';
-    document.getElementById('inp-catatan-reject').value = '';
-    document.getElementById('err-catatan-reject').classList.remove('show');
-    document.getElementById('reject-alert').className = 'alert';
-    openModal('modal-reject');
-  }
-
+  function openReject(id){selectedId=id;const s=suratMap[id];if(!s)return;document.getElementById('reject-perihal').textContent=s.perihal||'—';document.getElementById('inp-catatan-reject').value='';document.getElementById('err-catatan-reject').classList.remove('show');document.getElementById('reject-alert').className='alert';openModal('modal-reject');}
   async function submitReject() {
-    const catatan = document.getElementById('inp-catatan-reject').value.trim();
-    if (!catatan) {
-      document.getElementById('err-catatan-reject').classList.add('show');
-      document.getElementById('inp-catatan-reject').classList.add('error');
-      return;
-    }
-    document.getElementById('err-catatan-reject').classList.remove('show');
-    document.getElementById('inp-catatan-reject').classList.remove('error');
-
-    const btn = document.getElementById('btn-reject-submit');
-    btn.disabled = true; btn.classList.add('loading');
-    try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${selectedId}`,
-        {
-          method: 'PATCH',
-          headers: { ...H, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({
-            status: 'ditolak',
-            catatan_admin: catatan
-          })
-        }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      closeModal('modal-reject');
-      showPageAlert('❌ Surat tugas telah ditolak.', 'success');
-      await loadSurat();
-    } catch(e) {
-      document.getElementById('reject-alert-icon').textContent = '⚠️';
-      document.getElementById('reject-alert-text').textContent = `Gagal menolak: ${e.message}`;
-      document.getElementById('reject-alert').className = 'alert error show';
-    } finally {
-      btn.disabled = false; btn.classList.remove('loading');
-    }
+    const catatan=document.getElementById('inp-catatan-reject').value.trim();
+    if(!catatan){document.getElementById('err-catatan-reject').classList.add('show');document.getElementById('inp-catatan-reject').classList.add('error');return;}
+    document.getElementById('err-catatan-reject').classList.remove('show');document.getElementById('inp-catatan-reject').classList.remove('error');
+    const btn=document.getElementById('btn-reject-submit');btn.disabled=true;btn.classList.add('loading');
+    try{const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${selectedId}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({status:'ditolak',catatan_admin:catatan})});if(!res.ok)throw new Error(`HTTP ${res.status}`);closeModal('modal-reject');showPageAlert('❌ Surat tugas telah ditolak.','success');await loadSurat();}catch(e){document.getElementById('reject-alert-icon').textContent='⚠️';document.getElementById('reject-alert-text').textContent=`Gagal: ${e.message}`;document.getElementById('reject-alert').className='alert error show';}finally{btn.disabled=false;btn.classList.remove('loading');}
   }
+  function showPageAlert(msg,type='error'){document.getElementById('page-alert-icon').textContent=type==='success'?'✅':'⚠️';document.getElementById('page-alert-text').textContent=msg;document.getElementById('page-alert').className=`alert ${type} show`;setTimeout(()=>{document.getElementById('page-alert').className='alert';},5000);}
 
-  /* ── PAGE ALERT ── */
-  function showPageAlert(msg, type = 'error') {
-    document.getElementById('page-alert-icon').textContent = type === 'success' ? '✅' : '⚠️';
-    document.getElementById('page-alert-text').textContent = msg;
-    document.getElementById('page-alert').className = `alert ${type} show`;
-    setTimeout(() => { document.getElementById('page-alert').className = 'alert'; }, 5000);
-  }
-
-  /* ── INIT ── */
   function init() {
-    SESSION = checkSession(); if (!SESSION) return;
+    SESSION=checkSession();if(!SESSION)return;
     setTopbarUser(SESSION);
+    initRoleSwitcher(SESSION, true);
     loadSurat();
   }
   init();
