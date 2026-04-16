@@ -580,7 +580,7 @@ async function loadSurat(){
     updateStats();renderTable(allSurat);
     document.getElementById('tc-list').textContent=allSurat.length;
   }catch(e){
-    document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">⚠️</div><div class="table-empty-text">Gagal memuat data. Muat ulang halaman.</div></div>';
+    document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">⚠️</div><div class="table-empty-text">Gagal memuat data. Periksa koneksi atau kebijakan akses (RLS) di Supabase.</div></div>';
   }
 }
 
@@ -600,7 +600,7 @@ function badgeHTML(status){
 function renderTable(data){
   document.getElementById('table-count').textContent=`${data.length} surat`;
   if(!data.length){
-    document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Belum ada surat tugas. Gunakan tab Bulk Entry untuk membuat surat baru.</div></div>';
+    document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Belum ada surat tugas. Gunakan tab <strong>Minta Surat Tugas</strong> untuk membuat pengajuan baru.</div></div>';
     return;
   }
   data.forEach(s=>{ suratMap[s.id]=s; });
