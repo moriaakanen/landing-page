@@ -34,6 +34,7 @@
   .nav-item:hover .nav-item-icon{background:var(--border)}
   .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7;}
   .sidebar-footer strong{color:var(--navy);font-weight:600}
+  .admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.35);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--gold);margin-top:4px;letter-spacing:.3px}
   .main{flex:1;overflow-y:auto;padding:36px 40px}
   .page-header{margin-bottom:28px}
   .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px;}
@@ -101,8 +102,20 @@
     <a class="nav-item" href="surat-tugas.html">
       <div class="nav-item-icon">📄</div>Surat Tugas
     </a>
+
+    <!-- ADMIN MENU — hanya tampil untuk administrator -->
+    <div id="admin-nav" style="display:none">
+      <div class="nav-group-label">Administrasi</div>
+      <a class="nav-item" href="manajemen-pengguna.html">
+        <div class="nav-item-icon">👥</div>Manajemen Pengguna
+      </a>
+    </div>
+
     <div class="sidebar-footer">
       <strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>© 2026 Pemerintah RI
+      <div id="admin-footer-badge" style="display:none;margin-top:6px">
+        <span class="admin-badge">🔑 Administrator</span>
+      </div>
     </div>
   </aside>
   <main class="main">
@@ -133,7 +146,6 @@
   </main>
 </div>
 
-<!-- Fix #6: Gunakan config.js terpusat, hapus duplikasi SB_URL/SB_KEY -->
 <script src="config.js"></script>
 <script>
   /*
@@ -163,7 +175,6 @@
   async function fetchProfil(userId){
     const card=document.getElementById('profil-card');
     try{
-      // Fix #9 catatan: "data%20pegawai" → idealnya rename ke "data_pegawai"
       const res=await fetch(`${SUPABASE_URL}/rest/v1/data%20pegawai?id=eq.${encodeURIComponent(userId)}&select=*&limit=1`,{
         headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`}
       });
@@ -181,7 +192,18 @@
       card.innerHTML=`<div class="profil-banner"></div><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Gagal Memuat Data</div><div class="empty-desc">Terjadi kesalahan. Muat ulang halaman.</div></div>`;
     }
   }
-  function init(){const s=checkSession();if(!s)return;setTopbarUser(s);fetchProfil(s.id);}
+  function init(){
+    const s=checkSession();
+    if(!s)return;
+    setTopbarUser(s);
+    fetchProfil(s.id);
+
+    // Tampilkan menu admin jika user adalah administrator
+    if(ADMIN_USERS.includes(s.username)){
+      document.getElementById('admin-nav').style.display='block';
+      document.getElementById('admin-footer-badge').style.display='block';
+    }
+  }
   init();
 </script>
 </body>
