@@ -102,15 +102,16 @@
     <a class="nav-item" href="surat-tugas.html">
       <div class="nav-item-icon">📄</div>Surat Tugas
     </a>
-
     <!-- ADMIN MENU — hanya tampil untuk administrator -->
     <div id="admin-nav" style="display:none">
       <div class="nav-group-label">Administrasi</div>
+      <a class="nav-item" href="admin-surat-tugas.html">
+        <div class="nav-item-icon">✅</div>Persetujuan Surat
+      </a>
       <a class="nav-item" href="manajemen-pengguna.html">
         <div class="nav-item-icon">👥</div>Manajemen Pengguna
       </a>
     </div>
-
     <div class="sidebar-footer">
       <strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>© 2026 Pemerintah RI
       <div id="admin-footer-badge" style="display:none;margin-top:6px">
@@ -148,12 +149,6 @@
 
 <script src="config.js"></script>
 <script>
-  /*
-   * Fix #9 — CATATAN:
-   * Nama tabel "data pegawai" mengandung spasi sehingga harus di-encode di URL.
-   * Sebaiknya rename tabel menjadi "data_pegawai" di Supabase dashboard
-   * untuk menghindari potensi masalah encoding di masa depan.
-   */
   function checkSession(){
     try{
       const s=JSON.parse(localStorage.getItem('nova_user')||'null');
@@ -197,8 +192,6 @@
     if(!s)return;
     setTopbarUser(s);
     fetchProfil(s.id);
-
-    // Tampilkan menu admin jika user adalah administrator
     if(ADMIN_USERS.includes(s.username)){
       document.getElementById('admin-nav').style.display='block';
       document.getElementById('admin-footer-badge').style.display='block';
