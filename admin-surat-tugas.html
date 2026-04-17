@@ -120,43 +120,88 @@
   .preview-error{padding:48px 24px;text-align:center;color:var(--red)}
   .preview-error-icon{font-size:40px;margin-bottom:12px;opacity:.5}
 
-  /* ═══ PRINT STYLES — hanya tampil konten preview saat print ═══ */
-  @media print {
-    /* Sembunyikan semua elemen halaman */
-    body > * { display: none !important; }
-
-    /* Kecuali modal preview */
-    body > #modal-preview {
-      display: block !important;
-      position: static !important;
-      background: white !important;
-      padding: 0 !important;
-      inset: auto !important;
-    }
-    #modal-preview .modal-preview {
-      max-width: none !important;
-      max-height: none !important;
-      box-shadow: none !important;
-      border-radius: 0 !important;
-      animation: none !important;
-    }
-    /* Sembunyikan header & footer modal (tombol-tombol) */
-    #modal-preview .modal-header,
-    #modal-preview .modal-footer { display: none !important; }
-
-    /* Konten preview tampil tanpa background abu-abu & shadow */
-    #modal-preview .modal-body { background: white !important; overflow: visible !important; }
-    #modal-preview .preview-container { padding: 0 !important; }
-    #modal-preview .preview-container .docx {
-      box-shadow: none !important;
-      padding: 0 !important;
-      max-width: none !important;
-      margin: 0 !important;
-    }
-
-    /* Page setup untuk print */
-    @page { margin: 2cm; size: A4; }
-  }
+     /* ═══ PRINT STYLES — hanya tampil konten preview saat print ═══ */
+     @media print {
+       /* Gunakan margin 0 — biarkan padding internal .docx section (= margin dokumen)
+          yang menentukan spacing. Ini penting karena docx-preview menghasilkan
+          section berukuran A4 penuh, jika browser menambahkan margin lagi, section
+          akan overflow dan membuat halaman kosong. */
+       @page { margin: 0; size: A4; }
+     
+       html, body {
+         margin: 0 !important;
+         padding: 0 !important;
+         background: white !important;
+       }
+     
+       /* Sembunyikan semua elemen halaman */
+       body > * { display: none !important; }
+     
+       /* Kecuali modal preview */
+       body > #modal-preview {
+         display: block !important;
+         position: static !important;
+         background: white !important;
+         padding: 0 !important;
+         margin: 0 !important;
+         inset: auto !important;
+       }
+       #modal-preview .modal-preview {
+         max-width: none !important;
+         max-height: none !important;
+         box-shadow: none !important;
+         border-radius: 0 !important;
+         animation: none !important;
+         margin: 0 !important;
+         padding: 0 !important;
+         display: block !important;
+         overflow: visible !important;
+         width: auto !important;
+       }
+     
+       /* Sembunyikan header & footer modal (tombol-tombol) */
+       #modal-preview .modal-header,
+       #modal-preview .modal-footer { display: none !important; }
+     
+       /* Reset background abu-abu & overflow */
+       #modal-preview .modal-body {
+         background: white !important;
+         overflow: visible !important;
+         padding: 0 !important;
+         margin: 0 !important;
+         display: block !important;
+       }
+       #modal-preview .preview-container {
+         padding: 0 !important;
+         margin: 0 !important;
+       }
+     
+       /* Reset wrapper docx-preview (default-nya punya padding untuk tampilan screen) */
+       #modal-preview .preview-container .docx-wrapper {
+         background: white !important;
+         padding: 0 !important;
+         margin: 0 !important;
+       }
+     
+       /* Timpa styling screen kita (padding 56px 72px, max-width 720px) dan kembalikan
+          padding ke 2cm agar match dengan margin dokumen di buildSuratTugasDoc(). */
+       #modal-preview .preview-container .docx,
+       #modal-preview .preview-container section.docx {
+         box-shadow: none !important;
+         margin: 0 !important;
+         max-width: none !important;
+         padding: 2cm !important;
+       }
+     
+       /* Setiap section = 1 halaman */
+       #modal-preview .preview-container section.docx {
+         page-break-after: always;
+         page-break-inside: avoid;
+       }
+       #modal-preview .preview-container section.docx:last-child {
+         page-break-after: auto;
+       }
+     }
   .btn-outline{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s;white-space:nowrap}
   .btn-outline:hover{border-color:var(--navy);background:var(--bg)}
   .btn-sm{padding:4px 10px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--navy)}
