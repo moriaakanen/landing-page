@@ -7,7 +7,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
 <!-- Library untuk generate file .docx di browser -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
+<!-- docx.js — CDN utama (unpkg) dengan fallback otomatis ke jsdelivr -->
+<script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+<script>
+  // Fallback: kalau unpkg gagal, coba jsdelivr
+  if (typeof docx === 'undefined') {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/docx@7.1.0/build/index.js"><\/script>');
+  }
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <style>
   :root{--bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--red:#c0392b;--success:#1a7a4a;--sidebar-w:260px;}
@@ -450,6 +457,17 @@
     if (!surat) return;
     if (surat.status !== 'disetujui') {
       showPageAlert('Surat hanya bisa di-generate jika sudah disetujui.', 'error');
+      return;
+    }
+
+    // Pastikan library sudah ter-load
+    if (typeof docx === 'undefined') {
+      showPageAlert('Library docx gagal dimuat. Periksa koneksi internet atau firewall, lalu refresh halaman.', 'error');
+      console.error('docx library not loaded — check CDN access to unpkg.com and jsdelivr.net');
+      return;
+    }
+    if (typeof saveAs === 'undefined') {
+      showPageAlert('Library FileSaver gagal dimuat. Periksa koneksi internet dan refresh halaman.', 'error');
       return;
     }
 
