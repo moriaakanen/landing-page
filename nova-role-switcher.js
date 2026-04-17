@@ -1,6 +1,6 @@
 /**
  * ROLE SWITCHER — nova-role-switcher.js
- * Portal NOVA · versi multi-role (DB-first)
+ * Portal NOVA · versi multi-role
  * Diload SETELAH config.js
  */
 
@@ -42,15 +42,13 @@
 
 /**
  * Ambil daftar role yang dimiliki user dari session.
- * Delegasi ke getUserRoles() dari config.js.
+ * Prioritas: field roles (array) → field role (string) → cek ADMIN_USERS
  */
 function _getSessionRoles(session) {
-  if (typeof getUserRoles === 'function') return getUserRoles(session);
-  // Fallback inline jika config.js belum diload
   if (!session) return ['user'];
   if (Array.isArray(session.roles) && session.roles.length) return session.roles;
-  if (session.role) return session.role === 'admin' ? ['admin', 'user'] : [session.role];
-  return ['user'];
+  if (session.role) return [session.role];
+  return ADMIN_USERS.includes(session.username) ? ['admin', 'user'] : ['user'];
 }
 
 function getActiveRole() {
@@ -117,24 +115,11 @@ function applyRoleBadge(role) {
 function initRoleSwitcher(session, isAdminPage = false) {
   if (!session) return;
 
-  const allowedRoles = _getSessionRoles(session);
-
   // Set default active_role jika belum ada
   if (!session.active_role) {
-    session.active_role = allowedRoles.includes('admin') ? 'admin' : 'user';
+    const roles = _getSessionRoles(session);
+    session.active_role = roles.includes('admin') ? 'admin' : 'user';
     localStorage.setItem('nova_user', JSON.stringify(session));
-  }
-
-  // Jika active_role saat ini tidak valid (mis. setelah role dicabut), reset
-  if (!allowedRoles.includes(session.active_role)) {
-    session.active_role = allowedRoles[0] || 'user';
-    localStorage.setItem('nova_user', JSON.stringify(session));
-  }
-
-  // Redirect jika halaman admin tapi user tidak punya role admin sama sekali
-  if (isAdminPage && !allowedRoles.includes('admin')) {
-    window.location.replace('index.html');
-    return;
   }
 
   // Redirect jika halaman admin tapi role aktif bukan admin
@@ -149,32 +134,18 @@ function initRoleSwitcher(session, isAdminPage = false) {
   if (usdName) usdName.textContent = name;
 
   // Tampilkan/sembunyikan opsi sesuai role yang dimiliki user
+  const allowedRoles = _getSessionRoles(session);
+
   const optAdmin = document.getElementById('usd-opt-admin');
   const optUser  = document.getElementById('usd-opt-user');
   if (optAdmin) optAdmin.style.display = allowedRoles.includes('admin') ? '' : 'none';
   if (optUser)  optUser.style.display  = allowedRoles.includes('user')  ? '' : 'none';
-
-  // Sembunyikan seluruh switcher jika user hanya punya 1 role
-  const switcher = document.getElementById('user-switcher');
-  if (switcher && allowedRoles.length < 2) {
-    const caret = switcher.querySelector('.user-switcher-caret');
-    if (caret) caret.style.display = 'none';
-    const btn = document.getElementById('user-switcher-btn');
-    if (btn) btn.style.cursor = 'default';
-  }
 
   applyRoleBadge(session.active_role);
   applyRoleSidebar(session.active_role);
 }
 
 function toggleUserDropdown() {
-  // Jangan buka jika user hanya punya 1 role
-  try {
-    const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
-    const roles = _getSessionRoles(s);
-    if (roles.length < 2) return;
-  } catch(e) {}
-
   const dropdown = document.getElementById('user-switcher-dropdown');
   const btn = document.getElementById('user-switcher-btn');
   if (!dropdown || !btn) return;
