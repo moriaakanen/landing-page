@@ -119,6 +119,44 @@
   @keyframes spinFull{to{transform:rotate(360deg)}}
   .preview-error{padding:48px 24px;text-align:center;color:var(--red)}
   .preview-error-icon{font-size:40px;margin-bottom:12px;opacity:.5}
+
+  /* ═══ PRINT STYLES — hanya tampil konten preview saat print ═══ */
+  @media print {
+    /* Sembunyikan semua elemen halaman */
+    body > * { display: none !important; }
+
+    /* Kecuali modal preview */
+    body > #modal-preview {
+      display: block !important;
+      position: static !important;
+      background: white !important;
+      padding: 0 !important;
+      inset: auto !important;
+    }
+    #modal-preview .modal-preview {
+      max-width: none !important;
+      max-height: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      animation: none !important;
+    }
+    /* Sembunyikan header & footer modal (tombol-tombol) */
+    #modal-preview .modal-header,
+    #modal-preview .modal-footer { display: none !important; }
+
+    /* Konten preview tampil tanpa background abu-abu & shadow */
+    #modal-preview .modal-body { background: white !important; overflow: visible !important; }
+    #modal-preview .preview-container { padding: 0 !important; }
+    #modal-preview .preview-container .docx {
+      box-shadow: none !important;
+      padding: 0 !important;
+      max-width: none !important;
+      margin: 0 !important;
+    }
+
+    /* Page setup untuk print */
+    @page { margin: 2cm; size: A4; }
+  }
   .btn-outline{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s;white-space:nowrap}
   .btn-outline:hover{border-color:var(--navy);background:var(--bg)}
   .btn-sm{padding:4px 10px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--navy)}
@@ -386,6 +424,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-preview')">Tutup</button>
+      <button class="btn-preview" onclick="printFromPreview()">🖨 Print</button>
       <button class="btn-download" id="btn-preview-download" onclick="downloadFromPreview()">📥 Download .docx</button>
     </div>
   </div>
@@ -613,6 +652,22 @@
       console.error(e);
       showPageAlert(`Gagal download: ${e.message}`, 'error');
     }
+  }
+
+  // ─── Print dari dalam modal preview ───
+  // Memanfaatkan CSS @media print untuk hanya menampilkan konten preview.
+  // Browser akan membuka dialog print native, user bisa pilih printer fisik
+  // atau simpan sebagai PDF ("Save as PDF").
+  function printFromPreview() {
+    if (!currentPreviewSurat) return;
+    const container = document.getElementById('preview-container');
+    if (!container || !container.querySelector('.docx')) {
+      showPageAlert('Preview belum selesai dimuat. Tunggu sebentar lalu coba lagi.', 'error');
+      return;
+    }
+    // Browser print dialog akan langsung muncul dan CSS @media print
+    // akan menyembunyikan semua kecuali isi preview.
+    window.print();
   }
 
   // ═══════════════════════════════════════════════════════════════════════
