@@ -488,7 +488,7 @@
 
   let SESSION = null, allPengguna = [], userMap = {}, selectedUserId = null, selectedUserName = '';
   let newUserRoles = ['user'];
-  let newUserRole  = 'user'; // backward compat
+  let newUserRole  = 'user';
 
   /* ══ SESSION ══ */
   function checkSession() {
@@ -527,7 +527,6 @@
     document.getElementById('table-area').innerHTML = `<table class="list-table"><thead><tr><th>Pengguna</th><th>Role</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th></tr></thead><tbody><tr><td colspan="5"><div style="padding:16px;display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div></td></tr></tbody></table>`;
     document.getElementById('table-count').textContent = 'Memuat...';
     try {
-      // Sertakan kolom 'roles' (array) agar multi-role terbaca dengan benar
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?select=id,username,full_name,must_change_password,created_at,role,roles&order=full_name.asc`,
         { headers: H }
@@ -563,7 +562,6 @@
     renderTable(f);
   }
 
-  /* Ambil array roles dari object user — mendukung field roles (array) dan role (string) */
   function getRoles(u) {
     if (Array.isArray(u.roles) && u.roles.length) return u.roles;
     if (u.role) return [u.role];
@@ -579,6 +577,7 @@
     const rows = data.map(u => {
       const name = u.full_name || u.username || '-';
       const ini  = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      // Perlindungan untuk admin bootstrap utama
       const isProtected = ADMIN_USERS.includes(u.username);
       const roles = getRoles(u);
       const roleBadges = roles.map(r =>
@@ -668,7 +667,7 @@
     if (!u) return;
     selectedUserId   = userId;
     selectedUserName = u.full_name || u.username || '-';
-    editRoles        = getRoles(u).slice(); // copy
+    editRoles        = getRoles(u).slice();
 
     const ini = selectedUserName.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('edit-avatar').textContent          = ini;
@@ -690,23 +689,19 @@
     btn.disabled = true; btn.classList.add('loading');
 
     try {
-      // Primary role: admin jika salah satu role adalah admin
       const primaryRole = editRoles.includes('admin') ? 'admin' : editRoles[0];
 
       const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`, {
         method: 'PATCH',
         headers: { ...H, 'Prefer': 'return=minimal' },
-        // Simpan KEDUANYA: role (string, primary) dan roles (array, lengkap)
         body: JSON.stringify({ role: primaryRole, roles: editRoles })
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      // ── Update data lokal di userMap agar tabel langsung ter-refresh ──
       if (userMap[selectedUserId]) {
         userMap[selectedUserId].role  = primaryRole;
         userMap[selectedUserId].roles = editRoles.slice();
-        // Update juga di allPengguna
         const idx = allPengguna.findIndex(u => u.id === selectedUserId);
         if (idx >= 0) {
           allPengguna[idx].role  = primaryRole;
@@ -714,18 +709,15 @@
         }
       }
 
-      // ── Sinkronisasi session jika admin sedang mengedit akunnya sendiri ──
       const editedUsername = document.getElementById('edit-display-username').textContent.replace('@','');
       if (SESSION && editedUsername === SESSION.username) {
         SESSION.role   = primaryRole;
         SESSION.roles  = editRoles.slice();
-        // Jika active_role saat ini tidak ada di editRoles, reset ke role pertama
         if (!editRoles.includes(SESSION.active_role)) {
           SESSION.active_role = editRoles[0];
         }
         localStorage.setItem('nova_user', JSON.stringify(SESSION));
 
-        // Redirect jika admin mencabut akses adminnya sendiri
         if (SESSION.active_role !== 'admin') {
           closeModal('modal-edit');
           showPageAlert('✅ Role diperbarui. Anda tidak lagi memiliki akses admin.', 'success');
@@ -738,7 +730,6 @@
       const rolesLabel = editRoles.map(r => r === 'admin' ? '👑 Admin' : '👤 User').join(' + ');
       showPageAlert(`✅ Role ${selectedUserName} diperbarui: ${rolesLabel}.`, 'success');
 
-      // Re-render tabel dari data lokal yang sudah di-update (tanpa fetch ulang)
       filterTable();
 
     } catch(e) {
@@ -793,18 +784,26 @@
     const btn = document.getElementById('btn-tambah-submit');
     btn.disabled = true; btn.classList.add('loading');
     try {
-      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`,{
-        method:'POST', headers:H,
-        body:JSON.stringify({
-          p_username:username, p_full_name:nama, p_password:password,
-          p_must_change:mustChange, p_role:newUserRoles[0], p_roles:newUserRoles
+      // ── Hanya lewat RPC buat_pengguna (password di-hash bcrypt di server) ──
+      // ── Fallback PATCH plaintext SUDAH DIHAPUS karena tidak aman ──
+      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`, {
+        method: 'POST',
+        headers: H,
+        body: JSON.stringify({
+          p_username:     username,
+          p_full_name:    nama,
+          p_password:     password,
+          p_must_change:  mustChange,
+          p_role:         newUserRoles[0],
+          p_roles:        newUserRoles
         })
       });
       if (!rpcRes.ok) {
         let errMsg = `HTTP ${rpcRes.status}`;
-        try { const err = await rpcRes.json(); errMsg = err.message || errMsg; } catch(_) {}
+        try { const err = await rpcRes.json(); errMsg = err.message || err.hint || errMsg; } catch(_) {}
         throw new Error(errMsg);
       }
+
       showPageAlert(`✅ Pengguna @${username} berhasil ditambahkan dengan role: ${newUserRoles.join(', ')}.`,'success');
       closeModal('modal-tambah');
       document.getElementById('inp-nama').value='';
@@ -833,20 +832,26 @@
     const btn = document.getElementById('btn-reset-submit');
     btn.disabled=true; btn.classList.add('loading');
     try {
-      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`,{
-        method:'POST', headers:H,
-        body:JSON.stringify({p_user_id:selectedUserId, p_new_password:newPass})
+      // ── Hanya lewat RPC reset_password_admin (password di-hash bcrypt) ──
+      // ── Fallback PATCH plaintext SUDAH DIHAPUS karena tidak aman ──
+      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`, {
+        method: 'POST',
+        headers: H,
+        body: JSON.stringify({
+          p_user_id:      selectedUserId,
+          p_new_password: newPass
+        })
       });
       if (!rpcRes.ok) {
         let errMsg = `HTTP ${rpcRes.status}`;
-        try { const err = await rpcRes.json(); errMsg = err.message || errMsg; } catch(_) {}
+        try { const err = await rpcRes.json(); errMsg = err.message || err.hint || errMsg; } catch(_) {}
         throw new Error(errMsg);
       }
-      // RPC mengembalikan boolean — cek juga value-nya
       const rpcResult = await rpcRes.json().catch(() => null);
       if (rpcResult === false) {
-        throw new Error('Reset password gagal — user tidak ditemukan atau password terlalu pendek');
+        throw new Error('Reset gagal — user tidak ditemukan atau password terlalu pendek');
       }
+
       showPageAlert(`🔑 Kata sandi ${selectedUserName} berhasil direset.`,'success');
       closeModal('modal-reset');
       await loadPengguna();
