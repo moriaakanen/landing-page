@@ -360,10 +360,7 @@
       clearLockout();
       const user = data[0];
 
-      // ── Bangun daftar roles ──────────────────────────────────────────
-      // Mendukung field 'roles' (array) dan 'role' (string) dari DB.
-      // _getSessionRoles() di nova-role-switcher.js akan baca field ini.
-      // Bangun rolesArr dari response DB.
+      // ── Bangun daftar roles dari DB ───────────────────────────────
       // RPC verify_login versi baru SELALU return kolom roles (array).
       let rolesArr;
       if (Array.isArray(user.roles) && user.roles.length) {
@@ -373,12 +370,12 @@
       } else if (user.role) {
         rolesArr = [user.role];
       } else if (ADMIN_USERS.includes(user.username)) {
-        // Bootstrap fallback jika DB belum ada kolom roles
+        // Bootstrap fallback jika DB belum punya kolom roles
         rolesArr = ['admin', 'user'];
       } else {
         rolesArr = ['user'];
       }
-      // ────────────────────────────────────────────────────────────────
+      // ────────────────────────────────────────────────────────────
 
       const session = {
         id:                   user.id,
@@ -386,8 +383,7 @@
         full_name:            user.full_name,
         must_change_password: user.must_change_password,
         expires_at:           Date.now() + 8 * 60 * 60 * 1000,
-        // Field role info — dipakai oleh nova-role-switcher.js
-        role:                 user.role  || null,
+        role:                 user.role  || (rolesArr.includes('admin') ? 'admin' : 'user'),
         roles:                rolesArr,
       };
       localStorage.setItem('nova_user', JSON.stringify(session));
