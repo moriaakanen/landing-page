@@ -170,7 +170,11 @@
       if(!s){window.location.replace('login.html');return null;}
       if(s.expires_at&&Date.now()>s.expires_at){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}
       if(s.must_change_password){window.location.replace('ganti-password.html');return null;}
-      if(!s.active_role){s.active_role=ADMIN_USERS.includes(s.username)?'admin':'user';localStorage.setItem('nova_user',JSON.stringify(s));}
+      if (!s.active_role) {
+        const roles = getUserRoles(s);
+        s.active_role = roles.includes('admin') ? 'admin' : 'user';
+        localStorage.setItem('nova_user', JSON.stringify(s));
+      }
       return s;
     }catch(e){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}
   }
