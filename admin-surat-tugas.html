@@ -6,6 +6,9 @@
 <title>Portal NOVA — Admin Surat Tugas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<!-- Library untuk generate file .docx di browser -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <style>
   :root{--bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--red:#c0392b;--success:#1a7a4a;--sidebar-w:260px;}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -62,6 +65,9 @@
   .btn-approve:hover{background:#15643d}
   .btn-reject{background:#c0392b;color:white;border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .btn-reject:hover{background:#a03020}
+  .btn-generate{background:var(--gold);color:var(--navy);border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+  .btn-generate:hover{background:#b89438}
+  .btn-generate:disabled{opacity:.6;cursor:wait}
   .btn-outline{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s;white-space:nowrap}
   .btn-outline:hover{border-color:var(--navy);background:var(--bg)}
   .btn-sm{padding:4px 10px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--navy)}
@@ -143,7 +149,6 @@
   </div>
   <div class="topbar-right">
     <span class="topbar-time" id="topbar-time"></span>
-    <!-- ROLE SWITCHER -->
     <div class="user-switcher" id="user-switcher">
       <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false" type="button">
         <div class="topbar-avatar" id="topbar-avatar">—</div>
@@ -332,8 +337,7 @@
       }
       // Gate berbasis role dari DB, bukan hardcoded ADMIN_USERS
       if (!roles.includes('admin') || s.active_role !== 'admin') {
-        window.location.replace('index.html');
-        return null;
+        window.location.replace('index.html'); return null;
       }
       return s;
     } catch(e) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
@@ -373,7 +377,7 @@
   function renderTable(data) {
     document.getElementById('table-count').textContent=`${data.length} surat`;
     if(!data.length){document.getElementById('table-area').innerHTML=`<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Tidak ada surat tugas ditemukan.</div></div>`;return;}
-    const rows=data.map(s=>{const isMenunggu=s.status==='menunggu';const aksiBtn=isMenunggu?`<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button><button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button><button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button></div>`:`<div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button></div>`;return`<tr><td style="max-width:200px;word-break:break-word;line-height:1.5">${esc(s.perihal)||'—'}</td><td style="font-size:12px;white-space:nowrap">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td><td>${esc(s.tujuan)||'—'}</td><td><span style="font-size:12px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td><td>${badgeHTML(s.status)}</td><td>${aksiBtn}</td></tr>`;}).join('');
+    const rows=data.map(s=>{const isMenunggu=s.status==='menunggu';const isDisetujui=s.status==='disetujui';let aksiBtn;if(isMenunggu){aksiBtn=`<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button><button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button><button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button></div>`;}else if(isDisetujui){aksiBtn=`<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button><button class="btn-generate" onclick="generateSuratTugas(${s.id})">📄 Generate Surat</button></div>`;}else{aksiBtn=`<div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button></div>`;}return`<tr><td style="max-width:200px;word-break:break-word;line-height:1.5">${esc(s.perihal)||'—'}</td><td style="font-size:12px;white-space:nowrap">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td><td>${esc(s.tujuan)||'—'}</td><td><span style="font-size:12px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td><td>${badgeHTML(s.status)}</td><td>${aksiBtn}</td></tr>`;}).join('');
     document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
   function openModal(id){document.getElementById(id).style.display='flex';}
@@ -386,7 +390,7 @@
     const pegawaiStr=(s.pegawai_list||[]).length?s.pegawai_list.map(esc).join(', '):null;
     document.getElementById('modal-detail-body').innerHTML=`<div class="detail-grid">${f('Status',s.status==='menunggu'?'⏳ Menunggu':s.status==='disetujui'?'✅ Disetujui':'❌ Ditolak')}${f('Tanggal Pengajuan',s.created_at?new Date(s.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):null)}${f('Perihal',s.perihal,true)}${f('Tujuan',s.tujuan,true)}${f('Tanggal Berangkat',fmtTgl(s.tanggal_berangkat))}${f('Tanggal Kembali',fmtTgl(s.tanggal_kembali))}${f('Pegawai',pegawaiStr,true)}${s.nomor_surat?f('Nomor Surat',s.nomor_surat):''}${s.tanggal_surat?f('Tanggal Surat',fmtTgl(s.tanggal_surat)):''}${s.catatan_admin?f('Catatan Admin',s.catatan_admin,true):''}</div>`;
     const actions=document.getElementById('modal-detail-actions');
-    if(s.status==='menunggu'){actions.innerHTML=`<div style="display:flex;gap:8px"><button class="btn-approve" onclick="closeModal('modal-detail');openApprove(${s.id})">✅ Setujui</button><button class="btn-reject" onclick="closeModal('modal-detail');openReject(${s.id})">❌ Tolak</button></div>`;}else{actions.innerHTML='';}
+    if(s.status==='menunggu'){actions.innerHTML=`<div style="display:flex;gap:8px"><button class="btn-approve" onclick="closeModal('modal-detail');openApprove(${s.id})">✅ Setujui</button><button class="btn-reject" onclick="closeModal('modal-detail');openReject(${s.id})">❌ Tolak</button></div>`;}else if(s.status==='disetujui'){actions.innerHTML=`<button class="btn-generate" onclick="closeModal('modal-detail');generateSuratTugas(${s.id})">📄 Generate Surat</button>`;}else{actions.innerHTML='';}
     openModal('modal-detail');
   }
   function openApprove(id) { selectedId=id; const s=suratMap[id];if(!s)return; document.getElementById('approve-perihal').textContent=s.perihal||'—'; document.getElementById('inp-nomor-surat').value=s.nomor_surat||''; document.getElementById('inp-tanggal-surat').value=s.tanggal_surat||new Date().toISOString().slice(0,10); document.getElementById('inp-catatan-approve').value=s.catatan_admin||''; document.getElementById('err-nomor-surat').classList.remove('show'); document.getElementById('err-tanggal-surat').classList.remove('show'); document.getElementById('approve-alert').className='alert'; openModal('modal-approve'); }
@@ -408,6 +412,272 @@
     try{const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${selectedId}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({status:'ditolak',catatan_admin:catatan})});if(!res.ok)throw new Error(`HTTP ${res.status}`);closeModal('modal-reject');showPageAlert('❌ Surat tugas telah ditolak.','success');await loadSurat();}catch(e){document.getElementById('reject-alert-icon').textContent='⚠️';document.getElementById('reject-alert-text').textContent=`Gagal: ${e.message}`;document.getElementById('reject-alert').className='alert error show';}finally{btn.disabled=false;btn.classList.remove('loading');}
   }
   function showPageAlert(msg,type='error'){document.getElementById('page-alert-icon').textContent=type==='success'?'✅':'⚠️';document.getElementById('page-alert-text').textContent=msg;document.getElementById('page-alert').className=`alert ${type} show`;setTimeout(()=>{document.getElementById('page-alert').className='alert';},5000);}
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // GENERATE SURAT TUGAS (.docx)
+  // ═══════════════════════════════════════════════════════════════════════
+  //
+  // 📝 CARA EDIT TEMPLATE:
+  // ──────────────────────
+  // Fungsi buildSuratTugasDoc(data) di bawah adalah template surat tugas.
+  // Anda bisa mengedit struktur, kop surat, dan layout tanpa menyentuh
+  // logika lain.
+  //
+  // Data yang tersedia untuk template (via parameter `data`):
+  //   data.nomor_surat       → string
+  //   data.tanggal_surat     → string (YYYY-MM-DD)
+  //   data.perihal           → string
+  //   data.tujuan            → string
+  //   data.tanggal_berangkat → string (YYYY-MM-DD)
+  //   data.tanggal_kembali   → string (YYYY-MM-DD)
+  //   data.pegawai_list      → array of strings (nama pegawai)
+  //   data.catatan_admin     → string (opsional)
+  //
+  // Helper yang tersedia:
+  //   fmtTgl(dateStr)               → '10 April 2026'
+  //   fmtWaktu(mulai, selesai)      → '10 s.d. 12 April 2026'
+  //
+  // Library docx.js dokumentasi lengkap:
+  //   https://docx.js.org/
+  //
+  // Komponen utama yang dipakai di template:
+  //   Document, Paragraph, TextRun, Table, TableRow, TableCell,
+  //   AlignmentType, HeadingLevel, BorderStyle
+  // ═══════════════════════════════════════════════════════════════════════
+
+  async function generateSuratTugas(suratId) {
+    const surat = suratMap[suratId];
+    if (!surat) return;
+    if (surat.status !== 'disetujui') {
+      showPageAlert('Surat hanya bisa di-generate jika sudah disetujui.', 'error');
+      return;
+    }
+
+    try {
+      const blob = await buildSuratTugasDoc(surat);
+      const fileName = `Surat-Tugas_${(surat.nomor_surat || surat.id).toString().replace(/[^a-zA-Z0-9-_]/g, '-')}.docx`;
+      saveAs(blob, fileName);
+      showPageAlert(`📄 Surat tugas berhasil di-generate: ${fileName}`, 'success');
+    } catch(e) {
+      console.error(e);
+      showPageAlert(`Gagal generate: ${e.message}`, 'error');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // ↓↓↓ EDIT TEMPLATE DI SINI ↓↓↓
+  // ═══════════════════════════════════════════════════════════════════════
+  async function buildSuratTugasDoc(data) {
+    // Import komponen dari library docx (sudah ter-load via CDN)
+    const {
+      Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+      AlignmentType, HeadingLevel, BorderStyle, WidthType, VerticalAlign
+    } = docx;
+
+    // ─── Helper: buat paragraf teks biasa ───
+    const p = (text, opts = {}) => new Paragraph({
+      alignment: opts.align || AlignmentType.LEFT,
+      spacing: { after: opts.spaceAfter || 100 },
+      children: [new TextRun({
+        text: text,
+        bold: opts.bold || false,
+        italics: opts.italic || false,
+        size: opts.size || 22,       // 22 = 11pt (ukuran dikali 2)
+        font: opts.font || 'Times New Roman',
+      })],
+    });
+
+    // ─── Helper: paragraf kosong (baris jarak) ───
+    const empty = () => new Paragraph({ children: [new TextRun('')] });
+
+    // ─── Helper: cell tabel ───
+    const cell = (text, opts = {}) => new TableCell({
+      width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined,
+      verticalAlign: VerticalAlign.CENTER,
+      children: [new Paragraph({
+        alignment: opts.align || AlignmentType.LEFT,
+        children: [new TextRun({
+          text: text,
+          bold: opts.bold || false,
+          size: 22,
+          font: 'Times New Roman',
+        })],
+      })],
+      borders: opts.noBorder ? {
+        top:    { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        left:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        right:  { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+      } : undefined,
+    });
+
+    // ─── Tanggal surat untuk tanda tangan ───
+    const tanggalSuratFmt = data.tanggal_surat ? fmtTgl(data.tanggal_surat) : fmtTgl(new Date().toISOString().slice(0,10));
+    const pegawai = Array.isArray(data.pegawai_list) ? data.pegawai_list : [];
+
+    // ═════════════════════════════════════════════════════════════════════
+    // ISI DOKUMEN (dari atas ke bawah)
+    // ═════════════════════════════════════════════════════════════════════
+    const documentChildren = [];
+
+    // ─────────────────────────────────────────
+    // 1. KOP SURAT (DUMMY — silakan ganti)
+    // ─────────────────────────────────────────
+    documentChildren.push(
+      p('PEMERINTAH KABUPATEN/KOTA [NAMA DAERAH]',   { bold: true, align: AlignmentType.CENTER, size: 28 }),
+      p('DINAS / BADAN / KANTOR [NAMA INSTANSI]',    { bold: true, align: AlignmentType.CENTER, size: 28 }),
+      p('Jalan [Alamat Lengkap] Telepon (0000) 123456',            { align: AlignmentType.CENTER, size: 20 }),
+      p('Website: www.contoh.go.id — Email: info@contoh.go.id',    { align: AlignmentType.CENTER, size: 20, italic: true }),
+    );
+
+    // ─── Garis pemisah kop ───
+    documentChildren.push(new Paragraph({
+      border: { bottom: { color: '000000', space: 1, style: BorderStyle.SINGLE, size: 18 } },
+      spacing: { after: 300 },
+      children: [new TextRun('')],
+    }));
+
+    // ─────────────────────────────────────────
+    // 2. JUDUL
+    // ─────────────────────────────────────────
+    documentChildren.push(
+      p('SURAT TUGAS', { bold: true, align: AlignmentType.CENTER, size: 28 }),
+      p(`Nomor: ${data.nomor_surat || '....................'}`, { align: AlignmentType.CENTER, size: 22 }),
+      empty(),
+    );
+
+    // ─────────────────────────────────────────
+    // 3. PEMBUKA
+    // ─────────────────────────────────────────
+    documentChildren.push(
+      p('Yang bertanda tangan di bawah ini, Kepala [Nama Instansi], dengan ini menugaskan kepada:'),
+      empty(),
+    );
+
+    // ─────────────────────────────────────────
+    // 4. TABEL DAFTAR PEGAWAI
+    // ─────────────────────────────────────────
+    const pegawaiRows = [
+      new TableRow({
+        tableHeader: true,
+        children: [
+          cell('No.',  { width: 10, bold: true, align: AlignmentType.CENTER }),
+          cell('Nama', { width: 90, bold: true, align: AlignmentType.CENTER }),
+        ],
+      }),
+      ...pegawai.map((nama, i) => new TableRow({
+        children: [
+          cell(String(i + 1), { width: 10, align: AlignmentType.CENTER }),
+          cell(nama,           { width: 90 }),
+        ],
+      })),
+    ];
+
+    documentChildren.push(new Table({
+      rows: pegawaiRows,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+    }));
+
+    documentChildren.push(empty());
+
+    // ─────────────────────────────────────────
+    // 5. DETAIL PENUGASAN (tabel borderless 2 kolom)
+    // ─────────────────────────────────────────
+    const detailRows = [
+      new TableRow({
+        children: [
+          cell('Perihal',           { width: 30, noBorder: true }),
+          cell(`: ${data.perihal || '—'}`, { width: 70, noBorder: true }),
+        ],
+      }),
+      new TableRow({
+        children: [
+          cell('Tujuan',            { width: 30, noBorder: true }),
+          cell(`: ${data.tujuan || '—'}`,  { width: 70, noBorder: true }),
+        ],
+      }),
+      new TableRow({
+        children: [
+          cell('Waktu Pelaksanaan', { width: 30, noBorder: true }),
+          cell(`: ${fmtWaktu(data.tanggal_berangkat, data.tanggal_kembali)}`, { width: 70, noBorder: true }),
+        ],
+      }),
+    ];
+
+    documentChildren.push(new Table({
+      rows: detailRows,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top:    { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        left:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        right:  { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+        insideVertical:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
+      },
+    }));
+
+    documentChildren.push(empty());
+
+    // ─────────────────────────────────────────
+    // 6. PENUTUP
+    // ─────────────────────────────────────────
+    documentChildren.push(
+      p('Demikian surat tugas ini dibuat untuk dilaksanakan dengan penuh tanggung jawab. Setelah pelaksanaan tugas, yang bersangkutan wajib menyampaikan laporan kepada pimpinan.'),
+      empty(),
+    );
+
+    // ─────────────────────────────────────────
+    // 7. TANDA TANGAN (pojok kanan)
+    // ─────────────────────────────────────────
+    documentChildren.push(
+      p(`Dikeluarkan di [Kota],`,              { align: AlignmentType.RIGHT }),
+      p(`pada tanggal ${tanggalSuratFmt}`,     { align: AlignmentType.RIGHT, spaceAfter: 200 }),
+      p('Kepala [Nama Instansi],',             { align: AlignmentType.RIGHT, spaceAfter: 600 }),
+      p('(.................................)', { align: AlignmentType.RIGHT, bold: true }),
+      p('NIP. ......................',          { align: AlignmentType.RIGHT }),
+    );
+
+    // ─────────────────────────────────────────
+    // 8. CATATAN ADMIN (opsional, hanya jika ada)
+    // ─────────────────────────────────────────
+    if (data.catatan_admin) {
+      documentChildren.push(
+        empty(),
+        p('Catatan:', { bold: true, italic: true }),
+        p(data.catatan_admin, { italic: true }),
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════════════
+    // BANGUN DOKUMEN
+    // ═════════════════════════════════════════════════════════════════════
+    const doc = new Document({
+      creator: 'Portal NOVA',
+      title: `Surat Tugas ${data.nomor_surat || data.id}`,
+      description: 'Surat Tugas digenerate oleh Portal NOVA',
+      styles: {
+        default: {
+          document: {
+            run: { font: 'Times New Roman', size: 22 },
+          },
+        },
+      },
+      sections: [{
+        properties: {
+          page: {
+            margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 }, // ≈ 2 cm
+          },
+        },
+        children: documentChildren,
+      }],
+    });
+
+    return await Packer.toBlob(doc);
+  }
+  // ═══════════════════════════════════════════════════════════════════════
+  // ↑↑↑ AKHIR TEMPLATE ↑↑↑
+  // ═══════════════════════════════════════════════════════════════════════
 
   function init() {
     SESSION=checkSession();if(!SESSION)return;
