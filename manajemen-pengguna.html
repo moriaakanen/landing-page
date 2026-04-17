@@ -497,11 +497,12 @@
       if (!s) { window.location.replace('login.html'); return null; }
       if (s.expires_at && Date.now() > s.expires_at) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
       if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
+      const roles = getUserRoles(s);
       if (!s.active_role) {
-        s.active_role = ADMIN_USERS.includes(s.username) ? 'admin' : 'user';
+        s.active_role = roles.includes('admin') ? 'admin' : 'user';
         localStorage.setItem('nova_user', JSON.stringify(s));
       }
-      if (s.active_role !== 'admin' || !ADMIN_USERS.includes(s.username)) {
+      if (s.active_role !== 'admin' || !roles.includes('admin')) {
         window.location.replace('index.html'); return null;
       }
       return s;
@@ -793,12 +794,17 @@
     btn.disabled = true; btn.classList.add('loading');
     try {
       let ok = false;
-      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`,{method:'POST',headers:H,body:JSON.stringify({p_username:username,p_full_name:nama,p_password:password,p_must_change:mustChange,p_role:newUserRoles[0],p_roles:newUserRoles})});
-      ok = rpcRes.ok;
-      if (!ok) {
-        const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({username,full_name:nama,password_hash:password,must_change_password:mustChange,role:newUserRoles[0],roles:newUserRoles})});
-        ok = insertRes.ok;
-        if (!ok) { const err=await insertRes.json().catch(()=>({}));throw new Error(err.message||`HTTP ${insertRes.status}`); }
+      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`,{
+        method:'POST', headers:H,
+        body:JSON.stringify({
+          p_username:username, p_full_name:nama, p_password:password,
+          p_must_change:mustChange, p_role:newUserRoles[0], p_roles:newUserRoles
+        })
+      });
+      if (!rpcRes.ok) {
+        let errMsg = `HTTP ${rpcRes.status}`;
+        try { const err = await rpcRes.json(); errMsg = err.message || errMsg; } catch(_) {}
+        throw new Error(errMsg);
       }
       showPageAlert(`✅ Pengguna @${username} berhasil ditambahkan dengan role: ${newUserRoles.join(', ')}.`,'success');
       closeModal('modal-tambah');
@@ -829,12 +835,19 @@
     btn.disabled=true; btn.classList.add('loading');
     try {
       let ok = false;
-      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`,{method:'POST',headers:H,body:JSON.stringify({p_user_id:selectedUserId,p_new_password:newPass})});
-      ok = rpcRes.ok;
-      if (!ok) {
-        const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({password_hash:newPass,must_change_password:true})});
-        ok = patchRes.ok;
-        if (!ok) throw new Error(`HTTP ${patchRes.status}`);
+      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`,{
+        method:'POST', headers:H,
+        body:JSON.stringify({p_user_id:selectedUserId, p_new_password:newPass})
+      });
+      if (!rpcRes.ok) {
+        let errMsg = `HTTP ${rpcRes.status}`;
+        try { const err = await rpcRes.json(); errMsg = err.message || errMsg; } catch(_) {}
+        throw new Error(errMsg);
+      }
+      // RPC mengembalikan boolean — cek juga value-nya
+      const rpcResult = await rpcRes.json().catch(() => null);
+      if (rpcResult === false) {
+        throw new Error('Reset password gagal — user tidak ditemukan atau password terlalu pendek');
       }
       showPageAlert(`🔑 Kata sandi ${selectedUserName} berhasil direset.`,'success');
       closeModal('modal-reset');
