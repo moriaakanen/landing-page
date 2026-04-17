@@ -363,12 +363,17 @@
       // ── Bangun daftar roles ──────────────────────────────────────────
       // Mendukung field 'roles' (array) dan 'role' (string) dari DB.
       // _getSessionRoles() di nova-role-switcher.js akan baca field ini.
-      let rolesArr = null;
+      // Bangun rolesArr dari response DB.
+      // RPC verify_login versi baru SELALU return kolom roles (array).
+      let rolesArr;
       if (Array.isArray(user.roles) && user.roles.length) {
         rolesArr = user.roles;
+      } else if (user.role === 'admin') {
+        rolesArr = ['admin', 'user'];
       } else if (user.role) {
         rolesArr = [user.role];
       } else if (ADMIN_USERS.includes(user.username)) {
+        // Bootstrap fallback jika DB belum ada kolom roles
         rolesArr = ['admin', 'user'];
       } else {
         rolesArr = ['user'];
