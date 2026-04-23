@@ -161,8 +161,8 @@ function parseFlexDate(input) {
   let s = String(input).trim().toLowerCase();
   if (!s) return null;
 
-  // Pure ISO (yyyy-mm-dd)
-  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  // Pure ISO (yyyy-mm-dd / yyyy/mm/dd / yyyy.mm.dd)
+  let m = s.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})$/);
   if (m) {
     const y = +m[1], mo = +m[2], d = +m[3];
     if (mo>=1&&mo<=12&&d>=1&&d<=31) return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -424,9 +424,12 @@ function renderTable(data) {
     </table>`;
 
   // Setup auto-grow textarea & event listener untuk semua sel editable
-  document.querySelectorAll('tr[data-status="menunggu"] textarea.xls-cell').forEach(ta => {
-    autoGrow(ta);
-    ta.addEventListener('input', () => { autoGrow(ta); ta.classList.remove('err'); });
+  // Pakai requestAnimationFrame supaya scrollHeight sudah dihitung browser
+  requestAnimationFrame(() => {
+    document.querySelectorAll('tr[data-status="menunggu"] textarea.xls-cell').forEach(ta => {
+      autoGrow(ta);
+      ta.addEventListener('input', () => { autoGrow(ta); ta.classList.remove('err'); });
+    });
   });
   document.querySelectorAll('tr[data-status="menunggu"] input.xls-cell').forEach(inp => {
     inp.addEventListener('input', () => inp.classList.remove('err'));
@@ -434,20 +437,35 @@ function renderTable(data) {
 }
 
 function autoGrow(el) {
+  if (!el || !el.style) return;
   el.style.height = 'auto';
-  el.style.height = (el.scrollHeight) + 'px';
+  const h = el.scrollHeight;
+  if (h > 0) el.style.height = h + 'px';
 }
 
 /* ─────────────────────────────────────────────────────────────────────
    CELL BUILDERS
 ───────────────────────────────────────────────────────────────────── */
+const FIELD_TO_COL = {
+  nomor_surat:      'col-nomor-surat',
+  tanggal_surat:    'col-tgl-surat',
+  waktu:            'col-waktu',
+  perihal:          'col-perihal',
+  tujuan:           'col-tujuan',
+  pegawai_multi:    'col-nama',
+  menimbang_custom: 'col-menimbang',
+  alat_angkutan:    'col-alat',
+  pembebanan:       'col-mak',
+  penandatangan:    'col-ttd',
+};
+
 function cellTextHTML(id, field, val, editable, placeholder) {
+  const cls = FIELD_TO_COL[field] || '';
   if (!editable) {
-    return `<td class="col-${field === 'nomor_surat' ? 'nomor-surat' : (field === 'tujuan' ? 'tujuan' : '')}">
+    return `<td class="${cls}">
       <div class="ro-text${val ? '' : ' muted'}">${val ? esc(val) : '—'}</div>
     </td>`;
   }
-  const cls = field === 'nomor_surat' ? 'col-nomor-surat' : (field === 'tujuan' ? 'col-tujuan' : '');
   return `<td class="${cls}">
     <input type="text" class="xls-cell" data-field="${field}" data-id="${id}"
       value="${escAttr(val)}" placeholder="${escAttr(placeholder)}">
@@ -455,11 +473,7 @@ function cellTextHTML(id, field, val, editable, placeholder) {
 }
 
 function cellTextareaHTML(id, field, val, editable, placeholder) {
-  const fieldToCol = {
-    perihal:'col-perihal', menimbang_custom:'col-menimbang',
-    alat_angkutan:'col-alat', pembebanan:'col-mak'
-  };
-  const cls = fieldToCol[field] || '';
+  const cls = FIELD_TO_COL[field] || '';
   if (!editable) {
     return `<td class="${cls}">
       <div class="ro-text${val ? '' : ' muted'}">${val ? esc(val) : '—'}</div>
@@ -1022,12 +1036,22 @@ function pickPegawai(cellEl, nip, nama) {
     const inp = cellEl.querySelector('.pg-input');
     inp.insertAdjacentHTML('beforebegin', tagHtml);
     inp.placeholder = '';
+    closeAc(); // single select: tutup popup setelah pilih
   } else {
     let nips = [];
     let names = [];
     try { nips  = JSON.parse(cellEl.dataset.nips  || '[]'); } catch(_) {}
     try { names = JSON.parse(cellEl.dataset.names || '[]'); } catch(_) {}
-    if (nips.includes(nip)) return; // sudah ada
+    if (nips.includes(nip)) {
+      // Sudah dipilih — feedback halus dengan flash kuning, tidak duplikat
+      const existing = cellEl.querySelector(`.pg-tag[data-nip="${CSS.escape(nip)}"]`);
+      if (existing) {
+        existing.style.transition = 'background .3s';
+        existing.style.background = '#fef3c7';
+        setTimeout(() => { existing.style.background = ''; }, 400);
+      }
+      return;
+    }
     nips.push(nip);
     names.push(nama);
     cellEl.dataset.nips  = JSON.stringify(nips);
@@ -1036,6 +1060,7 @@ function pickPegawai(cellEl, nip, nama) {
     const inp = cellEl.querySelector('.pg-input');
     inp.insertAdjacentHTML('beforebegin', tagHtml);
     inp.placeholder = '';
+    // Multi: biarkan popup tetap terbuka untuk pilih banyak
   }
 }
 
@@ -1081,21 +1106,20 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeAllPopups();
     ['modal-detail','modal-approve','modal-reject','modal-preview'].forEach(closeModal);
+    return;
   }
 
-  // Tab/Enter di .xls-cell → pindah sel
-  if ((e.key === 'Enter' || e.key === 'Tab') && e.target.classList && e.target.classList.contains('xls-cell')) {
-    // Untuk textarea, Enter dengan Shift = newline normal
-    if (e.target.tagName === 'TEXTAREA' && e.key === 'Enter' && e.shiftKey) return;
-    if (e.target.tagName === 'TEXTAREA' && e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      moveCellFocus(e.target, e.shiftKey ? -1 : 1);
-      return;
-    }
+  // Tab / Enter di .xls-cell → pindah sel
+  if (e.target.classList && e.target.classList.contains('xls-cell')) {
+    const isTextarea = e.target.tagName === 'TEXTAREA';
+
+    // Shift+Enter di textarea = newline (default)
+    if (isTextarea && e.key === 'Enter' && e.shiftKey) return;
+
     if (e.key === 'Tab') {
       e.preventDefault();
       moveCellFocus(e.target, e.shiftKey ? -1 : 1);
-    } else if (e.key === 'Enter') {
+    } else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       moveCellFocus(e.target, 1);
     }
@@ -1219,19 +1243,33 @@ function highlightRowFieldErrors(suratId, fields) {
   const row = document.querySelector(`tr[data-surat-id="${suratId}"]`);
   if (!row) return;
   row.querySelectorAll('.xls-cell.err, .pg-cell.err').forEach(el => el.classList.remove('err'));
+
+  // Map nama field validasi → data-field di DOM
+  const FIELD_DOM_MAP = {
+    tanggal_berangkat: 'waktu',          // waktu pelaksanaan
+    pegawai_nip:       'pegawai_multi',  // sel pegawai multi
+    pegawai_list:      'pegawai_multi',
+    penandatangan_nama: 'penandatangan',
+    penandatangan_nip:  'penandatangan',
+  };
+
   fields.forEach(f => {
-    // Map field → selector
-    const sel = (f === 'pegawai_multi' || f === 'penandatangan')
-      ? `[data-field="${f}"]`
-      : `[data-field="${f === 'tanggal_berangkat' ? 'waktu' : f}"]`;
-    const el = row.querySelector(sel);
+    const domField = FIELD_DOM_MAP[f] || f;
+    const el = row.querySelector(`[data-field="${domField}"]`);
     if (el) el.classList.add('err');
   });
+
   if (fields.length) {
     const first = row.querySelector('.xls-cell.err, .pg-cell.err');
     if (first) {
       first.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-      setTimeout(() => { if (first.focus) first.focus(); }, 300);
+      setTimeout(() => {
+        if (first.tagName === 'INPUT' || first.tagName === 'TEXTAREA') first.focus();
+        else {
+          const inp = first.querySelector('input, textarea, .pg-input');
+          if (inp) inp.focus();
+        }
+      }, 300);
     }
   }
 }
@@ -1395,12 +1433,15 @@ async function submitApprove() {
     }
 
     if (document.getElementById('inp-save-default').checked) {
-      saveApproveDefaults({
-        alat_angkutan: values.alat_angkutan,
-        pembebanan:    values.pembebanan,
-        ttd_nip:       values.penandatangan_nip,
-        ttd_nama:      values.penandatangan_nama,
-      });
+      // Hanya simpan field yang TIDAK kosong (untuk menghindari overwrite default lama dengan kosong)
+      const newDefaults = {};
+      if (values.alat_angkutan)       newDefaults.alat_angkutan = values.alat_angkutan;
+      if (values.pembebanan)          newDefaults.pembebanan    = values.pembebanan;
+      if (values.penandatangan_nip)   newDefaults.ttd_nip       = values.penandatangan_nip;
+      if (values.penandatangan_nama)  newDefaults.ttd_nama      = values.penandatangan_nama;
+      // Merge dengan default lama
+      const merged = { ...loadApproveDefaults(), ...newDefaults };
+      saveApproveDefaults(merged);
     }
 
     closeModal('modal-approve');
