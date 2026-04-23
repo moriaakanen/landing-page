@@ -6,49 +6,35 @@
 <title>Portal NOVA — Admin Surat Tugas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
-<!-- ═══════════════════════════════════════════════════════════════════════
-     LIBRARY UNTUK GENERATE & PREVIEW .docx
-     ───────────────────────────────────────
-     docx         → generate file .docx (global: window.docx)
-     docx-preview → render .docx ke HTML (juga expose global 'docx' — konflik!)
-     FileSaver    → trigger download di browser (global: window.saveAs)
-     JSZip        → dependency untuk docx-preview
 
-     Strategi: load 'docx' untuk generate dulu, simpan ref-nya ke
-     window.docxGen, baru load docx-preview (yang akan overwrite window.docx
-     dengan renderer-nya → kita rename ke window.docxPreview).
-══════════════════════════════════════════════════════════════════════════ -->
+<!-- Library docx generate & preview (sama seperti file asli) -->
 <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
 <script>
-  // Fallback kalau unpkg gagal
-  if (typeof docx === 'undefined') {
-    document.write('<script src="https://cdn.jsdelivr.net/npm/docx@7.1.0/build/index.js"><\/script>');
-  }
+  if (typeof docx === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/docx@7.1.0/build/index.js"><\/script>');
 </script>
-<script>
-  // Simpan reference untuk generate (sebelum docx-preview overwrite)
-  if (typeof docx !== 'undefined') {
-    window.docxGen = docx;
-  }
-</script>
+<script>if (typeof docx !== 'undefined') window.docxGen = docx;</script>
 <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://unpkg.com/docx-preview@0.3.5/dist/docx-preview.min.js"></script>
 <script>
-  // docx-preview overwrite window.docx → rename ke docxPreview
-  if (typeof docx !== 'undefined' && typeof docx.renderAsync === 'function') {
-    window.docxPreview = docx;
-  }
-  // Restore docx generator
-  if (window.docxGen) {
-    window.docx = window.docxGen;
-  }
+  if (typeof docx !== 'undefined' && typeof docx.renderAsync === 'function') window.docxPreview = docx;
+  if (window.docxGen) window.docx = window.docxGen;
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
 <style>
-  :root{--bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--red:#c0392b;--success:#1a7a4a;--sidebar-w:260px;}
+  :root{
+    --bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;
+    --gold:#c8a84b;--gold-light:#f5edda;
+    --text:#1a1a2e;--muted:#6b7280;
+    --border:#e2ddd6;--border2:#d1ccc3;
+    --red:#c0392b;--success:#1a7a4a;
+    --sidebar-w:260px;
+  }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
+
+  /* TOPBAR + SIDEBAR */
   .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200}
   .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0}
   .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
@@ -71,6 +57,7 @@
   .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
   .sidebar-footer strong{color:var(--navy);font-weight:600}
   .admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.35);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--gold);margin-top:4px;letter-spacing:.3px}
+
   .main{flex:1;overflow-y:auto;padding:32px 36px}
   .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap}
   .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
@@ -78,11 +65,15 @@
   .page-title{font-family:'Fraunces',serif;font-size:clamp(22px,2.5vw,30px);font-weight:300;color:var(--navy);line-height:1.2}
   .page-title em{font-style:italic;color:var(--gold)}
   .page-desc{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.7}
+
+  /* STATS */
   .stats-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
   .stat-pill{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:11px 16px;display:flex;align-items:center;gap:10px;flex:1;min-width:120px}
   .stat-pill-icon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
   .stat-pill-num{font-size:18px;font-weight:700;color:var(--navy);line-height:1}
   .stat-pill-label{font-size:11px;color:var(--muted);margin-top:1px}
+
+  /* FILTER BAR */
   .filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
   .search-wrap{position:relative;flex:1;min-width:200px}
   .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none}
@@ -91,6 +82,8 @@
   .search-input::placeholder{color:#b8b3ac}
   .filter-select{padding:8px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;transition:border-color .2s}
   .filter-select:focus{border-color:var(--navy)}
+
+  /* BUTTONS */
   .btn-primary{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,transform .15s;white-space:nowrap;position:relative}
   .btn-primary:hover:not(:disabled){background:var(--navy2);transform:translateY(-1px)}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
@@ -100,153 +93,209 @@
   .btn-approve:hover{background:#15643d}
   .btn-reject{background:#c0392b;color:white;border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .btn-reject:hover{background:#a03020}
-  .btn-generate{background:var(--gold);color:var(--navy);border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
-  .btn-generate:hover{background:#b89438}
-  .btn-generate:disabled{opacity:.6;cursor:wait}
   .btn-preview{background:#e8f0fe;color:var(--navy);border:1.5px solid #b4cdf5;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .btn-preview:hover{background:#d3e0f8;border-color:var(--navy)}
   .btn-download{background:var(--gold);color:var(--navy);border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .btn-download:hover{background:#b89438}
-
-  /* ─── Preview Modal ─── */
-  .modal-preview{background:var(--white);border-radius:12px;width:100%;max-width:860px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(13,35,64,.3);animation:slideUp .25s ease}
-  .modal-preview .modal-body{padding:0;background:#ededed;flex:1;overflow-y:auto}
-  .preview-container{padding:24px;min-height:100%}
-  .preview-container .docx-wrapper{background:transparent!important}
-  .preview-container .docx{background:white!important;padding:56px 72px!important;box-shadow:0 4px 20px rgba(13,35,64,.12);margin:0 auto 20px!important;max-width:720px}
-  .preview-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--muted);gap:14px}
-  .preview-loading-spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spinFull 0.8s linear infinite}
-  @keyframes spinFull{to{transform:rotate(360deg)}}
-  .preview-error{padding:48px 24px;text-align:center;color:var(--red)}
-  .preview-error-icon{font-size:40px;margin-bottom:12px;opacity:.5}
-
-     /* ═══ PRINT STYLES — hanya tampil konten preview saat print ═══ */
-     @media print {
-       @page { margin: 0; size: A4; }
-
-       html, body {
-         margin: 0 !important;
-         padding: 0 !important;
-         background: white !important;
-       }
-
-       body > * { display: none !important; }
-
-       body > #modal-preview {
-         display: block !important;
-         position: static !important;
-         background: white !important;
-         padding: 0 !important;
-         margin: 0 !important;
-         inset: auto !important;
-       }
-       #modal-preview .modal-preview {
-         max-width: none !important;
-         max-height: none !important;
-         box-shadow: none !important;
-         border-radius: 0 !important;
-         animation: none !important;
-         margin: 0 !important;
-         padding: 0 !important;
-         display: block !important;
-         overflow: visible !important;
-         width: auto !important;
-       }
-
-       #modal-preview .modal-header,
-       #modal-preview .modal-footer { display: none !important; }
-
-       #modal-preview .modal-body {
-         background: white !important;
-         overflow: visible !important;
-         padding: 0 !important;
-         margin: 0 !important;
-         display: block !important;
-       }
-       #modal-preview .preview-container {
-         padding: 0 !important;
-         margin: 0 !important;
-       }
-
-       #modal-preview .preview-container .docx-wrapper {
-         background: white !important;
-         padding: 0 !important;
-         margin: 0 !important;
-       }
-
-       #modal-preview .preview-container .docx,
-       #modal-preview .preview-container section.docx {
-         box-shadow: none !important;
-         margin: 0 !important;
-         max-width: none !important;
-         padding: 2cm !important;
-       }
-
-       #modal-preview .preview-container section.docx {
-         page-break-after: always;
-         page-break-inside: avoid;
-       }
-       #modal-preview .preview-container section.docx:last-child {
-         page-break-after: auto;
-       }
-     }
   .btn-outline{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s;white-space:nowrap}
   .btn-outline:hover{border-color:var(--navy);background:var(--bg)}
   .btn-sm{padding:4px 10px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--navy)}
   .btn-sm:hover{background:var(--gold-light);border-color:var(--gold)}
   @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+  /* HINT BAR */
+  .hint-bar{background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:10px 14px;font-size:12px;color:#1e40af;line-height:1.55;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+  .hint-bar kbd{background:white;border:1px solid #bfdbfe;border-bottom-width:2px;border-radius:3px;padding:1px 5px;font-family:ui-monospace,monospace;font-size:10.5px;color:var(--navy);margin:0 1px}
+
+  /* ════════════════════════════════════════════════════
+     EXCEL-LIKE TABLE
+  ════════════════════════════════════════════════════ */
   .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.05)}
   .table-head{background:var(--navy);padding:13px 20px;display:flex;align-items:center;justify-content:space-between}
   .table-head-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.8px;text-transform:uppercase}
   .table-head-count{font-size:11px;color:rgba(255,255,255,.35)}
-  .table-scroll{overflow-x:auto}
+  .table-scroll{overflow-x:auto;overflow-y:visible}
   .table-scroll::-webkit-scrollbar{height:10px}
   .table-scroll::-webkit-scrollbar-track{background:var(--bg)}
   .table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
   .table-scroll::-webkit-scrollbar-thumb:hover{background:#a9a298}
-  table.list-table{width:100%;border-collapse:collapse;min-width:1600px}
-  table.list-table thead th{background:#f9f8f5;padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
-  table.list-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
-  table.list-table tbody tr:last-child{border-bottom:none}
+
+  table.list-table{width:100%;border-collapse:separate;border-spacing:0;min-width:2050px;table-layout:fixed}
+  table.list-table thead th{
+    background:#f9f8f5;padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;
+    color:var(--navy);letter-spacing:.5px;text-transform:uppercase;
+    border-bottom:2px solid var(--border);border-right:1px solid var(--border);
+    white-space:nowrap;position:sticky;top:0;z-index:5;
+  }
+  table.list-table thead th:last-child{border-right:none}
+  table.list-table tbody tr{transition:background .15s}
   table.list-table tbody tr:hover{background:#fafaf8}
-  table.list-table tbody td{padding:11px 14px;font-size:13px;color:var(--text);vertical-align:middle}
-  .col-nomor-surat{min-width:170px}
-  .col-tgl-surat{min-width:140px}
-  .col-menimbang{min-width:220px}
-  .col-pembebanan{min-width:200px}
-  .col-ttd{min-width:210px}
-  .cell-input{width:100%;padding:6px 8px;background:#fff;border:1.5px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
-  .cell-input::placeholder{color:#c8c3ba;font-size:11px}
-  .cell-input:hover:not(:read-only):not(:disabled){border-color:var(--border)}
-  .cell-input:focus{border-color:var(--navy);box-shadow:0 0 0 2px rgba(13,35,64,.08)}
-  .cell-input:read-only,.cell-input:disabled{background:transparent;border-color:transparent;padding:4px 0;color:var(--text);cursor:default;font-weight:500}
-  .cell-input:read-only:focus,.cell-input:disabled:focus{box-shadow:none}
-  .cell-input.err{border-color:var(--red)!important;background:#fef2f2!important;animation:shake .35s}
+  table.list-table tbody td{
+    padding:0;font-size:12.5px;color:var(--text);vertical-align:top;
+    border-bottom:1px solid var(--border);border-right:1px solid var(--border);
+    background:transparent;
+  }
+  table.list-table tbody td:last-child{border-right:none}
+  table.list-table tbody tr:last-child td{border-bottom:none}
+
+  /* Lebar kolom — urutan baru */
+  .col-no            { width:46px;  text-align:center }
+  .col-nomor-surat   { width:115px }
+  .col-tgl-surat     { width:145px }
+  .col-waktu         { width:175px }
+  .col-perihal       { width:200px }
+  .col-tujuan        { width:140px }
+  .col-nama          { width:210px }
+  .col-menimbang     { width:200px }
+  .col-alat          { width:130px }
+  .col-mak           { width:170px }
+  .col-ttd           { width:170px }
+  .col-status        { width:115px }
+  .col-aksi          { width:200px;text-align:right }
+
+  /* Sel Excel-like */
+  .xls-cell{
+    width:100%;min-height:42px;padding:9px 10px;border:1.5px solid transparent;border-radius:0;
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;color:var(--text);
+    background:transparent;outline:none;display:block;line-height:1.45;
+    transition:background .12s, border-color .12s, box-shadow .12s;
+    word-break:break-word;
+  }
+  .xls-cell::placeholder{color:#c8c3ba;font-size:11.5px;font-style:italic}
+  .xls-cell:hover:not(:read-only):not(:disabled){background:rgba(13,35,64,.025);border-color:var(--border)}
+  .xls-cell:focus{
+    background:#fffdf6;border-color:var(--navy);
+    box-shadow:inset 0 0 0 1px var(--navy);position:relative;z-index:2;
+  }
+  .xls-cell:read-only,.xls-cell:disabled{
+    background:transparent;border-color:transparent;cursor:default;color:var(--text);
+  }
+  .xls-cell.err{border-color:var(--red)!important;background:#fef5f4!important;animation:shake .35s}
   @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
-  .cell-textarea{resize:vertical;min-height:42px;line-height:1.45;font-family:'Plus Jakarta Sans',sans-serif}
-  .cell-textarea:read-only,.cell-textarea:disabled{resize:none;min-height:0;white-space:pre-wrap;word-break:break-word}
-  .ttd-fields{display:flex;flex-direction:column;gap:4px}
-  .ttd-sub{font-size:11px;padding:5px 7px}
-  .ttd-sub:read-only,.ttd-sub:disabled{padding:2px 0;font-size:11.5px;line-height:1.4}
-  .ttd-label{font-size:9px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;font-weight:600;margin-top:2px;margin-bottom:1px}
-  .ttd-label:first-child{margin-top:0}
-  .cell-readonly-empty{color:var(--muted);font-style:italic;font-size:11px;font-weight:400!important}
+
+  textarea.xls-cell{resize:none;overflow:hidden;min-height:42px;font-family:'Plus Jakarta Sans',sans-serif}
+
+  /* Display readonly text (untuk row disetujui/ditolak) */
+  .ro-text{padding:9px 10px;font-size:12.5px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word;min-height:42px}
+  .ro-text.muted{color:var(--muted);font-style:italic;font-size:11.5px}
+  .ro-text strong{font-weight:600;color:var(--navy)}
+  .ro-text small{font-size:10.5px;color:var(--muted);display:block;margin-top:1px}
+  .ro-ttd{padding:9px 10px;display:flex;flex-direction:column;gap:1px;min-height:42px}
+  .ro-ttd-name{font-size:12px;font-weight:600;color:var(--navy);line-height:1.35}
+  .ro-ttd-jabatan{font-size:10.5px;color:var(--muted);font-style:italic;line-height:1.35}
+  .ro-ttd-nip{font-size:10.5px;color:var(--muted);line-height:1.35}
+
+  /* Sticky look untuk No. & Status */
+  td.col-no{text-align:center;font-weight:700;color:var(--muted);font-size:12px;padding:11px 4px;background:#fafaf8}
+  td.col-status{padding:11px 9px}
+
   .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
   .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
   .badge.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
   .badge.disetujui{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
   .badge.ditolak{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+
+  td.col-aksi{padding:8px 10px}
+  .aksi-wrap{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+
   .table-empty{padding:48px 24px;text-align:center}
   .table-empty-icon{font-size:28px;opacity:.3;margin-bottom:10px}
   .table-empty-text{font-size:13px;color:var(--muted)}
+
+  .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px}
+  @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
   .alert{padding:11px 14px;border-radius:7px;font-size:13px;line-height:1.5;margin-bottom:16px;display:none;gap:8px;align-items:flex-start}
   .alert.show{display:flex;animation:fadeUp .3s ease}
   .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
   .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .fade-in{animation:fadeUp .5s ease both}
+
+  /* ════════════════════════════════════════════════════
+     TAG (untuk pegawai multi-select di sel)
+  ════════════════════════════════════════════════════ */
+  .pg-cell{padding:6px 8px;min-height:42px;display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start;cursor:text}
+  .pg-cell.focused{background:#fffdf6;box-shadow:inset 0 0 0 1.5px var(--navy)}
+  .pg-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 5px 2px 7px;background:var(--gold-light);border:1px solid rgba(200,168,75,.45);border-radius:100px;font-size:11px;font-weight:600;color:#7a5c10;white-space:nowrap;max-width:170px;line-height:1.3}
+  .pg-tag-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pg-tag-x{background:none;border:none;cursor:pointer;color:#a07020;font-size:13px;padding:0 2px;line-height:1;flex-shrink:0;font-weight:700}
+  .pg-tag-x:hover{color:var(--red)}
+  .pg-input{flex:1;min-width:60px;border:none;outline:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:var(--text);padding:2px 4px}
+  .pg-input::placeholder{color:#c8c3ba;font-style:italic;font-size:11px}
+
+  /* Untuk single-select penandatangan */
+  .pg-cell.single .pg-tag{background:#e0f2fe;border-color:#7dd3fc;color:#075985}
+  .pg-cell.single .pg-tag-x{color:#0369a1}
+
+  /* ════════════════════════════════════════════════════
+     AUTOCOMPLETE DROPDOWN (pegawai)
+  ════════════════════════════════════════════════════ */
+  .ac-popup{position:fixed;background:white;border:1.5px solid var(--navy);border-radius:8px;box-shadow:0 12px 32px rgba(13,35,64,.18);z-index:9999;overflow:hidden;min-width:260px;max-width:340px;display:none}
+  .ac-popup.open{display:block}
+  .ac-list{max-height:240px;overflow-y:auto}
+  .ac-list::-webkit-scrollbar{width:5px}
+  .ac-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+  .ac-item{padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;transition:background .12s}
+  .ac-item:last-child{border-bottom:none}
+  .ac-item:hover,.ac-item.focused{background:var(--gold-light)}
+  .ac-item.selected{background:#ecfdf5}
+  .ac-item.selected:hover,.ac-item.selected.focused{background:#d1fae5}
+  .ac-check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:transparent}
+  .ac-item.selected .ac-check{background:var(--success);border-color:var(--success);color:white}
+  .ac-name{font-weight:600;color:var(--navy);flex:1;line-height:1.3}
+  .ac-nip{font-size:10px;color:var(--muted);line-height:1.3}
+  .ac-empty{padding:14px 12px;text-align:center;font-size:11.5px;color:var(--muted);font-style:italic}
+  .ac-hint{padding:6px 12px;font-size:10px;color:var(--muted);background:#fafaf8;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .ac-hint kbd{background:white;border:1px solid var(--border2);border-radius:3px;padding:1px 4px;font-family:ui-monospace,monospace;font-size:9px}
+
+  /* ════════════════════════════════════════════════════
+     CALENDAR POPUP (single & range)
+  ════════════════════════════════════════════════════ */
+  .cal-popup{position:fixed;background:white;border:1.5px solid var(--navy);border-radius:10px;box-shadow:0 12px 36px rgba(13,35,64,.2);z-index:9999;overflow:hidden;width:286px;display:none}
+  .cal-popup.open{display:block}
+  .cal-header{background:var(--navy);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+  .cal-nav{background:none;border:none;color:rgba(255,255,255,.6);font-size:14px;cursor:pointer;padding:2px 8px;border-radius:4px;line-height:1;transition:all .2s}
+  .cal-nav:hover{color:white;background:rgba(255,255,255,.1)}
+  .cal-title{font-size:13px;font-weight:600;color:white;cursor:pointer;flex:1;text-align:center;user-select:none;padding:2px 8px;border-radius:4px;transition:background .2s}
+  .cal-title:hover{background:rgba(255,255,255,.1)}
+  .cal-day-names{display:grid;grid-template-columns:repeat(7,1fr);background:#f0efeb;border-bottom:1px solid var(--border)}
+  .cal-day-name{text-align:center;padding:5px 0;font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.5px}
+  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);padding:6px;gap:1px}
+  .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:5px;cursor:pointer;transition:all .12s;position:relative;user-select:none}
+  .cal-day:hover:not(.cal-empty):not(.cal-disabled){background:var(--gold-light);color:var(--navy)}
+  .cal-day.cal-empty{visibility:hidden}
+  .cal-day.cal-other{color:#ccc;font-weight:400}
+  .cal-day.cal-start,.cal-day.cal-end,.cal-day.cal-single{background:var(--navy);color:white;font-weight:600}
+  .cal-day.cal-in-range{background:var(--gold-light);color:#7a5c10;border-radius:0}
+  .cal-day.cal-start{border-radius:5px 0 0 5px}
+  .cal-day.cal-end{border-radius:0 5px 5px 0}
+  .cal-day.cal-start.cal-end,.cal-day.cal-single{border-radius:5px}
+  .cal-day.cal-today::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--gold)}
+  .cal-day.cal-start.cal-today::after,.cal-day.cal-end.cal-today::after,.cal-day.cal-single.cal-today::after{background:rgba(255,255,255,.7)}
+  .cal-footer{border-top:1px solid var(--border);padding:7px 12px;display:flex;align-items:center;justify-content:space-between;font-size:11px;background:#fafaf8}
+  .cal-footer-text{color:var(--navy);font-weight:500;flex:1}
+  .cal-clear{background:none;border:1px solid var(--border2);border-radius:5px;padding:3px 9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;color:var(--muted);cursor:pointer;transition:all .2s}
+  .cal-clear:hover{border-color:var(--red);color:var(--red)}
+
+  /* Year picker overlay */
+  .cal-year-grid{display:grid;grid-template-columns:repeat(4,1fr);padding:10px;gap:6px;display:none}
+  .cal-popup.year-mode .cal-day-names,.cal-popup.year-mode .cal-days{display:none}
+  .cal-popup.year-mode .cal-year-grid{display:grid}
+  .cal-year-cell{padding:10px 6px;text-align:center;font-size:12px;font-weight:600;color:var(--navy);background:var(--bg);border-radius:5px;cursor:pointer;transition:all .15s}
+  .cal-year-cell:hover{background:var(--gold-light)}
+  .cal-year-cell.current{background:var(--navy);color:white}
+
+  /* Date cell display (saat tidak focus) */
+  .date-cell-display{padding:9px 10px;font-size:12.5px;color:var(--text);min-height:42px;line-height:1.45;cursor:text}
+  .date-cell-display.empty{color:#c8c3ba;font-style:italic;font-size:11.5px}
+
+  /* MODALS */
   .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeOverlay .2s ease}
   @keyframes fadeOverlay{from{opacity:0}to{opacity:1}}
   .modal{background:var(--white);border-radius:12px;width:100%;max-width:520px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(13,35,64,.3);animation:slideUp .25s ease}
   .modal-wide{max-width:640px}
+  .modal-preview{background:var(--white);border-radius:12px;width:100%;max-width:860px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(13,35,64,.3);animation:slideUp .25s ease}
   @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
   .modal-header{padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
   .modal-header.approve{background:#1a7a4a}
@@ -257,43 +306,61 @@
   .modal-close{background:none;border:none;color:rgba(255,255,255,.5);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color .2s,background .2s;line-height:1}
   .modal-close:hover{color:white;background:rgba(255,255,255,.1)}
   .modal-body{padding:22px 24px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;min-height:0}
+  .modal-preview .modal-body{padding:0;background:#ededed;flex:1;overflow-y:auto}
   .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
   .form-group{display:flex;flex-direction:column;gap:6px}
   .form-label{font-size:12px;font-weight:600;color:var(--navy)}
-  .form-label span{color:var(--red);margin-left:2px}
-  .form-label-hint{font-size:10px;color:var(--muted);font-weight:400;font-style:italic}
-  .form-input{width:100%;padding:10px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s}
-  .form-input::placeholder{color:#b8b3ac}
-  .form-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.07)}
   .form-textarea{width:100%;padding:10px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;resize:vertical;min-height:70px;line-height:1.5}
   .form-textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.07)}
   .error-msg{font-size:11px;color:var(--red);display:none}
   .error-msg.show{display:block}
   .approve-preview{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:12px 14px;font-size:12px;line-height:1.7;color:var(--text)}
   .approve-preview-row{display:flex;gap:8px;padding:3px 0}
-  .approve-preview-row strong{color:var(--muted);font-weight:600;min-width:110px;flex-shrink:0;font-size:11px;letter-spacing:.3px;text-transform:uppercase;padding-top:1px}
+  .approve-preview-row strong{color:var(--muted);font-weight:600;min-width:120px;flex-shrink:0;font-size:11px;letter-spacing:.3px;text-transform:uppercase;padding-top:1px}
   .approve-preview-row span{color:var(--navy);font-weight:500;flex:1;word-break:break-word}
   .save-default-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:12px;color:var(--muted)}
   .save-default-row input{width:14px;height:14px;accent-color:var(--navy);cursor:pointer}
   .save-default-row label{cursor:pointer;user-select:none}
+
   .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .detail-field{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:12px 14px}
   .detail-field.full{grid-column:1/-1}
   .detail-field-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
   .detail-field-val{font-size:13px;font-weight:600;color:var(--navy);line-height:1.5;word-break:break-word}
   .detail-field-val.empty{color:var(--muted);font-weight:400;font-style:italic}
-  .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px}
-  @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-  .fade-in{animation:fadeUp .5s ease both}
+
+  .preview-container{padding:24px;min-height:100%}
+  .preview-container .docx-wrapper{background:transparent!important}
+  .preview-container .docx{background:white!important;padding:56px 72px!important;box-shadow:0 4px 20px rgba(13,35,64,.12);margin:0 auto 20px!important;max-width:720px}
+  .preview-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--muted);gap:14px}
+  .preview-loading-spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spinFull 0.8s linear infinite}
+  @keyframes spinFull{to{transform:rotate(360deg)}}
+  .preview-error{padding:48px 24px;text-align:center;color:var(--red)}
+  .preview-error-icon{font-size:40px;margin-bottom:12px;opacity:.5}
+
+  /* PRINT */
+  @media print {
+    @page { margin: 0; size: A4; }
+    html, body { margin:0!important;padding:0!important;background:white!important; }
+    body > * { display:none!important; }
+    body > #modal-preview { display:block!important;position:static!important;background:white!important;padding:0!important;margin:0!important;inset:auto!important; }
+    #modal-preview .modal-preview { max-width:none!important;max-height:none!important;box-shadow:none!important;border-radius:0!important;animation:none!important;margin:0!important;padding:0!important;display:block!important;overflow:visible!important;width:auto!important; }
+    #modal-preview .modal-header,#modal-preview .modal-footer { display:none!important; }
+    #modal-preview .modal-body { background:white!important;overflow:visible!important;padding:0!important;margin:0!important;display:block!important; }
+    #modal-preview .preview-container { padding:0!important;margin:0!important; }
+    #modal-preview .preview-container .docx-wrapper { background:white!important;padding:0!important;margin:0!important; }
+    #modal-preview .preview-container .docx,
+    #modal-preview .preview-container section.docx { box-shadow:none!important;margin:0!important;max-width:none!important;padding:2cm!important; }
+    #modal-preview .preview-container section.docx { page-break-after:always;page-break-inside:avoid; }
+    #modal-preview .preview-container section.docx:last-child { page-break-after:auto; }
+  }
+
   .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
-  .hint-bar{background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:10px 14px;font-size:12px;color:#1e40af;line-height:1.55;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
   @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.topbar-time{display:none}}
   @media(max-width:600px){
     .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
     .sidebar.open{left:0}.layout{display:block}.menu-toggle{display:flex!important}
-    .detail-grid{grid-template-columns:1fr}
-    .modal{max-width:100%}
+    .detail-grid{grid-template-columns:1fr}.modal{max-width:100%}
   }
 </style>
 </head>
@@ -359,7 +426,7 @@
       <div>
         <div class="page-eyebrow">Administrasi</div>
         <h1 class="page-title">Persetujuan <em>Surat Tugas</em></h1>
-        <p class="page-desc">Lengkapi identitas surat langsung di tabel, lalu setujui atau tolak pengajuan.</p>
+        <p class="page-desc">Lengkapi data surat seperti di Excel — gunakan <kbd style="font-family:ui-monospace,monospace;font-size:11px;background:#f0efeb;border:1px solid var(--border);padding:1px 5px;border-radius:3px">Tab</kbd> / <kbd style="font-family:ui-monospace,monospace;font-size:11px;background:#f0efeb;border:1px solid var(--border);padding:1px 5px;border-radius:3px">Enter</kbd> untuk pindah sel.</p>
       </div>
       <button class="btn-outline fade-in" style="animation-delay:.1s" onclick="loadSurat()">↺ Muat Ulang</button>
     </div>
@@ -387,8 +454,15 @@
     </div>
 
     <div class="hint-bar fade-in" style="animation-delay:.11s">
-      <span>💡</span>
-      <span>Isi <strong>Nomor Surat</strong>, <strong>Tgl Surat</strong>, <strong>Menimbang</strong>, <strong>Pembebanan</strong>, dan <strong>Penandatangan</strong> langsung pada baris status <strong>Menunggu</strong>, lalu klik <strong>Setujui</strong>. Field Pembebanan &amp; Penandatangan otomatis terisi dari default yang tersimpan.</span>
+      <span>⌨️</span>
+      <span>
+        <strong>Mode Excel:</strong>
+        <kbd>Tab</kbd> / <kbd>Enter</kbd> = pindah sel ·
+        <kbd>Shift</kbd>+<kbd>Tab</kbd> = ke kiri ·
+        Tanggal: ketik bebas (<em>2/1/26</em>, <em>02-01-2026</em>, <em>2 jan 2026</em>) atau klik untuk popup ·
+        Pegawai: ketik nama lalu Enter / klik dari saran ·
+        Paste dari Excel didukung (Tab-separated).
+      </span>
     </div>
 
     <div class="table-wrap fade-in" style="animation-delay:.12s">
@@ -399,19 +473,21 @@
       <div class="table-scroll" id="table-area">
         <table class="list-table">
           <thead><tr>
-            <th>Perihal</th>
-            <th>Waktu</th>
-            <th>Tujuan</th>
-            <th>Pegawai</th>
-            <th>Nomor Surat</th>
-            <th>Tgl Surat</th>
-            <th>Menimbang (Kegiatan)</th>
-            <th>Pembebanan</th>
-            <th>Penandatangan</th>
-            <th>Status</th>
-            <th style="text-align:right">Aksi</th>
+            <th class="col-no">No</th>
+            <th class="col-nomor-surat">Nomor Surat</th>
+            <th class="col-tgl-surat">Tgl Surat</th>
+            <th class="col-waktu">Waktu Pelaksanaan</th>
+            <th class="col-perihal">Perihal</th>
+            <th class="col-tujuan">Tempat Tujuan</th>
+            <th class="col-nama">Nama Pegawai</th>
+            <th class="col-menimbang">Menimbang</th>
+            <th class="col-alat">Alat Angkutan</th>
+            <th class="col-mak">MAK Pembebanan</th>
+            <th class="col-ttd">Penandatangan</th>
+            <th class="col-status">Status</th>
+            <th class="col-aksi">Aksi</th>
           </tr></thead>
-          <tbody><tr><td colspan="11"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+          <tbody><tr><td colspan="13"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
             <div class="skel" style="height:44px;border-radius:6px"></div>
             <div class="skel" style="height:44px;border-radius:6px"></div>
             <div class="skel" style="height:44px;border-radius:6px"></div>
@@ -420,6 +496,32 @@
       </div>
     </div>
   </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     POPUPS (calendar & autocomplete)
+═════════════════════════════════════════════════════════════ -->
+<div class="cal-popup" id="cal-popup">
+  <div class="cal-header">
+    <button class="cal-nav" id="cal-prev" type="button">‹</button>
+    <span class="cal-title" id="cal-title"></span>
+    <button class="cal-nav" id="cal-next" type="button">›</button>
+  </div>
+  <div class="cal-day-names" id="cal-day-names"></div>
+  <div class="cal-days" id="cal-days"></div>
+  <div class="cal-year-grid" id="cal-year-grid"></div>
+  <div class="cal-footer">
+    <span class="cal-footer-text" id="cal-footer-text">Pilih tanggal</span>
+    <button class="cal-clear" id="cal-clear" type="button">Hapus</button>
+  </div>
+</div>
+
+<div class="ac-popup" id="ac-popup">
+  <div class="ac-hint" id="ac-hint">
+    <span>↑↓ navigasi · <kbd>Enter</kbd> pilih · <kbd>Esc</kbd> tutup</span>
+    <span id="ac-count"></span>
+  </div>
+  <div class="ac-list" id="ac-list"></div>
 </div>
 
 <!-- MODAL DETAIL -->
@@ -437,7 +539,7 @@
   </div>
 </div>
 
-<!-- ═══ MODAL SETUJUI — SEDERHANA: PREVIEW + CATATAN + KONFIRMASI ═══ -->
+<!-- MODAL APPROVE -->
 <div class="modal-overlay" id="modal-approve" style="display:none" onclick="if(event.target===this)closeModal('modal-approve')">
   <div class="modal modal-wide">
     <div class="modal-header approve">
@@ -447,19 +549,16 @@
     <div class="modal-body">
       <div id="approve-alert" class="alert"><span id="approve-alert-icon"></span><span id="approve-alert-text"></span></div>
       <p style="font-size:13px;color:var(--muted);line-height:1.6">Menyetujui: <strong id="approve-perihal" style="color:var(--navy)"></strong></p>
-
       <div class="form-group">
         <label class="form-label" style="margin-bottom:2px">Ringkasan Data Surat</label>
         <div class="approve-preview" id="approve-preview"></div>
       </div>
-
       <div class="save-default-row">
         <input type="checkbox" id="inp-save-default" checked>
-        <label for="inp-save-default">💾 Simpan Pembebanan &amp; Penandatangan sebagai default untuk surat berikutnya</label>
+        <label for="inp-save-default">💾 Simpan Alat Angkutan, MAK Pembebanan & Penandatangan sebagai default</label>
       </div>
-
       <div class="form-group">
-        <label class="form-label">Catatan Admin <span class="form-label-hint">(opsional, tidak tampil di surat)</span></label>
+        <label class="form-label">Catatan Admin <span style="font-style:italic;color:var(--muted);font-weight:400">(opsional, tidak tampil di surat)</span></label>
         <textarea class="form-textarea" id="inp-catatan-approve" placeholder="Catatan internal..." style="min-height:60px"></textarea>
       </div>
     </div>
@@ -470,7 +569,7 @@
   </div>
 </div>
 
-<!-- MODAL TOLAK -->
+<!-- MODAL REJECT -->
 <div class="modal-overlay" id="modal-reject" style="display:none" onclick="if(event.target===this)closeModal('modal-reject')">
   <div class="modal">
     <div class="modal-header reject">
@@ -481,7 +580,7 @@
       <div id="reject-alert" class="alert"><span id="reject-alert-icon"></span><span id="reject-alert-text"></span></div>
       <p style="font-size:13px;color:var(--muted);line-height:1.6">Menolak: <strong id="reject-perihal" style="color:var(--navy)"></strong></p>
       <div class="form-group">
-        <label class="form-label">Alasan Penolakan <span>*</span></label>
+        <label class="form-label">Alasan Penolakan <span style="color:var(--red)">*</span></label>
         <textarea class="form-textarea" id="inp-catatan-reject" placeholder="Tuliskan alasan penolakan..."></textarea>
         <span class="error-msg" id="err-catatan-reject">Alasan penolakan wajib diisi</span>
       </div>
@@ -493,7 +592,7 @@
   </div>
 </div>
 
-<!-- ═══ MODAL PREVIEW SURAT TUGAS (.docx) ═══ -->
+<!-- MODAL PREVIEW DOCX -->
 <div class="modal-overlay" id="modal-preview" style="display:none" onclick="if(event.target===this)closeModal('modal-preview')">
   <div class="modal-preview">
     <div class="modal-header detail">
@@ -502,10 +601,7 @@
     </div>
     <div class="modal-body">
       <div class="preview-container" id="preview-container">
-        <div class="preview-loading">
-          <div class="preview-loading-spin"></div>
-          <div>Memuat dokumen...</div>
-        </div>
+        <div class="preview-loading"><div class="preview-loading-spin"></div><div>Memuat dokumen...</div></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -519,789 +615,10 @@
 <script src="config.js"></script>
 <script src="nova-role-switcher.js"></script>
 <script src="logo-bps.js"></script>
-<script>
-  const H = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
-  let SESSION = null, allSurat = [], suratMap = {}, pegawaiByNIP = {}, selectedId = null;
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // DEFAULT VALUES untuk Pembebanan & Penandatangan (prefill inline)
-  // ═══════════════════════════════════════════════════════════════════════
-  const APPROVE_DEFAULTS_KEY = 'nova_approve_defaults_v1';
-  const FACTORY_DEFAULTS = {
-    pembebanan:             'DIPA BPS Kabupaten Raja Ampat Tahun Anggaran 2026',
-    tempat_terbit:          'Waisai',
-    penandatangan_jabatan:  'Plt. Kepala BPS Kabupaten Raja Ampat',
-    penandatangan_nama:     '',
-    penandatangan_nip:      '',
-  };
-  function loadApproveDefaults() {
-    try {
-      const raw = localStorage.getItem(APPROVE_DEFAULTS_KEY);
-      if (!raw) return { ...FACTORY_DEFAULTS };
-      return { ...FACTORY_DEFAULTS, ...JSON.parse(raw) };
-    } catch(e) { return { ...FACTORY_DEFAULTS }; }
-  }
-  function saveApproveDefaults(d) {
-    try { localStorage.setItem(APPROVE_DEFAULTS_KEY, JSON.stringify(d)); } catch(e) {}
-  }
-
-  function checkSession() {
-    try {
-      const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
-      if (!s) { window.location.replace('login.html'); return null; }
-      if (s.expires_at && Date.now() > s.expires_at) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
-      if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
-      const roles = getUserRoles(s);
-      if (!s.active_role) {
-        s.active_role = roles.includes('admin') ? 'admin' : 'user';
-        localStorage.setItem('nova_user', JSON.stringify(s));
-      }
-      if (!roles.includes('admin') || s.active_role !== 'admin') {
-        window.location.replace('index.html'); return null;
-      }
-      return s;
-    } catch(e) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
-  }
-  function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
-  function updateClock() { document.getElementById('topbar-time').textContent = new Date().toLocaleString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
-  updateClock(); setInterval(updateClock, 1000);
-  function setTopbarUser(s) {
-    const name = s.full_name || s.username || 'Pengguna';
-    const i = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    document.getElementById('topbar-avatar').textContent = i;
-    document.getElementById('topbar-username').textContent = name;
-  }
-
-  function esc(str) { if (str==null)return''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-  function escAttr(str) { return esc(str); }
-  const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  function fmtTgl(str) { if(!str)return'—'; const d=new Date(str+'T00:00:00'); if(isNaN(d))return'—'; return`${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`; }
-  function fmtWaktu(mulai,selesai) { if(!mulai)return'—'; if(!selesai||selesai===mulai)return fmtTgl(mulai); const a=new Date(mulai+'T00:00:00'),b=new Date(selesai+'T00:00:00'); if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear())return`${a.getDate()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`; if(a.getFullYear()===b.getFullYear())return`${a.getDate()} ${BULAN[a.getMonth()]} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`; return`${fmtTgl(mulai)} s.d. ${fmtTgl(selesai)}`; }
-  function badgeHTML(status) { const m={menunggu:['menunggu','⏳ Menunggu'],disetujui:['disetujui','✅ Disetujui'],ditolak:['ditolak','❌ Ditolak']}; const[cls,lbl]=m[status]||['menunggu',status]; return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`; }
-
-  // ─── Load semua pegawai sekaligus (untuk lookup jabatan saat generate docx) ───
-  async function loadPegawai() {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/data%20pegawai?select=NIP,NAMA,JABATAN,"UNIT KERJA"`, { headers: H });
-      if (!res.ok) return;
-      const list = await res.json();
-      pegawaiByNIP = {};
-      list.forEach(p => {
-        const nip = String(p.NIP || '').trim();
-        if (nip) pegawaiByNIP[nip] = p;
-      });
-    } catch(e) { console.warn('Gagal load pegawai:', e); }
-  }
-
-  async function loadSurat() {
-    document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Nomor Surat</th><th>Tgl Surat</th><th>Menimbang (Kegiatan)</th><th>Pembebanan</th><th>Penandatangan</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead><tbody><tr><td colspan="11"><div style="padding:16px;display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div></td></tr></tbody></table>`;
-    document.getElementById('table-count').textContent='Memuat...';
-    try {
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?select=*&order=created_at.desc`,{headers:H});
-      if(!res.ok)throw new Error(`HTTP ${res.status}`);
-      allSurat=await res.json();
-      suratMap = {};
-      allSurat.forEach(s=>{suratMap[s.id]=s;});
-      updateStats(); filterTable();
-    } catch(e) {
-      document.getElementById('table-area').innerHTML=`<div class="table-empty"><div class="table-empty-icon">⚠️</div><div class="table-empty-text">Gagal memuat data.</div></div>`;
-      document.getElementById('table-count').textContent='Error';
-    }
-  }
-  function updateStats() { document.getElementById('st-total').textContent=allSurat.length; document.getElementById('st-menunggu').textContent=allSurat.filter(s=>s.status==='menunggu').length; document.getElementById('st-disetujui').textContent=allSurat.filter(s=>s.status==='disetujui').length; document.getElementById('st-ditolak').textContent=allSurat.filter(s=>s.status==='ditolak').length; }
-  function filterTable() { const q=document.getElementById('search-input').value.toLowerCase(); const st=document.getElementById('filter-status').value; let f=allSurat; if(q)f=f.filter(s=>(s.perihal||'').toLowerCase().includes(q)||(s.tujuan||'').toLowerCase().includes(q)); if(st)f=f.filter(s=>s.status===st); renderTable(f); }
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // RENDER TABLE — dengan 5 kolom admin-editable
-  // ═══════════════════════════════════════════════════════════════════════
-  function renderTable(data) {
-    document.getElementById('table-count').textContent = `${data.length} surat`;
-    if (!data.length) {
-      document.getElementById('table-area').innerHTML = `<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Tidak ada surat tugas ditemukan.</div></div>`;
-      return;
-    }
-
-    const defaults = loadApproveDefaults();
-    const todayISO = new Date().toISOString().slice(0, 10);
-
-    const rows = data.map(s => {
-      const isMenunggu  = s.status === 'menunggu';
-      const isDisetujui = s.status === 'disetujui';
-      const isDitolak   = s.status === 'ditolak';
-      const readOnlyAttr = isMenunggu ? '' : 'readonly';
-
-      // Prefill: nilai existing → default localStorage → kosong
-      const nomorSurat      = s.nomor_surat          || '';
-      const tanggalSurat    = s.tanggal_surat        || (isMenunggu ? todayISO : '');
-      const menimbang       = s.menimbang_custom     || '';
-      const pembebanan      = s.pembebanan           || (isMenunggu ? defaults.pembebanan : '');
-      const tempatTerbit    = s.tempat_terbit        || (isMenunggu ? defaults.tempat_terbit : '');
-      const ttdJabatan      = s.penandatangan_jabatan|| (isMenunggu ? defaults.penandatangan_jabatan : '');
-      const ttdNama         = s.penandatangan_nama   || (isMenunggu ? defaults.penandatangan_nama : '');
-      const ttdNip          = s.penandatangan_nip    || (isMenunggu ? defaults.penandatangan_nip : '');
-
-      // ─── Cell: Nomor Surat ───
-      let cellNomor;
-      if (isMenunggu) {
-        cellNomor = `<input type="text" class="cell-input" data-field="nomor_surat" value="${escAttr(nomorSurat)}" placeholder="cth: B-293/.../2026">`;
-      } else {
-        cellNomor = nomorSurat
-          ? `<div style="font-size:12px;font-weight:600;color:var(--navy);word-break:break-all">${esc(nomorSurat)}</div>`
-          : `<span class="cell-readonly-empty">—</span>`;
-      }
-
-      // ─── Cell: Tgl Surat ───
-      let cellTgl;
-      if (isMenunggu) {
-        cellTgl = `<input type="date" class="cell-input" data-field="tanggal_surat" value="${escAttr(tanggalSurat)}">`;
-      } else {
-        cellTgl = tanggalSurat
-          ? `<div style="font-size:12px;color:var(--navy);font-weight:500">${esc(fmtTgl(tanggalSurat))}</div>`
-          : `<span class="cell-readonly-empty">—</span>`;
-      }
-
-      // ─── Cell: Menimbang ───
-      let cellMenimbang;
-      if (isMenunggu) {
-        cellMenimbang = `<textarea class="cell-input cell-textarea" data-field="menimbang_custom" rows="2" placeholder="cth: pelaksanaan Survei Harga Perdagangan Besar">${esc(menimbang)}</textarea>`;
-      } else {
-        cellMenimbang = menimbang
-          ? `<div style="font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word">${esc(menimbang)}</div>`
-          : `<span class="cell-readonly-empty">—</span>`;
-      }
-
-      // ─── Cell: Pembebanan ───
-      let cellPembebanan;
-      if (isMenunggu) {
-        cellPembebanan = `<textarea class="cell-input cell-textarea" data-field="pembebanan" rows="2" placeholder="Sumber anggaran...">${esc(pembebanan)}</textarea>`;
-      } else {
-        cellPembebanan = pembebanan
-          ? `<div style="font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word">${esc(pembebanan)}</div>`
-          : `<span class="cell-readonly-empty">—</span>`;
-      }
-
-      // ─── Cell: Penandatangan (4 sub-field) ───
-      let cellTtd;
-      if (isMenunggu) {
-        cellTtd = `
-          <div class="ttd-fields">
-            <label class="ttd-label">Tempat Terbit</label>
-            <input type="text" class="cell-input ttd-sub" data-field="tempat_terbit" value="${escAttr(tempatTerbit)}" placeholder="cth: Waisai">
-            <label class="ttd-label">Jabatan</label>
-            <input type="text" class="cell-input ttd-sub" data-field="penandatangan_jabatan" value="${escAttr(ttdJabatan)}" placeholder="Jabatan">
-            <label class="ttd-label">Nama</label>
-            <input type="text" class="cell-input ttd-sub" data-field="penandatangan_nama" value="${escAttr(ttdNama)}" placeholder="Nama lengkap">
-            <label class="ttd-label">NIP</label>
-            <input type="text" class="cell-input ttd-sub" data-field="penandatangan_nip" value="${escAttr(ttdNip)}" placeholder="NIP">
-          </div>`;
-      } else {
-        const hasAny = tempatTerbit || ttdJabatan || ttdNama || ttdNip;
-        if (hasAny) {
-          const parts = [];
-          if (tempatTerbit) parts.push(`<div style="font-size:11px;color:var(--muted)">${esc(tempatTerbit)}</div>`);
-          if (ttdJabatan)   parts.push(`<div style="font-size:11.5px;color:var(--navy);font-style:italic">${esc(ttdJabatan)}</div>`);
-          if (ttdNama)      parts.push(`<div style="font-size:12px;color:var(--navy);font-weight:600">${esc(ttdNama)}</div>`);
-          if (ttdNip)       parts.push(`<div style="font-size:11px;color:var(--muted)">NIP. ${esc(ttdNip)}</div>`);
-          cellTtd = `<div style="display:flex;flex-direction:column;gap:2px">${parts.join('')}</div>`;
-        } else {
-          cellTtd = `<span class="cell-readonly-empty">—</span>`;
-        }
-      }
-
-      // ─── Aksi ───
-      let aksiBtn;
-      if (isMenunggu) {
-        aksiBtn = `<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
-          <button class="btn-sm" onclick="openDetail(${s.id})">🔍</button>
-          <button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button>
-          <button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button>
-        </div>`;
-      } else if (isDisetujui) {
-        aksiBtn = `<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
-          <button class="btn-sm" onclick="openDetail(${s.id})">🔍</button>
-          <button class="btn-preview" onclick="openPreview(${s.id})">👁 Preview</button>
-          <button class="btn-download" onclick="downloadSuratTugas(${s.id})">📥</button>
-        </div>`;
-      } else {
-        aksiBtn = `<div style="display:flex;gap:6px;justify-content:flex-end">
-          <button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button>
-        </div>`;
-      }
-
-      return `<tr data-surat-id="${s.id}">
-        <td style="max-width:200px;word-break:break-word;line-height:1.5;min-width:160px">${esc(s.perihal)||'—'}</td>
-        <td style="font-size:12px;white-space:nowrap">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td>
-        <td style="min-width:120px">${esc(s.tujuan)||'—'}</td>
-        <td><span style="font-size:12px;color:var(--muted);white-space:nowrap">${(s.pegawai_list||[]).length} orang</span></td>
-        <td class="col-nomor-surat">${cellNomor}</td>
-        <td class="col-tgl-surat">${cellTgl}</td>
-        <td class="col-menimbang">${cellMenimbang}</td>
-        <td class="col-pembebanan">${cellPembebanan}</td>
-        <td class="col-ttd">${cellTtd}</td>
-        <td>${badgeHTML(s.status)}</td>
-        <td>${aksiBtn}</td>
-      </tr>`;
-    }).join('');
-
-    document.getElementById('table-area').innerHTML = `<table class="list-table"><thead><tr>
-      <th>Perihal</th>
-      <th>Waktu</th>
-      <th>Tujuan</th>
-      <th>Pegawai</th>
-      <th>Nomor Surat</th>
-      <th>Tgl Surat</th>
-      <th>Menimbang (Kegiatan)</th>
-      <th>Pembebanan</th>
-      <th>Penandatangan</th>
-      <th>Status</th>
-      <th style="text-align:right">Aksi</th>
-    </tr></thead><tbody>${rows}</tbody></table>`;
-
-    // Auto-clear kelas .err ketika user mulai mengetik
-    document.querySelectorAll('tr[data-surat-id] .cell-input').forEach(el => {
-      el.addEventListener('input', () => el.classList.remove('err'));
-    });
-  }
-
-  function openModal(id){document.getElementById(id).style.display='flex';}
-  function closeModal(id){document.getElementById(id).style.display='none';}
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')['modal-detail','modal-approve','modal-reject','modal-preview'].forEach(id=>closeModal(id));});
-
-  function openDetail(id) {
-    const s=suratMap[id];if(!s)return;
-    const f=(label,val,full)=>{const v=val&&String(val).trim()?String(val).trim():null;return`<div class="detail-field${full?' full':''}"><div class="detail-field-label">${label}</div><div class="detail-field-val${v?'':' empty'}">${v?esc(v):'Tidak tersedia'}</div></div>`;};
-    const pegawaiStr=(s.pegawai_list||[]).length?s.pegawai_list.map(esc).join(', '):null;
-    document.getElementById('modal-detail-body').innerHTML=`<div class="detail-grid">${f('Status',s.status==='menunggu'?'⏳ Menunggu':s.status==='disetujui'?'✅ Disetujui':'❌ Ditolak')}${f('Tanggal Pengajuan',s.created_at?new Date(s.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):null)}${f('Perihal',s.perihal,true)}${f('Tujuan',s.tujuan,true)}${f('Tanggal Berangkat',fmtTgl(s.tanggal_berangkat))}${f('Tanggal Kembali',fmtTgl(s.tanggal_kembali))}${f('Pegawai',pegawaiStr,true)}${s.nomor_surat?f('Nomor Surat',s.nomor_surat):''}${s.tanggal_surat?f('Tanggal Surat',fmtTgl(s.tanggal_surat)):''}${s.menimbang_custom?f('Menimbang (kegiatan)',s.menimbang_custom,true):''}${s.pembebanan?f('Pembebanan',s.pembebanan,true):''}${s.penandatangan_nama?f('Penandatangan',`${s.penandatangan_nama} (${s.penandatangan_jabatan||'-'})`,true):''}${s.tempat_terbit?f('Tempat Terbit',s.tempat_terbit):''}${s.penandatangan_nip?f('NIP',s.penandatangan_nip):''}${s.catatan_admin?f('Catatan Admin',s.catatan_admin,true):''}`;
-    const actions=document.getElementById('modal-detail-actions');
-    if(s.status==='menunggu'){actions.innerHTML=`<div style="display:flex;gap:8px"><button class="btn-approve" onclick="closeModal('modal-detail');openApprove(${s.id})">✅ Setujui</button><button class="btn-reject" onclick="closeModal('modal-detail');openReject(${s.id})">❌ Tolak</button></div>`;}else if(s.status==='disetujui'){actions.innerHTML=`<div style="display:flex;gap:8px"><button class="btn-preview" onclick="closeModal('modal-detail');openPreview(${s.id})">👁 Preview</button><button class="btn-download" onclick="closeModal('modal-detail');downloadSuratTugas(${s.id})">📥 Download</button></div>`;}else{actions.innerHTML='';}
-    openModal('modal-detail');
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // HELPER: ambil nilai field dari baris tabel
-  // ═══════════════════════════════════════════════════════════════════════
-  function collectRowFields(suratId) {
-    const row = document.querySelector(`tr[data-surat-id="${suratId}"]`);
-    if (!row) return null;
-    const get = (field) => {
-      const el = row.querySelector(`[data-field="${field}"]`);
-      return el ? el.value.trim() : '';
-    };
-    return {
-      nomor_surat:           get('nomor_surat'),
-      tanggal_surat:         get('tanggal_surat'),
-      menimbang_custom:      get('menimbang_custom'),
-      pembebanan:            get('pembebanan'),
-      tempat_terbit:         get('tempat_terbit'),
-      penandatangan_jabatan: get('penandatangan_jabatan'),
-      penandatangan_nama:    get('penandatangan_nama'),
-      penandatangan_nip:     get('penandatangan_nip'),
-    };
-  }
-
-  // Validasi — return array field yang kosong (label untuk user)
-  function validateApproveFields(values) {
-    const checks = [
-      ['nomor_surat',           'Nomor Surat'],
-      ['tanggal_surat',         'Tgl Surat'],
-      ['menimbang_custom',      'Menimbang'],
-      ['pembebanan',            'Pembebanan'],
-      ['tempat_terbit',         'Tempat Terbit'],
-      ['penandatangan_jabatan', 'Jabatan Penandatangan'],
-      ['penandatangan_nama',    'Nama Penandatangan'],
-      ['penandatangan_nip',     'NIP Penandatangan'],
-    ];
-    const errors = [];
-    const errFields = [];
-    checks.forEach(([key, label]) => {
-      if (!values[key]) { errors.push(label); errFields.push(key); }
-    });
-    return { errors, errFields };
-  }
-
-  // Tandai field yang belum terisi dengan kelas .err
-  function highlightRowFieldErrors(suratId, fields) {
-    const row = document.querySelector(`tr[data-surat-id="${suratId}"]`);
-    if (!row) return;
-    row.querySelectorAll('.cell-input.err').forEach(el => el.classList.remove('err'));
-    fields.forEach(field => {
-      const el = row.querySelector(`[data-field="${field}"]`);
-      if (el) el.classList.add('err');
-    });
-    // Scroll ke field pertama yang error
-    if (fields.length) {
-      const first = row.querySelector(`[data-field="${fields[0]}"]`);
-      if (first) {
-        first.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-        setTimeout(() => first.focus(), 300);
-      }
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // APPROVE — modal sederhana dengan preview, catatan, save-default
-  // ═══════════════════════════════════════════════════════════════════════
-  function openApprove(id) {
-    selectedId = id;
-    const s = suratMap[id]; if (!s) return;
-
-    // Ambil nilai dari row
-    const values = collectRowFields(id);
-    if (!values) return;
-
-    // Validasi sebelum buka modal
-    const { errors, errFields } = validateApproveFields(values);
-    if (errors.length) {
-      highlightRowFieldErrors(id, errFields);
-      showPageAlert(`⚠️ Lengkapi dulu di baris tabel: ${errors.join(', ')}`, 'error');
-      return;
-    }
-
-    // Bangun preview
-    document.getElementById('approve-perihal').textContent = s.perihal || '—';
-    const preview = `
-      <div class="approve-preview-row"><strong>Nomor</strong><span>${esc(values.nomor_surat)}</span></div>
-      <div class="approve-preview-row"><strong>Tgl Surat</strong><span>${esc(fmtTgl(values.tanggal_surat))}</span></div>
-      <div class="approve-preview-row"><strong>Kegiatan</strong><span>${esc(values.menimbang_custom)}</span></div>
-      <div class="approve-preview-row"><strong>Pembebanan</strong><span>${esc(values.pembebanan)}</span></div>
-      <div class="approve-preview-row"><strong>Tempat Terbit</strong><span>${esc(values.tempat_terbit)}</span></div>
-      <div class="approve-preview-row"><strong>Penandatangan</strong><span>${esc(values.penandatangan_nama)}<br><em style="color:var(--muted);font-style:italic;font-size:11px">${esc(values.penandatangan_jabatan)}</em><br><span style="color:var(--muted);font-size:11px">NIP. ${esc(values.penandatangan_nip)}</span></span></div>
-    `;
-    document.getElementById('approve-preview').innerHTML = preview;
-
-    document.getElementById('inp-catatan-approve').value = s.catatan_admin || '';
-    document.getElementById('approve-alert').className = 'alert';
-    openModal('modal-approve');
-  }
-
-  async function submitApprove() {
-    // Ambil ulang nilai dari row (kalau user edit lagi setelah modal dibuka)
-    const values = collectRowFields(selectedId);
-    if (!values) return;
-
-    const { errors, errFields } = validateApproveFields(values);
-    if (errors.length) {
-      document.getElementById('approve-alert-icon').textContent = '⚠️';
-      document.getElementById('approve-alert-text').textContent = `Lengkapi: ${errors.join(', ')}`;
-      document.getElementById('approve-alert').className = 'alert error show';
-      // Highlight di row & tutup modal
-      highlightRowFieldErrors(selectedId, errFields);
-      setTimeout(() => closeModal('modal-approve'), 1500);
-      return;
-    }
-
-    const payload = {
-      status: 'disetujui',
-      ...values,
-      catatan_admin: document.getElementById('inp-catatan-approve').value.trim() || null,
-    };
-
-    const btn = document.getElementById('btn-approve-submit');
-    btn.disabled = true; btn.classList.add('loading');
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${selectedId}`, {
-        method: 'PATCH',
-        headers: { ...H, 'Prefer': 'return=minimal' },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      // Simpan default jika dicentang
-      if (document.getElementById('inp-save-default').checked) {
-        saveApproveDefaults({
-          pembebanan:             values.pembebanan,
-          tempat_terbit:          values.tempat_terbit,
-          penandatangan_jabatan:  values.penandatangan_jabatan,
-          penandatangan_nama:     values.penandatangan_nama,
-          penandatangan_nip:      values.penandatangan_nip,
-        });
-      }
-
-      closeModal('modal-approve');
-      showPageAlert('✅ Surat tugas berhasil disetujui.', 'success');
-      await loadSurat();
-    } catch(e) {
-      document.getElementById('approve-alert-icon').textContent = '⚠️';
-      document.getElementById('approve-alert-text').textContent = `Gagal: ${e.message}`;
-      document.getElementById('approve-alert').className = 'alert error show';
-    } finally {
-      btn.disabled = false; btn.classList.remove('loading');
-    }
-  }
-
-  function openReject(id){selectedId=id;const s=suratMap[id];if(!s)return;document.getElementById('reject-perihal').textContent=s.perihal||'—';document.getElementById('inp-catatan-reject').value='';document.getElementById('err-catatan-reject').classList.remove('show');document.getElementById('reject-alert').className='alert';openModal('modal-reject');}
-  async function submitReject() {
-    const catatan=document.getElementById('inp-catatan-reject').value.trim();
-    if(!catatan){document.getElementById('err-catatan-reject').classList.add('show');return;}
-    document.getElementById('err-catatan-reject').classList.remove('show');
-    const btn=document.getElementById('btn-reject-submit');btn.disabled=true;btn.classList.add('loading');
-    try{const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${selectedId}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({status:'ditolak',catatan_admin:catatan})});if(!res.ok)throw new Error(`HTTP ${res.status}`);closeModal('modal-reject');showPageAlert('❌ Surat tugas telah ditolak.','success');await loadSurat();}catch(e){document.getElementById('reject-alert-icon').textContent='⚠️';document.getElementById('reject-alert-text').textContent=`Gagal: ${e.message}`;document.getElementById('reject-alert').className='alert error show';}finally{btn.disabled=false;btn.classList.remove('loading');}
-  }
-  function showPageAlert(msg,type='error'){document.getElementById('page-alert-icon').textContent=type==='success'?'✅':'⚠️';document.getElementById('page-alert-text').textContent=msg;document.getElementById('page-alert').className=`alert ${type} show`;document.getElementById('page-alert').scrollIntoView({behavior:'smooth',block:'nearest'});setTimeout(()=>{document.getElementById('page-alert').className='alert';},5000);}
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // SURAT TUGAS (.docx) — PREVIEW, DOWNLOAD & PRINT
-  // ═══════════════════════════════════════════════════════════════════════
-
-  let currentPreviewSurat = null;
-
-  function ensureLibrariesLoaded() {
-    if (typeof window.docxGen === 'undefined' && typeof window.docx === 'undefined') {
-      throw new Error('Library docx gagal dimuat. Periksa koneksi internet/firewall, lalu refresh halaman.');
-    }
-    if (typeof window.docxPreview === 'undefined' || typeof window.docxPreview.renderAsync !== 'function') {
-      throw new Error('Library docx-preview gagal dimuat. Periksa koneksi dan refresh halaman.');
-    }
-    if (typeof saveAs === 'undefined') {
-      throw new Error('Library FileSaver gagal dimuat. Refresh halaman.');
-    }
-  }
-
-  function buildFileName(surat) {
-    const base = (surat.nomor_surat || surat.id).toString().replace(/[^a-zA-Z0-9-_]/g, '-');
-    return `Surat-Tugas_${base}.docx`;
-  }
-
-  async function openPreview(suratId) {
-    const surat = suratMap[suratId];
-    if (!surat) return;
-    if (surat.status !== 'disetujui') {
-      showPageAlert('Surat hanya bisa di-preview jika sudah disetujui.', 'error');
-      return;
-    }
-    currentPreviewSurat = surat;
-    openModal('modal-preview');
-
-    const container = document.getElementById('preview-container');
-    container.innerHTML = `<div class="preview-loading"><div class="preview-loading-spin"></div><div>Memuat dokumen...</div></div>`;
-
-    try {
-      ensureLibrariesLoaded();
-      const blob = await buildSuratTugasDoc(surat);
-
-      container.innerHTML = '';
-      await window.docxPreview.renderAsync(blob, container, null, {
-        className:                'docx',
-        inWrapper:                true,
-        ignoreWidth:              false,
-        ignoreHeight:             false,
-        ignoreFonts:              false,
-        breakPages:               true,
-        ignoreLastRenderedPageBreak: true,
-        experimental:             true,
-        trimXmlDeclaration:       true,
-        useBase64URL:             false,
-        renderHeaders:            true,
-        renderFooters:            true,
-        renderFootnotes:          true,
-        renderEndnotes:           true,
-      });
-    } catch(e) {
-      console.error(e);
-      container.innerHTML = `<div class="preview-error"><div class="preview-error-icon">⚠️</div><div><strong>Gagal memuat preview</strong></div><div style="font-size:12px;margin-top:8px;color:var(--muted)">${esc(e.message)}</div></div>`;
-    }
-  }
-
-  async function downloadSuratTugas(suratId) {
-    const surat = suratMap[suratId];
-    if (!surat) return;
-    if (surat.status !== 'disetujui') {
-      showPageAlert('Surat hanya bisa di-download jika sudah disetujui.', 'error');
-      return;
-    }
-    try {
-      ensureLibrariesLoaded();
-      const blob = await buildSuratTugasDoc(surat);
-      saveAs(blob, buildFileName(surat));
-      showPageAlert(`📥 Surat tugas berhasil di-download: ${buildFileName(surat)}`, 'success');
-    } catch(e) {
-      console.error(e);
-      showPageAlert(`Gagal download: ${e.message}`, 'error');
-    }
-  }
-
-  async function downloadFromPreview() {
-    if (!currentPreviewSurat) return;
-    try {
-      ensureLibrariesLoaded();
-      const blob = await buildSuratTugasDoc(currentPreviewSurat);
-      saveAs(blob, buildFileName(currentPreviewSurat));
-      showPageAlert(`📥 Surat tugas berhasil di-download: ${buildFileName(currentPreviewSurat)}`, 'success');
-      closeModal('modal-preview');
-    } catch(e) {
-      console.error(e);
-      showPageAlert(`Gagal download: ${e.message}`, 'error');
-    }
-  }
-
-  function printFromPreview() {
-    if (!currentPreviewSurat) return;
-    const container = document.getElementById('preview-container');
-    if (!container || !container.querySelector('.docx')) {
-      showPageAlert('Preview belum selesai dimuat. Tunggu sebentar lalu coba lagi.', 'error');
-      return;
-    }
-    window.print();
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // TEMPLATE SURAT TUGAS BPS KABUPATEN RAJA AMPAT
-  // ═══════════════════════════════════════════════════════════════════════
-  const MENGINGAT_ITEMS = [
-    'Undang-Undang Nomor 16 Tahun 1997 tentang Statistik;',
-    'Peraturan Pemerintah Nomor 51 Tahun 1999 tentang Penyelenggaraan Statistik;',
-    'Peraturan Presiden Nomor 1 Tahun 2025 tentang Perubahan atas Peraturan Presiden Nomor 86 Tahun 2007 tentang Badan Pusat Statistik;',
-    'Peraturan Badan Pusat Statistik Nomor 5 Tahun 2019 tentang Tata Naskah Dinas di Lingkungan Badan Pusat Statistik;',
-    'Peraturan Badan Pusat Statistik Nomor 3 Tahun 2025 tentang Perubahan atas Peraturan Badan Pusat Statistik Nomor 5 Tahun 2023 tentang Organisasi dan Tata Kerja Badan Pusat Statistik Provinsi dan Badan Pusat Statistik Kabupaten/Kota;',
-  ];
-
-  function buildMenimbang(custom) {
-    return `bahwa untuk kepentingan administrasi kegiatan ${custom || '[kegiatan]'}, Kepala Badan Pusat Statistik Kabupaten Raja Ampat perlu menetapkan Surat Tugas;`;
-  }
-
-  function getPegawaiInfo(nip, fallbackName) {
-    const p = pegawaiByNIP[String(nip || '').trim()];
-    if (p) {
-      const jab = (p.JABATAN || '').trim();
-      const unit = (p['UNIT KERJA'] || '').trim();
-      let jabatanFull = '';
-      if (jab && unit) jabatanFull = `${jab} ${unit}`;
-      else jabatanFull = jab || unit || '';
-      return { nama: p.NAMA || fallbackName || '-', jabatan: jabatanFull };
-    }
-    return { nama: fallbackName || '-', jabatan: '' };
-  }
-
-  function base64ToUint8Array(base64) {
-    const cleaned = base64.replace(/^data:image\/[a-z]+;base64,/i, '');
-    const raw = atob(cleaned);
-    const arr = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
-    return arr;
-  }
-
-  async function buildSuratTugasDoc(data) {
-    const docxLib = window.docxGen || window.docx;
-    const {
-      Document, Packer, Paragraph, TextRun, ImageRun,
-      Table, TableRow, TableCell,
-      AlignmentType, BorderStyle, WidthType, VerticalAlign,
-      HeightRule, TabStopType, PageBreak,
-    } = docxLib;
-
-    const p = (text, opts = {}) => new Paragraph({
-      alignment: opts.align || AlignmentType.LEFT,
-      spacing: { after: opts.spaceAfter != null ? opts.spaceAfter : 100, line: opts.line || 276 },
-      indent: opts.indent,
-      children: [new TextRun({
-        text: text,
-        bold: opts.bold || false,
-        italics: opts.italic || false,
-        underline: opts.underline || undefined,
-        size: opts.size || 22,
-        font: opts.font || 'Times New Roman',
-      })],
-    });
-
-    const empty = (spaceAfter) => new Paragraph({ spacing:{after:spaceAfter||0}, children: [new TextRun('')] });
-
-    const NO_BORDER = {
-      top:    { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      left:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      right:  { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      insideVertical:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-    };
-
-    const cell = (children, opts = {}) => new TableCell({
-      width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined,
-      verticalAlign: opts.valign || VerticalAlign.TOP,
-      borders: NO_BORDER,
-      children: Array.isArray(children) ? children : [children],
-    });
-
-    function buildHalamanUntukPegawai(pegInfo, isLast) {
-      const children = [];
-
-      if (typeof LOGO_BPS_BASE64 !== 'undefined' && LOGO_BPS_BASE64) {
-        try {
-          children.push(new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 100 },
-            children: [new ImageRun({
-              data: base64ToUint8Array(LOGO_BPS_BASE64),
-              transformation: { width: 90, height: 90 },
-            })],
-          }));
-        } catch(e) { console.warn('Gagal embed logo, skip:', e); }
-      }
-
-      children.push(
-        p('BADAN PUSAT STATISTIK', { bold: true, italic: true, align: AlignmentType.CENTER, size: 28, spaceAfter: 0 }),
-        p('KABUPATEN RAJA AMPAT',  { bold: true, italic: true, align: AlignmentType.CENTER, size: 28, spaceAfter: 300 }),
-      );
-
-      children.push(
-        p('SURAT TUGAS', { align: AlignmentType.CENTER, size: 24, spaceAfter: 60 }),
-        p(`NOMOR ${data.nomor_surat || '....................'}`, { align: AlignmentType.CENTER, size: 24, spaceAfter: 240 }),
-      );
-
-      const menimbangText = buildMenimbang(data.menimbang_custom);
-
-      const rowMenimbang = new TableRow({
-        children: [
-          cell(p('Menimbang', { spaceAfter: 0 }),           { width: 20 }),
-          cell(p(':',         { spaceAfter: 0 }),           { width: 3 }),
-          cell(p(menimbangText, { align: AlignmentType.JUSTIFIED, spaceAfter: 0 }), { width: 77 }),
-        ],
-      });
-
-      const mengingatRows = MENGINGAT_ITEMS.map((item, idx) => {
-        const isFirst = idx === 0;
-        return new TableRow({
-          children: [
-            cell(p(isFirst ? 'Mengingat' : '', { spaceAfter: 0 }), { width: 20 }),
-            cell(p(isFirst ? ':' : '',          { spaceAfter: 0 }), { width: 3 }),
-            cell(
-              new Paragraph({
-                alignment: AlignmentType.JUSTIFIED,
-                spacing: { after: 60, line: 276 },
-                children: [new TextRun({ text: `${idx + 1}. ${item}`, size: 22, font: 'Times New Roman' })],
-              }),
-              { width: 77 }
-            ),
-          ],
-        });
-      });
-
-      children.push(new Table({
-        rows: [rowMenimbang, ...mengingatRows],
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        borders: NO_BORDER,
-      }));
-
-      children.push(empty(100));
-      children.push(p('Memberi Tugas', { align: AlignmentType.CENTER, spaceAfter: 100 }));
-
-      const untukText = `${data.perihal || '-'} di ${data.tujuan || '-'} pada tanggal ${fmtWaktu(data.tanggal_berangkat, data.tanggal_kembali)}`;
-
-      const detailRows = [
-        new TableRow({
-          children: [
-            cell(p('Kepada', { spaceAfter: 0 }),              { width: 20 }),
-            cell(p(':',      { spaceAfter: 0 }),              { width: 3 }),
-            cell(p(pegInfo.nama, { spaceAfter: 0 }),          { width: 77 }),
-          ],
-        }),
-        new TableRow({
-          children: [
-            cell(p('Jabatan', { spaceAfter: 0 }),             { width: 20 }),
-            cell(p(':',       { spaceAfter: 0 }),             { width: 3 }),
-            cell(p(pegInfo.jabatan || '-', { spaceAfter: 0 }),{ width: 77 }),
-          ],
-        }),
-        new TableRow({
-          children: [
-            cell(p('Untuk',   { spaceAfter: 0 }),             { width: 20 }),
-            cell(p(':',       { spaceAfter: 0 }),             { width: 3 }),
-            cell(p(untukText, { align: AlignmentType.JUSTIFIED, spaceAfter: 0 }), { width: 77 }),
-          ],
-        }),
-      ];
-
-      children.push(new Table({
-        rows: detailRows,
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        borders: NO_BORDER,
-      }));
-
-      children.push(empty(200));
-
-      const pembebananRow = new TableRow({
-        children: [
-          cell(p('Pembebanan', { spaceAfter: 0 }),                         { width: 20 }),
-          cell(p(':',          { spaceAfter: 0 }),                         { width: 3 }),
-          cell(p(data.pembebanan || '-', { spaceAfter: 0 }),               { width: 77 }),
-        ],
-      });
-      children.push(new Table({
-        rows: [pembebananRow],
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        borders: NO_BORDER,
-      }));
-
-      children.push(empty(400));
-
-      const tanggalSuratFmt = data.tanggal_surat ? fmtTgl(data.tanggal_surat) : fmtTgl(new Date().toISOString().slice(0,10));
-      const tempat = data.tempat_terbit || '-';
-
-      children.push(
-        p(`${tempat}, ${tanggalSuratFmt}`,             { align: AlignmentType.RIGHT, spaceAfter: 0 }),
-        p(data.penandatangan_jabatan || '-',           { align: AlignmentType.RIGHT, spaceAfter: 900 }),
-        p(data.penandatangan_nama || '-',              { align: AlignmentType.RIGHT, bold: false, underline: { type: 'single' }, spaceAfter: 0 }),
-        p(`NIP. ${data.penandatangan_nip || '-'}`,     { align: AlignmentType.RIGHT, spaceAfter: 0 }),
-      );
-
-      if (!isLast) {
-        children.push(new Paragraph({ children: [new PageBreak()] }));
-      }
-
-      return children;
-    }
-
-    const nipList   = Array.isArray(data.pegawai_nip)  ? data.pegawai_nip  : [];
-    const nameList  = Array.isArray(data.pegawai_list) ? data.pegawai_list : [];
-
-    let pegawaiInfoList = [];
-    if (nipList.length) {
-      pegawaiInfoList = nipList.map((nip, i) => getPegawaiInfo(nip, nameList[i]));
-    } else if (nameList.length) {
-      pegawaiInfoList = nameList.map(n => ({ nama: n, jabatan: '' }));
-    } else {
-      pegawaiInfoList = [{ nama: '-', jabatan: '' }];
-    }
-
-    const allChildren = [];
-    pegawaiInfoList.forEach((pegInfo, idx) => {
-      const isLast = idx === pegawaiInfoList.length - 1;
-      const pageChildren = buildHalamanUntukPegawai(pegInfo, isLast);
-      pageChildren.forEach(c => allChildren.push(c));
-    });
-
-    const doc = new Document({
-      creator: 'Portal NOVA',
-      title: `Surat Tugas ${data.nomor_surat || data.id}`,
-      description: 'Surat Tugas digenerate oleh Portal NOVA',
-      styles: {
-        default: {
-          document: {
-            run: { font: 'Times New Roman', size: 22 },
-          },
-        },
-      },
-      sections: [{
-        properties: {
-          page: {
-            margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 },
-          },
-        },
-        children: allChildren,
-      }],
-    });
-
-    return await Packer.toBlob(doc);
-  }
-
-  function init() {
-    SESSION = checkSession();
-    if (!SESSION) return;
-    setTopbarUser(SESSION);
-    initRoleSwitcher(SESSION, true);
-
-    Promise.all([loadPegawai(), loadSurat()]);
-  }
-  init();
-</script>
+<!-- ═══════════════════════════════════════════════════════════
+     LOGIC — di file terpisah agar mudah di-maintain
+═════════════════════════════════════════════════════════════ -->
+<script src="admin-surat-tugas.js"></script>
 </body>
 </html>
