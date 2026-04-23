@@ -199,12 +199,38 @@
   .table-head{background:var(--navy);padding:13px 20px;display:flex;align-items:center;justify-content:space-between}
   .table-head-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.8px;text-transform:uppercase}
   .table-head-count{font-size:11px;color:rgba(255,255,255,.35)}
-  table.list-table{width:100%;border-collapse:collapse}
+  .table-scroll{overflow-x:auto}
+  .table-scroll::-webkit-scrollbar{height:10px}
+  .table-scroll::-webkit-scrollbar-track{background:var(--bg)}
+  .table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
+  .table-scroll::-webkit-scrollbar-thumb:hover{background:#a9a298}
+  table.list-table{width:100%;border-collapse:collapse;min-width:1600px}
   table.list-table thead th{background:#f9f8f5;padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
   table.list-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
   table.list-table tbody tr:last-child{border-bottom:none}
   table.list-table tbody tr:hover{background:#fafaf8}
   table.list-table tbody td{padding:11px 14px;font-size:13px;color:var(--text);vertical-align:middle}
+  .col-nomor-surat{min-width:170px}
+  .col-tgl-surat{min-width:140px}
+  .col-menimbang{min-width:220px}
+  .col-pembebanan{min-width:200px}
+  .col-ttd{min-width:210px}
+  .cell-input{width:100%;padding:6px 8px;background:#fff;border:1.5px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+  .cell-input::placeholder{color:#c8c3ba;font-size:11px}
+  .cell-input:hover:not(:read-only):not(:disabled){border-color:var(--border)}
+  .cell-input:focus{border-color:var(--navy);box-shadow:0 0 0 2px rgba(13,35,64,.08)}
+  .cell-input:read-only,.cell-input:disabled{background:transparent;border-color:transparent;padding:4px 0;color:var(--text);cursor:default;font-weight:500}
+  .cell-input:read-only:focus,.cell-input:disabled:focus{box-shadow:none}
+  .cell-input.err{border-color:var(--red)!important;background:#fef2f2!important;animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+  .cell-textarea{resize:vertical;min-height:42px;line-height:1.45;font-family:'Plus Jakarta Sans',sans-serif}
+  .cell-textarea:read-only,.cell-textarea:disabled{resize:none;min-height:0;white-space:pre-wrap;word-break:break-word}
+  .ttd-fields{display:flex;flex-direction:column;gap:4px}
+  .ttd-sub{font-size:11px;padding:5px 7px}
+  .ttd-sub:read-only,.ttd-sub:disabled{padding:2px 0;font-size:11.5px;line-height:1.4}
+  .ttd-label{font-size:9px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;font-weight:600;margin-top:2px;margin-bottom:1px}
+  .ttd-label:first-child{margin-top:0}
+  .cell-readonly-empty{color:var(--muted);font-style:italic;font-size:11px;font-weight:400!important}
   .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
   .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
   .badge.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
@@ -233,25 +259,21 @@
   .modal-body{padding:22px 24px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;min-height:0}
   .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
   .form-group{display:flex;flex-direction:column;gap:6px}
-  .form-section{padding-top:10px;border-top:1px dashed var(--border);margin-top:4px}
-  .form-section-title{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-  .form-section-title::before{content:'';width:14px;height:2px;background:var(--gold)}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .form-label{font-size:12px;font-weight:600;color:var(--navy)}
   .form-label span{color:var(--red);margin-left:2px}
   .form-label-hint{font-size:10px;color:var(--muted);font-weight:400;font-style:italic}
   .form-input{width:100%;padding:10px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s}
   .form-input::placeholder{color:#b8b3ac}
   .form-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.07)}
-  .form-input.error{border-color:var(--red)}
   .form-textarea{width:100%;padding:10px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;resize:vertical;min-height:70px;line-height:1.5}
   .form-textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.07)}
   .error-msg{font-size:11px;color:var(--red);display:none}
   .error-msg.show{display:block}
-  .menimbang-preview{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 11px;font-size:11px;line-height:1.6;color:var(--muted)}
-  .menimbang-preview strong{color:var(--navy);font-weight:600}
-  .menimbang-preview em{color:var(--gold);font-style:normal;font-weight:600;background:var(--gold-light);padding:1px 4px;border-radius:3px}
-  .save-default-row{display:flex;align-items:center;gap:7px;padding:7px 0;font-size:12px;color:var(--muted)}
+  .approve-preview{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:12px 14px;font-size:12px;line-height:1.7;color:var(--text)}
+  .approve-preview-row{display:flex;gap:8px;padding:3px 0}
+  .approve-preview-row strong{color:var(--muted);font-weight:600;min-width:110px;flex-shrink:0;font-size:11px;letter-spacing:.3px;text-transform:uppercase;padding-top:1px}
+  .approve-preview-row span{color:var(--navy);font-weight:500;flex:1;word-break:break-word}
+  .save-default-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:12px;color:var(--muted)}
   .save-default-row input{width:14px;height:14px;accent-color:var(--navy);cursor:pointer}
   .save-default-row label{cursor:pointer;user-select:none}
   .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -265,12 +287,12 @@
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .fade-in{animation:fadeUp .5s ease both}
   .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
+  .hint-bar{background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:10px 14px;font-size:12px;color:#1e40af;line-height:1.55;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
   @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.topbar-time{display:none}}
   @media(max-width:600px){
     .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
     .sidebar.open{left:0}.layout{display:block}.menu-toggle{display:flex!important}
     .detail-grid{grid-template-columns:1fr}
-    .form-row{grid-template-columns:1fr}
     .modal{max-width:100%}
   }
 </style>
@@ -337,7 +359,7 @@
       <div>
         <div class="page-eyebrow">Administrasi</div>
         <h1 class="page-title">Persetujuan <em>Surat Tugas</em></h1>
-        <p class="page-desc">Tinjau, setujui, atau tolak pengajuan surat tugas dari pegawai.</p>
+        <p class="page-desc">Lengkapi identitas surat langsung di tabel, lalu setujui atau tolak pengajuan.</p>
       </div>
       <button class="btn-outline fade-in" style="animation-delay:.1s" onclick="loadSurat()">↺ Muat Ulang</button>
     </div>
@@ -364,15 +386,32 @@
       </select>
     </div>
 
+    <div class="hint-bar fade-in" style="animation-delay:.11s">
+      <span>💡</span>
+      <span>Isi <strong>Nomor Surat</strong>, <strong>Tgl Surat</strong>, <strong>Menimbang</strong>, <strong>Pembebanan</strong>, dan <strong>Penandatangan</strong> langsung pada baris status <strong>Menunggu</strong>, lalu klik <strong>Setujui</strong>. Field Pembebanan &amp; Penandatangan otomatis terisi dari default yang tersimpan.</span>
+    </div>
+
     <div class="table-wrap fade-in" style="animation-delay:.12s">
       <div class="table-head">
         <span class="table-head-title">Daftar Pengajuan Surat Tugas</span>
         <span class="table-head-count" id="table-count">Memuat...</span>
       </div>
-      <div id="table-area">
+      <div class="table-scroll" id="table-area">
         <table class="list-table">
-          <thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead>
-          <tbody><tr><td colspan="6"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+          <thead><tr>
+            <th>Perihal</th>
+            <th>Waktu</th>
+            <th>Tujuan</th>
+            <th>Pegawai</th>
+            <th>Nomor Surat</th>
+            <th>Tgl Surat</th>
+            <th>Menimbang (Kegiatan)</th>
+            <th>Pembebanan</th>
+            <th>Penandatangan</th>
+            <th>Status</th>
+            <th style="text-align:right">Aksi</th>
+          </tr></thead>
+          <tbody><tr><td colspan="11"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
             <div class="skel" style="height:44px;border-radius:6px"></div>
             <div class="skel" style="height:44px;border-radius:6px"></div>
             <div class="skel" style="height:44px;border-radius:6px"></div>
@@ -398,7 +437,7 @@
   </div>
 </div>
 
-<!-- MODAL SETUJUI — expanded dengan field template BPS -->
+<!-- ═══ MODAL SETUJUI — SEDERHANA: PREVIEW + CATATAN + KONFIRMASI ═══ -->
 <div class="modal-overlay" id="modal-approve" style="display:none" onclick="if(event.target===this)closeModal('modal-approve')">
   <div class="modal modal-wide">
     <div class="modal-header approve">
@@ -409,77 +448,16 @@
       <div id="approve-alert" class="alert"><span id="approve-alert-icon"></span><span id="approve-alert-text"></span></div>
       <p style="font-size:13px;color:var(--muted);line-height:1.6">Menyetujui: <strong id="approve-perihal" style="color:var(--navy)"></strong></p>
 
-      <!-- ═══ IDENTITAS SURAT ═══ -->
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Nomor Surat <span>*</span></label>
-          <input type="text" class="form-input" id="inp-nomor-surat" placeholder="cth: B-293/668870-92800/KP-650/04/2026" autocomplete="off">
-          <span class="error-msg" id="err-nomor-surat">Nomor surat wajib diisi</span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tanggal Surat <span>*</span></label>
-          <input type="date" class="form-input" id="inp-tanggal-surat">
-          <span class="error-msg" id="err-tanggal-surat">Tanggal surat wajib diisi</span>
-        </div>
+      <div class="form-group">
+        <label class="form-label" style="margin-bottom:2px">Ringkasan Data Surat</label>
+        <div class="approve-preview" id="approve-preview"></div>
       </div>
 
-      <!-- ═══ MENIMBANG (CUSTOM) ═══ -->
-      <div class="form-section">
-        <div class="form-section-title">Menimbang</div>
-        <div class="form-group">
-          <label class="form-label">Kegiatan / Pekerjaan <span>*</span> <span class="form-label-hint">— hanya bagian inti kegiatan</span></label>
-          <input type="text" class="form-input" id="inp-menimbang-custom" placeholder="cth: pelaksanaan lapangan Survei Harga Perdagangan Besar (SHPB)">
-          <span class="error-msg" id="err-menimbang-custom">Kegiatan wajib diisi</span>
-          <div class="menimbang-preview" id="menimbang-preview">
-            <strong>Preview:</strong> bahwa untuk kepentingan administrasi kegiatan <em>[kegiatan]</em>, Kepala Badan Pusat Statistik Kabupaten Raja Ampat perlu menetapkan Surat Tugas;
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ PEMBEBANAN ═══ -->
-      <div class="form-section">
-        <div class="form-section-title">Pembebanan</div>
-        <div class="form-group">
-          <label class="form-label">Sumber Anggaran <span>*</span></label>
-          <input type="text" class="form-input" id="inp-pembebanan" placeholder="cth: DIPA BPS Kabupaten Raja Ampat Tahun Anggaran 2026">
-          <span class="error-msg" id="err-pembebanan">Pembebanan wajib diisi</span>
-        </div>
-      </div>
-
-      <!-- ═══ PENANDATANGAN ═══ -->
-      <div class="form-section">
-        <div class="form-section-title">Penandatangan</div>
-        <div class="form-group">
-          <label class="form-label">Tempat Terbit <span>*</span></label>
-          <input type="text" class="form-input" id="inp-tempat-terbit" placeholder="cth: Waisai" autocomplete="off">
-          <span class="error-msg" id="err-tempat-terbit">Tempat terbit wajib diisi</span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Jabatan Penandatangan <span>*</span></label>
-          <input type="text" class="form-input" id="inp-penandatangan-jabatan" placeholder="cth: Plt. Kepala BPS Kabupaten Raja Ampat" autocomplete="off">
-          <span class="error-msg" id="err-penandatangan-jabatan">Jabatan penandatangan wajib diisi</span>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Nama Penandatangan <span>*</span></label>
-            <input type="text" class="form-input" id="inp-penandatangan-nama" placeholder="cth: Andrie Wardani, SST" autocomplete="off">
-            <span class="error-msg" id="err-penandatangan-nama">Nama wajib diisi</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">NIP <span>*</span></label>
-            <input type="text" class="form-input" id="inp-penandatangan-nip" placeholder="cth: 19890419 201211 1 001" autocomplete="off">
-            <span class="error-msg" id="err-penandatangan-nip">NIP wajib diisi</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ SIMPAN SEBAGAI DEFAULT ═══ -->
       <div class="save-default-row">
         <input type="checkbox" id="inp-save-default" checked>
-        <label for="inp-save-default">💾 Simpan Pembebanan & Penandatangan sebagai default untuk surat berikutnya</label>
+        <label for="inp-save-default">💾 Simpan Pembebanan &amp; Penandatangan sebagai default untuk surat berikutnya</label>
       </div>
 
-      <!-- ═══ CATATAN ADMIN ═══ -->
       <div class="form-group">
         <label class="form-label">Catatan Admin <span class="form-label-hint">(opsional, tidak tampil di surat)</span></label>
         <textarea class="form-textarea" id="inp-catatan-approve" placeholder="Catatan internal..." style="min-height:60px"></textarea>
@@ -546,7 +524,7 @@
   let SESSION = null, allSurat = [], suratMap = {}, pegawaiByNIP = {}, selectedId = null;
 
   // ═══════════════════════════════════════════════════════════════════════
-  // DEFAULT VALUES untuk modal Approve (di-prefill dari localStorage)
+  // DEFAULT VALUES untuk Pembebanan & Penandatangan (prefill inline)
   // ═══════════════════════════════════════════════════════════════════════
   const APPROVE_DEFAULTS_KEY = 'nova_approve_defaults_v1';
   const FACTORY_DEFAULTS = {
@@ -595,8 +573,9 @@
   }
 
   function esc(str) { if (str==null)return''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function escAttr(str) { return esc(str); }
   const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  function fmtTgl(str) { if(!str)return'—'; const d=new Date(str+'T00:00:00'); return`${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`; }
+  function fmtTgl(str) { if(!str)return'—'; const d=new Date(str+'T00:00:00'); if(isNaN(d))return'—'; return`${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`; }
   function fmtWaktu(mulai,selesai) { if(!mulai)return'—'; if(!selesai||selesai===mulai)return fmtTgl(mulai); const a=new Date(mulai+'T00:00:00'),b=new Date(selesai+'T00:00:00'); if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear())return`${a.getDate()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`; if(a.getFullYear()===b.getFullYear())return`${a.getDate()} ${BULAN[a.getMonth()]} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`; return`${fmtTgl(mulai)} s.d. ${fmtTgl(selesai)}`; }
   function badgeHTML(status) { const m={menunggu:['menunggu','⏳ Menunggu'],disetujui:['disetujui','✅ Disetujui'],ditolak:['ditolak','❌ Ditolak']}; const[cls,lbl]=m[status]||['menunggu',status]; return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`; }
 
@@ -615,7 +594,7 @@
   }
 
   async function loadSurat() {
-    document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead><tbody><tr><td colspan="6"><div style="padding:16px;display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div></td></tr></tbody></table>`;
+    document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Nomor Surat</th><th>Tgl Surat</th><th>Menimbang (Kegiatan)</th><th>Pembebanan</th><th>Penandatangan</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead><tbody><tr><td colspan="11"><div style="padding:16px;display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:44px;border-radius:6px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div></td></tr></tbody></table>`;
     document.getElementById('table-count').textContent='Memuat...';
     try {
       const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?select=*&order=created_at.desc`,{headers:H});
@@ -631,12 +610,159 @@
   }
   function updateStats() { document.getElementById('st-total').textContent=allSurat.length; document.getElementById('st-menunggu').textContent=allSurat.filter(s=>s.status==='menunggu').length; document.getElementById('st-disetujui').textContent=allSurat.filter(s=>s.status==='disetujui').length; document.getElementById('st-ditolak').textContent=allSurat.filter(s=>s.status==='ditolak').length; }
   function filterTable() { const q=document.getElementById('search-input').value.toLowerCase(); const st=document.getElementById('filter-status').value; let f=allSurat; if(q)f=f.filter(s=>(s.perihal||'').toLowerCase().includes(q)||(s.tujuan||'').toLowerCase().includes(q)); if(st)f=f.filter(s=>s.status===st); renderTable(f); }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // RENDER TABLE — dengan 5 kolom admin-editable
+  // ═══════════════════════════════════════════════════════════════════════
   function renderTable(data) {
-    document.getElementById('table-count').textContent=`${data.length} surat`;
-    if(!data.length){document.getElementById('table-area').innerHTML=`<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Tidak ada surat tugas ditemukan.</div></div>`;return;}
-    const rows=data.map(s=>{const isMenunggu=s.status==='menunggu';const isDisetujui=s.status==='disetujui';let aksiBtn;if(isMenunggu){aksiBtn=`<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button><button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button><button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button></div>`;}else if(isDisetujui){aksiBtn=`<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap"><button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button><button class="btn-preview" onclick="openPreview(${s.id})">👁 Preview</button><button class="btn-download" onclick="downloadSuratTugas(${s.id})">📥 Download</button></div>`;}else{aksiBtn=`<div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button></div>`;}return`<tr><td style="max-width:200px;word-break:break-word;line-height:1.5">${esc(s.perihal)||'—'}</td><td style="font-size:12px;white-space:nowrap">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td><td>${esc(s.tujuan)||'—'}</td><td><span style="font-size:12px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td><td>${badgeHTML(s.status)}</td><td>${aksiBtn}</td></tr>`;}).join('');
-    document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th style="text-align:right">Aksi</th></tr></thead><tbody>${rows}</tbody></table>`;
+    document.getElementById('table-count').textContent = `${data.length} surat`;
+    if (!data.length) {
+      document.getElementById('table-area').innerHTML = `<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Tidak ada surat tugas ditemukan.</div></div>`;
+      return;
+    }
+
+    const defaults = loadApproveDefaults();
+    const todayISO = new Date().toISOString().slice(0, 10);
+
+    const rows = data.map(s => {
+      const isMenunggu  = s.status === 'menunggu';
+      const isDisetujui = s.status === 'disetujui';
+      const isDitolak   = s.status === 'ditolak';
+      const readOnlyAttr = isMenunggu ? '' : 'readonly';
+
+      // Prefill: nilai existing → default localStorage → kosong
+      const nomorSurat      = s.nomor_surat          || '';
+      const tanggalSurat    = s.tanggal_surat        || (isMenunggu ? todayISO : '');
+      const menimbang       = s.menimbang_custom     || '';
+      const pembebanan      = s.pembebanan           || (isMenunggu ? defaults.pembebanan : '');
+      const tempatTerbit    = s.tempat_terbit        || (isMenunggu ? defaults.tempat_terbit : '');
+      const ttdJabatan      = s.penandatangan_jabatan|| (isMenunggu ? defaults.penandatangan_jabatan : '');
+      const ttdNama         = s.penandatangan_nama   || (isMenunggu ? defaults.penandatangan_nama : '');
+      const ttdNip          = s.penandatangan_nip    || (isMenunggu ? defaults.penandatangan_nip : '');
+
+      // ─── Cell: Nomor Surat ───
+      let cellNomor;
+      if (isMenunggu) {
+        cellNomor = `<input type="text" class="cell-input" data-field="nomor_surat" value="${escAttr(nomorSurat)}" placeholder="cth: B-293/.../2026">`;
+      } else {
+        cellNomor = nomorSurat
+          ? `<div style="font-size:12px;font-weight:600;color:var(--navy);word-break:break-all">${esc(nomorSurat)}</div>`
+          : `<span class="cell-readonly-empty">—</span>`;
+      }
+
+      // ─── Cell: Tgl Surat ───
+      let cellTgl;
+      if (isMenunggu) {
+        cellTgl = `<input type="date" class="cell-input" data-field="tanggal_surat" value="${escAttr(tanggalSurat)}">`;
+      } else {
+        cellTgl = tanggalSurat
+          ? `<div style="font-size:12px;color:var(--navy);font-weight:500">${esc(fmtTgl(tanggalSurat))}</div>`
+          : `<span class="cell-readonly-empty">—</span>`;
+      }
+
+      // ─── Cell: Menimbang ───
+      let cellMenimbang;
+      if (isMenunggu) {
+        cellMenimbang = `<textarea class="cell-input cell-textarea" data-field="menimbang_custom" rows="2" placeholder="cth: pelaksanaan Survei Harga Perdagangan Besar">${esc(menimbang)}</textarea>`;
+      } else {
+        cellMenimbang = menimbang
+          ? `<div style="font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word">${esc(menimbang)}</div>`
+          : `<span class="cell-readonly-empty">—</span>`;
+      }
+
+      // ─── Cell: Pembebanan ───
+      let cellPembebanan;
+      if (isMenunggu) {
+        cellPembebanan = `<textarea class="cell-input cell-textarea" data-field="pembebanan" rows="2" placeholder="Sumber anggaran...">${esc(pembebanan)}</textarea>`;
+      } else {
+        cellPembebanan = pembebanan
+          ? `<div style="font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word">${esc(pembebanan)}</div>`
+          : `<span class="cell-readonly-empty">—</span>`;
+      }
+
+      // ─── Cell: Penandatangan (4 sub-field) ───
+      let cellTtd;
+      if (isMenunggu) {
+        cellTtd = `
+          <div class="ttd-fields">
+            <label class="ttd-label">Tempat Terbit</label>
+            <input type="text" class="cell-input ttd-sub" data-field="tempat_terbit" value="${escAttr(tempatTerbit)}" placeholder="cth: Waisai">
+            <label class="ttd-label">Jabatan</label>
+            <input type="text" class="cell-input ttd-sub" data-field="penandatangan_jabatan" value="${escAttr(ttdJabatan)}" placeholder="Jabatan">
+            <label class="ttd-label">Nama</label>
+            <input type="text" class="cell-input ttd-sub" data-field="penandatangan_nama" value="${escAttr(ttdNama)}" placeholder="Nama lengkap">
+            <label class="ttd-label">NIP</label>
+            <input type="text" class="cell-input ttd-sub" data-field="penandatangan_nip" value="${escAttr(ttdNip)}" placeholder="NIP">
+          </div>`;
+      } else {
+        const hasAny = tempatTerbit || ttdJabatan || ttdNama || ttdNip;
+        if (hasAny) {
+          const parts = [];
+          if (tempatTerbit) parts.push(`<div style="font-size:11px;color:var(--muted)">${esc(tempatTerbit)}</div>`);
+          if (ttdJabatan)   parts.push(`<div style="font-size:11.5px;color:var(--navy);font-style:italic">${esc(ttdJabatan)}</div>`);
+          if (ttdNama)      parts.push(`<div style="font-size:12px;color:var(--navy);font-weight:600">${esc(ttdNama)}</div>`);
+          if (ttdNip)       parts.push(`<div style="font-size:11px;color:var(--muted)">NIP. ${esc(ttdNip)}</div>`);
+          cellTtd = `<div style="display:flex;flex-direction:column;gap:2px">${parts.join('')}</div>`;
+        } else {
+          cellTtd = `<span class="cell-readonly-empty">—</span>`;
+        }
+      }
+
+      // ─── Aksi ───
+      let aksiBtn;
+      if (isMenunggu) {
+        aksiBtn = `<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+          <button class="btn-sm" onclick="openDetail(${s.id})">🔍</button>
+          <button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button>
+          <button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button>
+        </div>`;
+      } else if (isDisetujui) {
+        aksiBtn = `<div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+          <button class="btn-sm" onclick="openDetail(${s.id})">🔍</button>
+          <button class="btn-preview" onclick="openPreview(${s.id})">👁 Preview</button>
+          <button class="btn-download" onclick="downloadSuratTugas(${s.id})">📥</button>
+        </div>`;
+      } else {
+        aksiBtn = `<div style="display:flex;gap:6px;justify-content:flex-end">
+          <button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button>
+        </div>`;
+      }
+
+      return `<tr data-surat-id="${s.id}">
+        <td style="max-width:200px;word-break:break-word;line-height:1.5;min-width:160px">${esc(s.perihal)||'—'}</td>
+        <td style="font-size:12px;white-space:nowrap">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td>
+        <td style="min-width:120px">${esc(s.tujuan)||'—'}</td>
+        <td><span style="font-size:12px;color:var(--muted);white-space:nowrap">${(s.pegawai_list||[]).length} orang</span></td>
+        <td class="col-nomor-surat">${cellNomor}</td>
+        <td class="col-tgl-surat">${cellTgl}</td>
+        <td class="col-menimbang">${cellMenimbang}</td>
+        <td class="col-pembebanan">${cellPembebanan}</td>
+        <td class="col-ttd">${cellTtd}</td>
+        <td>${badgeHTML(s.status)}</td>
+        <td>${aksiBtn}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('table-area').innerHTML = `<table class="list-table"><thead><tr>
+      <th>Perihal</th>
+      <th>Waktu</th>
+      <th>Tujuan</th>
+      <th>Pegawai</th>
+      <th>Nomor Surat</th>
+      <th>Tgl Surat</th>
+      <th>Menimbang (Kegiatan)</th>
+      <th>Pembebanan</th>
+      <th>Penandatangan</th>
+      <th>Status</th>
+      <th style="text-align:right">Aksi</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+
+    // Auto-clear kelas .err ketika user mulai mengetik
+    document.querySelectorAll('tr[data-surat-id] .cell-input').forEach(el => {
+      el.addEventListener('input', () => el.classList.remove('err'));
+    });
   }
+
   function openModal(id){document.getElementById(id).style.display='flex';}
   function closeModal(id){document.getElementById(id).style.display='none';}
   document.addEventListener('keydown',e=>{if(e.key==='Escape')['modal-detail','modal-approve','modal-reject','modal-preview'].forEach(id=>closeModal(id));});
@@ -645,103 +771,149 @@
     const s=suratMap[id];if(!s)return;
     const f=(label,val,full)=>{const v=val&&String(val).trim()?String(val).trim():null;return`<div class="detail-field${full?' full':''}"><div class="detail-field-label">${label}</div><div class="detail-field-val${v?'':' empty'}">${v?esc(v):'Tidak tersedia'}</div></div>`;};
     const pegawaiStr=(s.pegawai_list||[]).length?s.pegawai_list.map(esc).join(', '):null;
-    document.getElementById('modal-detail-body').innerHTML=`<div class="detail-grid">${f('Status',s.status==='menunggu'?'⏳ Menunggu':s.status==='disetujui'?'✅ Disetujui':'❌ Ditolak')}${f('Tanggal Pengajuan',s.created_at?new Date(s.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):null)}${f('Perihal',s.perihal,true)}${f('Tujuan',s.tujuan,true)}${f('Tanggal Berangkat',fmtTgl(s.tanggal_berangkat))}${f('Tanggal Kembali',fmtTgl(s.tanggal_kembali))}${f('Pegawai',pegawaiStr,true)}${s.nomor_surat?f('Nomor Surat',s.nomor_surat):''}${s.tanggal_surat?f('Tanggal Surat',fmtTgl(s.tanggal_surat)):''}${s.menimbang_custom?f('Menimbang (kegiatan)',s.menimbang_custom,true):''}${s.pembebanan?f('Pembebanan',s.pembebanan,true):''}${s.penandatangan_nama?f('Penandatangan',`${s.penandatangan_nama} (${s.penandatangan_jabatan||'-'})`,true):''}${s.catatan_admin?f('Catatan Admin',s.catatan_admin,true):''}`;
+    document.getElementById('modal-detail-body').innerHTML=`<div class="detail-grid">${f('Status',s.status==='menunggu'?'⏳ Menunggu':s.status==='disetujui'?'✅ Disetujui':'❌ Ditolak')}${f('Tanggal Pengajuan',s.created_at?new Date(s.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):null)}${f('Perihal',s.perihal,true)}${f('Tujuan',s.tujuan,true)}${f('Tanggal Berangkat',fmtTgl(s.tanggal_berangkat))}${f('Tanggal Kembali',fmtTgl(s.tanggal_kembali))}${f('Pegawai',pegawaiStr,true)}${s.nomor_surat?f('Nomor Surat',s.nomor_surat):''}${s.tanggal_surat?f('Tanggal Surat',fmtTgl(s.tanggal_surat)):''}${s.menimbang_custom?f('Menimbang (kegiatan)',s.menimbang_custom,true):''}${s.pembebanan?f('Pembebanan',s.pembebanan,true):''}${s.penandatangan_nama?f('Penandatangan',`${s.penandatangan_nama} (${s.penandatangan_jabatan||'-'})`,true):''}${s.tempat_terbit?f('Tempat Terbit',s.tempat_terbit):''}${s.penandatangan_nip?f('NIP',s.penandatangan_nip):''}${s.catatan_admin?f('Catatan Admin',s.catatan_admin,true):''}`;
     const actions=document.getElementById('modal-detail-actions');
     if(s.status==='menunggu'){actions.innerHTML=`<div style="display:flex;gap:8px"><button class="btn-approve" onclick="closeModal('modal-detail');openApprove(${s.id})">✅ Setujui</button><button class="btn-reject" onclick="closeModal('modal-detail');openReject(${s.id})">❌ Tolak</button></div>`;}else if(s.status==='disetujui'){actions.innerHTML=`<div style="display:flex;gap:8px"><button class="btn-preview" onclick="closeModal('modal-detail');openPreview(${s.id})">👁 Preview</button><button class="btn-download" onclick="closeModal('modal-detail');downloadSuratTugas(${s.id})">📥 Download</button></div>`;}else{actions.innerHTML='';}
     openModal('modal-detail');
   }
 
-  // ─── Live preview kalimat "Menimbang" ───
-  function updateMenimbangPreview() {
-    const val = document.getElementById('inp-menimbang-custom').value.trim();
-    const el = document.getElementById('menimbang-preview');
-    const shown = val ? esc(val) : '<em>[kegiatan]</em>';
-    el.innerHTML = `<strong>Preview:</strong> bahwa untuk kepentingan administrasi kegiatan ${shown}, Kepala Badan Pusat Statistik Kabupaten Raja Ampat perlu menetapkan Surat Tugas;`;
+  // ═══════════════════════════════════════════════════════════════════════
+  // HELPER: ambil nilai field dari baris tabel
+  // ═══════════════════════════════════════════════════════════════════════
+  function collectRowFields(suratId) {
+    const row = document.querySelector(`tr[data-surat-id="${suratId}"]`);
+    if (!row) return null;
+    const get = (field) => {
+      const el = row.querySelector(`[data-field="${field}"]`);
+      return el ? el.value.trim() : '';
+    };
+    return {
+      nomor_surat:           get('nomor_surat'),
+      tanggal_surat:         get('tanggal_surat'),
+      menimbang_custom:      get('menimbang_custom'),
+      pembebanan:            get('pembebanan'),
+      tempat_terbit:         get('tempat_terbit'),
+      penandatangan_jabatan: get('penandatangan_jabatan'),
+      penandatangan_nama:    get('penandatangan_nama'),
+      penandatangan_nip:     get('penandatangan_nip'),
+    };
   }
 
+  // Validasi — return array field yang kosong (label untuk user)
+  function validateApproveFields(values) {
+    const checks = [
+      ['nomor_surat',           'Nomor Surat'],
+      ['tanggal_surat',         'Tgl Surat'],
+      ['menimbang_custom',      'Menimbang'],
+      ['pembebanan',            'Pembebanan'],
+      ['tempat_terbit',         'Tempat Terbit'],
+      ['penandatangan_jabatan', 'Jabatan Penandatangan'],
+      ['penandatangan_nama',    'Nama Penandatangan'],
+      ['penandatangan_nip',     'NIP Penandatangan'],
+    ];
+    const errors = [];
+    const errFields = [];
+    checks.forEach(([key, label]) => {
+      if (!values[key]) { errors.push(label); errFields.push(key); }
+    });
+    return { errors, errFields };
+  }
+
+  // Tandai field yang belum terisi dengan kelas .err
+  function highlightRowFieldErrors(suratId, fields) {
+    const row = document.querySelector(`tr[data-surat-id="${suratId}"]`);
+    if (!row) return;
+    row.querySelectorAll('.cell-input.err').forEach(el => el.classList.remove('err'));
+    fields.forEach(field => {
+      const el = row.querySelector(`[data-field="${field}"]`);
+      if (el) el.classList.add('err');
+    });
+    // Scroll ke field pertama yang error
+    if (fields.length) {
+      const first = row.querySelector(`[data-field="${fields[0]}"]`);
+      if (first) {
+        first.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        setTimeout(() => first.focus(), 300);
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // APPROVE — modal sederhana dengan preview, catatan, save-default
+  // ═══════════════════════════════════════════════════════════════════════
   function openApprove(id) {
     selectedId = id;
-    const s = suratMap[id]; if(!s) return;
-    const defaults = loadApproveDefaults();
+    const s = suratMap[id]; if (!s) return;
 
+    // Ambil nilai dari row
+    const values = collectRowFields(id);
+    if (!values) return;
+
+    // Validasi sebelum buka modal
+    const { errors, errFields } = validateApproveFields(values);
+    if (errors.length) {
+      highlightRowFieldErrors(id, errFields);
+      showPageAlert(`⚠️ Lengkapi dulu di baris tabel: ${errors.join(', ')}`, 'error');
+      return;
+    }
+
+    // Bangun preview
     document.getElementById('approve-perihal').textContent = s.perihal || '—';
+    const preview = `
+      <div class="approve-preview-row"><strong>Nomor</strong><span>${esc(values.nomor_surat)}</span></div>
+      <div class="approve-preview-row"><strong>Tgl Surat</strong><span>${esc(fmtTgl(values.tanggal_surat))}</span></div>
+      <div class="approve-preview-row"><strong>Kegiatan</strong><span>${esc(values.menimbang_custom)}</span></div>
+      <div class="approve-preview-row"><strong>Pembebanan</strong><span>${esc(values.pembebanan)}</span></div>
+      <div class="approve-preview-row"><strong>Tempat Terbit</strong><span>${esc(values.tempat_terbit)}</span></div>
+      <div class="approve-preview-row"><strong>Penandatangan</strong><span>${esc(values.penandatangan_nama)}<br><em style="color:var(--muted);font-style:italic;font-size:11px">${esc(values.penandatangan_jabatan)}</em><br><span style="color:var(--muted);font-size:11px">NIP. ${esc(values.penandatangan_nip)}</span></span></div>
+    `;
+    document.getElementById('approve-preview').innerHTML = preview;
 
-    // Prefill — prioritas: data existing → default localStorage → factory
-    document.getElementById('inp-nomor-surat').value           = s.nomor_surat          || '';
-    document.getElementById('inp-tanggal-surat').value         = s.tanggal_surat        || new Date().toISOString().slice(0,10);
-    document.getElementById('inp-menimbang-custom').value      = s.menimbang_custom     || '';
-    document.getElementById('inp-pembebanan').value            = s.pembebanan           || defaults.pembebanan;
-    document.getElementById('inp-tempat-terbit').value         = s.tempat_terbit        || defaults.tempat_terbit;
-    document.getElementById('inp-penandatangan-jabatan').value = s.penandatangan_jabatan|| defaults.penandatangan_jabatan;
-    document.getElementById('inp-penandatangan-nama').value    = s.penandatangan_nama   || defaults.penandatangan_nama;
-    document.getElementById('inp-penandatangan-nip').value     = s.penandatangan_nip    || defaults.penandatangan_nip;
-    document.getElementById('inp-catatan-approve').value       = s.catatan_admin        || '';
-
-    // Reset errors
-    ['err-nomor-surat','err-tanggal-surat','err-menimbang-custom','err-pembebanan','err-tempat-terbit','err-penandatangan-jabatan','err-penandatangan-nama','err-penandatangan-nip']
-      .forEach(id => document.getElementById(id).classList.remove('show'));
+    document.getElementById('inp-catatan-approve').value = s.catatan_admin || '';
     document.getElementById('approve-alert').className = 'alert';
-
-    updateMenimbangPreview();
     openModal('modal-approve');
   }
 
   async function submitApprove() {
-    const payload = {
-      nomor_surat:           document.getElementById('inp-nomor-surat').value.trim(),
-      tanggal_surat:         document.getElementById('inp-tanggal-surat').value,
-      menimbang_custom:      document.getElementById('inp-menimbang-custom').value.trim(),
-      pembebanan:            document.getElementById('inp-pembebanan').value.trim(),
-      tempat_terbit:         document.getElementById('inp-tempat-terbit').value.trim(),
-      penandatangan_jabatan: document.getElementById('inp-penandatangan-jabatan').value.trim(),
-      penandatangan_nama:    document.getElementById('inp-penandatangan-nama').value.trim(),
-      penandatangan_nip:     document.getElementById('inp-penandatangan-nip').value.trim(),
-      catatan_admin:         document.getElementById('inp-catatan-approve').value.trim() || null,
-    };
+    // Ambil ulang nilai dari row (kalau user edit lagi setelah modal dibuka)
+    const values = collectRowFields(selectedId);
+    if (!values) return;
 
-    // Validasi
-    const fieldErrMap = {
-      nomor_surat:           'err-nomor-surat',
-      tanggal_surat:         'err-tanggal-surat',
-      menimbang_custom:      'err-menimbang-custom',
-      pembebanan:            'err-pembebanan',
-      tempat_terbit:         'err-tempat-terbit',
-      penandatangan_jabatan: 'err-penandatangan-jabatan',
-      penandatangan_nama:    'err-penandatangan-nama',
-      penandatangan_nip:     'err-penandatangan-nip',
-    };
-    let valid = true;
-    Object.entries(fieldErrMap).forEach(([field, errId]) => {
-      const err = document.getElementById(errId);
-      if (!payload[field]) { err.classList.add('show'); valid = false; }
-      else err.classList.remove('show');
-    });
-    if (!valid) {
+    const { errors, errFields } = validateApproveFields(values);
+    if (errors.length) {
       document.getElementById('approve-alert-icon').textContent = '⚠️';
-      document.getElementById('approve-alert-text').textContent = 'Mohon lengkapi semua field wajib.';
+      document.getElementById('approve-alert-text').textContent = `Lengkapi: ${errors.join(', ')}`;
       document.getElementById('approve-alert').className = 'alert error show';
+      // Highlight di row & tutup modal
+      highlightRowFieldErrors(selectedId, errFields);
+      setTimeout(() => closeModal('modal-approve'), 1500);
       return;
     }
+
+    const payload = {
+      status: 'disetujui',
+      ...values,
+      catatan_admin: document.getElementById('inp-catatan-approve').value.trim() || null,
+    };
 
     const btn = document.getElementById('btn-approve-submit');
     btn.disabled = true; btn.classList.add('loading');
     try {
-      const body = { status: 'disetujui', ...payload };
       const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${selectedId}`, {
         method: 'PATCH',
         headers: { ...H, 'Prefer': 'return=minimal' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       // Simpan default jika dicentang
       if (document.getElementById('inp-save-default').checked) {
         saveApproveDefaults({
-          pembebanan:             payload.pembebanan,
-          tempat_terbit:          payload.tempat_terbit,
-          penandatangan_jabatan:  payload.penandatangan_jabatan,
-          penandatangan_nama:     payload.penandatangan_nama,
-          penandatangan_nip:      payload.penandatangan_nip,
+          pembebanan:             values.pembebanan,
+          tempat_terbit:          values.tempat_terbit,
+          penandatangan_jabatan:  values.penandatangan_jabatan,
+          penandatangan_nama:     values.penandatangan_nama,
+          penandatangan_nip:      values.penandatangan_nip,
         });
       }
 
@@ -760,12 +932,12 @@
   function openReject(id){selectedId=id;const s=suratMap[id];if(!s)return;document.getElementById('reject-perihal').textContent=s.perihal||'—';document.getElementById('inp-catatan-reject').value='';document.getElementById('err-catatan-reject').classList.remove('show');document.getElementById('reject-alert').className='alert';openModal('modal-reject');}
   async function submitReject() {
     const catatan=document.getElementById('inp-catatan-reject').value.trim();
-    if(!catatan){document.getElementById('err-catatan-reject').classList.add('show');document.getElementById('inp-catatan-reject').classList.add('error');return;}
-    document.getElementById('err-catatan-reject').classList.remove('show');document.getElementById('inp-catatan-reject').classList.remove('error');
+    if(!catatan){document.getElementById('err-catatan-reject').classList.add('show');return;}
+    document.getElementById('err-catatan-reject').classList.remove('show');
     const btn=document.getElementById('btn-reject-submit');btn.disabled=true;btn.classList.add('loading');
     try{const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${selectedId}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify({status:'ditolak',catatan_admin:catatan})});if(!res.ok)throw new Error(`HTTP ${res.status}`);closeModal('modal-reject');showPageAlert('❌ Surat tugas telah ditolak.','success');await loadSurat();}catch(e){document.getElementById('reject-alert-icon').textContent='⚠️';document.getElementById('reject-alert-text').textContent=`Gagal: ${e.message}`;document.getElementById('reject-alert').className='alert error show';}finally{btn.disabled=false;btn.classList.remove('loading');}
   }
-  function showPageAlert(msg,type='error'){document.getElementById('page-alert-icon').textContent=type==='success'?'✅':'⚠️';document.getElementById('page-alert-text').textContent=msg;document.getElementById('page-alert').className=`alert ${type} show`;setTimeout(()=>{document.getElementById('page-alert').className='alert';},5000);}
+  function showPageAlert(msg,type='error'){document.getElementById('page-alert-icon').textContent=type==='success'?'✅':'⚠️';document.getElementById('page-alert-text').textContent=msg;document.getElementById('page-alert').className=`alert ${type} show`;document.getElementById('page-alert').scrollIntoView({behavior:'smooth',block:'nearest'});setTimeout(()=>{document.getElementById('page-alert').className='alert';},5000);}
 
   // ═══════════════════════════════════════════════════════════════════════
   // SURAT TUGAS (.docx) — PREVIEW, DOWNLOAD & PRINT
@@ -875,21 +1047,6 @@
   // ═══════════════════════════════════════════════════════════════════════
   // TEMPLATE SURAT TUGAS BPS KABUPATEN RAJA AMPAT
   // ═══════════════════════════════════════════════════════════════════════
-  //
-  // Struktur per halaman (1 pegawai = 1 halaman):
-  //   1. Logo BPS (center)
-  //   2. "BADAN PUSAT STATISTIK / KABUPATEN RAJA AMPAT" (center, italic bold)
-  //   3. "SURAT TUGAS" + Nomor (center)
-  //   4. Tabel 2-kolom: Menimbang / Mengingat (label | isi)
-  //   5. "Memberi Tugas" (center)
-  //   6. Tabel 2-kolom: Kepada / Jabatan / Untuk
-  //   7. Pembebanan
-  //   8. Tanda tangan (pojok kanan)
-  //
-  // Multi-pegawai → 1 surat, N halaman (page break per pegawai).
-  // ═══════════════════════════════════════════════════════════════════════
-
-  // ─── Hardcoded: 5 dasar hukum Mengingat ───
   const MENGINGAT_ITEMS = [
     'Undang-Undang Nomor 16 Tahun 1997 tentang Statistik;',
     'Peraturan Pemerintah Nomor 51 Tahun 1999 tentang Penyelenggaraan Statistik;',
@@ -898,12 +1055,10 @@
     'Peraturan Badan Pusat Statistik Nomor 3 Tahun 2025 tentang Perubahan atas Peraturan Badan Pusat Statistik Nomor 5 Tahun 2023 tentang Organisasi dan Tata Kerja Badan Pusat Statistik Provinsi dan Badan Pusat Statistik Kabupaten/Kota;',
   ];
 
-  // ─── Hardcoded: frame kalimat Menimbang ───
   function buildMenimbang(custom) {
     return `bahwa untuk kepentingan administrasi kegiatan ${custom || '[kegiatan]'}, Kepala Badan Pusat Statistik Kabupaten Raja Ampat perlu menetapkan Surat Tugas;`;
   }
 
-  // ─── Lookup jabatan pegawai dari NIP ───
   function getPegawaiInfo(nip, fallbackName) {
     const p = pegawaiByNIP[String(nip || '').trim()];
     if (p) {
@@ -917,7 +1072,6 @@
     return { nama: fallbackName || '-', jabatan: '' };
   }
 
-  // ─── Convert base64 → Uint8Array (untuk embed logo) ───
   function base64ToUint8Array(base64) {
     const cleaned = base64.replace(/^data:image\/[a-z]+;base64,/i, '');
     const raw = atob(cleaned);
@@ -935,7 +1089,6 @@
       HeightRule, TabStopType, PageBreak,
     } = docxLib;
 
-    // ─── Helper: paragraf ───
     const p = (text, opts = {}) => new Paragraph({
       alignment: opts.align || AlignmentType.LEFT,
       spacing: { after: opts.spaceAfter != null ? opts.spaceAfter : 100, line: opts.line || 276 },
@@ -945,7 +1098,7 @@
         bold: opts.bold || false,
         italics: opts.italic || false,
         underline: opts.underline || undefined,
-        size: opts.size || 22, // 22 = 11pt
+        size: opts.size || 22,
         font: opts.font || 'Times New Roman',
       })],
     });
@@ -961,7 +1114,6 @@
       insideVertical:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
     };
 
-    // Cell helper — borderless default
     const cell = (children, opts = {}) => new TableCell({
       width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined,
       verticalAlign: opts.valign || VerticalAlign.TOP,
@@ -969,13 +1121,9 @@
       children: Array.isArray(children) ? children : [children],
     });
 
-    // ═════════════════════════════════════════════════════════════════════
-    // BANGUN KONTEN UNTUK 1 PEGAWAI (1 halaman)
-    // ═════════════════════════════════════════════════════════════════════
     function buildHalamanUntukPegawai(pegInfo, isLast) {
       const children = [];
 
-      // ─── 1. LOGO BPS ───
       if (typeof LOGO_BPS_BASE64 !== 'undefined' && LOGO_BPS_BASE64) {
         try {
           children.push(new Paragraph({
@@ -986,28 +1134,21 @@
               transformation: { width: 90, height: 90 },
             })],
           }));
-        } catch(e) {
-          console.warn('Gagal embed logo, skip:', e);
-        }
+        } catch(e) { console.warn('Gagal embed logo, skip:', e); }
       }
 
-      // ─── 2. NAMA INSTANSI ───
       children.push(
         p('BADAN PUSAT STATISTIK', { bold: true, italic: true, align: AlignmentType.CENTER, size: 28, spaceAfter: 0 }),
         p('KABUPATEN RAJA AMPAT',  { bold: true, italic: true, align: AlignmentType.CENTER, size: 28, spaceAfter: 300 }),
       );
 
-      // ─── 3. JUDUL & NOMOR ───
       children.push(
         p('SURAT TUGAS', { align: AlignmentType.CENTER, size: 24, spaceAfter: 60 }),
         p(`NOMOR ${data.nomor_surat || '....................'}`, { align: AlignmentType.CENTER, size: 24, spaceAfter: 240 }),
       );
 
-      // ─── 4. TABEL MENIMBANG & MENGINGAT ───
-      // Kolom: [Label 20%] [":" 3%] [Isi 77%]
       const menimbangText = buildMenimbang(data.menimbang_custom);
 
-      // Row Menimbang
       const rowMenimbang = new TableRow({
         children: [
           cell(p('Menimbang', { spaceAfter: 0 }),           { width: 20 }),
@@ -1016,8 +1157,6 @@
         ],
       });
 
-      // Row Mengingat — ada 5 item bernomor. Row pertama punya label "Mengingat",
-      // row-row berikutnya label-nya kosong.
       const mengingatRows = MENGINGAT_ITEMS.map((item, idx) => {
         const isFirst = idx === 0;
         return new TableRow({
@@ -1025,8 +1164,6 @@
             cell(p(isFirst ? 'Mengingat' : '', { spaceAfter: 0 }), { width: 20 }),
             cell(p(isFirst ? ':' : '',          { spaceAfter: 0 }), { width: 3 }),
             cell(
-              // Nested table mini untuk nomor + teks? Lebih sederhana: pakai tab.
-              // Format "1. {teks}"
               new Paragraph({
                 alignment: AlignmentType.JUSTIFIED,
                 spacing: { after: 60, line: 276 },
@@ -1045,11 +1182,8 @@
       }));
 
       children.push(empty(100));
-
-      // ─── 5. "Memberi Tugas" ───
       children.push(p('Memberi Tugas', { align: AlignmentType.CENTER, spaceAfter: 100 }));
 
-      // ─── 6. TABEL KEPADA / JABATAN / UNTUK ───
       const untukText = `${data.perihal || '-'} di ${data.tujuan || '-'} pada tanggal ${fmtWaktu(data.tanggal_berangkat, data.tanggal_kembali)}`;
 
       const detailRows = [
@@ -1084,7 +1218,6 @@
 
       children.push(empty(200));
 
-      // ─── 7. PEMBEBANAN ───
       const pembebananRow = new TableRow({
         children: [
           cell(p('Pembebanan', { spaceAfter: 0 }),                         { width: 20 }),
@@ -1100,19 +1233,16 @@
 
       children.push(empty(400));
 
-      // ─── 8. TANDA TANGAN (pojok kanan) ───
       const tanggalSuratFmt = data.tanggal_surat ? fmtTgl(data.tanggal_surat) : fmtTgl(new Date().toISOString().slice(0,10));
       const tempat = data.tempat_terbit || '-';
 
       children.push(
         p(`${tempat}, ${tanggalSuratFmt}`,             { align: AlignmentType.RIGHT, spaceAfter: 0 }),
         p(data.penandatangan_jabatan || '-',           { align: AlignmentType.RIGHT, spaceAfter: 900 }),
-        // (space untuk tanda tangan manual)
         p(data.penandatangan_nama || '-',              { align: AlignmentType.RIGHT, bold: false, underline: { type: 'single' }, spaceAfter: 0 }),
         p(`NIP. ${data.penandatangan_nip || '-'}`,     { align: AlignmentType.RIGHT, spaceAfter: 0 }),
       );
 
-      // ─── PAGE BREAK kalau ada pegawai berikutnya ───
       if (!isLast) {
         children.push(new Paragraph({ children: [new PageBreak()] }));
       }
@@ -1120,13 +1250,9 @@
       return children;
     }
 
-    // ═════════════════════════════════════════════════════════════════════
-    // LOOP SEMUA PEGAWAI
-    // ═════════════════════════════════════════════════════════════════════
     const nipList   = Array.isArray(data.pegawai_nip)  ? data.pegawai_nip  : [];
     const nameList  = Array.isArray(data.pegawai_list) ? data.pegawai_list : [];
 
-    // Build list pegawai info. Fallback: kalau nipList kosong, pakai nameList.
     let pegawaiInfoList = [];
     if (nipList.length) {
       pegawaiInfoList = nipList.map((nip, i) => getPegawaiInfo(nip, nameList[i]));
@@ -1143,9 +1269,6 @@
       pageChildren.forEach(c => allChildren.push(c));
     });
 
-    // ═════════════════════════════════════════════════════════════════════
-    // BANGUN DOKUMEN
-    // ═════════════════════════════════════════════════════════════════════
     const doc = new Document({
       creator: 'Portal NOVA',
       title: `Surat Tugas ${data.nomor_surat || data.id}`,
@@ -1160,7 +1283,7 @@
       sections: [{
         properties: {
           page: {
-            margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 }, // ≈ 2 cm
+            margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 },
           },
         },
         children: allChildren,
@@ -1176,10 +1299,6 @@
     setTopbarUser(SESSION);
     initRoleSwitcher(SESSION, true);
 
-    // Live preview menimbang
-    document.getElementById('inp-menimbang-custom').addEventListener('input', updateMenimbangPreview);
-
-    // Load data
     Promise.all([loadPegawai(), loadSurat()]);
   }
   init();
