@@ -22,6 +22,7 @@ let suratOrderMap = {};           // id → urutan global ascending (1-based)
 let pegawaiList = [];             // dari "data pegawai"
 let pegawaiByNIP = {};            // index NIP → object
 let riwayatPegawai = [];          // dari "riwayat_pegawai"
+let userMap = {};                 // id → { full_name, username } — untuk tampilkan nama pengaju surat
 let selectedId = null;
 
 // ─── DEFAULTS yang di-prefill saat baris status menunggu ──────────────
@@ -241,6 +242,23 @@ async function loadRiwayatPegawai() {
   } catch(e) { console.warn('Gagal load riwayat_pegawai:', e); }
 }
 
+// Load daftar user → dipakai untuk tampilkan nama pengaju di kolom "Diajukan oleh"
+async function loadUsers() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/users?select=id,username,full_name`, { headers: H });
+    if (!res.ok) return;
+    const list = await res.json();
+    userMap = {};
+    list.forEach(u => { userMap[u.id] = u; });
+  } catch(e) { console.warn('Gagal load users:', e); }
+}
+
+function getPengajuNama(s) {
+  const u = userMap[s.user_id];
+  if (!u) return '';
+  return u.full_name || u.username || '';
+}
+
 async function loadSurat() {
   document.getElementById('table-area').innerHTML = `<div style="padding:24px"><div class="skel" style="height:44px;border-radius:6px;margin-bottom:8px"></div><div class="skel" style="height:44px;border-radius:6px;margin-bottom:8px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div>`;
   document.getElementById('table-count').textContent = 'Memuat...';
@@ -335,6 +353,11 @@ function sortData(arr) {
         return (va - vb) * mul;
       }
 
+      case 'pengaju':
+        va = getPengajuNama(a).toLowerCase();
+        vb = getPengajuNama(b).toLowerCase();
+        return va.localeCompare(vb, 'id') * mul;
+
       default:
         return 0;
     }
@@ -369,7 +392,6 @@ function renderTable(data) {
     return;
   }
 
-  const defaults = loadApproveDefaults();
   const todayStr = todayISO();
 
   const rows = data.map(s => {
@@ -388,11 +410,14 @@ function renderTable(data) {
     const waktuSelesai = s.tanggal_kembali   || '';
     const perihal      = s.perihal      || '';
     const tujuan       = s.tujuan       || '';
+    // Kolom-kolom berikut TIDAK di-prefill untuk status menunggu —
+    // admin mengisi manual saat approve. Prefill default disimpan terpisah
+    // dan hanya diterapkan di modal approve.
     const menimbang    = s.menimbang_custom || '';
-    const alat         = s.alat_angkutan || (isMenunggu ? defaults.alat_angkutan : '');
-    const mak          = s.pembebanan    || (isMenunggu ? defaults.pembebanan    : '');
-    const ttdNama      = s.penandatangan_nama || (isMenunggu ? defaults.ttd_nama : '');
-    const ttdNip       = s.penandatangan_nip  || (isMenunggu ? defaults.ttd_nip  : '');
+    const alat         = s.alat_angkutan || '';
+    const mak          = s.pembebanan    || '';
+    const ttdNama      = s.penandatangan_nama || '';
+    const ttdNip       = s.penandatangan_nip  || '';
 
     const pegNips  = Array.isArray(s.pegawai_nip)  ? s.pegawai_nip  : [];
     const pegNames = Array.isArray(s.pegawai_list) ? s.pegawai_list : [];
@@ -428,6 +453,7 @@ function renderTable(data) {
 
         <td class="col-status">${badgeHTML(s.status)}</td>
         <td class="col-aksi"><div class="aksi-wrap">${aksi}</div></td>
+        <td class="col-pengaju" title="${esc(getPengajuNama(s))}">${esc(getPengajuNama(s)) || '<span style="color:var(--muted);font-style:italic">—</span>'}</td>
       </tr>`;
   }).join('');
 
@@ -447,6 +473,7 @@ function renderTable(data) {
         <th class="col-ttd">Penandatangan</th>
         ${sortHeader('status',        'Status',            'col-status')}
         <th class="col-aksi">Aksi</th>
+        ${sortHeader('pengaju',       'Diajukan oleh',     'col-pengaju')}
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
@@ -2016,6 +2043,6 @@ function init() {
   if (!SESSION) return;
   setTopbarUser(SESSION);
   initRoleSwitcher(SESSION, true);
-  Promise.all([loadPegawai(), loadRiwayatPegawai(), loadSurat()]);
+  Promise.all([loadPegawai(), loadRiwayatPegawai(), loadUsers(), loadSurat()]);
 }
 init();
