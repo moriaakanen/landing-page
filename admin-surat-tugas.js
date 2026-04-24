@@ -595,6 +595,13 @@ function onRangeBlur(el) {
   const cal = document.getElementById('cal-popup');
   if (cal && cal.classList.contains('open')) return;
 
+  // Jika dataset sudah terisi dari kalender, pakai langsung — jangan parse ulang teks tampilan
+  if (el.dataset.isoMulai) {
+    el.value = fmtWaktu(el.dataset.isoMulai, el.dataset.isoSelesai || '');
+    el.classList.remove('err');
+    return;
+  }
+
   const txt = el.value.trim();
   if (!txt) {
     el.dataset.isoMulai = '';
@@ -612,7 +619,6 @@ function onRangeBlur(el) {
     el.classList.add('err');
   }
 }
-
 /* ════════════════════════════════════════════════════════════════════
    CALENDAR POPUP
 ═══════════════════════════════════════════════════════════════════════ */
