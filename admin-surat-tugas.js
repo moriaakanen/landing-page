@@ -1906,6 +1906,408 @@ async function buildSuratTugasDoc(data) {
 
   const nomorFull = buildNomorSuratFull(data.nomor_surat, data.tanggal_surat);
 
+  /* ════════════════════════════════════════════════════════════════════
+     HALAMAN SPD (Surat Perjalanan Dinas) — TEMPLATE HARDCODE
+     TODO: nanti ganti nilai-nilai di bawah jadi data dinamis dari `data` & `pegInfo`.
+  ════════════════════════════════════════════════════════════════════ */
+  const SPD_HC = {
+    nomor:           'B-324/668870-92800/SPPDPPIS2910/04/2026',
+    lembar:          '',
+    ppk_nama:        'Abdillah Humam, SST',
+    ppk_nip:         '19951015 201802 1 001',
+    pegawai_nama_nip:'Supriyanto / -',
+    pangkat_gol:     '-',
+    jabatan_instansi:'Mitra',
+    tingkat_biaya:   'C',
+    maksud:          'Perjalanan dinas dalam kota lebih dari 8 jam dalam rangka pengamatan Kerangka Sampel Area (KSA) Padi dan Jagung Bulan April 2026',
+    alat_angkutan:   'Angkutan Darat',
+    tempat_berangkat:'Waisai',
+    tempat_tujuan:   'Distrik Salawati Tengah',
+    lama_perjalanan: '2 Hari',
+    tgl_berangkat:   '24 April 2026',
+    tgl_kembali:     '25 April 2026',
+    instansi:        'Badan Pusat Statistik Kabupaten Raja Ampat',
+    program_kode:    '054.01.GG',  program_desc:    'Program Penyediaan dan Pelayanan Informasi Statistik',
+    kegiatan_kode:   '2910',       kegiatan_desc:   'Penyediaan dan Pengembangan Statistik Tanaman Pangan, Hortikultura, dan Perkebunan',
+    kro_kode:        '2910.BMA',   kro_desc:        'Data dan Informasi Publik',
+    ro_kode:         '2910.BMA.007', ro_desc:       'Publikasi/Laporan Statistik Tanaman Pangan',
+    komponen_kode:   '052',        komponen_desc:   'Pengumpulan Data',
+    subkomponen_kode:'B',          subkomponen_desc:'Survei Konsumsi Bahan Pokok Non Rumah Tangga 2025',
+    akun_kode:       '524113',     akun_desc:       'Belanja Perjalanan Dinas Dalam Kota',
+    keterangan_lain: '',
+    dikeluarkan_di:  'Raja Ampat',
+    tgl_dikeluarkan: '23 April 2026',
+    plt_kepala_nama: 'Andrie Wardani, SST',
+    plt_kepala_nip:  '19890419 201211 1 001',
+  };
+
+  const BORDER_ALL = {
+    top:              { style: BorderStyle.SINGLE, size: 4, color: '000000' },
+    bottom:           { style: BorderStyle.SINGLE, size: 4, color: '000000' },
+    left:             { style: BorderStyle.SINGLE, size: 4, color: '000000' },
+    right:            { style: BorderStyle.SINGLE, size: 4, color: '000000' },
+    insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: '000000' },
+    insideVertical:   { style: BorderStyle.SINGLE, size: 4, color: '000000' },
+  };
+
+  const bCell = (children, opts = {}) => new TableCell({
+    width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined,
+    verticalAlign: opts.valign || VerticalAlign.TOP,
+    columnSpan: opts.colSpan || undefined,
+    rowSpan:    opts.rowSpan || undefined,
+    margins:    { top: 80, bottom: 80, left: 100, right: 100 },
+    children:   Array.isArray(children) ? children : [children],
+  });
+
+  const pc = (text, opts = {}) => new Paragraph({
+    alignment: opts.align || AlignmentType.LEFT,
+    spacing:   { after: opts.spaceAfter != null ? opts.spaceAfter : 0, line: opts.line || 240 },
+    indent:    opts.indent,
+    children:  [new TextRun({
+      text:      text || '',
+      bold:      opts.bold || false,
+      italics:   opts.italic || false,
+      underline: opts.underline || undefined,
+      size:      opts.size || 20,
+      font:      opts.font || 'Times New Roman',
+    })],
+  });
+
+  function buildHalamanSPD() {
+    const ch = [];
+
+    // ── HEADER: Logo + Instansi (kiri) | Nomor + Lembar (kanan) ────────
+    const headerLeftChildren = [];
+    if (typeof LOGO_BPS_BASE64 !== 'undefined' && LOGO_BPS_BASE64) {
+      try {
+        headerLeftChildren.push(new Paragraph({
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 60 },
+          children: [new ImageRun({
+            data: base64ToUint8Array(LOGO_BPS_BASE64),
+            transformation: { width: 60, height: 60 },
+          })],
+        }));
+      } catch(e) {}
+    }
+    headerLeftChildren.push(
+      pc('BADAN PUSAT STATISTIK', { bold:true, italic:true, size:22 }),
+      pc('KABUPATEN RAJA AMPAT',  { bold:true, italic:true, size:22 }),
+    );
+
+    const headerRightTable = new Table({
+      borders: NO_BORDER,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({ children: [
+          cell(pc('Nomor',         { spaceAfter:0 }), { width:22 }),
+          cell(pc(':',             { spaceAfter:0 }), { width:4 }),
+          cell(pc(SPD_HC.nomor,    { spaceAfter:0 }), { width:74 }),
+        ]}),
+        new TableRow({ children: [
+          cell(pc('Lembar',        { spaceAfter:0 }), { width:22 }),
+          cell(pc(':',             { spaceAfter:0 }), { width:4 }),
+          cell(pc(SPD_HC.lembar,   { spaceAfter:0 }), { width:74 }),
+        ]}),
+      ],
+    });
+
+    ch.push(new Table({
+      rows: [ new TableRow({ children: [
+        cell(headerLeftChildren, { width: 52 }),
+        cell([headerRightTable], { width: 48 }),
+      ]}) ],
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: NO_BORDER,
+    }));
+
+    ch.push(empty(120));
+
+    // ── TITLE ──────────────────────────────────────────────────────────
+    ch.push(pc('SURAT PERJALANAN DINAS (SPD)', {
+      bold: true, align: AlignmentType.CENTER, size: 22, spaceAfter: 180,
+    }));
+
+    // ── TABEL UTAMA (10 baris) ─────────────────────────────────────────
+    const W_NO = 4, W_LABEL = 40, W_VAL = 56;
+
+    const simpleRow = (no, labelText, valueText, opts = {}) =>
+      new TableRow({ children: [
+        bCell(pc(no,        { spaceAfter:0 }), { width:W_NO }),
+        bCell(pc(labelText, { spaceAfter:0 }), { width:W_LABEL }),
+        bCell(pc(valueText, { spaceAfter:0, bold:opts.bold, italic:opts.italic }), { width:W_VAL }),
+      ]});
+
+    const multiRow = (no, labelLines, valueLines) => new TableRow({ children: [
+      bCell(pc(no, { spaceAfter:0 }), { width:W_NO }),
+      bCell(labelLines.map(t => pc(t, { spaceAfter:40 })), { width:W_LABEL }),
+      bCell(valueLines.map(t => pc(t, { spaceAfter:40 })), { width:W_VAL }),
+    ]});
+
+    const rows = [];
+    rows.push(simpleRow('1', 'Pejabat Pembuat Komitmen', SPD_HC.ppk_nama, { bold:true }));
+    rows.push(simpleRow('2', 'Nama / NIP Pegawai yang melaksanakan perjalanan dinas',
+                         SPD_HC.pegawai_nama_nip, { bold:true, italic:true }));
+    rows.push(multiRow('3',
+      ['a. Pangkat dan Golongan', 'b. Jabatan / Instansi', 'c. Tingkat Biaya Perjalanan Dinas'],
+      [`a. ${SPD_HC.pangkat_gol}`, `b. ${SPD_HC.jabatan_instansi}`, `c. ${SPD_HC.tingkat_biaya}`]
+    ));
+    rows.push(simpleRow('4', 'Maksud Perjalanan Dinas', SPD_HC.maksud));
+    rows.push(simpleRow('5', 'Alat angkutan yang dipergunakan', SPD_HC.alat_angkutan));
+    rows.push(multiRow('6',
+      ['a. Tempat berangkat', 'b. Tempat tujuan'],
+      [`a. ${SPD_HC.tempat_berangkat}`, `b. ${SPD_HC.tempat_tujuan}`]
+    ));
+    rows.push(multiRow('7',
+      ['a. Lamanya Perjalanan Dinas', 'b. Tanggal berangkat', 'c. Tanggal harus kembali / tiba ditempat baru'],
+      [`a. ${SPD_HC.lama_perjalanan}`, `b. ${SPD_HC.tgl_berangkat}`, `c. ${SPD_HC.tgl_kembali}`]
+    ));
+
+    // Row 8: Pengikut dengan nested table 4-col
+    const pengikutHeader = new TableRow({ children: [
+      bCell(pc('Pengikut :',            { spaceAfter:0 }), { width:30 }),
+      bCell(pc('Nama',                  { spaceAfter:0, align:AlignmentType.CENTER }), { width:25 }),
+      bCell(pc('Umur',                  { spaceAfter:0, align:AlignmentType.CENTER }), { width:20 }),
+      bCell(pc('Hubungan keluarga / keterangan', { spaceAfter:0, align:AlignmentType.CENTER }), { width:25 }),
+    ]});
+    const pengikutDataRow = (n) => new TableRow({ children: [
+      bCell(pc(`${n}.`, { spaceAfter:0 }), { width:30 }),
+      bCell(pc('-',     { spaceAfter:0, align:AlignmentType.CENTER }), { width:25 }),
+      bCell(pc('-',     { spaceAfter:0, align:AlignmentType.CENTER }), { width:20 }),
+      bCell(pc('-',     { spaceAfter:0, align:AlignmentType.CENTER }), { width:25 }),
+    ]});
+    const pengikutTable = new Table({
+      borders: BORDER_ALL,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [ pengikutHeader, pengikutDataRow(1), pengikutDataRow(2), pengikutDataRow(3) ],
+    });
+    rows.push(new TableRow({ children: [
+      bCell(pc('8', { spaceAfter:0 }), { width:W_NO }),
+      bCell([pengikutTable], { width:W_LABEL+W_VAL, colSpan:2 }),
+    ]}));
+
+    // Row 9: Pembebanan Anggaran
+    const labelPembebanan = [
+      pc('Pembebanan Anggaran',                                        { spaceAfter:40 }),
+      pc('a. Instansi',                                                { spaceAfter:40 }),
+      pc('b. Mata Anggaran:    Program',                               { spaceAfter:40 }),
+      pc('                              Kegiatan',                     { spaceAfter:40 }),
+      pc('                              Klasifikasi Rincian Output (KRO)', { spaceAfter:40 }),
+      pc('                              Rincian Output (RO)',          { spaceAfter:40 }),
+      pc('                              Komponen',                     { spaceAfter:40 }),
+      pc('                              Sub Komponen',                 { spaceAfter:40 }),
+      pc('                              Akun',                         { spaceAfter:40 }),
+    ];
+    const valuePembebananTable = new Table({
+      borders: NO_BORDER,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({ children: [
+          cell(pc('a.', { spaceAfter:40 }), { width:5 }),
+          cell(pc(SPD_HC.instansi, { spaceAfter:40, align:AlignmentType.JUSTIFIED }), { width:95, colSpan:3 }),
+        ]}),
+        new TableRow({ children: [
+          cell(pc('b.', { spaceAfter:40 }), { width:5 }),
+          cell(pc(SPD_HC.program_kode, { spaceAfter:40 }), { width:25 }),
+          cell(pc(':',  { spaceAfter:40 }), { width:4 }),
+          cell(pc(SPD_HC.program_desc, { spaceAfter:40, align:AlignmentType.JUSTIFIED }), { width:66 }),
+        ]}),
+        ...[
+          [SPD_HC.kegiatan_kode,    SPD_HC.kegiatan_desc],
+          [SPD_HC.kro_kode,         SPD_HC.kro_desc],
+          [SPD_HC.ro_kode,          SPD_HC.ro_desc],
+          [SPD_HC.komponen_kode,    SPD_HC.komponen_desc],
+          [SPD_HC.subkomponen_kode, SPD_HC.subkomponen_desc],
+          [SPD_HC.akun_kode,        SPD_HC.akun_desc],
+        ].map(([k, d]) => new TableRow({ children: [
+          cell(pc('',   { spaceAfter:40 }), { width:5 }),
+          cell(pc(k,    { spaceAfter:40 }), { width:25 }),
+          cell(pc(':',  { spaceAfter:40 }), { width:4 }),
+          cell(pc(d,    { spaceAfter:40, align:AlignmentType.JUSTIFIED }), { width:66 }),
+        ]})),
+      ],
+    });
+    rows.push(new TableRow({ children: [
+      bCell(pc('9', { spaceAfter:0 }), { width:W_NO }),
+      bCell(labelPembebanan, { width:W_LABEL }),
+      bCell([valuePembebananTable], { width:W_VAL }),
+    ]}));
+
+    rows.push(simpleRow('10', 'Keterangan lain-lain', SPD_HC.keterangan_lain));
+
+    ch.push(new Table({
+      rows: rows,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: BORDER_ALL,
+    }));
+
+    // ── FOOTER (tanda tangan PPK) ──────────────────────────────────────
+    ch.push(empty(200));
+    const footerRight = [
+      pc(`Dikeluarkan di   : ${SPD_HC.dikeluarkan_di}`,     { spaceAfter:0 }),
+      pc(`Pada Tanggal     : ${SPD_HC.tgl_dikeluarkan}`,    { spaceAfter:120 }),
+      pc('Pejabat Pembuat Komitmen', { bold:true, spaceAfter:900 }),
+      pc(SPD_HC.ppk_nama, { bold:true, underline:{type:'single'}, spaceAfter:0 }),
+      pc(`NIP. ${SPD_HC.ppk_nip}`, { spaceAfter:0 }),
+    ];
+    ch.push(new Table({
+      borders: NO_BORDER,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [ new TableRow({ children: [
+        cell(pc('', { spaceAfter:0 }), { width:50 }),
+        cell(footerRight, { width:50 }),
+      ]}) ],
+    }));
+
+    ch.push(new Paragraph({ children: [new PageBreak()] }));
+    return ch;
+  }
+
+  /* ════════════════════════════════════════════════════════════════════
+     HALAMAN PENGESAHAN (I, II, III, IV, V) — TEMPLATE HARDCODE
+  ════════════════════════════════════════════════════════════════════ */
+  function buildHalamanPengesahan() {
+    const ch = [];
+
+    // Helper inline "Label : value"
+    const li = (label, value) => new Table({
+      borders: NO_BORDER,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [ new TableRow({ children: [
+        cell(pc(label, { spaceAfter:0 }), { width:55 }),
+        cell(pc(':',   { spaceAfter:0 }), { width:5 }),
+        cell(pc(value||'', { spaceAfter:0 }), { width:40 }),
+      ]}) ],
+    });
+
+    // Row 1: kiri kosong | kanan = I. Berangkat dari + Plt. Kepala
+    const rightSec1 = [
+      new Table({
+        borders: NO_BORDER,
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: [
+            cell(pc('I.', { spaceAfter:0 }), { width:7 }),
+            cell([
+              li('Berangkat dari', ''),
+              pc('    (Tempat kedudukan)', { italic:true, spaceAfter:0 }),
+              li('Ke', ''),
+              li('Pada Tanggal', ''),
+            ], { width:93 }),
+          ]}),
+        ],
+      }),
+      empty(240),
+      pc('Plt. Kepala Badan Pusat Statistik', { align:AlignmentType.CENTER, spaceAfter:0 }),
+      pc('Kabupaten Raja Ampat',               { align:AlignmentType.CENTER, spaceAfter:900 }),
+      pc(SPD_HC.plt_kepala_nama, { align:AlignmentType.CENTER, bold:true, underline:{type:'single'}, spaceAfter:0 }),
+      pc(`NIP. ${SPD_HC.plt_kepala_nip}`, { align:AlignmentType.CENTER, spaceAfter:0 }),
+    ];
+    const row1 = new TableRow({ children: [
+      bCell([pc('', {spaceAfter:0})], { width:50 }),
+      bCell(rightSec1, { width:50 }),
+    ]});
+
+    // Row 2: II (kiri) | Berangkat dari (kanan)
+    const leftSec2 = [
+      new Table({
+        borders: NO_BORDER,
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: [
+            cell(pc('II.', { spaceAfter:0 }), { width:10 }),
+            cell([
+              li('Tiba di',      ''),
+              li('Pada Tanggal', ''),
+            ], { width:90 }),
+          ]}),
+        ],
+      }),
+    ];
+    const rightSec2 = [
+      li('Berangkat dari', ''),
+      li('Ke',             ''),
+      li('Pada Tanggal',   ''),
+    ];
+    const row2 = new TableRow({ children: [
+      bCell(leftSec2,  { width:50 }),
+      bCell(rightSec2, { width:50 }),
+    ]});
+
+    // Row 3: III (kiri Tiba kembali + PPK sign) | Telah diperiksa + PPK sign (kanan)
+    const leftSec3 = [
+      new Table({
+        borders: NO_BORDER,
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: [
+            cell(pc('III.', { spaceAfter:0 }), { width:12 }),
+            cell([
+              li('Tiba kembali di', ''),
+              pc('    (Tempat kedudukan)', { italic:true, spaceAfter:0 }),
+              li('Pada Tanggal', ''),
+            ], { width:88 }),
+          ]}),
+        ],
+      }),
+      empty(240),
+      pc('Pejabat Pembuat Komitmen', { align:AlignmentType.CENTER, bold:true, spaceAfter:900 }),
+      pc(SPD_HC.ppk_nama, { align:AlignmentType.CENTER, bold:true, underline:{type:'single'}, spaceAfter:0 }),
+      pc(`NIP. ${SPD_HC.ppk_nip}`,   { align:AlignmentType.CENTER, spaceAfter:0 }),
+    ];
+    const rightSec3 = [
+      pc('Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.',
+         { align:AlignmentType.JUSTIFIED, spaceAfter:240 }),
+      pc('Pejabat Pembuat Komitmen', { align:AlignmentType.CENTER, bold:true, spaceAfter:900 }),
+      pc(SPD_HC.ppk_nama, { align:AlignmentType.CENTER, bold:true, underline:{type:'single'}, spaceAfter:0 }),
+      pc(`NIP. ${SPD_HC.ppk_nip}`, { align:AlignmentType.CENTER, spaceAfter:0 }),
+    ];
+    const row3 = new TableRow({ children: [
+      bCell(leftSec3,  { width:50 }),
+      bCell(rightSec3, { width:50 }),
+    ]});
+
+    // Row 4: IV — Catatan Lain-Lain (full width)
+    const row4 = new TableRow({ children: [
+      bCell([
+        new Table({
+          borders: NO_BORDER,
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [ new TableRow({ children: [
+            cell(pc('IV.', { spaceAfter:0 }), { width:5 }),
+            cell(pc('Catatan Lain-Lain :', { spaceAfter:0 }), { width:95 }),
+          ]}) ],
+        }),
+      ], { width:100, colSpan:2 }),
+    ]});
+
+    // Row 5: V — PERHATIAN (full width)
+    const perhatianBody = 'PPK yang menertibkan SPD, pegawai yang melakukan perjalanan dinas, para pejabat yang mengesahkan tanggal berangkat/tiba, serta bendahara pengeluaran bertanggung jawab berdasarkan peraturan - peraturan Keuangan Negara apabila negara menderita kerugian akibat kesalahan, kelalaian dan kealpaannya.';
+    const row5 = new TableRow({ children: [
+      bCell([
+        new Table({
+          borders: NO_BORDER,
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [ new TableRow({ children: [
+            cell(pc('V.', { spaceAfter:0 }), { width:5 }),
+            cell([
+              pc('PERHATIAN :', { spaceAfter:60 }),
+              pc(perhatianBody, { align:AlignmentType.JUSTIFIED, spaceAfter:0 }),
+            ], { width:95 }),
+          ]}) ],
+        }),
+      ], { width:100, colSpan:2 }),
+    ]});
+
+    ch.push(new Table({
+      rows: [row1, row2, row3, row4, row5],
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: BORDER_ALL,
+    }));
+
+    return ch;
+  }
+
   function buildHalamanPegawai(pegInfo, isLast) {
     const ch = [];
 
@@ -2018,7 +2420,21 @@ async function buildSuratTugasDoc(data) {
   const allChildren = [];
   pegawaiInfoList.forEach((info, idx) => {
     const isLast = idx === pegawaiInfoList.length - 1;
-    buildHalamanPegawai(info, isLast).forEach(c => allChildren.push(c));
+
+    // Halaman 1: Surat Tugas (tanpa page break internal — dipindah ke setelah halaman 3)
+    buildHalamanPegawai(info, true).forEach(c => allChildren.push(c));
+    allChildren.push(new Paragraph({ children: [new PageBreak()] }));
+
+    // Halaman 2: SPD (fungsi ini sudah memasukkan PageBreak di akhir)
+    buildHalamanSPD().forEach(c => allChildren.push(c));
+
+    // Halaman 3: Lembar Pengesahan
+    buildHalamanPengesahan().forEach(c => allChildren.push(c));
+
+    // Page break antar pegawai (kecuali pegawai terakhir)
+    if (!isLast) {
+      allChildren.push(new Paragraph({ children: [new PageBreak()] }));
+    }
   });
 
   const doc = new Document({
