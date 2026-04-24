@@ -1274,7 +1274,10 @@ function moveCellFocus(currentEl, direction) {
 ═══════════════════════════════════════════════════════════════════════ */
 document.addEventListener('click', (e) => {
   const cal = document.getElementById('cal-popup');
-  if (cal.classList.contains('open') && !cal.contains(e.target) &&
+  // Gunakan composedPath() agar tetap akurat walau DOM berubah saat renderCal()
+  const path = e.composedPath ? e.composedPath() : [];
+  const clickInsideCal = path.includes(cal);
+  if (cal.classList.contains('open') && !clickInsideCal &&
       (!calState.targetEl || !calState.targetEl.contains(e.target)) && calState.targetEl !== e.target) {
     closeCal();
   }
