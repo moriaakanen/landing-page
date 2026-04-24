@@ -274,23 +274,89 @@ function filterTable() {
   let f = allSurat;
   if (q)  f = f.filter(s => (s.perihal||'').toLowerCase().includes(q) || (s.tujuan||'').toLowerCase().includes(q));
   if (st) f = f.filter(s => s.status === st);
+  f = sortData(f);
   renderTable(f);
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   AUTO-SUGGEST NOMOR SURAT
+   SORTING
 ═══════════════════════════════════════════════════════════════════════ */
-function suggestNextNomor() {
-  let max = 0;
-  allSurat.forEach(s => {
-    if (!s.nomor_surat) return;
-    const m = String(s.nomor_surat).match(/^(\d+)/);
-    if (m) {
-      const n = parseInt(m[1], 10);
-      if (!isNaN(n) && n > max) max = n;
+// Default: urut berdasarkan No. descending (terbaru di atas) —
+// sama dengan perilaku sebelum fitur sort ditambahkan.
+let sortState = { col: 'no', dir: 'desc' };
+
+function sortData(arr) {
+  const { col, dir } = sortState;
+  const mul = dir === 'asc' ? 1 : -1;
+
+  return arr.slice().sort((a, b) => {
+    let va, vb;
+    switch (col) {
+      case 'no':
+        va = suratOrderMap[a.id] || 0;
+        vb = suratOrderMap[b.id] || 0;
+        return (va - vb) * mul;
+
+      case 'nomor_surat':
+        va = (a.nomor_surat || '').toString();
+        vb = (b.nomor_surat || '').toString();
+        // numeric:true agar "008" < "010" sesuai angka, bukan string
+        return va.localeCompare(vb, 'id', { numeric: true, sensitivity: 'base' }) * mul;
+
+      case 'tanggal_surat':
+        va = a.tanggal_surat || '';
+        vb = b.tanggal_surat || '';
+        return va.localeCompare(vb) * mul;
+
+      case 'waktu':
+        // Sort by tanggal_berangkat; tie-breaker: tanggal_kembali
+        va = a.tanggal_berangkat || '';
+        vb = b.tanggal_berangkat || '';
+        if (va !== vb) return va.localeCompare(vb) * mul;
+        va = a.tanggal_kembali || '';
+        vb = b.tanggal_kembali || '';
+        return va.localeCompare(vb) * mul;
+
+      case 'perihal':
+        va = (a.perihal || '').toLowerCase();
+        vb = (b.perihal || '').toLowerCase();
+        return va.localeCompare(vb, 'id') * mul;
+
+      case 'tujuan':
+        va = (a.tujuan || '').toLowerCase();
+        vb = (b.tujuan || '').toLowerCase();
+        return va.localeCompare(vb, 'id') * mul;
+
+      case 'status': {
+        // Urutan logis: menunggu → disetujui → ditolak
+        const order = { menunggu: 0, disetujui: 1, ditolak: 2 };
+        va = order[a.status] ?? 99;
+        vb = order[b.status] ?? 99;
+        return (va - vb) * mul;
+      }
+
+      default:
+        return 0;
     }
   });
-  return String(max + 1).padStart(3, '0');
+}
+
+function setSort(col) {
+  if (sortState.col === col) {
+    sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortState.col = col;
+    // Kolom yang "secara intuitif" lebih bermakna descending
+    sortState.dir = ['no', 'tanggal_surat', 'waktu'].includes(col) ? 'desc' : 'asc';
+  }
+  filterTable();
+}
+
+function sortHeader(col, label, cssClass) {
+  const isActive = sortState.col === col;
+  const arrow = isActive ? (sortState.dir === 'asc' ? '▴' : '▾') : '↕';
+  const activeCls = isActive ? ' sorted' : '';
+  return `<th class="${cssClass} sortable${activeCls}" onclick="setSort('${col}')" title="Klik untuk mengurutkan">${label}<span class="sort-arrow">${arrow}</span></th>`;
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -305,16 +371,18 @@ function renderTable(data) {
 
   const defaults = loadApproveDefaults();
   const todayStr = todayISO();
-  const nextNomor = suggestNextNomor();
 
   const rows = data.map(s => {
     const isMenunggu  = s.status === 'menunggu';
     const isDisetujui = s.status === 'disetujui';
     const isDitolak   = s.status === 'ditolak';
 
-    const urutNo = suratOrderMap[s.id] || '—';
+    const urutNo    = suratOrderMap[s.id] || '—';
+    // Prefill nomor surat untuk status menunggu = urutan No. di-pad 3 digit.
+    // Mis. No. = 8 → "008". Admin tetap bisa mengedit via sel input.
+    const urutNomor = (typeof urutNo === 'number') ? String(urutNo).padStart(3, '0') : '';
 
-    const nomorSurat   = s.nomor_surat   || (isMenunggu ? nextNomor : '');
+    const nomorSurat   = s.nomor_surat   || (isMenunggu ? urutNomor : '');
     const tanggalSurat = s.tanggal_surat || (isMenunggu ? todayStr  : '');
     const waktuMulai   = s.tanggal_berangkat || '';
     const waktuSelesai = s.tanggal_kembali   || '';
@@ -332,16 +400,15 @@ function renderTable(data) {
     let aksi;
     if (isMenunggu) {
       aksi = `
-        <button class="btn-sm" onclick="openDetail(${s.id})" title="Detail">🔍</button>
         <button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button>
         <button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button>`;
     } else if (isDisetujui) {
       aksi = `
-        <button class="btn-sm" onclick="openDetail(${s.id})" title="Detail">🔍</button>
         <button class="btn-preview" onclick="openPreview(${s.id})">👁 Preview</button>
         <button class="btn-download" onclick="downloadSuratTugas(${s.id})">📥</button>`;
     } else {
-      aksi = `<button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button>`;
+      // Status ditolak — tanpa aksi
+      aksi = `<span style="font-size:11px;color:var(--muted);font-style:italic">—</span>`;
     }
 
     return `
@@ -367,18 +434,18 @@ function renderTable(data) {
   document.getElementById('table-area').innerHTML = `
     <table class="list-table">
       <thead><tr>
-        <th class="col-no">No</th>
-        <th class="col-nomor-surat">Nomor Surat</th>
-        <th class="col-tgl-surat">Tgl Surat</th>
-        <th class="col-waktu">Waktu Pelaksanaan</th>
-        <th class="col-perihal">Perihal</th>
-        <th class="col-tujuan">Tempat Tujuan</th>
+        ${sortHeader('no',            'No',                'col-no')}
+        ${sortHeader('nomor_surat',   'Nomor Surat',       'col-nomor-surat')}
+        ${sortHeader('tanggal_surat', 'Tgl Surat',         'col-tgl-surat')}
+        ${sortHeader('waktu',         'Waktu Pelaksanaan', 'col-waktu')}
+        ${sortHeader('perihal',       'Perihal',           'col-perihal')}
+        ${sortHeader('tujuan',        'Tempat Tujuan',     'col-tujuan')}
         <th class="col-nama">Nama Pegawai</th>
         <th class="col-menimbang">Menimbang</th>
         <th class="col-alat">Alat Angkutan</th>
         <th class="col-mak">MAK Pembebanan</th>
         <th class="col-ttd">Penandatangan</th>
-        <th class="col-status">Status</th>
+        ${sortHeader('status',        'Status',            'col-status')}
         <th class="col-aksi">Aksi</th>
       </tr></thead>
       <tbody>${rows}</tbody>
@@ -1159,7 +1226,7 @@ document.addEventListener('keydown', (e) => {
   /* ── Escape ─────────────────────────────────────────────────────── */
   if (e.key === 'Escape') {
     closeAllPopups();
-    ['modal-detail','modal-approve','modal-reject','modal-preview'].forEach(closeModal);
+    ['modal-approve','modal-reject','modal-preview'].forEach(closeModal);
     document.querySelectorAll('tr.row-focused').forEach(tr => tr.classList.remove('row-focused'));
     return;
   }
@@ -1451,55 +1518,6 @@ function showPageAlert(msg, type='error') {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   DETAIL MODAL
-═══════════════════════════════════════════════════════════════════════ */
-function openDetail(id) {
-  const s = suratMap[id]; if (!s) return;
-  const f = (label, val, full) => {
-    const v = val && String(val).trim() ? String(val).trim() : null;
-    return `<div class="detail-field${full ? ' full' : ''}">
-      <div class="detail-field-label">${label}</div>
-      <div class="detail-field-val${v ? '' : ' empty'}">${v ? esc(v) : 'Tidak tersedia'}</div>
-    </div>`;
-  };
-  const pegawaiStr = (s.pegawai_list || []).length ? s.pegawai_list.map(esc).join(', ') : null;
-  const statusLbl = s.status === 'menunggu' ? '⏳ Menunggu' : s.status === 'disetujui' ? '✅ Disetujui' : '❌ Ditolak';
-  const ttdJabatan = lookupJabatanForSurat(s);
-
-  document.getElementById('modal-detail-body').innerHTML = `<div class="detail-grid">
-    ${f('Status', statusLbl)}
-    ${f('No. Urut Kirim', suratOrderMap[s.id] || '-')}
-    ${f('Perihal', s.perihal, true)}
-    ${f('Tempat Tujuan', s.tujuan, true)}
-    ${f('Waktu Pelaksanaan', fmtWaktu(s.tanggal_berangkat, s.tanggal_kembali), true)}
-    ${f('Pegawai', pegawaiStr, true)}
-    ${s.nomor_surat ? f('Nomor Surat', s.nomor_surat) : ''}
-    ${s.tanggal_surat ? f('Tanggal Surat', fmtTgl(s.tanggal_surat)) : ''}
-    ${s.menimbang_custom ? f('Menimbang (kegiatan)', s.menimbang_custom, true) : ''}
-    ${s.alat_angkutan ? f('Alat Angkutan', s.alat_angkutan) : ''}
-    ${s.pembebanan ? f('MAK Pembebanan', s.pembebanan, true) : ''}
-    ${s.penandatangan_nama ? f('Penandatangan', `${s.penandatangan_nama}${ttdJabatan ? ' — ' + ttdJabatan : ''}`, true) : ''}
-    ${s.penandatangan_nip ? f('NIP Penandatangan', s.penandatangan_nip) : ''}
-    ${s.catatan_admin ? f('Catatan Admin', s.catatan_admin, true) : ''}
-  </div>`;
-
-  const actions = document.getElementById('modal-detail-actions');
-  if (s.status === 'menunggu') {
-    actions.innerHTML = `<div style="display:flex;gap:8px">
-      <button class="btn-approve" onclick="closeModal('modal-detail');openApprove(${s.id})">✅ Setujui</button>
-      <button class="btn-reject" onclick="closeModal('modal-detail');openReject(${s.id})">❌ Tolak</button>
-    </div>`;
-  } else if (s.status === 'disetujui') {
-    actions.innerHTML = `<div style="display:flex;gap:8px">
-      <button class="btn-preview" onclick="closeModal('modal-detail');openPreview(${s.id})">👁 Preview</button>
-      <button class="btn-download" onclick="closeModal('modal-detail');downloadSuratTugas(${s.id})">📥 Download</button>
-    </div>`;
-  } else {
-    actions.innerHTML = '';
-  }
-  openModal('modal-detail');
-}
-
 /* ════════════════════════════════════════════════════════════════════
    APPROVE
 ═══════════════════════════════════════════════════════════════════════ */
