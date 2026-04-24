@@ -1283,6 +1283,24 @@ document.addEventListener('click', (e) => {
   }
 });
 
+/* ════════════════════════════════════════════════════════════════════
+   AUTO-SELECT TEKS di readonly cell saat difokus
+   Sehingga langsung bisa Ctrl+C tanpa perlu drag manual
+═══════════════════════════════════════════════════════════════════════ */
+document.addEventListener('focus', (e) => {
+  const target = e.target;
+  if (!target) return;
+  const isRo = target.classList.contains('ro-text') || target.classList.contains('ro-ttd');
+  if (!isRo) return;
+  try {
+    const range = document.createRange();
+    range.selectNodeContents(target);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  } catch(_) {}
+}, true); // useCapture=true karena focus tidak bubble secara default
+
 function closeAllPopups() {
   closeCal();
   closeAc();
