@@ -573,6 +573,9 @@ function onDateFocus(el) {
 }
 
 function onDateBlur(el) {
+  const cal = document.getElementById('cal-popup');
+  if (cal && cal.classList.contains('open')) return;
+
   const txt = el.value.trim();
   if (!txt) {
     el.dataset.iso = '';
@@ -588,8 +591,10 @@ function onDateBlur(el) {
     el.classList.add('err');
   }
 }
-
 function onRangeBlur(el) {
+  const cal = document.getElementById('cal-popup');
+  if (cal && cal.classList.contains('open')) return;
+
   const txt = el.value.trim();
   if (!txt) {
     el.dataset.isoMulai = '';
@@ -761,11 +766,12 @@ document.addEventListener('DOMContentLoaded', () => {
       closeCal();
       return;
     }
-    if (calState.rangePhase === 0) {
+   if (calState.rangePhase === 0) {
       el.dataset.isoMulai = ds;
       el.dataset.isoSelesai = '';
+      el.value = fmtTgl(ds) + ' s.d. …';
       calState.rangePhase = 1;
-      renderCal();
+      renderCal();   
     } else {
       let mulai = el.dataset.isoMulai;
       let selesai = ds;
