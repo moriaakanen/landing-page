@@ -91,7 +91,6 @@ function escAttr(str) { return esc(str); }
 
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-// ISO yyyy-mm-dd → "2 Januari 2026"
 function fmtTgl(str) {
   if (!str) return '';
   const d = parseISODate(str);
@@ -133,8 +132,7 @@ function badgeHTML(status) {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   PARSER TANGGAL FLEKSIBEL — input user "2/1/26", "02-01-2026", "2 jan 2026"
-   Return: ISO yyyy-mm-dd atau null
+   PARSER TANGGAL FLEKSIBEL
 ═══════════════════════════════════════════════════════════════════════ */
 const BULAN_KEYS = {
   'januari':1,'jan':1,'1':1,'01':1,
@@ -160,30 +158,20 @@ function parseFlexDate(input) {
   if (!input) return null;
   let s = String(input).trim().toLowerCase();
   if (!s) return null;
-
-  // Pure ISO (yyyy-mm-dd / yyyy/mm/dd / yyyy.mm.dd)
   let m = s.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})$/);
   if (m) {
     const y = +m[1], mo = +m[2], d = +m[3];
     if (mo>=1&&mo<=12&&d>=1&&d<=31) return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
   }
-
-  // Pisahkan dengan / - . spasi
   const parts = s.split(/[\/\-\.\s]+/).filter(Boolean);
-
-  // d/m/y atau d-m-y atau d m y
   if (parts.length === 3) {
     let [d, mo, y] = parts;
-
-    // Cek kalau bulan adalah nama (jan/feb/...)
     const moKey = BULAN_KEYS[mo];
     if (moKey) {
       d = parseInt(d, 10);
       const yy = normYear(y);
       if (d>=1&&d<=31 && yy) return `${yy}-${String(moKey).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     }
-
-    // Numeric d/m/y (asumsi DMY karena Indonesia)
     d = parseInt(d, 10);
     mo = parseInt(mo, 10);
     const yy = normYear(y);
@@ -191,8 +179,6 @@ function parseFlexDate(input) {
       return `${yy}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     }
   }
-
-  // d m (tanpa tahun → pakai tahun ini)
   if (parts.length === 2) {
     let [d, mo] = parts;
     const moKey = BULAN_KEYS[mo] || (parseInt(mo,10) >= 1 && parseInt(mo,10) <= 12 ? parseInt(mo,10) : null);
@@ -202,17 +188,13 @@ function parseFlexDate(input) {
       return `${y}-${String(moKey).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     }
   }
-
   return null;
 }
 
-// Parse range: "2/1/26 - 5/1/26" atau "2 s.d. 5 jan 2026"
 function parseFlexRange(input) {
   if (!input) return { mulai: '', selesai: '' };
   let s = String(input).trim();
   if (!s) return { mulai: '', selesai: '' };
-
-  // Cari separator
   const seps = [' s.d. ', ' sd ', ' - ', ' s/d ', ' to ', ' – ', ' — ', '~'];
   for (const sep of seps) {
     const idx = s.toLowerCase().indexOf(sep);
@@ -224,20 +206,14 @@ function parseFlexRange(input) {
       if (a) return { mulai: a, selesai: b || '' };
     }
   }
-
-  // Pisahkan dengan dash sederhana — tapi hati-hati karena "1-1-2026" juga pakai dash
-  // Heuristik: jika ada >=2 dash dan jumlah parts > 3, mungkin range
   const dashSplit = s.split(/\s+-\s+|\s+–\s+|\s+—\s+/);
   if (dashSplit.length === 2) {
     const a = parseFlexDate(dashSplit[0]);
     const b = parseFlexDate(dashSplit[1]);
     if (a) return { mulai: a, selesai: b || '' };
   }
-
-  // Single date
   const single = parseFlexDate(s);
   if (single) return { mulai: single, selesai: '' };
-
   return { mulai: '', selesai: '' };
 }
 
@@ -246,7 +222,6 @@ function parseFlexRange(input) {
 ═══════════════════════════════════════════════════════════════════════ */
 async function loadPegawai() {
   try {
-    // Catatan: hanya ambil NIP & NAMA — kolom JABATAN tidak ada di "data pegawai"
     const res = await fetch(`${SUPABASE_URL}/rest/v1/data%20pegawai?select=NIP,NAMA&order=NAMA.asc`, { headers: H });
     if (!res.ok) return;
     pegawaiList = await res.json();
@@ -273,17 +248,11 @@ async function loadSurat() {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?select=*&order=created_at.asc`, { headers: H });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const ascList = await res.json();
-
-    // Bangun urutan global (1-based ascending by created_at)
     suratOrderMap = {};
     ascList.forEach((s, i) => { suratOrderMap[s.id] = i + 1; });
-
-    // Untuk display, kita reverse jadi descending (terbaru di atas)
     allSurat = ascList.slice().reverse();
-
     suratMap = {};
     allSurat.forEach(s => { suratMap[s.id] = s; });
-
     updateStats();
     filterTable();
   } catch(e) {
@@ -310,8 +279,6 @@ function filterTable() {
 
 /* ════════════════════════════════════════════════════════════════════
    AUTO-SUGGEST NOMOR SURAT
-   Cari nomor surat tertinggi (parsing prefix angka) dari semua surat
-   yang sudah punya nomor_surat → +1
 ═══════════════════════════════════════════════════════════════════════ */
 function suggestNextNomor() {
   let max = 0;
@@ -328,8 +295,6 @@ function suggestNextNomor() {
 
 /* ════════════════════════════════════════════════════════════════════
    RENDER TABLE
-   ─ Tiap baris menunggu = 1 set sel editable
-   ─ Baris disetujui/ditolak = readonly display
 ═══════════════════════════════════════════════════════════════════════ */
 function renderTable(data) {
   document.getElementById('table-count').textContent = `${data.length} surat`;
@@ -349,7 +314,6 @@ function renderTable(data) {
 
     const urutNo = suratOrderMap[s.id] || '—';
 
-    // Prefill: nilai existing → default → kosong/auto
     const nomorSurat   = s.nomor_surat   || (isMenunggu ? nextNomor : '');
     const tanggalSurat = s.tanggal_surat || (isMenunggu ? todayStr  : '');
     const waktuMulai   = s.tanggal_berangkat || '';
@@ -362,11 +326,9 @@ function renderTable(data) {
     const ttdNama      = s.penandatangan_nama || (isMenunggu ? defaults.ttd_nama : '');
     const ttdNip       = s.penandatangan_nip  || (isMenunggu ? defaults.ttd_nip  : '');
 
-    // ─── Pegawai existing (NIP + nama) ───
     const pegNips  = Array.isArray(s.pegawai_nip)  ? s.pegawai_nip  : [];
     const pegNames = Array.isArray(s.pegawai_list) ? s.pegawai_list : [];
 
-    // ─── Aksi ───
     let aksi;
     if (isMenunggu) {
       aksi = `
@@ -382,7 +344,6 @@ function renderTable(data) {
       aksi = `<button class="btn-sm" onclick="openDetail(${s.id})">🔍 Detail</button>`;
     }
 
-    // ─── Sel-sel ───
     return `
       <tr data-surat-id="${s.id}" data-status="${s.status}">
         <td class="col-no">${urutNo}</td>
@@ -423,8 +384,6 @@ function renderTable(data) {
       <tbody>${rows}</tbody>
     </table>`;
 
-  // Setup auto-grow textarea & event listener untuk semua sel editable
-  // Pakai requestAnimationFrame supaya scrollHeight sudah dihitung browser
   requestAnimationFrame(() => {
     document.querySelectorAll('tr[data-status="menunggu"] textarea.xls-cell').forEach(ta => {
       autoGrow(ta);
@@ -445,6 +404,8 @@ function autoGrow(el) {
 
 /* ─────────────────────────────────────────────────────────────────────
    CELL BUILDERS
+   Semua readonly cell kini punya tabindex="0" dan data-col-field
+   sehingga bisa difokus, diselect, dicopy, dan dinavigasi dengan arrow.
 ───────────────────────────────────────────────────────────────────── */
 const FIELD_TO_COL = {
   nomor_surat:      'col-nomor-surat',
@@ -463,11 +424,13 @@ function cellTextHTML(id, field, val, editable, placeholder) {
   const cls = FIELD_TO_COL[field] || '';
   if (!editable) {
     return `<td class="${cls}">
-      <div class="ro-text${val ? '' : ' muted'}">${val ? esc(val) : '—'}</div>
+      <div class="ro-text${val ? '' : ' muted'}"
+           tabindex="0" data-col-field="${field}">${val ? esc(val) : '—'}</div>
     </td>`;
   }
   return `<td class="${cls}">
     <input type="text" class="xls-cell" data-field="${field}" data-id="${id}"
+      data-col-field="${field}"
       value="${escAttr(val)}" placeholder="${escAttr(placeholder)}">
   </td>`;
 }
@@ -476,25 +439,28 @@ function cellTextareaHTML(id, field, val, editable, placeholder) {
   const cls = FIELD_TO_COL[field] || '';
   if (!editable) {
     return `<td class="${cls}">
-      <div class="ro-text${val ? '' : ' muted'}">${val ? esc(val) : '—'}</div>
+      <div class="ro-text${val ? '' : ' muted'}"
+           tabindex="0" data-col-field="${field}">${val ? esc(val) : '—'}</div>
     </td>`;
   }
   return `<td class="${cls}">
     <textarea class="xls-cell" rows="1" data-field="${field}" data-id="${id}"
+      data-col-field="${field}"
       placeholder="${escAttr(placeholder)}">${esc(val)}</textarea>
   </td>`;
 }
 
-// Tanggal tunggal — input text, parse fleksibel saat blur, popup kalender saat dblclick / icon
 function cellDateHTML(id, field, isoVal, editable, placeholder) {
   if (!editable) {
     return `<td class="col-tgl-surat">
-      <div class="ro-text${isoVal ? '' : ' muted'}">${isoVal ? esc(fmtTgl(isoVal)) : '—'}</div>
+      <div class="ro-text${isoVal ? '' : ' muted'}"
+           tabindex="0" data-col-field="${field}">${isoVal ? esc(fmtTgl(isoVal)) : '—'}</div>
     </td>`;
   }
   const display = isoVal ? fmtTgl(isoVal) : '';
   return `<td class="col-tgl-surat">
     <input type="text" class="xls-cell" data-field="${field}" data-id="${id}"
+      data-col-field="${field}"
       data-iso="${escAttr(isoVal)}"
       value="${escAttr(display)}"
       placeholder="${escAttr(placeholder)}"
@@ -505,16 +471,17 @@ function cellDateHTML(id, field, isoVal, editable, placeholder) {
   </td>`;
 }
 
-// Tanggal range — sama tapi parse range
 function cellDateRangeHTML(id, field, isoMulai, isoSelesai, editable) {
   if (!editable) {
     return `<td class="col-waktu">
-      <div class="ro-text${isoMulai ? '' : ' muted'}">${isoMulai ? esc(fmtWaktu(isoMulai, isoSelesai)) : '—'}</div>
+      <div class="ro-text${isoMulai ? '' : ' muted'}"
+           tabindex="0" data-col-field="${field}">${isoMulai ? esc(fmtWaktu(isoMulai, isoSelesai)) : '—'}</div>
     </td>`;
   }
   const display = isoMulai ? fmtWaktu(isoMulai, isoSelesai) : '';
   return `<td class="col-waktu">
     <input type="text" class="xls-cell" data-field="${field}" data-id="${id}"
+      data-col-field="${field}"
       data-iso-mulai="${escAttr(isoMulai)}"
       data-iso-selesai="${escAttr(isoSelesai || '')}"
       value="${escAttr(display)}"
@@ -526,15 +493,20 @@ function cellDateRangeHTML(id, field, isoMulai, isoSelesai, editable) {
   </td>`;
 }
 
-// Pegawai multi-select — sel berisi tag + input inline
 function cellPegawaiMultiHTML(id, nips, names, editable) {
   if (!editable) {
-    if (!names.length) return `<td class="col-nama"><div class="ro-text muted">—</div></td>`;
-    return `<td class="col-nama"><div class="ro-text">${names.map(esc).join(', ')}</div></td>`;
+    if (!names.length) {
+      return `<td class="col-nama">
+        <div class="ro-text muted" tabindex="0" data-col-field="pegawai_multi">—</div>
+      </td>`;
+    }
+    return `<td class="col-nama">
+      <div class="ro-text" tabindex="0" data-col-field="pegawai_multi">${names.map(esc).join(', ')}</div>
+    </td>`;
   }
   const tags = nips.map((nip, i) => buildPegTag(nip, names[i] || nip, false)).join('');
   return `<td class="col-nama">
-    <div class="pg-cell" data-field="pegawai_multi" data-id="${id}"
+    <div class="pg-cell" data-field="pegawai_multi" data-col-field="pegawai_multi" data-id="${id}"
       data-nips='${escAttr(JSON.stringify(nips))}'
       data-names='${escAttr(JSON.stringify(names))}'
       onclick="onPgCellClick(event, this)">
@@ -548,13 +520,15 @@ function cellPegawaiMultiHTML(id, nips, names, editable) {
   </td>`;
 }
 
-// Penandatangan single — sama mekanisme tapi single tag
 function cellPenandatanganHTML(id, nip, nama, editable) {
   if (!editable) {
-    if (!nama && !nip) return `<td class="col-ttd"><div class="ro-text muted">—</div></td>`;
-    // Cari jabatan dari riwayat (untuk display readonly), kita tampilkan juga
+    if (!nama && !nip) {
+      return `<td class="col-ttd">
+        <div class="ro-text muted" tabindex="0" data-col-field="penandatangan">—</div>
+      </td>`;
+    }
     return `<td class="col-ttd">
-      <div class="ro-ttd">
+      <div class="ro-ttd" tabindex="0" data-col-field="penandatangan">
         ${nama ? `<div class="ro-ttd-name">${esc(nama)}</div>` : ''}
         ${nip  ? `<div class="ro-ttd-nip">NIP. ${esc(nip)}</div>` : ''}
       </div>
@@ -562,7 +536,7 @@ function cellPenandatanganHTML(id, nip, nama, editable) {
   }
   const tag = nip ? buildPegTag(nip, nama || nip, true) : '';
   return `<td class="col-ttd">
-    <div class="pg-cell single" data-field="penandatangan" data-id="${id}"
+    <div class="pg-cell single" data-field="penandatangan" data-col-field="penandatangan" data-id="${id}"
       data-nip="${escAttr(nip)}"
       data-nama="${escAttr(nama)}"
       onclick="onPgCellClick(event, this)">
@@ -587,17 +561,14 @@ function buildPegTag(nip, nama, single) {
 
 
 /* ════════════════════════════════════════════════════════════════════
-   DATE INPUT BEHAVIOR — onfocus, onblur (parse fleksibel)
+   DATE INPUT BEHAVIOR
 ═══════════════════════════════════════════════════════════════════════ */
 function onDateFocus(el) {
-  // Saat focus, tampilkan ISO supaya gampang diedit/copy
   const iso = el.dataset.iso || '';
   if (iso) {
-    // Opsional: tampilkan dd/mm/yyyy untuk input ergonomi
     const d = parseISODate(iso);
     if (d) el.value = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
   }
-  // Select all untuk gampang ganti
   setTimeout(() => el.select(), 0);
 }
 
@@ -615,7 +586,6 @@ function onDateBlur(el) {
     el.classList.remove('err');
   } else {
     el.classList.add('err');
-    // Biarkan value asli supaya user bisa koreksi
   }
 }
 
@@ -639,36 +609,29 @@ function onRangeBlur(el) {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   CALENDAR POPUP — single & range mode
+   CALENDAR POPUP
 ═══════════════════════════════════════════════════════════════════════ */
 let calState = {
-  targetEl: null,    // input element yang sedang diisi
+  targetEl: null,
   isRange:  false,
   year:     new Date().getFullYear(),
   month:    new Date().getMonth(),
-  rangePhase: 0,     // 0 = pilih mulai, 1 = pilih selesai
+  rangePhase: 0,
   yearMode: false,
 };
 
 function openCal(el, isRange) {
-  // Close any existing popups first
   closeAllPopups();
-
   calState.targetEl = el;
   calState.isRange  = isRange;
   calState.rangePhase = 0;
   calState.yearMode = false;
-
-  // Inisialisasi bulan dari nilai yang ada
   let initIso = isRange ? (el.dataset.isoMulai || todayISO()) : (el.dataset.iso || todayISO());
   const d = parseISODate(initIso);
   if (d) { calState.year = d.getFullYear(); calState.month = d.getMonth(); }
-
   const popup = document.getElementById('cal-popup');
   popup.classList.remove('year-mode');
   popup.classList.add('open');
-
-  // Position
   positionPopup(popup, el);
   renderCal();
 }
@@ -681,20 +644,15 @@ function closeCal() {
 function renderCal() {
   const popup = document.getElementById('cal-popup');
   popup.classList.toggle('year-mode', calState.yearMode);
-
   document.getElementById('cal-title').textContent = `${BULAN[calState.month]} ${calState.year}`;
   document.getElementById('cal-day-names').innerHTML = ['Min','Sen','Sel','Rab','Kam','Jum','Sab']
     .map(d => `<div class="cal-day-name">${d}</div>`).join('');
 
-  if (calState.yearMode) {
-    renderYearGrid();
-    return;
-  }
+  if (calState.yearMode) { renderYearGrid(); return; }
 
   const el = calState.targetEl;
   const startIso = calState.isRange ? (el.dataset.isoMulai || '') : (el.dataset.iso || '');
   const endIso   = calState.isRange ? (el.dataset.isoSelesai || '') : '';
-
   const firstDay = new Date(calState.year, calState.month, 1).getDay();
   const daysInMonth = new Date(calState.year, calState.month + 1, 0).getDate();
   const today = todayISO();
@@ -705,7 +663,6 @@ function renderCal() {
     const ds = `${calState.year}-${String(calState.month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     let cls = 'cal-day';
     if (ds === today) cls += ' cal-today';
-
     if (calState.isRange && startIso && endIso && startIso !== endIso) {
       if (ds === startIso) cls += ' cal-start';
       else if (ds === endIso) cls += ' cal-end';
@@ -717,7 +674,6 @@ function renderCal() {
   }
   document.getElementById('cal-days').innerHTML = html;
 
-  // Footer text
   let txt = 'Pilih tanggal';
   if (calState.isRange) {
     if (calState.rangePhase === 1 && startIso) txt = `Mulai: ${fmtTgl(startIso)} — pilih tgl selesai`;
@@ -741,15 +697,13 @@ function renderYearGrid() {
 }
 
 function positionPopup(popup, anchorEl) {
-  const rect = anchorEl.getBoundingClientRect();
-  // Sementara display:block agar bisa ukur
   popup.style.visibility = 'hidden';
   popup.style.display = 'block';
   const pH = popup.offsetHeight;
   const pW = popup.offsetWidth;
   popup.style.display = '';
   popup.style.visibility = '';
-
+  const rect = anchorEl.getBoundingClientRect();
   const winH = window.innerHeight, winW = window.innerWidth;
   let top = rect.bottom + 4;
   let left = rect.left;
@@ -760,7 +714,6 @@ function positionPopup(popup, anchorEl) {
   popup.style.left = left + 'px';
 }
 
-// Calendar event handlers
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('cal-prev').onclick = (e) => {
     e.stopPropagation();
@@ -801,7 +754,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const ds = d.dataset.date;
     const el = calState.targetEl;
     if (!el) return;
-
     if (!calState.isRange) {
       el.dataset.iso = ds;
       el.value = fmtTgl(ds);
@@ -809,8 +761,6 @@ document.addEventListener('DOMContentLoaded', () => {
       closeCal();
       return;
     }
-
-    // Range mode
     if (calState.rangePhase === 0) {
       el.dataset.isoMulai = ds;
       el.dataset.isoSelesai = '';
@@ -839,18 +789,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ════════════════════════════════════════════════════════════════════
-   AUTOCOMPLETE PEGAWAI — multi & single
+   AUTOCOMPLETE PEGAWAI
 ═══════════════════════════════════════════════════════════════════════ */
 let acState = {
-  cellEl:    null,    // .pg-cell yang sedang aktif
-  inputEl:   null,    // .pg-input dalam pg-cell
+  cellEl:    null,
+  inputEl:   null,
   filtered:  [],
   focusIdx:  -1,
   isSingle:  false,
 };
 
 function onPgCellClick(e, cellEl) {
-  // Klik di area sel → focus input di dalamnya
   if (e.target === cellEl) {
     const inp = cellEl.querySelector('.pg-input');
     if (inp) inp.focus();
@@ -867,10 +816,8 @@ function onPgInputFocus(inp) {
 function onPgInputBlur(inp) {
   const cellEl = inp.closest('.pg-cell');
   if (cellEl) cellEl.classList.remove('focused');
-  // Tutup popup jika fokus pindah keluar (delay agar klik item bisa dieksekusi)
   setTimeout(() => {
     if (!document.activeElement || !document.getElementById('ac-popup').contains(document.activeElement)) {
-      // Cek juga apakah masih ada input pegawai lain yg fokus
       if (!document.activeElement || !document.activeElement.classList.contains('pg-input')) {
         closeAc();
       }
@@ -889,7 +836,6 @@ function onPgKeydown(e, inp) {
   const cellEl = inp.closest('.pg-cell');
   if (!cellEl) return;
 
-  // Backspace di input kosong → hapus tag terakhir
   if (e.key === 'Backspace' && inp.value === '') {
     const tags = cellEl.querySelectorAll('.pg-tag');
     if (tags.length) {
@@ -930,7 +876,6 @@ function onPgKeydown(e, inp) {
     closeAc();
   } else if (e.key === 'Tab') {
     closeAc();
-    // Biarkan default Tab behavior berjalan
   }
 }
 
@@ -939,12 +884,8 @@ function openAc(cellEl, inp) {
   acState.inputEl = inp;
   acState.isSingle = cellEl.classList.contains('single');
   acState.focusIdx = -1;
-
   const popup = document.getElementById('ac-popup');
   popup.classList.add('open');
-  positionPopup(popup, inp);
-  // Position lagi di-anchor ke cellEl saja, bukan inp (karena inp lebar bervariasi)
-  // Sebenarnya lebih nyaman anchor ke cellEl
   positionPopup(popup, cellEl);
   acFilter(inp.value);
 }
@@ -969,14 +910,12 @@ function acFilter(q) {
       try { selectedNips = JSON.parse(cellEl.dataset.nips || '[]'); } catch(_) {}
     }
   }
-
   acState.filtered = pegawaiList.filter(p => {
     if (!q) return true;
     const nama = (p.NAMA || '').toLowerCase();
     const nip = String(p.NIP || '').toLowerCase();
     return nama.includes(q) || nip.includes(q);
   }).slice(0, 50);
-
   acRenderList(selectedNips);
   document.getElementById('ac-count').textContent = `${acState.filtered.length} hasil`;
 }
@@ -1028,7 +967,6 @@ function acPick(idx) {
 
 function pickPegawai(cellEl, nip, nama) {
   if (acState.isSingle) {
-    // Replace existing tag
     cellEl.querySelectorAll('.pg-tag').forEach(t => t.remove());
     cellEl.dataset.nip = nip;
     cellEl.dataset.nama = nama;
@@ -1036,14 +974,13 @@ function pickPegawai(cellEl, nip, nama) {
     const inp = cellEl.querySelector('.pg-input');
     inp.insertAdjacentHTML('beforebegin', tagHtml);
     inp.placeholder = '';
-    closeAc(); // single select: tutup popup setelah pilih
+    closeAc();
   } else {
     let nips = [];
     let names = [];
     try { nips  = JSON.parse(cellEl.dataset.nips  || '[]'); } catch(_) {}
     try { names = JSON.parse(cellEl.dataset.names || '[]'); } catch(_) {}
     if (nips.includes(nip)) {
-      // Sudah dipilih — feedback halus dengan flash kuning, tidak duplikat
       const existing = cellEl.querySelector(`.pg-tag[data-nip="${CSS.escape(nip)}"]`);
       if (existing) {
         existing.style.transition = 'background .3s';
@@ -1060,7 +997,6 @@ function pickPegawai(cellEl, nip, nama) {
     const inp = cellEl.querySelector('.pg-input');
     inp.insertAdjacentHTML('beforebegin', tagHtml);
     inp.placeholder = '';
-    // Multi: biarkan popup tetap terbuka untuk pilih banyak
   }
 }
 
@@ -1076,7 +1012,6 @@ function removePegTag(cellEl, nip) {
   const isSingle = cellEl.classList.contains('single');
   const tag = cellEl.querySelector(`.pg-tag[data-nip="${CSS.escape(nip)}"]`);
   if (tag) tag.remove();
-
   if (isSingle) {
     cellEl.dataset.nip = '';
     cellEl.dataset.nama = '';
@@ -1090,7 +1025,6 @@ function removePegTag(cellEl, nip) {
     cellEl.dataset.nips  = JSON.stringify(nips);
     cellEl.dataset.names = JSON.stringify(names);
   }
-
   const inp = cellEl.querySelector('.pg-input');
   if (inp) {
     const stillHasTags = cellEl.querySelectorAll('.pg-tag').length > 0;
@@ -1100,36 +1034,227 @@ function removePegTag(cellEl, nip) {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   GLOBAL: Tab/Enter navigasi antar sel & close popup saat klik luar
+   ARROW NAVIGATION GRID — navigasi Excel-like antar sel
+   Mendukung: editable (input/textarea/pg-input) + readonly (ro-text/ro-ttd)
+═══════════════════════════════════════════════════════════════════════ */
+
+// Urutan kolom navigasi (kiri → kanan, sesuai urutan visual tabel)
+const NAV_FIELDS = [
+  'nomor_surat',
+  'tanggal_surat',
+  'waktu',
+  'perihal',
+  'tujuan',
+  'pegawai_multi',
+  'menimbang_custom',
+  'alat_angkutan',
+  'pembebanan',
+  'penandatangan',
+];
+
+/**
+ * Bangun grid 2D: grid[rowIdx][colIdx] = focusable HTMLElement | null
+ * Baris: sesuai urutan tampilan tabel (descending created_at)
+ * Kolom: sesuai NAV_FIELDS
+ */
+function buildNavGrid() {
+  const rows = Array.from(document.querySelectorAll('tr[data-surat-id]'));
+  return rows.map(row => {
+    return NAV_FIELDS.map(field => {
+      // 1) Editable input atau textarea
+      let el = row.querySelector(
+        `input.xls-cell[data-col-field="${field}"],
+         textarea.xls-cell[data-col-field="${field}"]`
+      );
+      if (el) return el;
+
+      // 2) Editable pg-cell → kembalikan pg-input di dalamnya
+      const pgCell = row.querySelector(`.pg-cell[data-col-field="${field}"]`);
+      if (pgCell) {
+        return pgCell.querySelector('.pg-input') || pgCell;
+      }
+
+      // 3) Readonly div (ro-text atau ro-ttd)
+      el = row.querySelector(`[data-col-field="${field}"]`);
+      return el || null;
+    });
+  });
+}
+
+/**
+ * Cari posisi elemen dalam grid.
+ * Jika elemen adalah pg-input, cari parent pg-cell-nya di grid.
+ */
+function findInGrid(grid, target) {
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      const el = grid[r][c];
+      if (!el) continue;
+      if (el === target) return { r, c };
+      // pg-input → cek apakah parent pg-cell ada di grid
+      if (target.classList && target.classList.contains('pg-input')) {
+        const parentPg = target.closest('.pg-cell');
+        if (parentPg && el === parentPg) return { r, c };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Fokus ke sel di posisi [r][c] dengan scroll smooth.
+ * Jika sel di kolom c null, coba geser ke kolom terdekat yang ada.
+ */
+function navFocusCell(grid, r, c) {
+  r = Math.max(0, Math.min(r, grid.length - 1));
+  c = Math.max(0, Math.min(c, NAV_FIELDS.length - 1));
+
+  let el = grid[r][c];
+  // Fallback: geser kanan kalau null
+  if (!el) {
+    for (let cc = c + 1; cc < grid[r].length; cc++) {
+      if (grid[r][cc]) { el = grid[r][cc]; break; }
+    }
+  }
+  // Fallback: geser kiri
+  if (!el) {
+    for (let cc = c - 1; cc >= 0; cc--) {
+      if (grid[r][cc]) { el = grid[r][cc]; break; }
+    }
+  }
+  if (!el) return;
+
+  el.focus({ preventScroll: true });
+  el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+
+  // Select teks jika input/textarea
+  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+    try { el.select(); } catch(_) {}
+  }
+
+  // Highlight baris aktif
+  document.querySelectorAll('tr.row-focused').forEach(tr => tr.classList.remove('row-focused'));
+  const parentRow = el.closest('tr');
+  if (parentRow) parentRow.classList.add('row-focused');
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   GLOBAL KEYDOWN — Tab/Enter (navigasi linear) + Arrow (navigasi grid)
+   + Escape (tutup popup/modal)
 ═══════════════════════════════════════════════════════════════════════ */
 document.addEventListener('keydown', (e) => {
+
+  /* ── Escape ─────────────────────────────────────────────────────── */
   if (e.key === 'Escape') {
     closeAllPopups();
     ['modal-detail','modal-approve','modal-reject','modal-preview'].forEach(closeModal);
+    document.querySelectorAll('tr.row-focused').forEach(tr => tr.classList.remove('row-focused'));
     return;
   }
 
-  // Tab / Enter di .xls-cell → pindah sel
-  if (e.target.classList && e.target.classList.contains('xls-cell')) {
-    const isTextarea = e.target.tagName === 'TEXTAREA';
+  const target = e.target;
 
-    // Shift+Enter di textarea = newline (default)
-    if (isTextarea && e.key === 'Enter' && e.shiftKey) return;
+  // Tentukan tipe elemen yang sedang difokus
+  const isXlsCell  = target.classList && target.classList.contains('xls-cell');
+  const isPgInput  = target.classList && target.classList.contains('pg-input');
+  const isRoText   = target.classList && (
+    target.classList.contains('ro-text') || target.classList.contains('ro-ttd')
+  );
+  const isNavTarget = isXlsCell || isPgInput || isRoText;
 
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      moveCellFocus(e.target, e.shiftKey ? -1 : 1);
-    } else if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      moveCellFocus(e.target, 1);
+  if (!isNavTarget) return;
+
+  const isTextarea  = target.tagName === 'TEXTAREA';
+  const isReadonly  = isRoText;
+
+  /* ── Arrow keys: navigasi grid ──────────────────────────────────── */
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+
+    // Alt+ArrowDown di date cell = buka kalender, jangan intercept
+    if (e.altKey && e.key === 'ArrowDown') return;
+
+    // ArrowUp/Down di autocomplete pegawai = biarkan handler onPgKeydown handle
+    if (isPgInput && document.getElementById('ac-popup').classList.contains('open')) {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') return;
     }
+
+    const grid = buildNavGrid();
+    const pos  = findInGrid(grid, target);
+    if (!pos) return;
+
+    const { r, c } = pos;
+
+    if (e.key === 'ArrowUp') {
+      if (r > 0) {
+        e.preventDefault();
+        closeAllPopups();
+        navFocusCell(grid, r - 1, c);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      if (r < grid.length - 1) {
+        e.preventDefault();
+        closeAllPopups();
+        navFocusCell(grid, r + 1, c);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowLeft') {
+      // Readonly: selalu pindah kolom
+      // Editable: pindah kolom hanya jika kursor di posisi paling kiri (0)
+      const cursorAtStart = isReadonly || (
+        target.selectionStart === 0 && target.selectionEnd === 0
+      );
+      if (cursorAtStart && c > 0) {
+        e.preventDefault();
+        closeAllPopups();
+        navFocusCell(grid, r, c - 1);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowRight') {
+      // Readonly: selalu pindah kolom
+      // Editable: pindah kolom hanya jika kursor di posisi paling kanan (akhir teks)
+      const valLen = (target.value || '').length;
+      const cursorAtEnd = isReadonly || (
+        target.selectionStart === valLen && target.selectionEnd === valLen
+      );
+      if (cursorAtEnd && c < NAV_FIELDS.length - 1) {
+        e.preventDefault();
+        closeAllPopups();
+        navFocusCell(grid, r, c + 1);
+      }
+      return;
+    }
+  }
+
+  /* ── Tab / Enter: navigasi linear (hanya untuk sel editable) ────── */
+  if (isReadonly) return; // readonly: biarkan Tab default browser
+
+  if (isTextarea && e.key === 'Enter' && e.shiftKey) return; // Shift+Enter = newline
+
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    moveCellFocus(target, e.shiftKey ? -1 : 1);
+  } else if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    moveCellFocus(target, 1);
   }
 });
 
+/**
+ * Navigasi linear Tab/Enter di sel editable.
+ * Meliputi semua xls-cell dan pg-input di baris menunggu.
+ */
 function moveCellFocus(currentEl, direction) {
-  // Cari semua elemen focusable di tabel (menunggu rows)
-  const allCells = Array.from(document.querySelectorAll('tr[data-status="menunggu"] .xls-cell, tr[data-status="menunggu"] .pg-input'));
-  const idx = allCells.indexOf(currentEl);
+  const allCells = Array.from(document.querySelectorAll(
+    'tr[data-status="menunggu"] .xls-cell, tr[data-status="menunggu"] .pg-input'
+  ));
+  const idx  = allCells.indexOf(currentEl);
   if (idx < 0) return;
   const next = allCells[idx + direction];
   if (next) {
@@ -1138,18 +1263,23 @@ function moveCellFocus(currentEl, direction) {
   }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   CLOSE POPUPS saat klik di luar
+═══════════════════════════════════════════════════════════════════════ */
 document.addEventListener('click', (e) => {
-  // Close calendar jika klik di luar
   const cal = document.getElementById('cal-popup');
   if (cal.classList.contains('open') && !cal.contains(e.target) &&
       (!calState.targetEl || !calState.targetEl.contains(e.target)) && calState.targetEl !== e.target) {
     closeCal();
   }
-  // Close autocomplete jika klik di luar
   const ac = document.getElementById('ac-popup');
   if (ac.classList.contains('open') && !ac.contains(e.target)) {
     const inAnyPgCell = e.target.closest && e.target.closest('.pg-cell');
     if (!inAnyPgCell) closeAc();
+  }
+  // Hapus highlight baris jika klik di luar tabel
+  if (!e.target.closest('tr[data-surat-id]')) {
+    document.querySelectorAll('tr.row-focused').forEach(tr => tr.classList.remove('row-focused'));
   }
 });
 
@@ -1210,7 +1340,7 @@ function collectRowFields(suratId) {
     pembebanan:        get('pembebanan'),
     penandatangan_nip:    ttd.nip,
     penandatangan_nama:   ttd.nama,
-    tempat_terbit:        'Waisai', // hardcoded sesuai requirement
+    tempat_terbit:        'Waisai',
   };
 }
 
@@ -1231,7 +1361,6 @@ function validateApproveFields(values) {
     const v = values[k];
     if (!v || (Array.isArray(v) && !v.length)) { errors.push(label); errFields.push(k); }
   });
-  // Pegawai multi
   if (!values.pegawai_nip.length && !values.pegawai_list.length) {
     errors.push('Nama Pegawai');
     errFields.push('pegawai_multi');
@@ -1244,10 +1373,9 @@ function highlightRowFieldErrors(suratId, fields) {
   if (!row) return;
   row.querySelectorAll('.xls-cell.err, .pg-cell.err').forEach(el => el.classList.remove('err'));
 
-  // Map nama field validasi → data-field di DOM
   const FIELD_DOM_MAP = {
-    tanggal_berangkat: 'waktu',          // waktu pelaksanaan
-    pegawai_nip:       'pegawai_multi',  // sel pegawai multi
+    tanggal_berangkat: 'waktu',
+    pegawai_nip:       'pegawai_multi',
     pegawai_list:      'pegawai_multi',
     penandatangan_nama: 'penandatangan',
     penandatangan_nip:  'penandatangan',
@@ -1357,7 +1485,6 @@ function openApprove(id) {
 
   document.getElementById('approve-perihal').textContent = values.perihal || s.perihal || '—';
 
-  // Lookup jabatan untuk preview
   const ttdJabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
   const nomorFull  = buildNomorSuratFull(values.nomor_surat, values.tanggal_surat);
 
@@ -1395,7 +1522,6 @@ async function submitApprove() {
     return;
   }
 
-  // Lookup jabatan saat ini berdasarkan TMT <= tanggal_surat
   const jabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
 
   const payload = {
@@ -1414,7 +1540,7 @@ async function submitApprove() {
     tempat_terbit:         values.tempat_terbit,
     penandatangan_nama:    values.penandatangan_nama,
     penandatangan_nip:     values.penandatangan_nip,
-    penandatangan_jabatan: jabatan || '',  // di-snapshot saat approve
+    penandatangan_jabatan: jabatan || '',
     catatan_admin:         document.getElementById('inp-catatan-approve').value.trim() || null,
   };
 
@@ -1433,13 +1559,11 @@ async function submitApprove() {
     }
 
     if (document.getElementById('inp-save-default').checked) {
-      // Hanya simpan field yang TIDAK kosong (untuk menghindari overwrite default lama dengan kosong)
       const newDefaults = {};
       if (values.alat_angkutan)       newDefaults.alat_angkutan = values.alat_angkutan;
       if (values.pembebanan)          newDefaults.pembebanan    = values.pembebanan;
       if (values.penandatangan_nip)   newDefaults.ttd_nip       = values.penandatangan_nip;
       if (values.penandatangan_nama)  newDefaults.ttd_nama      = values.penandatangan_nama;
-      // Merge dengan default lama
       const merged = { ...loadApproveDefaults(), ...newDefaults };
       saveApproveDefaults(merged);
     }
@@ -1495,19 +1619,14 @@ async function submitReject() {
 
 /* ════════════════════════════════════════════════════════════════════
    LOOKUP JABATAN dari riwayat_pegawai
-   Rule: TMT <= tanggal_surat, ambil yang terbaru.
-   Match dulu by NIP (pegawai_nip), fallback by nama.
 ═══════════════════════════════════════════════════════════════════════ */
 function lookupJabatan(nip, tglSuratIso) {
   if (!nip || !tglSuratIso) return '';
-  // Filter by NIP
   const candidates = riwayatPegawai
     .filter(r => String(r.pegawai_nip || '').trim() === String(nip).trim())
     .filter(r => r.tmt && r.tmt <= tglSuratIso)
     .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
   if (candidates.length) return candidates[0].jabatan || '';
-
-  // Fallback by nama (jika pegawai_nip belum di-backfill)
   const peg = pegawaiByNIP[nip];
   if (peg && peg.NAMA) {
     const candByName = riwayatPegawai
@@ -1520,15 +1639,12 @@ function lookupJabatan(nip, tglSuratIso) {
 }
 
 function lookupJabatanForSurat(s) {
-  // Untuk display di detail: pakai snapshot kalau ada, kalau tidak lookup live
   if (s.penandatangan_jabatan) return s.penandatangan_jabatan;
   return lookupJabatan(s.penandatangan_nip, s.tanggal_surat);
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   FORMAT NOMOR SURAT LENGKAP — untuk preview & docx
-   Pattern: NOMOR B-{nomor}/668870-92800/KP-650/{mm}/{yyyy}
-   mm & yyyy diambil dari tanggal_surat
+   FORMAT NOMOR SURAT LENGKAP
 ═══════════════════════════════════════════════════════════════════════ */
 function buildNomorSuratFull(nomor, tglSuratIso) {
   if (!nomor) return '....................';
@@ -1636,13 +1752,8 @@ function printFromPreview() {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   GENERATOR DOCX — Template BPS Kabupaten Raja Ampat
-   ─ 1 halaman per pegawai (PageBreak antara halaman)
-   ─ Logo BPS dari LOGO_BPS_BASE64 (logo-bps.js)
-   ─ Format nomor surat baru: B-{nomor}/668870-92800/KP-650/{mm}/{yyyy}
-   ─ Jabatan & NIP penandatangan dari snapshot di surat record
+   GENERATOR DOCX
 ═══════════════════════════════════════════════════════════════════════ */
-
 const MENGINGAT_ITEMS = [
   'Undang-Undang Nomor 16 Tahun 1997 tentang Statistik;',
   'Peraturan Pemerintah Nomor 51 Tahun 1999 tentang Penyelenggaraan Statistik;',
@@ -1655,7 +1766,6 @@ function buildMenimbang(custom) {
   return `bahwa untuk kepentingan administrasi kegiatan ${custom || '[kegiatan]'}, Kepala Badan Pusat Statistik Kabupaten Raja Ampat perlu menetapkan Surat Tugas;`;
 }
 
-// Cari jabatan untuk pegawai pada tanggal tertentu
 function getPegawaiInfoForDoc(nip, fallbackName, tglSuratIso) {
   const peg = pegawaiByNIP[String(nip || '').trim()];
   const nama = (peg && peg.NAMA) || fallbackName || '-';
@@ -1710,10 +1820,8 @@ async function buildSuratTugasDoc(data) {
     children: Array.isArray(children) ? children : [children],
   });
 
-  // Tempat selalu "Waisai" sesuai requirement
   const tempat = data.tempat_terbit || 'Waisai';
 
-  // Penandatangan: jabatan dari snapshot atau lookup live
   let ttdJabatan = data.penandatangan_jabatan;
   if (!ttdJabatan) ttdJabatan = lookupJabatan(data.penandatangan_nip, data.tanggal_surat);
   ttdJabatan = ttdJabatan || '-';
@@ -1789,7 +1897,6 @@ async function buildSuratTugasDoc(data) {
     ch.push(new Table({ rows: detailRows, width:{size:100,type:WidthType.PERCENTAGE}, borders:NO_BORDER }));
     ch.push(empty(100));
 
-    // Alat Angkutan + MAK Pembebanan (table 2 baris)
     const akhirRows = [
       new TableRow({ children: [
         cell(p('Alat Angkutan', { spaceAfter:0 }),                      { width:20 }),
@@ -1818,7 +1925,6 @@ async function buildSuratTugasDoc(data) {
     return ch;
   }
 
-  // Bangun list pegawai info
   const nipList  = Array.isArray(data.pegawai_nip)  ? data.pegawai_nip  : [];
   const nameList = Array.isArray(data.pegawai_list) ? data.pegawai_list : [];
 
