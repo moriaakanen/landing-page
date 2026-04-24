@@ -2411,7 +2411,7 @@ async function buildSuratTugasDocLegacy(data) {
        'https://example.com/path/template.docx'
 ════════════════════════════════════════════════════════════════════ */
 
-const TEMPLATE_URL = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/templates/template-surat-tugas.docx';
+const TEMPLATE_URL = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas.docx';
 
 // Cache template binary supaya tidak di-fetch berulang kali
 let _templateBuffer = null;
