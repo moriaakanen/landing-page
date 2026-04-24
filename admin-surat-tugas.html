@@ -365,6 +365,47 @@
     .sidebar.open{left:0}.layout{display:block}.menu-toggle{display:flex!important}
     .detail-grid{grid-template-columns:1fr}.modal{max-width:100%}
   }
+
+  /* Readonly cell — bisa difokus, diselect, dicopy */
+  .ro-text {
+    user-select: text;
+    cursor: text;
+    outline: none;
+    border: 1.5px solid transparent;
+    border-radius: 0;
+    transition: background .12s, border-color .12s, box-shadow .12s;
+  }
+  .ro-ttd {
+    user-select: text;
+    cursor: default;
+    outline: none;
+    border: 1.5px solid transparent;
+    transition: background .12s, border-color .12s, box-shadow .12s;
+  }
+  
+  /* Tampilan fokus readonly — mirip xls-cell tapi warna berbeda (biru muda) */
+  .ro-text:focus {
+    background: #f0f7ff !important;
+    border-color: #3b82f6 !important;
+    box-shadow: inset 0 0 0 1px #3b82f6;
+    position: relative;
+    z-index: 2;
+  }
+  .ro-ttd:focus {
+    background: #f0f7ff !important;
+    border-color: #3b82f6 !important;
+    box-shadow: inset 0 0 0 1px #3b82f6;
+    position: relative;
+    z-index: 2;
+  }
+  
+  /* Highlight baris yang sedang aktif saat navigasi arrow */
+  tr.row-focused {
+    background: #fafdf6 !important;
+  }
+  tr.row-focused td {
+    background: transparent;
+  }  
 </style>
 </head>
 <body>
