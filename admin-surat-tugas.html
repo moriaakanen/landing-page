@@ -128,6 +128,19 @@
     white-space:nowrap;position:sticky;top:0;z-index:5;
   }
   table.list-table thead th:last-child{border-right:none}
+
+  /* Header yang bisa di-sort */
+  table.list-table thead th.sortable{
+    cursor:pointer;user-select:none;transition:background .15s;
+  }
+  table.list-table thead th.sortable:hover{background:#efece4}
+  table.list-table thead th.sortable .sort-arrow{
+    display:inline-block;margin-left:5px;font-size:10px;color:var(--border2);
+    transition:color .15s,transform .15s;vertical-align:baseline;
+  }
+  table.list-table thead th.sortable.sorted{background:var(--gold-light);color:var(--navy)}
+  table.list-table thead th.sortable.sorted .sort-arrow{color:var(--gold)}
+
   table.list-table tbody tr{transition:background .15s}
   table.list-table tbody tr:hover{background:#fafaf8}
   table.list-table tbody td{
@@ -566,21 +579,6 @@
     <span id="ac-count"></span>
   </div>
   <div class="ac-list" id="ac-list"></div>
-</div>
-
-<!-- MODAL DETAIL -->
-<div class="modal-overlay" id="modal-detail" style="display:none" onclick="if(event.target===this)closeModal('modal-detail')">
-  <div class="modal">
-    <div class="modal-header detail">
-      <span class="modal-title">Detail <em>Surat Tugas</em></span>
-      <button class="modal-close" onclick="closeModal('modal-detail')">✕</button>
-    </div>
-    <div class="modal-body" id="modal-detail-body"></div>
-    <div class="modal-footer">
-      <button class="btn-outline" onclick="closeModal('modal-detail')">Tutup</button>
-      <span id="modal-detail-actions"></span>
-    </div>
-  </div>
 </div>
 
 <!-- MODAL APPROVE -->
