@@ -1859,7 +1859,12 @@ function base64ToUint8Array(base64) {
   return arr;
 }
 
-async function buildSuratTugasDoc(data) {
+/* ════════════════════════════════════════════════════════════════════
+   LEGACY BUILDER — build-from-code pakai docx-js.
+   Dipertahankan sebagai fallback kalau template docxtemplater gagal load.
+   Tidak dipanggil langsung — lihat buildSuratTugasDoc() di bawah.
+════════════════════════════════════════════════════════════════════ */
+async function buildSuratTugasDocLegacy(data) {
   const docxLib = window.docxGen || window.docx;
   const {
     Document, Packer, Paragraph, TextRun, ImageRun,
@@ -2389,6 +2394,133 @@ async function buildSuratTugasDoc(data) {
   });
 
   return await Packer.toBlob(doc);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   TEMPLATE-BASED BUILDER — docxtemplater
+   Template disimpan sebagai file statis di server (same-origin),
+   atau bisa juga di-host di Supabase Storage / CDN.
+   File template: ./template-surat-tugas.docx dengan placeholder {nama_field}.
+════════════════════════════════════════════════════════════════════ */
+
+const TEMPLATE_URL = 'template-surat-tugas.docx';   // relatif dari admin-surat-tugas.html
+
+// Cache template binary supaya tidak di-fetch berulang kali
+let _templateBuffer = null;
+
+async function loadTemplateBuffer() {
+  if (_templateBuffer) return _templateBuffer;
+  const res = await fetch(TEMPLATE_URL);
+  if (!res.ok) throw new Error(`Gagal memuat template (${res.status}). Pastikan ${TEMPLATE_URL} ada di folder yang sama dengan halaman ini.`);
+  _templateBuffer = await res.arrayBuffer();
+  return _templateBuffer;
+}
+
+/* Helper format tanggal ISO → "DD Nama-Bulan YYYY" (Indonesia) */
+function fmtTglId(isoStr) {
+  if (!isoStr) return '';
+  const d = parseISODate(isoStr);
+  if (!d) return '';
+  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/* Bangun objek mapping data → placeholder template.
+   Satu-satunya tempat di mana field dari DB di-mapping ke nama placeholder. */
+function buildTemplateData(data) {
+  // Ambil info pegawai pertama (template saat ini hanya support 1 pegawai per surat)
+  const nipList  = Array.isArray(data.pegawai_nip)  ? data.pegawai_nip  : [];
+  const nameList = Array.isArray(data.pegawai_list) ? data.pegawai_list : [];
+  const firstNip = nipList[0] || '';
+  const firstNm  = nameList[0] || '';
+  const pegInfo  = getPegawaiInfoForDoc(firstNip, firstNm, data.tanggal_surat);
+
+  const tempatBerangkat = data.tempat_berangkat || 'Kabupaten Raja Ampat';
+  const tempatTujuan    = data.tujuan            || '';
+
+  const nomorFull = buildNomorSuratFull(data.nomor_surat, data.tanggal_surat);
+
+  return {
+    // ── Header ────────────────────────────────────────────────────
+    nomor:             nomorFull || '',
+    lembar:            data.lembar || '',
+
+    // ── PPK ───────────────────────────────────────────────────────
+    ppk_nama:          data.penandatangan_nama || '',
+    ppk_nip:           data.penandatangan_nip  || '',
+
+    // ── Data pegawai perjalanan ──────────────────────────────────
+    pegawai_nama:      pegInfo.nama || firstNm || '-',
+    pangkat_gol:       pegInfo.pangkat_gol || pegInfo.pangkat || '-',
+    jabatan:           pegInfo.jabatan || '-',
+
+    // ── Maksud / alat / lokasi ────────────────────────────────────
+    maksud:            data.perihal || data.maksud || '',
+    alat_angkutan:     data.alat_angkutan || 'Kendaraan Umum',
+    tempat_berangkat:  tempatBerangkat,
+    tempat_tujuan:     tempatTujuan,
+
+    // ── Durasi ────────────────────────────────────────────────────
+    lama_hari:         data.lama_hari || '',
+    tgl_berangkat:     fmtTglId(data.tanggal_berangkat),
+    tgl_kembali:       fmtTglId(data.tanggal_kembali),
+
+    // ── Pembebanan anggaran ──────────────────────────────────────
+    program_kode:      data.program_kode    || 'GG',
+    program_desc:      data.program_desc    || '',
+    kegiatan_kode:     data.kegiatan_kode   || '',
+    kegiatan_desc:     data.kegiatan_desc   || '',
+    komponen_kode:     data.komponen_kode   || '',
+    komponen_desc:     data.komponen_desc   || '',
+    instansi_anggaran: data.instansi_anggaran || 'Badan Pusat Statistik Kabupaten Raja Ampat',
+    mata_anggaran:     data.mata_anggaran   || '',
+
+    // ── Footer halaman 2 (Dikeluarkan) ───────────────────────────
+    dikeluarkan_di:    data.tempat_terbit || 'Waisai',
+    tgl_dikeluarkan:   fmtTglId(data.tanggal_surat),
+
+    // ── Halaman 3: Kepala BPS ────────────────────────────────────
+    kepala_nama:       data.kepala_nama || '',
+    kepala_nip:        data.kepala_nip  || '',
+
+    // ── Halaman 3: Tanggal-tanggal perjalanan ────────────────────
+    tiba_tujuan_tgl:     fmtTglId(data.tiba_tujuan_tgl     || data.tanggal_berangkat),
+    berangkat_balik_tgl: fmtTglId(data.berangkat_balik_tgl || data.tanggal_kembali),
+    tiba_kembali_tgl:    fmtTglId(data.tiba_kembali_tgl    || data.tanggal_kembali),
+  };
+}
+
+async function buildSuratTugasDoc(data) {
+  // Pastikan library docxtemplater tersedia
+  if (typeof window.Docxtemplater === 'undefined' || typeof window.PizZip === 'undefined') {
+    console.warn('Docxtemplater belum dimuat, fallback ke legacy builder');
+    return buildSuratTugasDocLegacy(data);
+  }
+  const Docxtemplater = window.Docxtemplater.default || window.Docxtemplater;
+  const PizZip = window.PizZip.default || window.PizZip;
+
+  const buf = await loadTemplateBuffer();
+  const zip = new PizZip(buf);
+  const doc = new Docxtemplater(zip, {
+    paragraphLoop: true,
+    linebreaks: true,
+    delimiters: { start: '{', end: '}' },
+  });
+
+  const templateData = buildTemplateData(data);
+  try {
+    doc.render(templateData);
+  } catch (err) {
+    // Docxtemplater error biasanya informatif — munculkan ke console
+    console.error('Template render error:', err, err.properties);
+    throw new Error(`Template error: ${err.message}`);
+  }
+
+  const out = doc.getZip().generate({
+    type: 'blob',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    compression: 'DEFLATE',
+  });
+  return out;
 }
 
 /* ════════════════════════════════════════════════════════════════════
