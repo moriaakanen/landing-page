@@ -112,97 +112,147 @@
   @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
   .selected-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--gold-light);border:1px solid rgba(200,168,75,.5);border-radius:100px;font-size:12px;font-weight:600;color:#7a5c10}
   .selected-pill.zero{background:var(--bg);border-color:var(--border2);color:var(--muted)}
+  /* ════════════════════════════════════════════════════
+     HINT BAR (Excel-like shortcut info)
+  ════════════════════════════════════════════════════ */
+  .hint-bar{background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:10px 14px;font-size:12px;color:#1e40af;line-height:1.55;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+  .hint-bar kbd{background:white;border:1px solid #bfdbfe;border-bottom-width:2px;border-radius:3px;padding:1px 5px;font-family:ui-monospace,monospace;font-size:10.5px;color:var(--navy);margin:0 1px}
+
+  /* ════════════════════════════════════════════════════
+     EXCEL-LIKE TABLE (bulk input, class xls-table)
+  ════════════════════════════════════════════════════ */
   .bulk-table-outer{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.05)}
-  .bulk-table-header{background:var(--navy);padding:12px 0 12px 10px;display:grid;align-items:center;font-size:10px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:.8px;text-transform:uppercase;grid-template-columns:40px 34px 28px minmax(180px,1.4fr) 160px minmax(120px,.8fr) minmax(160px,1fr);min-width:700px;}
-  .bulk-table-header span{padding:0 6px}
-  .bulk-table-body{overflow-x:auto}
-  .bulk-table-body::-webkit-scrollbar{height:6px}
-  .bulk-table-body::-webkit-scrollbar-track{background:var(--bg)}
-  .bulk-table-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-  .bulk-row{display:grid;border-bottom:1px solid var(--border);transition:background .15s;grid-template-columns:40px 34px 28px minmax(180px,1.4fr) 160px minmax(120px,.8fr) minmax(160px,1fr);min-width:700px;min-height:136px;}
-  .bulk-row:last-child{border-bottom:none}
-  .bulk-row:hover{background:#fafaf8}
-  .bulk-row.checked{background:#fffbf0}
-  .bulk-row.has-error{background:#fff8f8}
-  .bulk-cell{padding:0;display:flex;align-items:flex-start;border-right:1px solid var(--border);position:relative;align-self:stretch}
-  .bulk-cell:last-child{border-right:none}
-  .bulk-cell.center{justify-content:center;align-items:flex-start;padding:10px 4px;min-height:136px}
-  .bulk-cell.row-num{font-size:11px;color:var(--muted);font-weight:600;justify-content:center;align-items:flex-start;padding:10px 4px;min-height:136px}
+  .table-scroll{overflow-x:auto;overflow-y:visible}
+  .table-scroll::-webkit-scrollbar{height:10px}
+  .table-scroll::-webkit-scrollbar-track{background:var(--bg)}
+  .table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
+  .table-scroll::-webkit-scrollbar-thumb:hover{background:#a9a298}
+
+  table.xls-table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px;table-layout:fixed}
+  table.xls-table thead th{
+    background:#f9f8f5;padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;
+    color:var(--navy);letter-spacing:.5px;text-transform:uppercase;
+    border-bottom:2px solid var(--border);border-right:1px solid var(--border);
+    white-space:nowrap;position:sticky;top:0;z-index:5;
+  }
+  table.xls-table thead th:last-child{border-right:none}
+  table.xls-table tbody tr{transition:background .15s}
+  table.xls-table tbody tr:hover{background:#fafaf8}
+  table.xls-table tbody tr.checked{background:#fffbf0}
+  table.xls-table tbody tr.has-error{background:#fff8f8}
+  table.xls-table tbody tr.has-error:hover{background:#fff3f3}
+  table.xls-table tbody td{
+    padding:0;font-size:12.5px;color:var(--text);vertical-align:top;
+    border-bottom:1px solid var(--border);border-right:1px solid var(--border);
+    background:transparent;
+  }
+  table.xls-table tbody td:last-child{border-right:none}
+  table.xls-table tbody tr:last-child td{border-bottom:none}
+  tr.row-focused{background:#fafdf6!important}
+  tr.row-focused td{background:transparent}
+
+  /* Lebar kolom bulk */
+  .col-check    { width:42px;  text-align:center }
+  .col-no       { width:44px;  text-align:center }
+  .col-del      { width:38px;  text-align:center }
+  .col-perihal  { width:auto;  min-width:220px }
+  .col-waktu    { width:180px }
+  .col-tujuan   { width:170px }
+  .col-nama     { width:260px }
+
+  td.col-no{text-align:center;font-weight:700;color:var(--muted);font-size:12px;padding:11px 4px;background:#fafaf8;vertical-align:middle}
+  td.col-check{text-align:center;padding:11px 4px;background:#fafaf8;vertical-align:middle}
+  td.col-del{text-align:center;padding:11px 4px;background:#fafaf8;vertical-align:middle}
   .bulk-check{width:15px;height:15px;accent-color:var(--navy);cursor:pointer;flex-shrink:0}
-  .del-row{background:none;border:none;cursor:pointer;color:#ccc;font-size:13px;padding:2px 4px;border-radius:4px;transition:color .2s,background .2s;line-height:1}
+  .del-row{background:none;border:none;cursor:pointer;color:#c9c4bb;font-size:14px;padding:3px 6px;border-radius:4px;transition:color .15s,background .15s;line-height:1}
   .del-row:hover{color:var(--red);background:#fef2f2}
-  .cell-textarea-wrap{display:flex;width:100%;min-height:136px}
-  .cell-input{width:100%;padding:8px 8px;border:none;border-radius:0;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:var(--text);background:transparent;outline:none;transition:background .15s,box-shadow .15s;resize:none;overflow:hidden;line-height:1.5;word-break:break-word;min-height:136px;height:136px;box-sizing:border-box;display:block}
-  .cell-input:hover{background:rgba(13,35,64,.02)}
-  .cell-input:focus{background:rgba(13,35,64,.03);box-shadow:inset 0 0 0 1.5px var(--navy)}
-  .cell-input::placeholder{color:#ccc;font-size:11px}
-  .cell-input.err{box-shadow:inset 0 0 0 1.5px #fca5a5 !important;background:#fff5f5 !important}
-  .drp-wrap{position:relative;width:100%;display:flex;align-items:center}
-  .drp-trigger{width:100%;min-height:38px;padding:8px 8px;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;color:var(--text);cursor:pointer;text-align:left;line-height:1.5;transition:background .15s;display:flex;align-items:center;white-space:normal;word-break:break-word}
-  .drp-trigger:hover{background:rgba(13,35,64,.02)}
-  .drp-trigger:focus{outline:none;box-shadow:inset 0 0 0 1.5px var(--navy);background:rgba(13,35,64,.03)}
-  .drp-trigger.err{box-shadow:inset 0 0 0 1.5px #fca5a5 !important;background:#fff5f5 !important}
-  .drp-trigger-text{flex:1}
-  .drp-trigger-placeholder{color:#ccc;font-size:11px}
-  .drp-icon{color:var(--muted);font-size:11px;flex-shrink:0;margin-left:4px}
-  .drp-popup{position:fixed;background:var(--white);border:1.5px solid var(--navy);border-radius:10px;box-shadow:0 12px 36px rgba(13,35,64,.18);z-index:9999;padding:0;overflow:hidden;min-width:280px;display:none;animation:dropIn .15s ease}
-  .drp-popup.open{display:block}
-  @keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-  .drp-header{background:var(--navy);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-  .drp-header-label{font-size:13px;font-weight:600;color:white;flex:1;text-align:center;cursor:pointer;user-select:none}
-  .drp-nav{background:none;border:none;color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;padding:2px 8px;border-radius:4px;transition:color .2s,background .2s;line-height:1}
-  .drp-nav:hover{color:white;background:rgba(255,255,255,.1)}
-  .drp-day-names{display:grid;grid-template-columns:repeat(7,1fr);background:#f0efeb;border-bottom:1px solid var(--border)}
-  .drp-day-name{text-align:center;padding:6px 0;font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.5px}
-  .drp-days{display:grid;grid-template-columns:repeat(7,1fr);padding:8px;gap:2px}
-  .drp-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:5px;cursor:pointer;transition:background .12s,color .12s;position:relative;user-select:none}
-  .drp-day:hover:not(.drp-day-empty):not(.drp-day-disabled){background:var(--gold-light);color:var(--navy)}
-  .drp-day.drp-day-empty{visibility:hidden}
-  .drp-day.drp-day-disabled{color:#ccc;cursor:default;pointer-events:none}
-  .drp-day.drp-day-start,.drp-day.drp-day-end{background:var(--navy);color:white;font-weight:600}
-  .drp-day.drp-day-single{background:var(--navy);color:white;font-weight:600;border-radius:5px}
-  .drp-day.drp-day-in-range{background:var(--gold-light);color:#7a5c10;border-radius:0}
-  .drp-day.drp-day-start{border-radius:5px 0 0 5px}
-  .drp-day.drp-day-end{border-radius:0 5px 5px 0}
-  .drp-day.drp-day-start.drp-day-end{border-radius:5px}
-  .drp-day.drp-day-today::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--gold)}
-  .drp-day.drp-day-start.drp-day-today::after,.drp-day.drp-day-end.drp-day-today::after{background:rgba(255,255,255,.6)}
-  .drp-footer{border-top:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;font-size:11px}
-  .drp-selected-text{color:var(--navy);font-weight:500;flex:1}
-  .drp-clear{background:none;border:1px solid var(--border2);border-radius:5px;padding:3px 9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;color:var(--muted);cursor:pointer;transition:all .2s}
-  .drp-clear:hover{border-color:var(--red);color:var(--red)}
-  .peg-wrap{position:relative;width:100%;display:flex;align-items:stretch}
-  .peg-trigger{width:100%;min-height:38px;padding:6px 8px;border:none;background:transparent;cursor:pointer;text-align:left;transition:background .15s;display:flex;align-items:flex-start;flex-wrap:wrap;gap:3px}
-  .peg-trigger:hover{background:rgba(13,35,64,.02)}
-  .peg-trigger:focus{outline:none;box-shadow:inset 0 0 0 1.5px var(--navy);background:rgba(13,35,64,.03)}
-  .peg-trigger.err{box-shadow:inset 0 0 0 1.5px #fca5a5 !important;background:#fff5f5 !important}
-  .peg-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;background:var(--gold-light);border:1px solid rgba(200,168,75,.4);border-radius:100px;font-size:10px;font-weight:600;color:#7a5c10;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
-  .peg-tag-x{background:none;border:none;cursor:pointer;color:#a07020;font-size:12px;padding:0;line-height:1;flex-shrink:0}
-  .peg-tag-x:hover{color:var(--red)}
-  .peg-placeholder{font-size:11px;color:#ccc;padding:2px 0;align-self:center}
-  .peg-popup{position:fixed;background:var(--white);border:1.5px solid var(--navy);border-radius:10px;box-shadow:0 12px 36px rgba(13,35,64,.18);z-index:9999;overflow:hidden;min-width:240px;max-width:300px;display:none;animation:dropIn .15s ease}
-  .peg-popup.open{display:block}
-  .peg-search-wrap{padding:8px 10px;border-bottom:1px solid var(--border);background:#f9f8f5}
-  .peg-search{width:100%;padding:6px 8px;border:1.5px solid var(--border2);border-radius:6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;outline:none;background:white;color:var(--text);transition:border-color .2s}
-  .peg-search:focus{border-color:var(--navy)}
-  .peg-search::placeholder{color:#b8b3ac}
-  .peg-list{max-height:180px;overflow-y:auto}
-  .peg-list::-webkit-scrollbar{width:4px}
-  .peg-list::-webkit-scrollbar-track{background:var(--bg)}
-  .peg-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-  .peg-item{padding:8px 12px;font-size:12px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
-  .peg-item:last-child{border-bottom:none}
-  .peg-item:hover,.peg-item.focused{background:var(--gold-light)}
-  .peg-item.selected{background:#ecfdf5}
-  .peg-item.selected:hover,.peg-item.selected.focused{background:#d1fae5}
-  .peg-item-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:all .15s;color:transparent}
-  .peg-item.selected .peg-item-check{background:var(--success);border-color:var(--success);color:white}
-  .peg-item-name{font-weight:500;color:var(--navy);flex:1}
-  .peg-item-nip{font-size:10px;color:var(--muted)}
-  .peg-empty{padding:16px 12px;text-align:center;font-size:12px;color:var(--muted)}
-  .row-errors{grid-column:1/-1;padding:4px 12px 6px;display:none;flex-wrap:wrap;gap:4px;background:#fff5f5;border-top:1px solid #fecaca}
-  .row-errors.show{display:flex}
-  .row-err-item{font-size:10px;color:var(--red);background:white;border:1px solid #fca5a5;border-radius:4px;padding:2px 7px}
+
+  /* Sel Excel-like (sama persis admin) */
+  .xls-cell{
+    width:100%;min-height:42px;padding:9px 10px;border:1.5px solid transparent;border-radius:0;
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;color:var(--text);
+    background:transparent;outline:none;display:block;line-height:1.45;
+    transition:background .12s, border-color .12s, box-shadow .12s;
+    word-break:break-word;
+  }
+  .xls-cell::placeholder{color:#c8c3ba;font-size:11.5px;font-style:italic}
+  .xls-cell:hover:not(:read-only):not(:disabled){background:rgba(13,35,64,.025);border-color:var(--border)}
+  .xls-cell:focus{
+    background:#fffdf6;border-color:var(--navy);
+    box-shadow:inset 0 0 0 1px var(--navy);position:relative;z-index:2;
+  }
+  .xls-cell.err{border-color:var(--red)!important;background:#fef5f4!important;animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+  textarea.xls-cell{resize:none;overflow:hidden;min-height:42px;font-family:'Plus Jakarta Sans',sans-serif}
+
+  /* ════════════════════════════════════════════════════
+     PEGAWAI MULTI-SELECT CELL (tag + input)
+  ════════════════════════════════════════════════════ */
+  .pg-cell{padding:6px 8px;min-height:42px;display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start;cursor:text}
+  .pg-cell.focused{background:#fffdf6;box-shadow:inset 0 0 0 1.5px var(--navy)}
+  .pg-cell.err{background:#fef5f4!important;box-shadow:inset 0 0 0 1.5px var(--red)!important;animation:shake .35s}
+  .pg-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 5px 2px 7px;background:var(--gold-light);border:1px solid rgba(200,168,75,.45);border-radius:100px;font-size:11px;font-weight:600;color:#7a5c10;white-space:nowrap;max-width:180px;line-height:1.3}
+  .pg-tag-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pg-tag-x{background:none;border:none;cursor:pointer;color:#a07020;font-size:13px;padding:0 2px;line-height:1;flex-shrink:0;font-weight:700}
+  .pg-tag-x:hover{color:var(--red)}
+  .pg-input{flex:1;min-width:60px;border:none;outline:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:var(--text);padding:2px 4px}
+  .pg-input::placeholder{color:#c8c3ba;font-style:italic;font-size:11px}
+
+  /* ════════════════════════════════════════════════════
+     AUTOCOMPLETE PEGAWAI POPUP
+  ════════════════════════════════════════════════════ */
+  .ac-popup{position:fixed;background:white;border:1.5px solid var(--navy);border-radius:8px;box-shadow:0 12px 32px rgba(13,35,64,.18);z-index:9999;overflow:hidden;min-width:260px;max-width:340px;display:none}
+  .ac-popup.open{display:block}
+  .ac-list{max-height:240px;overflow-y:auto}
+  .ac-list::-webkit-scrollbar{width:5px}
+  .ac-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+  .ac-item{padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;transition:background .12s}
+  .ac-item:last-child{border-bottom:none}
+  .ac-item:hover,.ac-item.focused{background:var(--gold-light)}
+  .ac-item.selected{background:#ecfdf5}
+  .ac-item.selected:hover,.ac-item.selected.focused{background:#d1fae5}
+  .ac-check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;color:transparent}
+  .ac-item.selected .ac-check{background:var(--success);border-color:var(--success);color:white}
+  .ac-name{font-weight:600;color:var(--navy);flex:1;line-height:1.3}
+  .ac-nip{font-size:10px;color:var(--muted);line-height:1.3}
+  .ac-empty{padding:14px 12px;text-align:center;font-size:11.5px;color:var(--muted);font-style:italic}
+  .ac-hint{padding:6px 12px;font-size:10px;color:var(--muted);background:#fafaf8;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .ac-hint kbd{background:white;border:1px solid var(--border2);border-radius:3px;padding:1px 4px;font-family:ui-monospace,monospace;font-size:9px}
+
+  /* ════════════════════════════════════════════════════
+     CALENDAR POPUP (date & date range)
+  ════════════════════════════════════════════════════ */
+  .cal-popup{position:fixed;background:white;border:1.5px solid var(--navy);border-radius:10px;box-shadow:0 12px 36px rgba(13,35,64,.2);z-index:9999;overflow:hidden;width:286px;display:none}
+  .cal-popup.open{display:block}
+  .cal-header{background:var(--navy);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+  .cal-nav{background:none;border:none;color:rgba(255,255,255,.6);font-size:14px;cursor:pointer;padding:2px 8px;border-radius:4px;line-height:1;transition:all .2s}
+  .cal-nav:hover{color:white;background:rgba(255,255,255,.1)}
+  .cal-title{font-size:13px;font-weight:600;color:white;cursor:pointer;flex:1;text-align:center;user-select:none;padding:2px 8px;border-radius:4px;transition:background .2s}
+  .cal-title:hover{background:rgba(255,255,255,.1)}
+  .cal-day-names{display:grid;grid-template-columns:repeat(7,1fr);background:#f0efeb;border-bottom:1px solid var(--border)}
+  .cal-day-name{text-align:center;padding:5px 0;font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.5px}
+  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);padding:6px;gap:1px}
+  .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:5px;cursor:pointer;transition:all .12s;position:relative;user-select:none}
+  .cal-day:hover:not(.cal-empty):not(.cal-disabled){background:var(--gold-light);color:var(--navy)}
+  .cal-day.cal-empty{visibility:hidden}
+  .cal-day.cal-start,.cal-day.cal-end,.cal-day.cal-single{background:var(--navy);color:white;font-weight:600}
+  .cal-day.cal-in-range{background:var(--gold-light);color:#7a5c10;border-radius:0}
+  .cal-day.cal-start{border-radius:5px 0 0 5px}
+  .cal-day.cal-end{border-radius:0 5px 5px 0}
+  .cal-day.cal-start.cal-end,.cal-day.cal-single{border-radius:5px}
+  .cal-day.cal-today::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--gold)}
+  .cal-day.cal-start.cal-today::after,.cal-day.cal-end.cal-today::after,.cal-day.cal-single.cal-today::after{background:rgba(255,255,255,.7)}
+  .cal-footer{border-top:1px solid var(--border);padding:7px 12px;display:flex;align-items:center;justify-content:space-between;font-size:11px;background:#fafaf8}
+  .cal-footer-text{color:var(--navy);font-weight:500;flex:1}
+  .cal-clear{background:none;border:1px solid var(--border2);border-radius:5px;padding:3px 9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;color:var(--muted);cursor:pointer;transition:all .2s}
+  .cal-clear:hover{border-color:var(--red);color:var(--red)}
+  .cal-year-grid{display:grid;grid-template-columns:repeat(4,1fr);padding:10px;gap:6px;display:none}
+  .cal-popup.year-mode .cal-day-names,.cal-popup.year-mode .cal-days{display:none}
+  .cal-popup.year-mode .cal-year-grid{display:grid}
+  .cal-year-cell{padding:10px 6px;text-align:center;font-size:12px;font-weight:600;color:var(--navy);background:var(--bg);border-radius:5px;cursor:pointer;transition:all .15s}
+  .cal-year-cell:hover{background:var(--gold-light)}
+  .cal-year-cell.current{background:var(--navy);color:white}
+
   .add-row-bar{padding:9px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#fafaf8}
   .action-bar{background:var(--white);border:1px solid var(--border);border-radius:0 0 10px 10px;border-top:2px solid var(--border);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:0 4px 16px rgba(13,35,64,.07);margin-top:0}
   .action-bar-info{font-size:13px;color:var(--muted)}
@@ -334,6 +384,17 @@
         <span>&#128161;</span>
         <span>Isi tabel langsung di bawah. Support <strong>copy-paste dari Excel</strong> (Tab-separated). Centang baris yang ingin dikirim lalu klik <strong>"Kirim yang Dipilih"</strong>.</span>
       </div>
+      <div class="hint-bar">
+        <span>&#9000;&#65039;</span>
+        <span>
+          <strong>Mode Excel:</strong>
+          <kbd>Tab</kbd> / <kbd>Enter</kbd> = pindah sel &middot;
+          <kbd>Shift</kbd>+<kbd>Tab</kbd> = ke kiri &middot;
+          <kbd>&#8593;</kbd> <kbd>&#8595;</kbd> <kbd>&#8592;</kbd> <kbd>&#8594;</kbd> = navigasi antar sel &middot;
+          Tanggal: ketik bebas (<em>2/1/26</em>, <em>02-01-2026</em>, <em>2 jan 2026</em>) atau <kbd>Alt</kbd>+<kbd>&#8595;</kbd> untuk popup &middot;
+          Pegawai: ketik nama lalu Enter / klik dari saran.
+        </span>
+      </div>
       <div id="bulk-alert" class="alert"><span id="bulk-alert-icon"></span><span id="bulk-alert-text"></span></div>
       <div class="bulk-toolbar">
         <div class="bulk-toolbar-left">
@@ -351,16 +412,20 @@
         </div>
       </div>
       <div class="bulk-table-outer">
-        <div class="bulk-table-header">
-          <span style="text-align:center">&#10003;</span>
-          <span style="text-align:center">No</span>
-          <span></span>
-          <span>Perihal *</span>
-          <span>Waktu Pelaksanaan *</span>
-          <span>Tujuan *</span>
-          <span>Pegawai *</span>
+        <div class="table-scroll">
+          <table class="xls-table">
+            <thead><tr>
+              <th class="col-check">&#10003;</th>
+              <th class="col-no">No</th>
+              <th class="col-del"></th>
+              <th class="col-perihal">Perihal *</th>
+              <th class="col-waktu">Waktu Pelaksanaan *</th>
+              <th class="col-tujuan">Tempat Tujuan *</th>
+              <th class="col-nama">Nama Pegawai *</th>
+            </tr></thead>
+            <tbody id="bulk-tbody"></tbody>
+          </table>
         </div>
-        <div class="bulk-table-body"><div id="bulk-rows"></div></div>
         <div class="add-row-bar">
           <button class="btn-outline" onclick="addRows(1)" style="font-size:12px;padding:6px 12px">&#65291; Tambah Baris</button>
           <span style="font-size:11px;color:var(--muted)" id="row-count-label">0 baris</span>
@@ -379,23 +444,29 @@
   </main>
 </div>
 
-<div class="drp-popup" id="drp-popup">
-  <div class="drp-header">
-    <button class="drp-nav" id="drp-prev">&#8249;</button>
-    <span class="drp-header-label" id="drp-header-label"></span>
-    <button class="drp-nav" id="drp-next">&#8250;</button>
+<!-- Calendar popup (single & range) -->
+<div class="cal-popup" id="cal-popup">
+  <div class="cal-header">
+    <button class="cal-nav" id="cal-prev" type="button">&#8249;</button>
+    <span class="cal-title" id="cal-title"></span>
+    <button class="cal-nav" id="cal-next" type="button">&#8250;</button>
   </div>
-  <div class="drp-day-names" id="drp-day-names"></div>
-  <div class="drp-days" id="drp-days"></div>
-  <div class="drp-footer">
-    <span class="drp-selected-text" id="drp-selected-text">Pilih tanggal mulai</span>
-    <button class="drp-clear" id="drp-clear">Hapus</button>
+  <div class="cal-day-names" id="cal-day-names"></div>
+  <div class="cal-days" id="cal-days"></div>
+  <div class="cal-year-grid" id="cal-year-grid"></div>
+  <div class="cal-footer">
+    <span class="cal-footer-text" id="cal-footer-text">Pilih tanggal</span>
+    <button class="cal-clear" id="cal-clear" type="button">Hapus</button>
   </div>
 </div>
 
-<div class="peg-popup" id="peg-popup">
-  <div class="peg-search-wrap"><input class="peg-search" id="peg-search" type="text" placeholder="Cari nama pegawai..."></div>
-  <div class="peg-list" id="peg-list"></div>
+<!-- Autocomplete pegawai popup -->
+<div class="ac-popup" id="ac-popup">
+  <div class="ac-hint">
+    <span>&#8593;&#8595; navigasi &middot; <kbd>Enter</kbd> pilih &middot; <kbd>Esc</kbd> tutup</span>
+    <span id="ac-count"></span>
+  </div>
+  <div class="ac-list" id="ac-list"></div>
 </div>
 
 <div class="modal-overlay" id="detail-modal" style="display:none" onclick="if(event.target===this)closeDetailModal()">
@@ -411,7 +482,7 @@
 <script>
 function esc(str){if(str==null)return'';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 const H={'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'Content-Type':'application/json'};
-let SESSION=null;let allPegawai=[];let allSurat=[];const suratMap={};let rowIdCounter=0;const rows={};
+let SESSION=null;let allPegawai=[];let allSurat=[];const suratMap={};
 function checkSession(){try{const s=JSON.parse(localStorage.getItem('nova_user')||'null');if(!s){window.location.replace('login.html');return null;}if(s.expires_at&&Date.now()>s.expires_at){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}if(s.must_change_password){window.location.replace('ganti-password.html');return null;}if(!s.active_role){const roles = getUserRoles(s);s.active_role=ADMIN_USERS.includes(s.username)?'admin':'user';localStorage.setItem('nova_user',JSON.stringify(s));}return s;}catch(e){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}}
 function logout(){localStorage.removeItem('nova_user');window.location.replace('login.html');}
 function updateClock(){document.getElementById('topbar-time').textContent=new Date().toLocaleString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});}
@@ -429,51 +500,889 @@ function filterTable(){const q=document.getElementById('search-input').value.toL
 function showDetail(id){const s=suratMap[id];if(!s)return;const field=(label,val)=>`<div><div class="modal-field-label">${label}</div><div class="modal-field-val">${val||'\u2014'}</div></div>`;document.getElementById('modal-body').innerHTML=`${field('Perihal',esc(s.perihal))}${field('Waktu Pelaksanaan',esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali)))}${field('Tujuan',esc(s.tujuan))}${field('Status',badgeHTML(s.status))}${field('Pegawai',(s.pegawai_list||[]).map(esc).join(', ')||'\u2014')}${s.nomor_surat?field('Nomor Surat',esc(s.nomor_surat)):''} ${s.tanggal_surat?field('Tanggal Surat',esc(s.tanggal_surat)):''} ${s.catatan_admin?field('Catatan Admin',esc(s.catatan_admin)):''}`;document.getElementById('detail-modal').style.display='flex';}
 function closeDetailModal(){document.getElementById('detail-modal').style.display='none';}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDetailModal();});
-let drpRowId=null,drpYear=new Date().getFullYear(),drpMonth=new Date().getMonth(),drpPhase=0;
-function drpOpen(rowId){const popup=document.getElementById('drp-popup');if(drpRowId===rowId&&popup.classList.contains('open')){drpClose();return;}drpRowId=rowId;const r=rows[rowId];if(r.waktuMulai){const d=new Date(r.waktuMulai+'T00:00:00');drpYear=d.getFullYear();drpMonth=d.getMonth();}else{drpYear=new Date().getFullYear();drpMonth=new Date().getMonth();}drpPhase=0;const trigger=document.getElementById(`drp-trigger-${rowId}`);const rect=trigger.getBoundingClientRect();const pH=330,pW=284,winH=window.innerHeight,winW=window.innerWidth;let top=rect.bottom+4,left=rect.left;if(top+pH>winH-8)top=Math.max(8,rect.top-pH-4);if(left+pW>winW-8)left=winW-pW-8;if(left<8)left=8;popup.style.top=top+'px';popup.style.left=left+'px';popup.classList.add('open');drpRender();}
-function drpClose(){document.getElementById('drp-popup').classList.remove('open');drpRowId=null;drpPhase=0;}
-function drpRender(){const popup=document.getElementById('drp-popup');if(!popup.classList.contains('open'))return;document.getElementById('drp-header-label').textContent=`${BULAN_ID[drpMonth]} ${drpYear}`;const dayNames=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];document.getElementById('drp-day-names').innerHTML=dayNames.map(d=>`<div class="drp-day-name">${d}</div>`).join('');const r=drpRowId!=null?rows[drpRowId]:{};const startStr=r.waktuMulai||'';const endStr=(drpPhase===0)?(r.waktuSelesai||''): '';const firstDay=new Date(drpYear,drpMonth,1).getDay();const daysInMonth=new Date(drpYear,drpMonth+1,0).getDate();const today=toDateStr(new Date());let html='';for(let i=0;i<firstDay;i++)html+='<div class="drp-day drp-day-empty"></div>';for(let d=1;d<=daysInMonth;d++){const ds=`${drpYear}-${String(drpMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;let cls='drp-day';if(ds===today)cls+=' drp-day-today';if(startStr&&endStr&&startStr!==endStr){if(ds===startStr)cls+=' drp-day-start';else if(ds===endStr)cls+=' drp-day-end';else if(ds>startStr&&ds<endStr)cls+=' drp-day-in-range';}else if(startStr&&ds===startStr){cls+=(endStr===startStr)?' drp-day-single':' drp-day-start';}html+=`<div class="${cls}" data-date="${ds}">${d}</div>`;}document.getElementById('drp-days').innerHTML=html;document.getElementById('drp-days').onclick=function(e){const day=e.target.closest('.drp-day');if(!day||day.classList.contains('drp-day-empty')||day.classList.contains('drp-day-disabled'))return;drpClickDay(day.dataset.date);};let footerText='Klik tanggal mulai';if(drpPhase===1&&startStr)footerText=`Mulai: ${fmtWaktu(startStr,null)} \u2014 klik tanggal selesai`;else if(drpPhase===0&&startStr&&endStr)footerText=fmtWaktu(startStr,endStr===startStr?null:endStr);document.getElementById('drp-selected-text').textContent=footerText;}
-function drpClickDay(ds){if(drpRowId==null)return;const r=rows[drpRowId];if(drpPhase===0){r.waktuMulai=ds;r.waktuSelesai='';drpPhase=1;drpUpdateTrigger(drpRowId);drpRender();}else{if(ds===r.waktuMulai){r.waktuSelesai=ds;}else if(ds<r.waktuMulai){r.waktuSelesai=r.waktuMulai;r.waktuMulai=ds;}else{r.waktuSelesai=ds;}drpPhase=0;drpUpdateTrigger(drpRowId);drpRender();setTimeout(()=>drpClose(),200);}}
-function drpUpdateTrigger(rowId){const r=rows[rowId];const trigger=document.getElementById(`drp-trigger-${rowId}`);if(!trigger)return;const txt=trigger.querySelector('.drp-trigger-text');const ph=trigger.querySelector('.drp-trigger-placeholder');const m=r.waktuMulai,s=r.waktuSelesai;if(!m){txt.textContent='';ph.style.display='';return;}ph.style.display='none';if(!s)txt.textContent=fmtWaktu(m,null)+' \u2014 \u2026';else if(s===m)txt.textContent=fmtWaktu(m,null);else txt.textContent=fmtWaktu(m,s);}
-function toDateStr(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-document.getElementById('drp-prev').onclick=function(e){e.stopPropagation();drpMonth--;if(drpMonth<0){drpMonth=11;drpYear--;}drpRender();};
-document.getElementById('drp-next').onclick=function(e){e.stopPropagation();drpMonth++;if(drpMonth>11){drpMonth=0;drpYear++;}drpRender();};
-document.getElementById('drp-clear').onclick=function(e){e.stopPropagation();if(drpRowId!=null){rows[drpRowId].waktuMulai='';rows[drpRowId].waktuSelesai='';drpPhase=0;drpUpdateTrigger(drpRowId);drpRender();}};
-document.getElementById('drp-header-label').onclick=function(e){e.stopPropagation();drpYear=new Date().getFullYear();drpMonth=new Date().getMonth();drpRender();};
-let pegRowId=null,pegFocusIdx=-1,pegFilteredList=[],pegJustOpened=false;
-function pegOpen(rowId){const popup=document.getElementById('peg-popup');if(pegRowId===rowId&&popup.classList.contains('open')){pegClose();return;}pegRowId=rowId;pegFocusIdx=-1;const trigger=document.getElementById(`peg-trigger-${rowId}`);if(!trigger)return;const rect=trigger.getBoundingClientRect();const pH=240,pW=280,winH=window.innerHeight,winW=window.innerWidth;let top=rect.bottom+2,left=rect.left;if(top+pH>winH-8)top=Math.max(8,rect.top-pH-2);if(left+pW>winW-8)left=winW-pW-8;if(left<8)left=8;popup.style.top=top+'px';popup.style.left=left+'px';popup.style.width=Math.max(pW,rect.width)+'px';popup.classList.add('open');pegJustOpened=true;const si=document.getElementById('peg-search');si.value='';pegFilterList('');setTimeout(()=>{si.focus();pegJustOpened=false;},50);}
-function pegClose(){document.getElementById('peg-popup').classList.remove('open');pegRowId=null;pegFocusIdx=-1;}
-function pegFilterList(q){q=q.toLowerCase().trim();pegFilteredList=q?allPegawai.filter(p=>(p['NAMA']||'').toLowerCase().includes(q)||String(p['NIP']||'').trim().includes(q)):[...allPegawai];pegRenderList();}
-function pegRenderList(){const list=document.getElementById('peg-list');if(!list)return;if(!allPegawai.length){list.innerHTML='<div class="peg-empty">Data pegawai belum dimuat.</div>';return;}if(!pegFilteredList.length){list.innerHTML='<div class="peg-empty">Tidak ada hasil</div>';return;}const sel=pegRowId!=null?(rows[pegRowId]?.pegawaiNIPs||[]):[];list.innerHTML=pegFilteredList.map((p,i)=>{const nip=String(p['NIP']||'').trim();const nama=p['NAMA']||'-';const isSel=sel.includes(nip);return`<div class="peg-item${isSel?' selected':''}" data-nip="${esc(nip)}" data-idx="${i}"><div class="peg-item-check">${isSel?'\u2713':''}</div><div style="flex:1"><div class="peg-item-name">${esc(nama)}</div><div class="peg-item-nip">NIP ${esc(nip)||'\u2014'}</div></div></div>`;}).join('');pegScrollToFocus();}
-document.getElementById('peg-list').addEventListener('click',function(e){const item=e.target.closest('.peg-item');if(!item)return;pegToggle(item.dataset.nip||'');});
-document.getElementById('peg-list').addEventListener('mouseover',function(e){const item=e.target.closest('.peg-item');if(!item)return;pegSetFocus(parseInt(item.dataset.idx,10));});
-function pegSetFocus(idx){pegFocusIdx=idx;document.querySelectorAll('#peg-list .peg-item').forEach((el,i)=>el.classList.toggle('focused',i===idx));}
-function pegScrollToFocus(){if(pegFocusIdx<0)return;const items=document.querySelectorAll('#peg-list .peg-item');const el=items[pegFocusIdx];if(el)el.scrollIntoView({block:'nearest'});}
-function pegToggle(nip){if(pegRowId==null)return;const r=rows[pegRowId];if(!r.pegawaiNames)r.pegawaiNames={};const arr=r.pegawaiNIPs;const idx=arr.indexOf(nip);if(idx>=0){arr.splice(idx,1);delete r.pegawaiNames[nip];}else{arr.push(nip);const found=allPegawai.find(x=>String(x['NIP']||'').trim()===String(nip).trim());r.pegawaiNames[nip]=found?(found['NAMA']||nip):nip;}pegRenderTags(pegRowId);pegRenderList();}
-function pegRenderTags(rowId){const trigger=document.getElementById(`peg-trigger-${rowId}`);if(!trigger||!rows[rowId])return;const r=rows[rowId];const niPs=r.pegawaiNIPs;const ph=trigger.querySelector('.peg-placeholder');trigger.querySelectorAll('.peg-tag').forEach(t=>t.remove());if(!niPs.length){if(ph)ph.style.display='';return;}if(ph)ph.style.display='none';niPs.forEach(nip=>{const nama=(r.pegawaiNames&&r.pegawaiNames[nip])||nip;const tag=document.createElement('span');tag.className='peg-tag';tag.title=nama;const namaTrunc=nama.length>18?nama.slice(0,16)+'\u2026':nama;tag.innerHTML=`${esc(namaTrunc)}<button class="peg-tag-x" data-nip="${esc(nip)}" data-rowid="${rowId}">\xd7</button>`;trigger.insertBefore(tag,ph||null);});trigger.querySelectorAll('.peg-tag-x').forEach(btn=>{btn.onclick=function(e){e.stopPropagation();const rid=parseInt(this.dataset.rowid,10);pegRemoveFromRow(rid,this.dataset.nip);};});}
-function pegRemoveFromRow(rowId,nip){if(!rows[rowId])return;const r=rows[rowId];const idx=r.pegawaiNIPs.indexOf(nip);if(idx>=0){r.pegawaiNIPs.splice(idx,1);if(r.pegawaiNames)delete r.pegawaiNames[nip];}pegRenderTags(rowId);if(pegRowId==rowId)pegRenderList();}
-document.getElementById('peg-search').addEventListener('keydown',function(e){if(e.key==='ArrowDown'){e.preventDefault();pegFocusIdx=Math.min(pegFocusIdx+1,pegFilteredList.length-1);pegSetFocus(pegFocusIdx);pegScrollToFocus();}else if(e.key==='ArrowUp'){e.preventDefault();pegFocusIdx=Math.max(pegFocusIdx-1,0);pegSetFocus(pegFocusIdx);pegScrollToFocus();}else if(e.key==='Enter'){e.preventDefault();if(pegFocusIdx>=0&&pegFilteredList[pegFocusIdx])pegToggle(String(pegFilteredList[pegFocusIdx]['NIP']||'').trim());}else if(e.key==='Escape')pegClose();});
-document.getElementById('peg-search').addEventListener('input',function(){pegFocusIdx=-1;pegFilterList(this.value);});
-document.addEventListener('click',function(e){const drpPopup=document.getElementById('drp-popup');const pegPopup=document.getElementById('peg-popup');if(drpPopup.classList.contains('open')){const trigger=drpRowId!=null?document.getElementById(`drp-trigger-${drpRowId}`):null;if(document.contains(e.target)&&!drpPopup.contains(e.target)&&(!trigger||!trigger.contains(e.target)))drpClose();}if(pegPopup.classList.contains('open')){if(pegJustOpened)return;const trigger=pegRowId!=null?document.getElementById(`peg-trigger-${pegRowId}`):null;if(document.contains(e.target)&&!pegPopup.contains(e.target)&&(!trigger||!trigger.contains(e.target)))pegClose();}});
-function getRowIds(){return Object.keys(rows);}
-function addRows(n){for(let i=0;i<n;i++){rowIdCounter++;const id=rowIdCounter;rows[id]={checked:false,perihal:'',waktuMulai:'',waktuSelesai:'',tujuan:'',pegawaiNIPs:[],pegawaiNames:{}};renderRow(id);}updateBulkCounters();}
-function syncTextareaHeight(ta){ta.style.height='auto';const h=ta.scrollHeight;ta.style.height=h+'px';const row=ta.closest('.bulk-row');if(row)row.style.minHeight=Math.max(38,h)+'px';}
-function renderRow(id){const container=document.getElementById('bulk-rows');const div=document.createElement('div');div.className='bulk-row';div.id=`row-${id}`;div.innerHTML=`<div class="bulk-cell center"><input type="checkbox" class="bulk-check" id="chk-${id}" onchange="onRowCheck(${id},this.checked)"></div><div class="bulk-cell row-num" id="rn-${id}">${getRowIds().length}</div><div class="bulk-cell center"><button class="del-row" onclick="deleteRow(${id})">\u2715</button></div><div class="bulk-cell" style="overflow:hidden"><div class="cell-textarea-wrap"><textarea class="cell-input" id="f-perihal-${id}" placeholder="Perihal surat tugas\u2026" oninput="rows[${id}].perihal=this.value;syncTextareaHeight(this)" onblur="rows[${id}].perihal=this.value" onkeydown="handleKey(event,${id},0)" onpaste="handlePaste(event,${id})" rows="1"></textarea></div></div><div class="bulk-cell" style="overflow:visible"><div class="drp-wrap"><button class="drp-trigger" id="drp-trigger-${id}" onclick="drpOpen(${id})" onkeydown="handleKey(event,${id},1)" type="button"><span class="drp-trigger-text"></span><span class="drp-trigger-placeholder">Pilih tanggal\u2026</span><span class="drp-icon">\ud83d\udcc5</span></button></div></div><div class="bulk-cell" style="overflow:hidden"><div class="cell-textarea-wrap"><textarea class="cell-input" id="f-tujuan-${id}" placeholder="Kota / instansi\u2026" oninput="rows[${id}].tujuan=this.value;syncTextareaHeight(this)" onblur="rows[${id}].tujuan=this.value" onkeydown="handleKey(event,${id},2)" rows="1"></textarea></div></div><div class="bulk-cell" style="overflow:visible"><div class="peg-wrap"><div class="peg-trigger" id="peg-trigger-${id}" onclick="pegOpen(${id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();pegOpen(${id})}" tabindex="0"><span class="peg-placeholder">Pilih pegawai\u2026</span></div></div></div><div class="row-errors" id="errs-${id}"></div>`;container.appendChild(div);const ta1=div.querySelector(`#f-perihal-${id}`);const ta2=div.querySelector(`#f-tujuan-${id}`);if(ta1)syncTextareaHeight(ta1);if(ta2)syncTextareaHeight(ta2);}
-function handleKey(e,id,colIdx){if((e.key==='Tab'&&!e.shiftKey)||(e.key==='Enter'&&!e.shiftKey)){e.preventDefault();const focusOrder=[`f-perihal-${id}`,`drp-trigger-${id}`,`f-tujuan-${id}`,`peg-trigger-${id}`];if(colIdx+1<focusOrder.length){const el=document.getElementById(focusOrder[colIdx+1]);if(el)el.focus();}else{const ids=getRowIds();const idx=ids.indexOf(String(id));const nextId=ids[idx+1];if(nextId){const el=document.getElementById(`f-perihal-${nextId}`);if(el)el.focus();}else{addRows(1);setTimeout(()=>{const ni=getRowIds();const el=document.getElementById(`f-perihal-${ni[ni.length-1]}`);if(el)el.focus();},50);}}}}
-function handlePaste(e,startId){const text=e.clipboardData?.getData('text')||'';;if(!text.includes('\t')&&!text.includes('\n'))return;e.preventDefault();const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());const ids=getRowIds();const startIdx=ids.indexOf(String(startId));lines.forEach((line,li)=>{const cells=line.split('\t');let rowId=ids[startIdx+li];if(!rowId){addRows(1);rowId=getRowIds()[getRowIds().length-1];}const maps=[{field:'perihal',elId:`f-perihal-${rowId}`},{field:'waktuMulai',elId:null},{field:'waktuSelesai',elId:null},{field:'tujuan',elId:`f-tujuan-${rowId}`}];cells.forEach((val,ci)=>{if(ci>=maps.length)return;val=val.trim();const m=maps[ci];if(rows[rowId])rows[rowId][m.field]=val;if(m.elId){const inp=document.getElementById(m.elId);if(inp){inp.value=val;syncTextareaHeight(inp);}}});drpUpdateTrigger(rowId);});reNumberRows();updateBulkCounters();}
-function onRowCheck(id,checked){if(rows[id])rows[id].checked=checked;document.getElementById(`row-${id}`)?.classList.toggle('checked',checked);syncCheckAll();updateBulkCounters();}
-function toggleCheckAll(checked){getRowIds().forEach(id=>{rows[id].checked=checked;const chk=document.getElementById(`chk-${id}`);if(chk)chk.checked=checked;document.getElementById(`row-${id}`)?.classList.toggle('checked',checked);});updateBulkCounters();}
-function syncCheckAll(){const ids=getRowIds();const allCk=ids.length>0&&ids.every(id=>rows[id].checked);const someCk=ids.some(id=>rows[id].checked);const ca=document.getElementById('check-all');if(ca){ca.checked=allCk;ca.indeterminate=!allCk&&someCk;}}
-function updateBulkCounters(){const ids=getRowIds();const checked=ids.filter(id=>rows[id].checked).length;const total=ids.length;const pill=document.getElementById('selected-pill');pill.textContent=`${checked} dipilih`;pill.className='selected-pill'+(checked===0?' zero':'');document.getElementById('ab-checked').textContent=checked;document.getElementById('ab-total').textContent=total;const btn=document.getElementById('btn-send');btn.disabled=checked===0;document.getElementById('btn-send-text').textContent=`Kirim yang Dipilih (${checked})`;document.getElementById('btn-del-checked').style.display=checked>0?'':' none';document.getElementById('row-count-label').textContent=`${total} baris`;document.getElementById('tc-bulk').textContent=total;}
-function deleteRow(id){if(drpRowId==id)drpClose();if(pegRowId==id)pegClose();delete rows[id];document.getElementById(`row-${id}`)?.remove();reNumberRows();syncCheckAll();updateBulkCounters();}
-function deleteChecked(){const checked=getRowIds().filter(id=>rows[id].checked);if(!checked.length)return;if(!confirm(`Hapus ${checked.length} baris yang dipilih?`))return;checked.forEach(id=>deleteRow(id));}
-function reNumberRows(){getRowIds().forEach((id,i)=>{const el=document.getElementById(`rn-${id}`);if(el)el.textContent=i+1;});}
-function clearAll(){if(!getRowIds().length)return;if(!confirm('Kosongkan semua baris?'))return;drpClose();pegClose();document.getElementById('bulk-rows').innerHTML='';Object.keys(rows).forEach(k=>delete rows[k]);const ca=document.getElementById('check-all');if(ca){ca.checked=false;ca.indeterminate=false;}updateBulkCounters();}
-function validateRow(id){const r=rows[id];if(!r)return['Data baris tidak ditemukan'];const errs=[];const perihalEl=document.getElementById(`f-perihal-${id}`);const tujuanEl=document.getElementById(`f-tujuan-${id}`);const perihal=perihalEl?perihalEl.value.trim():r.perihal.trim();const tujuan=tujuanEl?tujuanEl.value.trim():r.tujuan.trim();r.perihal=perihal;r.tujuan=tujuan;if(!perihal)errs.push('Perihal wajib diisi');if(!r.waktuMulai)errs.push('Tanggal mulai wajib diisi');if(r.waktuSelesai&&r.waktuMulai&&r.waktuSelesai<r.waktuMulai)errs.push('Tgl. selesai lebih awal dari mulai');if(!tujuan)errs.push('Tujuan wajib diisi');if(!r.pegawaiNIPs.length)errs.push('Pilih minimal satu pegawai');return errs;}
-function showRowErrors(id,errs){const el=document.getElementById(`errs-${id}`);const rowEl=document.getElementById(`row-${id}`);if(!el)return;if(!errs.length){el.classList.remove('show');rowEl?.classList.remove('has-error');return;}el.classList.add('show');rowEl?.classList.add('has-error');el.innerHTML=errs.map(e=>`<span class="row-err-item">\u26a0 ${esc(e)}</span>`).join('');}
-function clearRowErrors(id){showRowErrors(id,[]);}
-async function submitChecked(){const checkedIds=getRowIds().filter(id=>rows[id].checked);if(!checkedIds.length)return;getRowIds().forEach(id=>{const p=document.getElementById(`f-perihal-${id}`);const t=document.getElementById(`f-tujuan-${id}`);if(p&&rows[id])rows[id].perihal=p.value;if(t&&rows[id])rows[id].tujuan=t.value;});checkedIds.forEach(id=>clearRowErrors(id));document.getElementById('bulk-alert').className='alert';let hasErr=false;checkedIds.forEach(id=>{const errs=validateRow(id);if(errs.length){showRowErrors(id,errs);hasErr=true;}});if(hasErr){showBulkAlert('Beberapa baris memiliki kesalahan.','error');return;}const payloads=checkedIds.map(id=>{const r=rows[id];const pegawaiList=r.pegawaiNIPs.map(nip=>(r.pegawaiNames&&r.pegawaiNames[nip])||nip);const kembali=r.waktuSelesai&&r.waktuSelesai!==r.waktuMulai?r.waktuSelesai:null;return{user_id:SESSION.id,perihal:r.perihal.trim(),tanggal_berangkat:r.waktuMulai,tanggal_kembali:kembali,tujuan:r.tujuan.trim(),pegawai_nip:r.pegawaiNIPs,pegawai_list:pegawaiList,status:'menunggu',created_at:new Date().toISOString()};});const btn=document.getElementById('btn-send');btn.disabled=true;btn.classList.add('loading');try{const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(payloads)});if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||`HTTP ${res.status}`);}checkedIds.forEach(id=>deleteRow(id));reNumberRows();syncCheckAll();updateBulkCounters();showBulkAlert(`\u2705 ${checkedIds.length} surat tugas berhasil dikirim.`,'success');await loadSurat();}catch(e){showBulkAlert(`Gagal mengirim: ${e.message}.`,'error');}finally{btn.disabled=false;btn.classList.remove('loading');updateBulkCounters();}}
-function showBulkAlert(msg,type='error'){document.getElementById('bulk-alert-icon').textContent=type==='success'?'\u2705':'\u26a0\ufe0f';document.getElementById('bulk-alert-text').textContent=msg;document.getElementById('bulk-alert').className=`alert ${type} show`;document.getElementById('bulk-alert').scrollIntoView({behavior:'smooth',block:'nearest'});}
+/* ═══════════════════════════════════════════════════════════════════
+   BULK TAB — EXCEL-LIKE (xls-cell + arrow-nav + popup cal/ac)
+   Di-port dari admin-surat-tugas.js, disesuaikan untuk input draft.
+═══════════════════════════════════════════════════════════════════ */
+
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const BULAN_ABBR = ['jan','feb','mar','apr','mei','jun','jul','agu','sep','okt','nov','des'];
+function escAttr(str){return esc(str);}
+
+function parseISODate(str){
+  if(!str||typeof str!=='string')return null;
+  const m=str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return null;
+  const d=new Date(+m[1],+m[2]-1,+m[3]);
+  return isNaN(d.getTime())?null:d;
+}
+function toISODate(d){
+  return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function todayISO(){return toISODate(new Date());}
+function fmtTgl(iso){
+  const d=parseISODate(iso);
+  if(!d)return'';
+  return`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+}
+function normYear(y){
+  y=parseInt(y,10); if(isNaN(y))return null;
+  if(y<100){ y += (y<=30?2000:1900); }
+  return y;
+}
+function parseFlexDate(input){
+  if(!input)return null;
+  input=String(input).trim().toLowerCase();
+  // Numeric: d/m/y, d-m-y, d.m.y
+  let m=input.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+  if(m){
+    const d=+m[1],mo=+m[2],y=normYear(m[3]);
+    if(y&&d>=1&&d<=31&&mo>=1&&mo<=12){
+      const dt=new Date(y,mo-1,d);
+      if(dt.getDate()===d)return toISODate(dt);
+    }
+  }
+  // d mmm y (e.g. "2 jan 2026")
+  m=input.match(/^(\d{1,2})\s+([a-zA-Z]{3,12})\.?\s+(\d{2,4})$/);
+  if(m){
+    const d=+m[1]; const mname=m[2].slice(0,3);
+    const mo=BULAN_ABBR.indexOf(mname)+1;
+    const y=normYear(m[3]);
+    if(y&&mo>=1&&d>=1&&d<=31){
+      const dt=new Date(y,mo-1,d);
+      if(dt.getDate()===d)return toISODate(dt);
+    }
+  }
+  return null;
+}
+function parseFlexRange(input){
+  if(!input)return{mulai:null,selesai:null};
+  const sep=input.match(/\s+(s\.d\.|sd|-{1,2}|sampai|to|\/\/)\s+/i);
+  if(sep){
+    const parts=input.split(sep[0]);
+    return{mulai:parseFlexDate(parts[0]),selesai:parseFlexDate(parts[1])};
+  }
+  const single=parseFlexDate(input);
+  return{mulai:single,selesai:null};
+}
+
+function autoGrow(el){
+  if(!el||!el.style)return;
+  el.style.height='auto';
+  const h=el.scrollHeight;
+  if(h>0)el.style.height=h+'px';
+}
+
+/* ══ CELL BUILDERS ══ */
+function cellTextareaHTML(field,val,placeholder){
+  return`<td class="col-${field==='perihal'?'perihal':field==='tujuan'?'tujuan':''}">
+    <textarea class="xls-cell" rows="1" data-field="${field}" data-col-field="${field}"
+      placeholder="${escAttr(placeholder)}">${esc(val||'')}</textarea>
+  </td>`;
+}
+
+function cellDateRangeHTML(field,isoMulai,isoSelesai){
+  const display=isoMulai?fmtWaktu(isoMulai,isoSelesai):'';
+  return`<td class="col-waktu">
+    <input type="text" class="xls-cell" data-field="${field}" data-col-field="${field}"
+      data-iso-mulai="${escAttr(isoMulai||'')}"
+      data-iso-selesai="${escAttr(isoSelesai||'')}"
+      value="${escAttr(display)}"
+      placeholder="tgl atau rentang"
+      onblur="onRangeBlur(this)"
+      onfocus="onDateFocus(this)"
+      ondblclick="openCal(this, true)"
+      onkeydown="if(event.altKey&&event.key==='ArrowDown'){event.preventDefault();openCal(this,true);}">
+  </td>`;
+}
+
+function cellPegawaiMultiHTML(field,nips,names){
+  const tags=nips.map((nip,i)=>buildPegTag(nip,names[i]||nip,false)).join('');
+  return`<td class="col-nama">
+    <div class="pg-cell" data-field="${field}" data-col-field="${field}"
+      data-nips='${escAttr(JSON.stringify(nips||[]))}'
+      data-names='${escAttr(JSON.stringify(names||[]))}'
+      onclick="onPgCellClick(event, this)">
+      ${tags}
+      <input type="text" class="pg-input" placeholder="${tags?'':'Ketik nama...'}"
+        oninput="onPgInput(event, this)"
+        onkeydown="onPgKeydown(event, this)"
+        onfocus="onPgInputFocus(this)"
+        onblur="onPgInputBlur(this)">
+    </div>
+  </td>`;
+}
+
+function buildPegTag(nip,nama,single){
+  const cls=single?'pg-tag single':'pg-tag';
+  const display=nama&&nama.length>22?nama.slice(0,20)+'\u2026':nama;
+  return`<span class="${cls}" data-nip="${escAttr(nip)}" title="${escAttr(nama)}">
+    <span class="pg-tag-text">${esc(display)}</span>
+    <button type="button" class="pg-tag-x" onclick="onPgTagRemove(event, this)">\u00d7</button>
+  </span>`;
+}
+
+/* ══ DATE INPUT BEHAVIOR ══ */
+function onDateFocus(el){
+  const mulai=el.dataset.isoMulai||'';
+  if(mulai){
+    const d=parseISODate(mulai);
+    if(d)el.value=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+  }
+  setTimeout(()=>el.select(),0);
+}
+function onRangeBlur(el){
+  const cal=document.getElementById('cal-popup');
+  if(cal&&cal.classList.contains('open'))return;
+  if(el.dataset.isoMulai){
+    el.value=fmtWaktu(el.dataset.isoMulai,el.dataset.isoSelesai||'');
+    el.classList.remove('err');
+    return;
+  }
+  const txt=el.value.trim();
+  if(!txt){el.dataset.isoMulai='';el.dataset.isoSelesai='';el.value='';return;}
+  const r=parseFlexRange(txt);
+  if(r.mulai){
+    el.dataset.isoMulai=r.mulai;
+    el.dataset.isoSelesai=r.selesai||'';
+    el.value=fmtWaktu(r.mulai,r.selesai);
+    el.classList.remove('err');
+  } else {
+    el.classList.add('err');
+  }
+}
+
+/* ══ CALENDAR POPUP ══ */
+let calState={targetEl:null,isRange:false,year:new Date().getFullYear(),month:new Date().getMonth(),rangePhase:0,yearMode:false};
+
+function openCal(el,isRange){
+  closeAllPopups();
+  calState.targetEl=el;
+  calState.isRange=isRange;
+  calState.rangePhase=0;
+  calState.yearMode=false;
+  const initIso=el.dataset.isoMulai||todayISO();
+  const d=parseISODate(initIso);
+  if(d){calState.year=d.getFullYear();calState.month=d.getMonth();}
+  const popup=document.getElementById('cal-popup');
+  popup.classList.remove('year-mode');
+  popup.classList.add('open');
+  positionPopup(popup,el);
+  renderCal();
+}
+function closeCal(){
+  document.getElementById('cal-popup').classList.remove('open');
+  calState.targetEl=null;
+}
+function renderCal(){
+  const popup=document.getElementById('cal-popup');
+  popup.classList.toggle('year-mode',calState.yearMode);
+  document.getElementById('cal-title').textContent=`${BULAN[calState.month]} ${calState.year}`;
+  document.getElementById('cal-day-names').innerHTML=['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  if(calState.yearMode){renderYearGrid();return;}
+  const el=calState.targetEl;
+  const startIso=el?.dataset.isoMulai||'';
+  const endIso=el?.dataset.isoSelesai||'';
+  const firstDay=new Date(calState.year,calState.month,1).getDay();
+  const daysInMonth=new Date(calState.year,calState.month+1,0).getDate();
+  const today=todayISO();
+  let html='';
+  for(let i=0;i<firstDay;i++)html+=`<div class="cal-day cal-empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${calState.year}-${String(calState.month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    let cls='cal-day';
+    if(ds===today)cls+=' cal-today';
+    if(calState.isRange&&startIso&&endIso&&startIso!==endIso){
+      if(ds===startIso)cls+=' cal-start';
+      else if(ds===endIso)cls+=' cal-end';
+      else if(ds>startIso&&ds<endIso)cls+=' cal-in-range';
+    } else if(startIso&&ds===startIso){
+      cls+=calState.isRange?(endIso===startIso?' cal-single':' cal-start'):' cal-single';
+    }
+    html+=`<div class="${cls}" data-date="${ds}">${d}</div>`;
+  }
+  document.getElementById('cal-days').innerHTML=html;
+  let txt='Pilih tanggal';
+  if(calState.isRange){
+    if(calState.rangePhase===1&&startIso)txt=`Mulai: ${fmtTgl(startIso)} \u2014 pilih tgl selesai`;
+    else if(startIso&&endIso)txt=`${fmtTgl(startIso)} s.d. ${fmtTgl(endIso)}`;
+    else if(startIso)txt=fmtTgl(startIso);
+  } else if(startIso){
+    txt=fmtTgl(startIso);
+  }
+  document.getElementById('cal-footer-text').textContent=txt;
+}
+function renderYearGrid(){
+  const baseYear=Math.floor(calState.year/12)*12;
+  let html='';
+  for(let i=0;i<12;i++){
+    const y=baseYear+i;
+    const cur=y===calState.year?' current':'';
+    html+=`<div class="cal-year-cell${cur}" data-year="${y}">${y}</div>`;
+  }
+  document.getElementById('cal-year-grid').innerHTML=html;
+}
+function positionPopup(popup,anchorEl){
+  popup.style.visibility='hidden';
+  popup.style.display='block';
+  const pH=popup.offsetHeight,pW=popup.offsetWidth;
+  popup.style.display='';
+  popup.style.visibility='';
+  const rect=anchorEl.getBoundingClientRect();
+  const winH=window.innerHeight,winW=window.innerWidth;
+  let top=rect.bottom+4, left=rect.left;
+  if(top+pH>winH-8)top=Math.max(8,rect.top-pH-4);
+  if(left+pW>winW-8)left=winW-pW-8;
+  if(left<8)left=8;
+  popup.style.top=top+'px';
+  popup.style.left=left+'px';
+}
+
+// Calendar event wiring
+document.getElementById('cal-prev').onclick=(e)=>{
+  e.stopPropagation();
+  if(calState.yearMode){calState.year-=12;renderYearGrid();return;}
+  calState.month--;if(calState.month<0){calState.month=11;calState.year--;}
+  renderCal();
+};
+document.getElementById('cal-next').onclick=(e)=>{
+  e.stopPropagation();
+  if(calState.yearMode){calState.year+=12;renderYearGrid();return;}
+  calState.month++;if(calState.month>11){calState.month=0;calState.year++;}
+  renderCal();
+};
+document.getElementById('cal-title').onclick=(e)=>{
+  e.stopPropagation();
+  calState.yearMode=!calState.yearMode;
+  renderCal();
+};
+document.getElementById('cal-clear').onclick=(e)=>{
+  e.stopPropagation();
+  if(!calState.targetEl)return;
+  calState.targetEl.dataset.isoMulai='';
+  calState.targetEl.dataset.isoSelesai='';
+  calState.targetEl.value='';
+  calState.rangePhase=0;
+  renderCal();
+  closeCal();
+};
+document.getElementById('cal-days').onclick=(e)=>{
+  const d=e.target.closest('.cal-day');
+  if(!d||d.classList.contains('cal-empty'))return;
+  const ds=d.dataset.date;
+  const el=calState.targetEl;
+  if(!el)return;
+  if(!calState.isRange){
+    el.dataset.isoMulai=ds;
+    el.dataset.isoSelesai='';
+    el.value=fmtTgl(ds);
+    el.classList.remove('err');
+    closeCal();
+    return;
+  }
+  if(calState.rangePhase===0){
+    el.dataset.isoMulai=ds;
+    el.dataset.isoSelesai='';
+    el.value=fmtTgl(ds)+' s.d. \u2026';
+    calState.rangePhase=1;
+    renderCal();
+  } else {
+    let mulai=el.dataset.isoMulai, selesai=ds;
+    if(selesai<mulai){[mulai,selesai]=[selesai,mulai];}
+    el.dataset.isoMulai=mulai;
+    el.dataset.isoSelesai=(selesai===mulai)?'':selesai;
+    el.value=fmtWaktu(mulai,el.dataset.isoSelesai);
+    el.classList.remove('err');
+    calState.rangePhase=0;
+    renderCal();
+    setTimeout(closeCal,150);
+  }
+};
+document.getElementById('cal-year-grid').onclick=(e)=>{
+  const c=e.target.closest('.cal-year-cell');
+  if(!c)return;
+  calState.year=parseInt(c.dataset.year,10);
+  calState.yearMode=false;
+  renderCal();
+};
+
+/* ══ AUTOCOMPLETE PEGAWAI ══ */
+let acState={cellEl:null,inputEl:null,filtered:[],focusIdx:-1,isSingle:false};
+
+function onPgCellClick(e,cellEl){
+  if(e.target===cellEl){
+    const inp=cellEl.querySelector('.pg-input');
+    if(inp)inp.focus();
+  }
+}
+function onPgInputFocus(inp){
+  const cellEl=inp.closest('.pg-cell');
+  if(!cellEl)return;
+  cellEl.classList.add('focused');
+  openAc(cellEl,inp);
+}
+function onPgInputBlur(inp){
+  const cellEl=inp.closest('.pg-cell');
+  if(cellEl)cellEl.classList.remove('focused');
+  setTimeout(()=>{
+    const ac=document.getElementById('ac-popup');
+    if(!document.activeElement||!ac.contains(document.activeElement)){
+      if(!document.activeElement||!document.activeElement.classList.contains('pg-input')){
+        closeAc();
+      }
+    }
+  },150);
+}
+function onPgInput(e,inp){
+  acState.inputEl=inp;
+  acState.cellEl=inp.closest('.pg-cell');
+  acState.isSingle=acState.cellEl.classList.contains('single');
+  acFilter(inp.value);
+}
+function onPgKeydown(e,inp){
+  const cellEl=inp.closest('.pg-cell');
+  if(!cellEl)return;
+  if(e.key==='Backspace'&&inp.value===''){
+    const tags=cellEl.querySelectorAll('.pg-tag');
+    if(tags.length){
+      e.preventDefault();
+      removePegTag(cellEl,tags[tags.length-1].dataset.nip);
+    }
+    return;
+  }
+  if(!document.getElementById('ac-popup').classList.contains('open')){
+    if(e.key==='ArrowDown'||e.key==='Enter'){
+      e.preventDefault();
+      openAc(cellEl,inp);
+      acFilter(inp.value);
+    }
+    return;
+  }
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    acState.focusIdx=Math.min(acState.focusIdx+1,acState.filtered.length-1);
+    acRenderFocus();
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    acState.focusIdx=Math.max(acState.focusIdx-1,0);
+    acRenderFocus();
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    if(acState.focusIdx>=0&&acState.filtered[acState.focusIdx]){
+      const p=acState.filtered[acState.focusIdx];
+      pickPegawai(cellEl,String(p.NIP).trim(),p.NAMA||'');
+      inp.value=''; acFilter('');
+    }
+  } else if(e.key==='Escape'){
+    e.preventDefault(); closeAc();
+  } else if(e.key==='Tab'){
+    closeAc();
+  }
+}
+function openAc(cellEl,inp){
+  acState.cellEl=cellEl;
+  acState.inputEl=inp;
+  acState.isSingle=cellEl.classList.contains('single');
+  acState.focusIdx=-1;
+  const popup=document.getElementById('ac-popup');
+  popup.classList.add('open');
+  positionPopup(popup,cellEl);
+  acFilter(inp.value);
+}
+function closeAc(){
+  document.getElementById('ac-popup').classList.remove('open');
+  acState.cellEl=null; acState.inputEl=null;
+  acState.filtered=[]; acState.focusIdx=-1;
+}
+function acFilter(q){
+  q=(q||'').toLowerCase().trim();
+  const cellEl=acState.cellEl;
+  let selectedNips=[];
+  if(cellEl){
+    try{selectedNips=JSON.parse(cellEl.dataset.nips||'[]');}catch(_){}
+  }
+  acState.filtered=allPegawai.filter(p=>{
+    if(!q)return true;
+    const nama=(p.NAMA||'').toLowerCase();
+    const nip=String(p.NIP||'').toLowerCase();
+    return nama.includes(q)||nip.includes(q);
+  }).slice(0,50);
+  acRenderList(selectedNips);
+  document.getElementById('ac-count').textContent=`${acState.filtered.length} hasil`;
+}
+function acRenderList(selectedNips){
+  const list=document.getElementById('ac-list');
+  if(!allPegawai.length){
+    list.innerHTML=`<div class="ac-empty">Data pegawai belum dimuat.</div>`;
+    return;
+  }
+  if(!acState.filtered.length){
+    list.innerHTML=`<div class="ac-empty">Tidak ada hasil \u2014 coba ketik nama lain</div>`;
+    return;
+  }
+  list.innerHTML=acState.filtered.map((p,i)=>{
+    const nip=String(p.NIP||'').trim();
+    const nama=p.NAMA||'-';
+    const isSel=selectedNips.includes(nip);
+    return`<div class="ac-item${isSel?' selected':''}${i===acState.focusIdx?' focused':''}"
+      data-nip="${escAttr(nip)}" data-idx="${i}"
+      onmousedown="event.preventDefault();acPick(${i})">
+      <div class="ac-check">${isSel?'\u2713':''}</div>
+      <div style="flex:1">
+        <div class="ac-name">${esc(nama)}</div>
+        <div class="ac-nip">NIP ${esc(nip||'\u2014')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function acRenderFocus(){
+  const items=document.querySelectorAll('#ac-list .ac-item');
+  items.forEach((el,i)=>el.classList.toggle('focused',i===acState.focusIdx));
+  if(acState.focusIdx>=0&&items[acState.focusIdx]){
+    items[acState.focusIdx].scrollIntoView({block:'nearest'});
+  }
+}
+function acPick(idx){
+  const p=acState.filtered[idx];
+  if(!p||!acState.cellEl)return;
+  pickPegawai(acState.cellEl,String(p.NIP).trim(),p.NAMA||'');
+  if(acState.inputEl){acState.inputEl.value='';acState.inputEl.focus();}
+  acFilter('');
+}
+function pickPegawai(cellEl,nip,nama){
+  let nips=[],names=[];
+  try{nips=JSON.parse(cellEl.dataset.nips||'[]');}catch(_){}
+  try{names=JSON.parse(cellEl.dataset.names||'[]');}catch(_){}
+  if(nips.includes(nip)){
+    const existing=cellEl.querySelector(`.pg-tag[data-nip="${CSS.escape(nip)}"]`);
+    if(existing){
+      existing.style.transition='background .3s';
+      existing.style.background='#fef3c7';
+      setTimeout(()=>{existing.style.background='';},400);
+    }
+    return;
+  }
+  nips.push(nip); names.push(nama);
+  cellEl.dataset.nips=JSON.stringify(nips);
+  cellEl.dataset.names=JSON.stringify(names);
+  const tagHtml=buildPegTag(nip,nama,false);
+  const inp=cellEl.querySelector('.pg-input');
+  inp.insertAdjacentHTML('beforebegin',tagHtml);
+  inp.placeholder='';
+  cellEl.classList.remove('err');
+}
+function onPgTagRemove(e,btn){
+  e.stopPropagation();
+  const tag=btn.closest('.pg-tag');
+  const cellEl=btn.closest('.pg-cell');
+  if(!tag||!cellEl)return;
+  removePegTag(cellEl,tag.dataset.nip);
+}
+function removePegTag(cellEl,nip){
+  const tag=cellEl.querySelector(`.pg-tag[data-nip="${CSS.escape(nip)}"]`);
+  if(tag)tag.remove();
+  let nips=[],names=[];
+  try{nips=JSON.parse(cellEl.dataset.nips||'[]');}catch(_){}
+  try{names=JSON.parse(cellEl.dataset.names||'[]');}catch(_){}
+  const idx=nips.indexOf(nip);
+  if(idx>=0){nips.splice(idx,1);names.splice(idx,1);}
+  cellEl.dataset.nips=JSON.stringify(nips);
+  cellEl.dataset.names=JSON.stringify(names);
+  const inp=cellEl.querySelector('.pg-input');
+  if(inp){
+    inp.placeholder=nips.length?'':'Ketik nama...';
+    inp.focus();
+  }
+}
+
+/* ══ ARROW NAVIGATION (grid antar sel) ══ */
+const NAV_FIELDS=['perihal','waktu','tujuan','pegawai_multi'];
+function buildNavGrid(){
+  const trs=Array.from(document.querySelectorAll('#bulk-tbody tr[data-row-id]'));
+  return trs.map(row=>{
+    return NAV_FIELDS.map(field=>{
+      let el=row.querySelector(`input.xls-cell[data-col-field="${field}"], textarea.xls-cell[data-col-field="${field}"]`);
+      if(el)return el;
+      const pgCell=row.querySelector(`.pg-cell[data-col-field="${field}"]`);
+      if(pgCell)return pgCell.querySelector('.pg-input')||pgCell;
+      return null;
+    });
+  });
+}
+function findInGrid(grid,target){
+  for(let r=0;r<grid.length;r++){
+    for(let c=0;c<grid[r].length;c++){
+      const el=grid[r][c];
+      if(!el)continue;
+      if(el===target)return{r,c};
+      if(target.classList&&target.classList.contains('pg-input')){
+        const parentPg=target.closest('.pg-cell');
+        if(parentPg&&el===parentPg)return{r,c};
+      }
+    }
+  }
+  return null;
+}
+function navFocusCell(grid,r,c){
+  r=Math.max(0,Math.min(r,grid.length-1));
+  c=Math.max(0,Math.min(c,NAV_FIELDS.length-1));
+  let el=grid[r][c];
+  if(!el){
+    for(let cc=c+1;cc<grid[r].length;cc++){if(grid[r][cc]){el=grid[r][cc];break;}}
+  }
+  if(!el){
+    for(let cc=c-1;cc>=0;cc--){if(grid[r][cc]){el=grid[r][cc];break;}}
+  }
+  if(!el)return;
+  el.focus({preventScroll:true});
+  el.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
+  if(el.tagName==='INPUT'||el.tagName==='TEXTAREA'){try{el.select();}catch(_){}}
+  document.querySelectorAll('tr.row-focused').forEach(tr=>tr.classList.remove('row-focused'));
+  const parentRow=el.closest('tr');
+  if(parentRow)parentRow.classList.add('row-focused');
+}
+function moveCellFocus(currentEl,direction){
+  const allCells=Array.from(document.querySelectorAll('#bulk-tbody .xls-cell, #bulk-tbody .pg-input'));
+  const idx=allCells.indexOf(currentEl);
+  if(idx<0)return;
+  const next=allCells[idx+direction];
+  if(next){
+    next.focus();
+    if(next.tagName==='INPUT'&&next.type==='text')next.select();
+  }
+}
+function closeAllPopups(){closeCal();closeAc();}
+
+/* ══ GLOBAL KEYDOWN (Tab/Enter linear + Arrow grid) ══ */
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){
+    closeAllPopups();
+    document.querySelectorAll('tr.row-focused').forEach(tr=>tr.classList.remove('row-focused'));
+    closeDetailModal();
+    return;
+  }
+  const target=e.target;
+  const isXlsCell=target.classList&&target.classList.contains('xls-cell');
+  const isPgInput=target.classList&&target.classList.contains('pg-input');
+  if(!isXlsCell&&!isPgInput)return;
+  const isTextarea=target.tagName==='TEXTAREA';
+
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+    if(e.altKey&&e.key==='ArrowDown')return;
+    if(isPgInput&&document.getElementById('ac-popup').classList.contains('open')){
+      if(e.key==='ArrowUp'||e.key==='ArrowDown')return;
+    }
+    const grid=buildNavGrid();
+    const pos=findInGrid(grid,target);
+    if(!pos)return;
+    const{r,c}=pos;
+    if(e.key==='ArrowUp'){
+      if(r>0){e.preventDefault();closeAllPopups();navFocusCell(grid,r-1,c);}
+      return;
+    }
+    if(e.key==='ArrowDown'){
+      if(r<grid.length-1){e.preventDefault();closeAllPopups();navFocusCell(grid,r+1,c);}
+      return;
+    }
+    if(e.key==='ArrowLeft'){
+      const atStart=(target.selectionStart===0&&target.selectionEnd===0);
+      if(atStart&&c>0){e.preventDefault();closeAllPopups();navFocusCell(grid,r,c-1);}
+      return;
+    }
+    if(e.key==='ArrowRight'){
+      const len=(target.value||'').length;
+      const atEnd=(target.selectionStart===len&&target.selectionEnd===len);
+      if(atEnd&&c<NAV_FIELDS.length-1){e.preventDefault();closeAllPopups();navFocusCell(grid,r,c+1);}
+      return;
+    }
+  }
+  if(isTextarea&&e.key==='Enter'&&e.shiftKey)return;
+  if(e.key==='Tab'){
+    e.preventDefault();
+    moveCellFocus(target,e.shiftKey?-1:1);
+    // Auto-add row kalau Tab dari sel terakhir
+    if(!e.shiftKey){
+      const all=Array.from(document.querySelectorAll('#bulk-tbody .xls-cell, #bulk-tbody .pg-input'));
+      if(all.indexOf(target)===all.length-1){
+        addRows(1);
+        setTimeout(()=>{
+          const newAll=Array.from(document.querySelectorAll('#bulk-tbody .xls-cell, #bulk-tbody .pg-input'));
+          const next=newAll[all.length];
+          if(next)next.focus();
+        },30);
+      }
+    }
+  } else if(e.key==='Enter'&&!e.shiftKey){
+    e.preventDefault();
+    moveCellFocus(target,1);
+  }
+});
+
+/* ══ CLOSE POPUP saat klik di luar ══ */
+document.addEventListener('click',(e)=>{
+  const cal=document.getElementById('cal-popup');
+  if(cal.classList.contains('open')&&document.contains(e.target)&&!cal.contains(e.target)&&
+     (!calState.targetEl||!calState.targetEl.contains(e.target))&&calState.targetEl!==e.target){
+    closeCal();
+  }
+  const ac=document.getElementById('ac-popup');
+  if(ac.classList.contains('open')&&!ac.contains(e.target)){
+    if(!e.target.closest('.pg-cell'))closeAc();
+  }
+  if(!e.target.closest('tr[data-row-id]')){
+    document.querySelectorAll('tr.row-focused').forEach(tr=>tr.classList.remove('row-focused'));
+  }
+});
+
+/* ══ BULK ROW MANAGEMENT (DOM-first) ══ */
+let rowIdCounter=0;
+
+function renderRowHTML(id){
+  return`<tr data-row-id="${id}">
+    <td class="col-check"><input type="checkbox" class="bulk-check" onchange="onRowCheck(this)"></td>
+    <td class="col-no">1</td>
+    <td class="col-del"><button class="del-row" type="button" title="Hapus baris">\u2715</button></td>
+    ${cellTextareaHTML('perihal','','Perihal surat tugas\u2026')}
+    ${cellDateRangeHTML('waktu','','')}
+    ${cellTextareaHTML('tujuan','','Kota / instansi')}
+    ${cellPegawaiMultiHTML('pegawai_multi',[],[])}
+  </tr>`;
+}
+function addRows(n){
+  const tbody=document.getElementById('bulk-tbody');
+  for(let i=0;i<n;i++){
+    rowIdCounter++;
+    tbody.insertAdjacentHTML('beforeend',renderRowHTML(rowIdCounter));
+  }
+  // Wire up listeners untuk baris baru
+  tbody.querySelectorAll('tr[data-row-id]:not([data-wired])').forEach(tr=>{
+    tr.dataset.wired='1';
+    const delBtn=tr.querySelector('.del-row');
+    if(delBtn)delBtn.addEventListener('click',()=>deleteRow(tr));
+    tr.querySelectorAll('textarea.xls-cell').forEach(ta=>{
+      autoGrow(ta);
+      ta.addEventListener('input',()=>{autoGrow(ta);ta.classList.remove('err');});
+      ta.addEventListener('paste',handlePaste);
+    });
+    tr.querySelectorAll('input.xls-cell').forEach(inp=>{
+      inp.addEventListener('input',()=>inp.classList.remove('err'));
+    });
+  });
+  reNumberRows();
+  updateBulkCounters();
+}
+function deleteRow(tr){
+  if(!tr)return;
+  closeAllPopups();
+  tr.remove();
+  reNumberRows();
+  syncCheckAll();
+  updateBulkCounters();
+}
+function deleteChecked(){
+  const checked=Array.from(document.querySelectorAll('#bulk-tbody tr[data-row-id] .bulk-check:checked'));
+  if(!checked.length)return;
+  if(!confirm(`Hapus ${checked.length} baris yang dipilih?`))return;
+  checked.forEach(chk=>{const tr=chk.closest('tr');if(tr)tr.remove();});
+  reNumberRows();
+  syncCheckAll();
+  updateBulkCounters();
+}
+function onRowCheck(chk){
+  const tr=chk.closest('tr');
+  if(tr)tr.classList.toggle('checked',chk.checked);
+  syncCheckAll();
+  updateBulkCounters();
+}
+function toggleCheckAll(checked){
+  document.querySelectorAll('#bulk-tbody tr[data-row-id]').forEach(tr=>{
+    const chk=tr.querySelector('.bulk-check');
+    if(chk)chk.checked=checked;
+    tr.classList.toggle('checked',checked);
+  });
+  updateBulkCounters();
+}
+function syncCheckAll(){
+  const trs=document.querySelectorAll('#bulk-tbody tr[data-row-id]');
+  const checkedCount=document.querySelectorAll('#bulk-tbody tr[data-row-id] .bulk-check:checked').length;
+  const ca=document.getElementById('check-all');
+  if(!ca)return;
+  ca.checked=trs.length>0&&checkedCount===trs.length;
+  ca.indeterminate=checkedCount>0&&checkedCount<trs.length;
+}
+function updateBulkCounters(){
+  const total=document.querySelectorAll('#bulk-tbody tr[data-row-id]').length;
+  const checked=document.querySelectorAll('#bulk-tbody tr[data-row-id] .bulk-check:checked').length;
+  const pill=document.getElementById('selected-pill');
+  pill.textContent=`${checked} dipilih`;
+  pill.className='selected-pill'+(checked===0?' zero':'');
+  document.getElementById('ab-checked').textContent=checked;
+  document.getElementById('ab-total').textContent=total;
+  const btn=document.getElementById('btn-send');
+  btn.disabled=checked===0;
+  document.getElementById('btn-send-text').textContent=`Kirim yang Dipilih (${checked})`;
+  document.getElementById('btn-del-checked').style.display=checked>0?'':'none';
+  document.getElementById('row-count-label').textContent=`${total} baris`;
+  document.getElementById('tc-bulk').textContent=total;
+}
+function reNumberRows(){
+  document.querySelectorAll('#bulk-tbody tr[data-row-id]').forEach((tr,i)=>{
+    const td=tr.querySelector('td.col-no');
+    if(td)td.textContent=i+1;
+  });
+}
+function clearAll(){
+  const total=document.querySelectorAll('#bulk-tbody tr[data-row-id]').length;
+  if(!total)return;
+  if(!confirm('Kosongkan semua baris?'))return;
+  closeAllPopups();
+  document.getElementById('bulk-tbody').innerHTML='';
+  const ca=document.getElementById('check-all');
+  if(ca){ca.checked=false;ca.indeterminate=false;}
+  updateBulkCounters();
+}
+
+/* ══ PASTE dari Excel (tab-separated) ══ */
+function handlePaste(e){
+  const text=e.clipboardData?.getData('text')||'';
+  if(!text.includes('\t')&&!text.includes('\n'))return;
+  e.preventDefault();
+  const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());
+  const startTa=e.target;
+  const startTr=startTa.closest('tr');
+  if(!startTr)return;
+  const allTrs=Array.from(document.querySelectorAll('#bulk-tbody tr[data-row-id]'));
+  const startIdx=allTrs.indexOf(startTr);
+
+  lines.forEach((line,li)=>{
+    const cells=line.split('\t');
+    let tr=allTrs[startIdx+li];
+    if(!tr){
+      addRows(1);
+      const refreshed=Array.from(document.querySelectorAll('#bulk-tbody tr[data-row-id]'));
+      tr=refreshed[refreshed.length-1];
+    }
+    // Mapping kolom: [perihal, waktu-text, tujuan]
+    // (waktu di-coba-parse via parseFlexRange; bila gagal biarkan kosong)
+    const perihalEl=tr.querySelector('textarea.xls-cell[data-field="perihal"]');
+    const waktuEl=tr.querySelector('input.xls-cell[data-field="waktu"]');
+    const tujuanEl=tr.querySelector('textarea.xls-cell[data-field="tujuan"]');
+    if(perihalEl&&cells[0]!==undefined){
+      perihalEl.value=cells[0].trim();
+      autoGrow(perihalEl);
+    }
+    if(waktuEl&&cells[1]!==undefined){
+      const t=cells[1].trim();
+      const r=parseFlexRange(t);
+      if(r.mulai){
+        waktuEl.dataset.isoMulai=r.mulai;
+        waktuEl.dataset.isoSelesai=r.selesai||'';
+        waktuEl.value=fmtWaktu(r.mulai,r.selesai);
+        waktuEl.classList.remove('err');
+      } else if(t){
+        waktuEl.value=t;
+        waktuEl.classList.add('err');
+      }
+    }
+    if(tujuanEl&&cells[2]!==undefined){
+      tujuanEl.value=cells[2].trim();
+      autoGrow(tujuanEl);
+    }
+  });
+  reNumberRows();
+  updateBulkCounters();
+}
+
+/* ══ COLLECT / VALIDATE / SUBMIT ══ */
+function collectRow(tr){
+  const perihalEl=tr.querySelector('textarea.xls-cell[data-field="perihal"]');
+  const tujuanEl=tr.querySelector('textarea.xls-cell[data-field="tujuan"]');
+  const waktuEl=tr.querySelector('input.xls-cell[data-field="waktu"]');
+  const pegCell=tr.querySelector('.pg-cell[data-field="pegawai_multi"]');
+  let nips=[],names=[];
+  try{nips=JSON.parse(pegCell?.dataset.nips||'[]');}catch(_){}
+  try{names=JSON.parse(pegCell?.dataset.names||'[]');}catch(_){}
+  return{
+    tr,
+    perihal:(perihalEl?.value||'').trim(),
+    tujuan:(tujuanEl?.value||'').trim(),
+    waktuMulai:waktuEl?.dataset.isoMulai||'',
+    waktuSelesai:waktuEl?.dataset.isoSelesai||'',
+    waktuEl,perihalEl,tujuanEl,pegCell,
+    nips,names
+  };
+}
+function validateRow(data){
+  const errs=[];
+  // Reset error visual
+  [data.perihalEl,data.tujuanEl,data.waktuEl].forEach(el=>el?.classList.remove('err'));
+  data.pegCell?.classList.remove('err');
+  if(!data.perihal){errs.push('Perihal wajib diisi');data.perihalEl?.classList.add('err');}
+  if(!data.waktuMulai){errs.push('Tanggal wajib diisi');data.waktuEl?.classList.add('err');}
+  if(data.waktuSelesai&&data.waktuMulai&&data.waktuSelesai<data.waktuMulai){
+    errs.push('Tgl. selesai lebih awal dari mulai');data.waktuEl?.classList.add('err');
+  }
+  if(!data.tujuan){errs.push('Tujuan wajib diisi');data.tujuanEl?.classList.add('err');}
+  if(!data.nips.length){errs.push('Pilih minimal satu pegawai');data.pegCell?.classList.add('err');}
+  data.tr.classList.toggle('has-error',errs.length>0);
+  return errs;
+}
+async function submitChecked(){
+  const checkedTrs=Array.from(document.querySelectorAll('#bulk-tbody tr[data-row-id]'))
+    .filter(tr=>tr.querySelector('.bulk-check')?.checked);
+  if(!checkedTrs.length)return;
+
+  document.getElementById('bulk-alert').className='alert';
+  const datas=checkedTrs.map(collectRow);
+  let allErrs=[];
+  datas.forEach(d=>{const e=validateRow(d);if(e.length)allErrs.push(...e);});
+  if(allErrs.length){
+    const uniq=[...new Set(allErrs)];
+    showBulkAlert('Periksa kembali: '+uniq.join('; '),'error');
+    return;
+  }
+
+  const payloads=datas.map(d=>({
+    user_id:SESSION.id,
+    perihal:d.perihal,
+    tanggal_berangkat:d.waktuMulai,
+    tanggal_kembali:(d.waktuSelesai&&d.waktuSelesai!==d.waktuMulai)?d.waktuSelesai:null,
+    tujuan:d.tujuan,
+    pegawai_nip:d.nips,
+    pegawai_list:d.names,
+    status:'menunggu',
+    created_at:new Date().toISOString()
+  }));
+
+  const btn=document.getElementById('btn-send');
+  btn.disabled=true; btn.classList.add('loading');
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas`,{
+      method:'POST',
+      headers:{...H,'Prefer':'return=minimal'},
+      body:JSON.stringify(payloads)
+    });
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      throw new Error(err.message||`HTTP ${res.status}`);
+    }
+    datas.forEach(d=>d.tr.remove());
+    reNumberRows(); syncCheckAll(); updateBulkCounters();
+    showBulkAlert(`\u2705 ${datas.length} surat tugas berhasil dikirim.`,'success');
+    await loadSurat();
+  } catch(e){
+    showBulkAlert(`Gagal mengirim: ${e.message}.`,'error');
+  } finally {
+    btn.disabled=false; btn.classList.remove('loading'); updateBulkCounters();
+  }
+}
+function showBulkAlert(msg,type='error'){
+  document.getElementById('bulk-alert-icon').textContent=type==='success'?'\u2705':'\u26a0\ufe0f';
+  document.getElementById('bulk-alert-text').textContent=msg;
+  document.getElementById('bulk-alert').className=`alert ${type} show`;
+  document.getElementById('bulk-alert').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
 async function init(){
   SESSION=checkSession();
   if(!SESSION)return;
