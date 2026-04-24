@@ -1277,7 +1277,7 @@ document.addEventListener('click', (e) => {
   // Gunakan composedPath() agar tetap akurat walau DOM berubah saat renderCal()
   const path = e.composedPath ? e.composedPath() : [];
   const clickInsideCal = path.includes(cal);
-  if (cal.classList.contains('open') && !clickInsideCal &&
+  if (cal.classList.contains('open') && document.contains(e.target) && !cal.contains(e.target) &&
       (!calState.targetEl || !calState.targetEl.contains(e.target)) && calState.targetEl !== e.target) {
     closeCal();
   }
