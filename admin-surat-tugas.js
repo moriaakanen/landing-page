@@ -2398,21 +2398,71 @@ async function buildSuratTugasDocLegacy(data) {
 
 /* ════════════════════════════════════════════════════════════════════
    TEMPLATE-BASED BUILDER — docxtemplater
-   Template disimpan sebagai file statis di server (same-origin),
-   atau bisa juga di-host di Supabase Storage / CDN.
-   File template: ./template-surat-tugas.docx dengan placeholder {nama_field}.
+   
+   KONFIGURASI URL TEMPLATE:
+   Ubah TEMPLATE_URL di bawah sesuai lokasi file template-surat-tugas.docx.
+   
+   Pilihan umum:
+   - Same-origin (taruh di folder yang sama dengan HTML):
+       'template-surat-tugas.docx'
+   - Supabase Storage (public bucket) — GANTI <bucket> dan path-nya:
+       'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/templates/template-surat-tugas.docx'
+   - CDN eksternal atau URL absolut lainnya:
+       'https://example.com/path/template.docx'
 ════════════════════════════════════════════════════════════════════ */
 
-const TEMPLATE_URL = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas.docx';   // relatif dari admin-surat-tugas.html
+const TEMPLATE_URL = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/templates/template-surat-tugas.docx';
 
 // Cache template binary supaya tidak di-fetch berulang kali
 let _templateBuffer = null;
 
+/* Helper untuk load script dinamis kalau belum ada di window */
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.async = false;
+    s.onload = () => { console.log('[NOVA] Loaded:', src); resolve(); };
+    s.onerror = () => reject(new Error(`Gagal load ${src}`));
+    document.head.appendChild(s);
+  });
+}
+
+async function ensureDocxtemplaterLoaded() {
+  // Kalau sudah ada, return langsung
+  if ((window.docxtemplater || window.Docxtemplater) && (window.PizZip || window.pizzip)) {
+    return true;
+  }
+  // Coba load dinamis dengan multiple CDN fallback
+  const CDNS = [
+    { dxt: 'https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js',
+      pzz: 'https://unpkg.com/pizzip@3.2.0/dist/pizzip.js' },
+    { dxt: 'https://cdn.jsdelivr.net/npm/docxtemplater@3.68.5/build/docxtemplater.js',
+      pzz: 'https://cdn.jsdelivr.net/npm/pizzip@3.2.0/dist/pizzip.js' },
+    { dxt: 'https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.68.5/docxtemplater.js',
+      pzz: 'https://cdn.jsdelivr.net/npm/pizzip@3.2.0/dist/pizzip.js' },
+  ];
+  for (const cdn of CDNS) {
+    try {
+      if (!window.PizZip && !window.pizzip) await loadScript(cdn.pzz);
+      if (!window.docxtemplater && !window.Docxtemplater) await loadScript(cdn.dxt);
+      if ((window.docxtemplater || window.Docxtemplater) && (window.PizZip || window.pizzip)) {
+        return true;
+      }
+    } catch(e) {
+      console.warn('[NOVA] CDN gagal, coba berikutnya:', e.message);
+    }
+  }
+  return false;
+}
+
 async function loadTemplateBuffer() {
   if (_templateBuffer) return _templateBuffer;
+  console.log('[NOVA] Memuat template dari:', TEMPLATE_URL);
   const res = await fetch(TEMPLATE_URL);
-  if (!res.ok) throw new Error(`Gagal memuat template (${res.status}). Pastikan ${TEMPLATE_URL} ada di folder yang sama dengan halaman ini.`);
+  if (!res.ok) throw new Error(`Gagal memuat template (${res.status}). Pastikan ${TEMPLATE_URL} bisa diakses publik.`);
   _templateBuffer = await res.arrayBuffer();
+  console.log('[NOVA] Template loaded:', _templateBuffer.byteLength, 'bytes');
   return _templateBuffer;
 }
 
@@ -2490,17 +2540,33 @@ function buildTemplateData(data) {
 }
 
 async function buildSuratTugasDoc(data) {
-  // Pastikan library docxtemplater tersedia
-  if (typeof window.Docxtemplater === 'undefined' || typeof window.PizZip === 'undefined') {
-    console.warn('Docxtemplater belum dimuat, fallback ke legacy builder');
+  console.log('[NOVA] buildSuratTugasDoc() dipanggil', { suratId: data.id });
+
+  // Pastikan docxtemplater sudah ter-load (dengan fallback dynamic loading)
+  await ensureDocxtemplaterLoaded();
+
+  // Docxtemplater bisa ter-expose sebagai window.docxtemplater (lowercase, UMD modern)
+  // atau window.Docxtemplater (uppercase, versi lama). Kita handle keduanya.
+  const DocxtemplaterCtor =
+      (window.docxtemplater && (window.docxtemplater.default || window.docxtemplater))
+   || (window.Docxtemplater && (window.Docxtemplater.default || window.Docxtemplater));
+  const PizZipCtor =
+      (window.PizZip && (window.PizZip.default || window.PizZip))
+   || (window.pizzip  && (window.pizzip.default  || window.pizzip));
+
+  if (!DocxtemplaterCtor || !PizZipCtor) {
+    console.warn('[NOVA] Docxtemplater / PizZip belum dimuat — fallback ke legacy builder.',
+      'window.docxtemplater =', typeof window.docxtemplater,
+      'window.Docxtemplater =', typeof window.Docxtemplater,
+      'window.PizZip =', typeof window.PizZip,
+      'window.pizzip =', typeof window.pizzip);
     return buildSuratTugasDocLegacy(data);
   }
-  const Docxtemplater = window.Docxtemplater.default || window.Docxtemplater;
-  const PizZip = window.PizZip.default || window.PizZip;
+  console.log('[NOVA] Docxtemplater OK — akan pakai template-based rendering');
 
   const buf = await loadTemplateBuffer();
-  const zip = new PizZip(buf);
-  const doc = new Docxtemplater(zip, {
+  const zip = new PizZipCtor(buf);
+  const doc = new DocxtemplaterCtor(zip, {
     paragraphLoop: true,
     linebreaks: true,
     delimiters: { start: '{', end: '}' },
