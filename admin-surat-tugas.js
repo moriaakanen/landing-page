@@ -1546,7 +1546,17 @@ function highlightRowFieldErrors(suratId, fields) {
    MODAL HELPERS
 ═══════════════════════════════════════════════════════════════════════ */
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+  // Cleanup file preview di Supabase Storage saat modal preview ditutup.
+  // Delay 60 detik — kalau user buka ulang cepat, tidak perlu re-upload.
+  if (id === 'modal-preview' && _previewUploadedPath) {
+    const path = _previewUploadedPath;
+    _previewUploadedPath = null;
+    setTimeout(() => deletePreviewFile(path), 60_000);
+  }
+}
 
 function showPageAlert(msg, type='error') {
   document.getElementById('page-alert-icon').textContent = type === 'success' ? '✅' : '⚠️';
@@ -1750,6 +1760,83 @@ function buildNomorSuratFull(nomor, tglSuratIso) {
 ═══════════════════════════════════════════════════════════════════════ */
 let currentPreviewSurat = null;
 
+/* ── Office Online Viewer (preview) ──────────────────────────────────
+   Bucket Supabase Storage tempat file .docx sementara disimpan.
+   File otomatis dihapus saat modal ditutup (delay 60 detik). Orphan
+   files (kalau user crash/close paksa) dibersihkan saat halaman load
+   via cleanupOrphanPreviewFiles().
+─────────────────────────────────────────────────────────────────── */
+const PREVIEW_BUCKET = 'surat-tugas-preview';
+let _previewUploadedPath = null;
+
+async function uploadPreviewDocx(blob, suratId) {
+  const filename = `${suratId}_${Date.now()}.docx`;
+  const res = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/${PREVIEW_BUCKET}/${filename}`,
+    {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'x-upsert': 'true',
+      },
+      body: blob,
+    }
+  );
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const err = await res.json(); msg = err.message || err.error || msg; } catch(_) {}
+    throw new Error(`Upload preview gagal: ${msg}`);
+  }
+  return filename;
+}
+
+async function getPreviewSignedUrl(filename, expiresInSec = 3600) {
+  const res = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/sign/${PREVIEW_BUCKET}/${filename}`,
+    {
+      method: 'POST',
+      headers: { ...H },
+      body: JSON.stringify({ expiresIn: expiresInSec }),
+    }
+  );
+  if (!res.ok) throw new Error(`Gagal membuat signed URL (HTTP ${res.status})`);
+  const data = await res.json();
+  // signedURL format: "/object/sign/{bucket}/{path}?token=..."
+  return `${SUPABASE_URL}/storage/v1${data.signedURL}`;
+}
+
+async function deletePreviewFile(filename) {
+  if (!filename) return;
+  try {
+    await fetch(`${SUPABASE_URL}/storage/v1/object/${PREVIEW_BUCKET}/${filename}`, {
+      method: 'DELETE',
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+  } catch (e) { console.warn('[NOVA] Cleanup preview file gagal:', e); }
+}
+
+/* Defensive cleanup: hapus file preview lama (>1 jam) yang mungkin
+   ter-orphan kalau user close paksa. Fire-and-forget, dipanggil di init(). */
+async function cleanupOrphanPreviewFiles() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${PREVIEW_BUCKET}`, {
+      method: 'POST',
+      headers: { ...H },
+      body: JSON.stringify({ limit: 100, prefix: '' }),
+    });
+    if (!res.ok) return;
+    const files = await res.json();
+    const oneHourAgo = Date.now() - 3600_000;
+    files.forEach(f => {
+      // Filename pattern: "{suratId}_{timestamp}.docx"
+      const m = f.name && f.name.match(/_(\d+)\.docx$/);
+      if (m && parseInt(m[1]) < oneHourAgo) deletePreviewFile(f.name);
+    });
+  } catch (e) { /* fire-and-forget */ }
+}
+
 function ensureLibrariesLoaded() {
   if (typeof window.docxGen === 'undefined' && typeof window.docx === 'undefined') {
     throw new Error('Library docx gagal dimuat. Periksa koneksi internet/firewall, lalu refresh halaman.');
@@ -1777,26 +1864,41 @@ async function openPreview(suratId) {
   currentPreviewSurat = surat;
   openModal('modal-preview');
 
+  // Bersihkan file preview sebelumnya kalau user buka ulang dengan cepat
+  if (_previewUploadedPath) {
+    deletePreviewFile(_previewUploadedPath);
+    _previewUploadedPath = null;
+  }
+
   const container = document.getElementById('preview-container');
-  container.innerHTML = `<div class="preview-loading"><div class="preview-loading-spin"></div><div>Memuat dokumen...</div></div>`;
+  container.innerHTML = `<div class="preview-loading">
+    <div class="preview-loading-spin"></div>
+    <div>Menyiapkan dokumen…</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">
+      Render via Microsoft Word Online (5–15 detik pertama kali)
+    </div>
+  </div>`;
 
   try {
     ensureLibrariesLoaded();
     const blob = await buildSuratTugasDoc(surat);
-    container.innerHTML = '';
-    await window.docxPreview.renderAsync(blob, container, null, {
-      className: 'docx', inWrapper: true,
-      ignoreWidth: false, ignoreHeight: false, ignoreFonts: false,
-      breakPages: true, ignoreLastRenderedPageBreak: true,
-      experimental: true, trimXmlDeclaration: true, useBase64URL: false,
-      renderHeaders: true, renderFooters: true,
-      renderFootnotes: true, renderEndnotes: true,
-    });
-  } catch(e) {
+    const filename = await uploadPreviewDocx(blob, surat.id);
+    _previewUploadedPath = filename;
+    const fileUrl = await getPreviewSignedUrl(filename, 3600);
+
+    const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+    container.innerHTML = `
+      <iframe src="${viewerUrl}"
+        style="width:100%;height:80vh;min-height:600px;border:0;display:block;background:#fff"
+        allow="fullscreen"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+  } catch (e) {
     console.error(e);
-    container.innerHTML = `<div class="preview-error"><div class="preview-error-icon">⚠️</div>
+    container.innerHTML = `<div class="preview-error">
+      <div class="preview-error-icon">⚠️</div>
       <div><strong>Gagal memuat preview</strong></div>
-      <div style="font-size:12px;margin-top:8px;color:var(--muted)">${esc(e.message)}</div></div>`;
+      <div style="font-size:12px;margin-top:8px;color:var(--muted)">${esc(e.message)}</div>
+    </div>`;
   }
 }
 
@@ -1832,13 +1934,10 @@ async function downloadFromPreview() {
 }
 
 function printFromPreview() {
-  if (!currentPreviewSurat) return;
-  const container = document.getElementById('preview-container');
-  if (!container || !container.querySelector('.docx')) {
-    showPageAlert('Preview belum selesai dimuat. Tunggu sebentar lalu coba lagi.', 'error');
-    return;
-  }
-  window.print();
+  // Word Online viewer punya tombol Print sendiri di toolbar atas iframe.
+  // Kami arahkan user ke sana karena window.print() tidak bisa menjangkau
+  // konten di dalam iframe cross-origin (Microsoft).
+  showPageAlert('Gunakan tombol Print/Cetak di toolbar Word Online (di atas dokumen).', 'success');
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -2775,5 +2874,12 @@ function init() {
   setTopbarUser(SESSION);
   initRoleSwitcher(SESSION, true);
   Promise.all([loadPegawai(), loadRiwayatPegawai(), loadUsers(), loadSurat()]);
+
+  // Pre-warm: load library docxtemplater + template buffer di background
+  // supaya klik Preview pertama tidak terhambat fetch template (~1 detik hemat).
+  ensureDocxtemplaterLoaded().then(() => loadTemplateBuffer().catch(() => {}));
+
+  // Bersihkan file preview orphan (>1 jam) di Supabase Storage. Fire-and-forget.
+  cleanupOrphanPreviewFiles();
 }
 init();
