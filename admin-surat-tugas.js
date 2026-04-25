@@ -488,11 +488,57 @@ function renderTable(data) {
       autoGrow(ta);
       ta.addEventListener('input', () => { autoGrow(ta); ta.classList.remove('err'); });
     });
+    setupTopScrollbar();
   });
   document.querySelectorAll('tr[data-status="menunggu"] input.xls-cell').forEach(inp => {
     inp.addEventListener('input', () => inp.classList.remove('err'));
   });
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   TOP SCROLLBAR — sinkron dengan scrollbar bawah
+   Memungkinkan admin menggeser tabel horizontal tanpa harus scroll
+   page ke baris paling bawah dulu.
+═══════════════════════════════════════════════════════════════════════ */
+function setupTopScrollbar() {
+  const top      = document.getElementById('table-scroll-top');
+  const topInner = document.getElementById('table-scroll-top-inner');
+  const bottom   = document.getElementById('table-area');
+  if (!top || !topInner || !bottom) return;
+
+  const tableEl    = bottom.querySelector('table');
+  const tableWidth = tableEl ? tableEl.scrollWidth : bottom.scrollWidth;
+  topInner.style.width = tableWidth + 'px';
+
+  // Sembunyikan top scrollbar kalau tabel tidak overflow horizontal
+  // (mis. layar lebar / data sedikit kolomnya)
+  if (tableWidth <= bottom.clientWidth) {
+    top.style.display = 'none';
+    return;
+  }
+  top.style.display = '';
+
+  // Pasang sync listener satu kali saja (idempotent — pakai flag di element)
+  if (!top._syncBound) {
+    let syncing = false;
+    top.addEventListener('scroll', () => {
+      if (syncing) return;
+      syncing = true;
+      bottom.scrollLeft = top.scrollLeft;
+      requestAnimationFrame(() => { syncing = false; });
+    });
+    bottom.addEventListener('scroll', () => {
+      if (syncing) return;
+      syncing = true;
+      top.scrollLeft = bottom.scrollLeft;
+      requestAnimationFrame(() => { syncing = false; });
+    });
+    top._syncBound = true;
+  }
+}
+
+// Re-sync saat window di-resize (lebar tabel & overflow bisa berubah)
+window.addEventListener('resize', () => setupTopScrollbar());
 
 function autoGrow(el) {
   if (!el || !el.style) return;
