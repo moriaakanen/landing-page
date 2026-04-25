@@ -26,10 +26,15 @@ let userMap = {};                 // id → { full_name, username } — untuk ta
 let selectedId = null;
 
 // ─── DEFAULTS yang di-prefill saat baris status menunggu ──────────────
-const APPROVE_DEFAULTS_KEY = 'nova_approve_defaults_v2';
+// v3 — format `pembebanan` berubah menjadi kode MAK terstruktur.
+// Lihat parseMAK() untuk format yang valid. Bumping versi key agar
+// default lama (yang berisi narasi "DIPA BPS...") tidak ter-prefill.
+const APPROVE_DEFAULTS_KEY = 'nova_approve_defaults_v3';
 const FACTORY_DEFAULTS = {
   alat_angkutan:  'Kendaraan Darat',
-  pembebanan:     'DIPA BPS Kabupaten Raja Ampat Tahun Anggaran 2026',
+  // Format wajib: program(3 segmen).kegiatan.kro.ro.komponen.sub_komponen.akun
+  // Contoh:       054.01.GG.2910.BMA.006.054.A.524119
+  pembebanan:     '054.01.GG.2910.BMA.006.054.A.524119',
   ttd_nip:        '',
   ttd_nama:       '',
 };
@@ -448,7 +453,7 @@ function renderTable(data) {
         ${cellPegawaiMultiHTML(s.id, pegNips, pegNames, isMenunggu)}
         ${cellTextareaHTML(s.id, 'menimbang_custom', menimbang, isMenunggu, 'cth: pelaksanaan Survei...')}
         ${cellTextareaHTML(s.id, 'alat_angkutan', alat, isMenunggu, 'cth: Kendaraan Darat')}
-        ${cellTextareaHTML(s.id, 'pembebanan', mak, isMenunggu, 'cth: DIPA BPS...')}
+        ${cellTextareaHTML(s.id, 'pembebanan', mak, isMenunggu, 'cth: 054.01.GG.2910.BMA.006.054.A.524119')}
         ${cellPenandatanganHTML(s.id, ttdNip, ttdNama, isMenunggu)}
 
         <td class="col-status">${badgeHTML(s.status)}</td>
@@ -1492,6 +1497,13 @@ function validateApproveFields(values) {
     errors.push('Nama Pegawai');
     errFields.push('pegawai_multi');
   }
+  // Validasi format MAK Pembebanan — hanya jika field-nya terisi.
+  // Kalau kosong, sudah di-tangkap oleh required-check di atas.
+  // Format wajib: 054.01.GG.2910.BMA.006.054.A.524119
+  if (values.pembebanan && !parseMAK(values.pembebanan)) {
+    errors.push('Format MAK Pembebanan tidak valid (contoh: 054.01.GG.2910.BMA.006.054.A.524119)');
+    if (!errFields.includes('pembebanan')) errFields.push('pembebanan');
+  }
   return { errors, errFields };
 }
 
@@ -2397,11 +2409,119 @@ async function buildSuratTugasDocLegacy(data) {
 }
 
 /* ════════════════════════════════════════════════════════════════════
+   HELPERS UNTUK TEMPLATE BARU — MAK Pembebanan, Hari Inclusive, PPK Lookup
+   ──────────────────────────────────────────────────────────────────────
+   Semua helper di sini dipakai oleh buildTemplateData() di bawah.
+   Dipisah agar mudah di-maintain dan ditest secara terpisah.
+═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Format MAK Pembebanan yang valid:
+ *   054.01.GG.2910.BMA.006.054.A.524119
+ *   └─program─┘ └kgt─┘└kro┘└ro─┘└kmp┘└s┘└─akun─┘
+ *
+ * Aturan tiap komponen:
+ *   - program       : 3 segmen "ddd.dd.GG|WA"
+ *   - kegiatan      : 4 digit angka
+ *   - kro           : 3 huruf kapital
+ *   - ro            : 3 digit angka
+ *   - komponen      : 3 digit angka
+ *   - sub_komponen  : 1 huruf kapital
+ *   - akun          : 6 digit angka
+ */
+const MAK_REGEX = /^(\d{3}\.\d{2}\.(?:GG|WA))\.(\d{4})\.([A-Z]{3})\.(\d{3})\.(\d{3})\.([A-Z])\.(\d{6})$/;
+
+function parseMAK(str) {
+  if (!str) return null;
+  const m = String(str).trim().match(MAK_REGEX);
+  if (!m) return null;
+  return {
+    program:      m[1],
+    kegiatan:     m[2],
+    kro:          m[3],
+    ro:           m[4],
+    komponen:     m[5],
+    sub_komponen: m[6],
+    akun:         m[7],
+  };
+}
+
+/**
+ * Bangun string MAK lengkap untuk placeholder {mak_pembebanan} di template.
+ * Format: "{program} {kegiatan}.{kro}.{ro}.{komponen}.{sub_komponen}.{akun}"
+ * Catatan: ada SPASI antara program dan kegiatan (sesuai spesifikasi).
+ */
+function formatMAKLengkap(mak) {
+  if (!mak) return '';
+  return `${mak.program} ${mak.kegiatan}.${mak.kro}.${mak.ro}.${mak.komponen}.${mak.sub_komponen}.${mak.akun}`;
+}
+
+/**
+ * Bangun nomor SPD: B-{nomor}/668870-92800/SPPD-{kode_mak}/{mm}/{yyyy}
+ * kode_mak diturunkan dari kegiatan:
+ *   - kegiatan === '2886'  →  'DM2886'
+ *   - lainnya              →  'PPIS{kegiatan}'
+ */
+function buildNomorSPD(nomor, tglSuratIso, mak) {
+  if (!nomor || !tglSuratIso || !mak || !mak.kegiatan) return '';
+  const d = parseISODate(tglSuratIso);
+  if (!d) return '';
+  const mm   = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = String(d.getFullYear());
+  const kodeMAK = mak.kegiatan === '2886' ? 'DM2886' : `PPIS${mak.kegiatan}`;
+  return `B-${nomor}/668870-92800/SPPD-${kodeMAK}/${mm}/${yyyy}`;
+}
+
+/**
+ * Hitung lama hari INCLUSIVE.
+ *   - Tanggal tunggal     → 1 hari
+ *   - 20 s.d. 22 April    → 3 hari (22-20+1)
+ */
+function hitungHariInclusive(isoMulai, isoSelesai) {
+  if (!isoMulai) return 0;
+  const ms = parseISODate(isoMulai);
+  if (!ms) return 0;
+  const se = isoSelesai ? parseISODate(isoSelesai) : ms;
+  if (!se) return 1;
+  const diff = Math.round((se.getTime() - ms.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(1, diff + 1);
+}
+
+/**
+ * Cari NIP berdasarkan nama di tabel riwayat_pegawai.
+ * Toleran terhadap suffix gelar setelah koma — mis. "Abdillah Humam, SST"
+ * akan match record dengan nama "Abdillah Humam, SST" maupun "Abdillah Humam".
+ * Kalau lebih dari satu record (riwayat jabatan banyak), ambil yang pertama
+ * — semua record untuk orang yang sama akan punya pegawai_nip yang sama.
+ */
+function findNipByNama(namaCari) {
+  if (!namaCari || !Array.isArray(riwayatPegawai)) return '';
+  const target     = String(namaCari).toLowerCase().trim();
+  const targetCore = target.split(',')[0].trim(); // tanpa gelar
+
+  const found = riwayatPegawai.find(r => {
+    const nama = (r.nama || '').toLowerCase().trim();
+    if (!nama) return false;
+    const namaCore = nama.split(',')[0].trim();
+    return nama === target || namaCore === targetCore;
+  });
+  return found ? String(found.pegawai_nip || '').trim() : '';
+}
+
+/**
+ * Konstanta nama PPK — sementara hardcode di kode.
+ * Nanti idealnya dipindah ke kolom config / DB agar tidak perlu deploy ulang
+ * saat ada pergantian PPK. NIP di-lookup runtime dari riwayat_pegawai.
+ */
+const PPK_NAMA_DEFAULT = 'Abdillah Humam, SST';
+
+
+/* ════════════════════════════════════════════════════════════════════
    TEMPLATE-BASED BUILDER — docxtemplater
-   
+
    KONFIGURASI URL TEMPLATE:
    Ubah TEMPLATE_URL di bawah sesuai lokasi file template-surat-tugas.docx.
-   
+
    Pilihan umum:
    - Same-origin (taruh di folder yang sama dengan HTML):
        'template-surat-tugas.docx'
@@ -2475,67 +2595,124 @@ function fmtTglId(isoStr) {
 }
 
 /* Bangun objek mapping data → placeholder template.
-   Satu-satunya tempat di mana field dari DB di-mapping ke nama placeholder. */
+   Satu-satunya tempat di mana field dari DB di-mapping ke nama placeholder.
+   ──────────────────────────────────────────────────────────────────────
+   Daftar placeholder yang dipakai template baru — terurut sesuai kemunculan:
+
+   HALAMAN 1 (Surat Tugas):
+     {nomor_surat}, {menimbang}, {nama}, {jabatan}, {perihal},
+     {tempat_tujuan}, {waktu_pelaksanaan}, {tahun}, {mak_pembebanan},
+     {tgl_surat}, {jabatan_penandatangan}, {penandatangan},
+     {nip_penandatangan}
+
+   HALAMAN 2 (SPD):
+     {nomor_spd}, {nama_ppk}, {nip}, {pangkat}, {angkutan},
+     {hari}, {tanggal_berangkat}, {tanggal_kembali},
+     {program}, {kegiatan}, {kro}, {ro}, {komponen}, {sub_komponen}, {akun},
+     {des_program}, {des_kegiatan}, {des_kro}, {des_ro},
+     {des_komponen}, {des_sub_komponen}, {des_akun}, {nip_ppk}
+
+   Catatan tentang kolom yang BELUM ada di Supabase:
+     - {pangkat}     → kolom pangkat/golongan belum ada di riwayat_pegawai → ''
+     - {des_*}       → tabel kamus_pok belum dibuat → semua ''
+   Field-field di atas akan otomatis terisi setelah skema DB dilengkapi —
+   tinggal lookup di buildTemplateData() ini.
+*/
 function buildTemplateData(data) {
-  // Ambil info pegawai pertama (template saat ini hanya support 1 pegawai per surat)
+  // ── Pegawai pertama (template saat ini hanya support 1 pegawai per surat) ──
   const nipList  = Array.isArray(data.pegawai_nip)  ? data.pegawai_nip  : [];
   const nameList = Array.isArray(data.pegawai_list) ? data.pegawai_list : [];
-  const firstNip = nipList[0] || '';
+  const firstNip = String(nipList[0] || '').trim();
   const firstNm  = nameList[0] || '';
-  const pegInfo  = getPegawaiInfoForDoc(firstNip, firstNm, data.tanggal_surat);
 
-  const tempatBerangkat = data.tempat_berangkat || 'Kabupaten Raja Ampat';
-  const tempatTujuan    = data.tujuan            || '';
+  const peg              = pegawaiByNIP[firstNip];
+  const namaPegawai      = (peg && peg.NAMA) || firstNm || '';
+  const jabatanPegawai   = lookupJabatan(firstNip, data.tanggal_surat) || '';
+  // Kolom pangkat/golongan belum ada di riwayat_pegawai — kosongkan dulu.
+  const pangkatPegawai   = '';
 
-  const nomorFull = buildNomorSuratFull(data.nomor_surat, data.tanggal_surat);
+  // ── Penandatangan ────────────────────────────────────────────────────
+  const ttdNama    = data.penandatangan_nama || '';
+  const ttdNip     = data.penandatangan_nip  || '';
+  // Kalau jabatan sudah disimpan saat approve (penandatangan_jabatan), pakai itu.
+  // Kalau belum, fallback lookup dari riwayat_pegawai pada tanggal surat.
+  const ttdJabatan = data.penandatangan_jabatan
+                  || lookupJabatan(ttdNip, data.tanggal_surat) || '';
+
+  // ── PPK (Pejabat Pembuat Komitmen) ───────────────────────────────────
+  // Nama hardcode sementara, NIP di-lookup runtime dari riwayat_pegawai.
+  const namaPPK = PPK_NAMA_DEFAULT;
+  const nipPPK  = findNipByNama(namaPPK);
+
+  // ── MAK Pembebanan: parse dari kolom `pembebanan` ────────────────────
+  // Format input yang valid: 054.01.GG.2910.BMA.006.054.A.524119
+  const mak        = parseMAK(data.pembebanan);
+  const makLengkap = formatMAKLengkap(mak);
+
+  // ── Nomor surat & tahun dari tanggal_surat ───────────────────────────
+  const nomorSuratFull = buildNomorSuratFull(data.nomor_surat, data.tanggal_surat);
+  const tglSuratDate   = parseISODate(data.tanggal_surat);
+  const tahun          = tglSuratDate ? String(tglSuratDate.getFullYear()) : '';
+
+  // ── Nomor SPD ────────────────────────────────────────────────────────
+  const nomorSPD = buildNomorSPD(data.nomor_surat, data.tanggal_surat, mak);
+
+  // ── Lama hari (inclusive) ────────────────────────────────────────────
+  const hari = hitungHariInclusive(data.tanggal_berangkat, data.tanggal_kembali);
+
+  // ── Waktu pelaksanaan dalam format Indonesia (range-aware) ───────────
+  const waktuPelaksanaan = fmtWaktu(data.tanggal_berangkat, data.tanggal_kembali) || '';
 
   return {
-    // ── Header ────────────────────────────────────────────────────
-    nomor:             nomorFull || '',
-    lembar:            data.lembar || '',
+    // ─────────────────────────────────────────────────────────────────
+    // HALAMAN 1 — Surat Tugas
+    // ─────────────────────────────────────────────────────────────────
+    nomor_surat:           nomorSuratFull,
+    menimbang:             data.menimbang_custom || '',
+    nama:                  namaPegawai,
+    jabatan:               jabatanPegawai,
+    perihal:               data.perihal || '',
+    tempat_tujuan:         data.tujuan  || '',
+    waktu_pelaksanaan:     waktuPelaksanaan,
+    tahun:                 tahun,
+    mak_pembebanan:        makLengkap,
+    tgl_surat:             fmtTglId(data.tanggal_surat),
+    jabatan_penandatangan: ttdJabatan,
+    penandatangan:         ttdNama,
+    nip_penandatangan:     ttdNip,
 
-    // ── PPK ───────────────────────────────────────────────────────
-    ppk_nama:          data.penandatangan_nama || '',
-    ppk_nip:           data.penandatangan_nip  || '',
+    // ─────────────────────────────────────────────────────────────────
+    // HALAMAN 2 — Surat Perjalanan Dinas (SPD)
+    // ─────────────────────────────────────────────────────────────────
+    nomor_spd:             nomorSPD,
+    nama_ppk:              namaPPK,
+    nip_ppk:               nipPPK,
+    nip:                   firstNip,
+    pangkat:               pangkatPegawai,
+    angkutan:              data.alat_angkutan || '',
+    hari:                  hari ? String(hari) : '',
+    tanggal_berangkat:     fmtTglId(data.tanggal_berangkat),
+    // Kalau perjalanan tunggal (selesai null), pakai tanggal berangkat.
+    tanggal_kembali:       fmtTglId(data.tanggal_kembali || data.tanggal_berangkat),
 
-    // ── Data pegawai perjalanan ──────────────────────────────────
-    pegawai_nama:      pegInfo.nama || firstNm || '-',
-    pangkat_gol:       pegInfo.pangkat_gol || pegInfo.pangkat || '-',
-    jabatan:           pegInfo.jabatan || '-',
+    // ── Mata Anggaran (per komponen) ─────────────────────────────────
+    program:               mak ? mak.program       : '',
+    kegiatan:              mak ? mak.kegiatan      : '',
+    kro:                   mak ? mak.kro           : '',
+    ro:                    mak ? mak.ro            : '',
+    komponen:              mak ? mak.komponen      : '',
+    sub_komponen:          mak ? mak.sub_komponen  : '',
+    akun:                  mak ? mak.akun          : '',
 
-    // ── Maksud / alat / lokasi ────────────────────────────────────
-    maksud:            data.perihal || data.maksud || '',
-    alat_angkutan:     data.alat_angkutan || 'Kendaraan Umum',
-    tempat_berangkat:  tempatBerangkat,
-    tempat_tujuan:     tempatTujuan,
-
-    // ── Durasi ────────────────────────────────────────────────────
-    lama_hari:         data.lama_hari || '',
-    tgl_berangkat:     fmtTglId(data.tanggal_berangkat),
-    tgl_kembali:       fmtTglId(data.tanggal_kembali),
-
-    // ── Pembebanan anggaran ──────────────────────────────────────
-    program_kode:      data.program_kode    || 'GG',
-    program_desc:      data.program_desc    || '',
-    kegiatan_kode:     data.kegiatan_kode   || '',
-    kegiatan_desc:     data.kegiatan_desc   || '',
-    komponen_kode:     data.komponen_kode   || '',
-    komponen_desc:     data.komponen_desc   || '',
-    instansi_anggaran: data.instansi_anggaran || 'Badan Pusat Statistik Kabupaten Raja Ampat',
-    mata_anggaran:     data.mata_anggaran   || '',
-
-    // ── Footer halaman 2 (Dikeluarkan) ───────────────────────────
-    dikeluarkan_di:    data.tempat_terbit || 'Waisai',
-    tgl_dikeluarkan:   fmtTglId(data.tanggal_surat),
-
-    // ── Halaman 3: Kepala BPS ────────────────────────────────────
-    kepala_nama:       data.kepala_nama || '',
-    kepala_nip:        data.kepala_nip  || '',
-
-    // ── Halaman 3: Tanggal-tanggal perjalanan ────────────────────
-    tiba_tujuan_tgl:     fmtTglId(data.tiba_tujuan_tgl     || data.tanggal_berangkat),
-    berangkat_balik_tgl: fmtTglId(data.berangkat_balik_tgl || data.tanggal_kembali),
-    tiba_kembali_tgl:    fmtTglId(data.tiba_kembali_tgl    || data.tanggal_kembali),
+    // ── Deskripsi mata anggaran (dari kamus_pok — belum dibuat) ──────
+    // Dikosongkan dulu. Saat tabel kamus_pok sudah ada, ganti ke lookup.
+    des_program:           '',
+    des_kegiatan:          '',
+    des_kro:               '',
+    des_ro:                '',
+    des_komponen:          '',
+    des_sub_komponen:      '',
+    des_akun:              '',
   };
 }
 
