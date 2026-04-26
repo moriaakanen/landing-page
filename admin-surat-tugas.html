@@ -127,14 +127,6 @@
   .table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
   .table-scroll::-webkit-scrollbar-thumb:hover{background:#a9a298}
 
-  /* Synced top scrollbar — supaya admin tidak perlu scroll page ke bawah */
-  .table-scroll-top{overflow-x:auto;overflow-y:hidden;border-bottom:1px solid var(--border);background:#fafaf8}
-  .table-scroll-top::-webkit-scrollbar{height:10px}
-  .table-scroll-top::-webkit-scrollbar-track{background:var(--bg)}
-  .table-scroll-top::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
-  .table-scroll-top::-webkit-scrollbar-thumb:hover{background:#a9a298}
-  .table-scroll-top-inner{height:1px}
-
   table.list-table{width:100%;border-collapse:separate;border-spacing:0;min-width:2250px;table-layout:fixed}
   table.list-table thead th{
     background:#f9f8f5;padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;
@@ -550,9 +542,6 @@
         <span class="table-head-title">Daftar Pengajuan Surat Tugas</span>
         <span class="table-head-count" id="table-count">Memuat...</span>
       </div>
-      <div class="table-scroll-top" id="table-scroll-top" aria-hidden="true">
-        <div class="table-scroll-top-inner" id="table-scroll-top-inner"></div>
-      </div>
       <div class="table-scroll" id="table-area">
         <table class="list-table">
           <thead><tr>
@@ -674,7 +663,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-preview')">Tutup</button>
-      <button class="btn-preview" onclick="printFromPreview()">🖨 Print</button>
+      <button class="btn-preview" id="btn-open-in-word" onclick="openInWordForPrint()" title="Buka di Microsoft Word desktop, lalu Ctrl+P untuk print">📄 Buka di Word & Print</button>
       <button class="btn-download" id="btn-preview-download" onclick="downloadFromPreview()">📥 Download .docx</button>
     </div>
   </div>
