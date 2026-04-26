@@ -453,7 +453,7 @@ function renderTable(data) {
         ${cellPegawaiMultiHTML(s.id, pegNips, pegNames, isMenunggu)}
         ${cellTextareaHTML(s.id, 'menimbang_custom', menimbang, isMenunggu, 'cth: pelaksanaan Survei...')}
         ${cellTextareaHTML(s.id, 'alat_angkutan', alat, isMenunggu, 'cth: Kendaraan Darat')}
-        ${cellTextareaHTML(s.id, 'pembebanan', mak, isMenunggu, 'cth: 054.01.GG.2910.BMA.006.054.A.524119')}
+        ${cellMAKHTML(s.id, mak, isMenunggu)}
         ${cellPenandatanganHTML(s.id, ttdNip, ttdNama, isMenunggu)}
 
         <td class="col-status">${badgeHTML(s.status)}</td>
@@ -474,7 +474,7 @@ function renderTable(data) {
         <th class="col-nama">Nama Pegawai</th>
         <th class="col-menimbang">Menimbang</th>
         <th class="col-alat">Alat Angkutan</th>
-        <th class="col-mak">MAK Pembebanan</th>
+        <th class="col-mak">POK</th>
         <th class="col-ttd">Penandatangan</th>
         ${sortHeader('status',        'Status',            'col-status')}
         <th class="col-aksi">Aksi</th>
@@ -1191,6 +1191,223 @@ function removePegTag(cellEl, nip) {
 }
 
 /* ════════════════════════════════════════════════════════════════════
+   AUTOCOMPLETE POK (MAK PEMBEBANAN)
+
+   Sumber data: distinct `pembebanan` dari tabel surat_tugas (history).
+   MAK yang sering dipakai akan muncul di atas (sorted by frequency).
+   User tetap bisa ketik MAK baru — validasi format pakai parseMAK()
+   yang sudah ada (regex MAK_REGEX). Free-text fallback didukung untuk
+   MAK yang belum pernah dipakai sebelumnya.
+═══════════════════════════════════════════════════════════════════════ */
+let makSuggestions = [];   // [{mak, count, ringkasan}]
+let makACState = {
+  cellEl:   null,
+  inputEl:  null,
+  filtered: [],
+  focusIdx: -1,
+};
+
+async function loadMAKSuggestions() {
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/surat_tugas?select=pembebanan&pembebanan=not.is.null`;
+    const res = await fetch(url, { headers: H });
+    if (!res.ok) {
+      console.warn(`[NOVA] loadMAKSuggestions HTTP ${res.status}`);
+      return;
+    }
+    const rows = await res.json();
+    // Hitung frekuensi pemakaian per MAK valid
+    const counts = {};
+    rows.forEach(r => {
+      const m = (r.pembebanan || '').trim();
+      if (m && parseMAK(m)) counts[m] = (counts[m] || 0) + 1;
+    });
+    makSuggestions = Object.entries(counts)
+      .map(([mak, count]) => ({ mak, count, ringkasan: '' }))
+      .sort((a, b) => b.count - a.count);
+    // Bangun ringkasan (deskripsi gabungan) — load kamus_pok kalau ada
+    await enrichMakSuggestionsWithDeskripsi();
+    console.log(`[NOVA] loadMAKSuggestions: ${makSuggestions.length} unique MAK`);
+  } catch (e) {
+    console.warn('[NOVA] loadMAKSuggestions error:', e);
+  }
+}
+
+async function enrichMakSuggestionsWithDeskripsi() {
+  if (!makSuggestions.length) return;
+  // Pakai tahun saat ini sebagai default lookup. Deskripsi cuma untuk
+  // membantu admin mengenali MAK; kalau ada beda antar tahun, anggap saja
+  // sebagai hint informatif, bukan otoritatif.
+  const tahun = new Date().getFullYear();
+  try {
+    if (typeof loadKamusPok === 'function') await loadKamusPok(tahun);
+  } catch (_) {}
+
+  makSuggestions.forEach(s => {
+    const mak = parseMAK(s.mak);
+    if (!mak || typeof lookupDeskripsi !== 'function') return;
+    const desKgt = lookupDeskripsi('kegiatan', mak.kegiatan);
+    const desAkn = lookupDeskripsi('akun',     mak.akun);
+    // Format ringkas: "Kegiatan ... · Akun ..."
+    const parts = [];
+    if (desKgt) parts.push(desKgt);
+    if (desAkn) parts.push(desAkn);
+    s.ringkasan = parts.join(' · ');
+  });
+}
+
+function cellMAKHTML(id, val, editable) {
+  if (!editable) {
+    return `<td class="col-mak">
+      <div class="ro-text${val ? '' : ' muted'}" tabindex="0" data-col-field="pembebanan">${val ? esc(val) : '—'}</div>
+    </td>`;
+  }
+  return `<td class="col-mak">
+    <input type="text" class="xls-cell mak-input" data-field="pembebanan" data-id="${id}"
+      data-col-field="pembebanan"
+      value="${escAttr(val || '')}"
+      placeholder="cth: 054.01.GG.2910.BMA.006.054.A.524119"
+      oninput="onMAKInput(this)"
+      onfocus="onMAKFocus(this)"
+      onblur="onMAKBlur(this)"
+      onkeydown="onMAKKeydown(event, this)"
+      autocomplete="off">
+  </td>`;
+}
+
+function onMAKFocus(inp) {
+  openMakAc(inp);
+}
+
+function onMAKBlur(inp) {
+  // Delay supaya klik pada item popup sempat ke-handle sebelum popup ditutup
+  setTimeout(() => {
+    const ae = document.activeElement;
+    if (!ae || !document.getElementById('mak-ac-popup').contains(ae)) {
+      if (!ae || !ae.classList.contains('mak-input')) closeMakAc();
+    }
+  }, 150);
+}
+
+function onMAKInput(inp) {
+  makACState.inputEl = inp;
+  if (!document.getElementById('mak-ac-popup').classList.contains('open')) {
+    openMakAc(inp);
+  }
+  makAcFilter(inp.value);
+}
+
+function onMAKKeydown(e, inp) {
+  const popup = document.getElementById('mak-ac-popup');
+  const isOpen = popup.classList.contains('open');
+
+  if (e.key === 'Escape') {
+    if (isOpen) { e.preventDefault(); closeMakAc(); }
+    return;
+  }
+
+  if (!isOpen) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      openMakAc(inp);
+      makAcFilter(inp.value);
+    }
+    return;
+  }
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    makACState.focusIdx = Math.min(makACState.focusIdx + 1, makACState.filtered.length - 1);
+    makAcRenderFocus();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    makACState.focusIdx = Math.max(makACState.focusIdx - 1, -1);
+    makAcRenderFocus();
+  } else if (e.key === 'Enter') {
+    // Enter HANYA untuk pilih item dari dropdown — TIDAK pindah cell.
+    // (Konsisten dengan permintaan: Enter tidak navigasi cell.)
+    if (makACState.focusIdx >= 0 && makACState.filtered[makACState.focusIdx]) {
+      e.preventDefault();
+      pickMAK(makACState.filtered[makACState.focusIdx].mak);
+    }
+    // Kalau tidak ada item terpilih → Enter no-op (default browser),
+    // input single-line jadi tidak melakukan apa-apa.
+  } else if (e.key === 'Tab') {
+    closeMakAc(); // biar handler Tab global yang pindah cell
+  }
+}
+
+function openMakAc(inp) {
+  makACState.inputEl = inp;
+  makACState.cellEl = inp.closest('td');
+  makACState.focusIdx = -1;
+  const popup = document.getElementById('mak-ac-popup');
+  popup.classList.add('open');
+  positionPopup(popup, inp);
+  makAcFilter(inp.value);
+}
+
+function closeMakAc() {
+  document.getElementById('mak-ac-popup').classList.remove('open');
+  makACState.cellEl = null;
+  makACState.inputEl = null;
+  makACState.filtered = [];
+  makACState.focusIdx = -1;
+}
+
+function makAcFilter(q) {
+  q = (q || '').toLowerCase().trim();
+  makACState.filtered = makSuggestions.filter(s => {
+    if (!q) return true;
+    return s.mak.toLowerCase().includes(q) ||
+           (s.ringkasan && s.ringkasan.toLowerCase().includes(q));
+  }).slice(0, 50);
+  makACState.focusIdx = -1;
+  makAcRenderList();
+  document.getElementById('mak-ac-count').textContent = `${makACState.filtered.length} hasil`;
+}
+
+function makAcRenderList() {
+  const list = document.getElementById('mak-ac-list');
+  if (!makSuggestions.length) {
+    list.innerHTML = `<div class="mak-ac-empty">Belum ada riwayat POK.<br><span style="font-size:10.5px">Ketik MAK manual sesuai format.</span></div>`;
+    return;
+  }
+  if (!makACState.filtered.length) {
+    list.innerHTML = `<div class="mak-ac-empty">Tidak ada riwayat yang cocok.<br><span style="font-size:10.5px">Anda tetap bisa mengetik MAK baru langsung di field.</span></div>`;
+    return;
+  }
+  list.innerHTML = makACState.filtered.map((s, i) => `
+    <div class="mak-ac-item${i === makACState.focusIdx ? ' focused' : ''}"
+         data-idx="${i}"
+         onmousedown="event.preventDefault()"
+         onclick="pickMAK('${escAttr(s.mak)}')">
+      <div class="mak-ac-item-code">${esc(s.mak)}<span class="mak-ac-item-count">${s.count}×</span></div>
+      ${s.ringkasan ? `<div class="mak-ac-item-desc">${esc(s.ringkasan)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function makAcRenderFocus() {
+  const items = document.querySelectorAll('#mak-ac-list .mak-ac-item');
+  items.forEach((el, i) => el.classList.toggle('focused', i === makACState.focusIdx));
+  if (makACState.focusIdx >= 0) {
+    const focused = items[makACState.focusIdx];
+    if (focused) focused.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function pickMAK(mak) {
+  const inp = makACState.inputEl;
+  if (inp) {
+    inp.value = mak;
+    inp.classList.remove('err');
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  closeMakAc();
+}
+
+/* ════════════════════════════════════════════════════════════════════
    ARROW NAVIGATION GRID — navigasi Excel-like antar sel
    Mendukung: editable (input/textarea/pg-input) + readonly (ro-text/ro-ttd)
 ═══════════════════════════════════════════════════════════════════════ */
@@ -1335,6 +1552,12 @@ document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') return;
     }
 
+    // ArrowUp/Down di MAK typeahead = biarkan onMAKKeydown handle navigate item
+    if (target.classList && target.classList.contains('mak-input') &&
+        document.getElementById('mak-ac-popup').classList.contains('open')) {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') return;
+    }
+
     const grid = buildNavGrid();
     const pos  = findInGrid(grid, target);
     if (!pos) return;
@@ -1389,17 +1612,17 @@ document.addEventListener('keydown', (e) => {
     }
   }
 
-  /* ── Tab / Enter: navigasi linear (hanya untuk sel editable) ────── */
+  /* ── Tab: navigasi linear (hanya untuk sel editable) ─────────────
+     ENTER sengaja TIDAK dipakai untuk navigasi cell — pindah kolom
+     hanya via Tab (atau arrow keys di handler di atas).
+     - Plain Enter di textarea (cell perihal/menimbang/dst.) = newline default browser
+     - Plain Enter di input single-line = no-op (tidak melakukan apa-apa)
+     - Shift+Enter di textarea juga newline default                      */
   if (isReadonly) return; // readonly: biarkan Tab default browser
-
-  if (isTextarea && e.key === 'Enter' && e.shiftKey) return; // Shift+Enter = newline
 
   if (e.key === 'Tab') {
     e.preventDefault();
     moveCellFocus(target, e.shiftKey ? -1 : 1);
-  } else if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    moveCellFocus(target, 1);
   }
 });
 
@@ -1437,6 +1660,11 @@ document.addEventListener('click', (e) => {
     const inAnyPgCell = e.target.closest && e.target.closest('.pg-cell');
     if (!inAnyPgCell) closeAc();
   }
+  const macAc = document.getElementById('mak-ac-popup');
+  if (macAc && macAc.classList.contains('open') && !macAc.contains(e.target)) {
+    const inMakInput = e.target.closest && e.target.closest('.mak-input');
+    if (!inMakInput) closeMakAc();
+  }
   // Hapus highlight baris jika klik di luar tabel
   if (!e.target.closest('tr[data-surat-id]')) {
     document.querySelectorAll('tr.row-focused').forEach(tr => tr.classList.remove('row-focused'));
@@ -1464,6 +1692,7 @@ document.addEventListener('focus', (e) => {
 function closeAllPopups() {
   closeCal();
   closeAc();
+  closeMakAc();
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -1531,7 +1760,7 @@ function validateApproveFields(values) {
     ['tujuan',             'Tempat Tujuan'],
     ['menimbang_custom',   'Menimbang'],
     ['alat_angkutan',      'Alat Angkutan'],
-    ['pembebanan',         'MAK Pembebanan'],
+    ['pembebanan',         'POK'],
     ['penandatangan_nama', 'Penandatangan'],
   ];
   const errors = [], errFields = [];
@@ -1547,7 +1776,7 @@ function validateApproveFields(values) {
   // Kalau kosong, sudah di-tangkap oleh required-check di atas.
   // Format wajib: 054.01.GG.2910.BMA.006.054.A.524119
   if (values.pembebanan && !parseMAK(values.pembebanan)) {
-    errors.push('Format MAK Pembebanan tidak valid (contoh: 054.01.GG.2910.BMA.006.054.A.524119)');
+    errors.push('Format POK tidak valid (contoh: 054.01.GG.2910.BMA.006.054.A.524119)');
     if (!errFields.includes('pembebanan')) errFields.push('pembebanan');
   }
   return { errors, errFields };
@@ -1643,7 +1872,7 @@ function openApprove(id) {
     <div class="approve-preview-row"><strong>Pegawai</strong><span>${esc(values.pegawai_list.join(', '))}</span></div>
     <div class="approve-preview-row"><strong>Menimbang</strong><span>${esc(values.menimbang_custom)}</span></div>
     <div class="approve-preview-row"><strong>Alat Angkutan</strong><span>${esc(values.alat_angkutan)}</span></div>
-    <div class="approve-preview-row"><strong>MAK Pembebanan</strong><span>${esc(values.pembebanan)}</span></div>
+    <div class="approve-preview-row"><strong>POK</strong><span>${esc(values.pembebanan)}</span></div>
     <div class="approve-preview-row"><strong>Penandatangan</strong><span>
       ${esc(values.penandatangan_nama)}<br>
       <em style="color:var(--muted);font-style:italic;font-size:11px">${ttdJabatan ? esc(ttdJabatan) : '<span style="color:var(--red)">⚠ Jabatan tidak ditemukan di riwayat (akan ditampilkan "-" di docx)</span>'}</em><br>
@@ -1717,6 +1946,9 @@ async function submitApprove() {
     closeModal('modal-approve');
     showPageAlert('✅ Surat tugas berhasil disetujui.', 'success');
     await loadSurat();
+    // Refresh autocomplete POK — kalau MAK yang baru di-approve belum
+    // pernah ada di history, tambahkan ke daftar suggestion.
+    loadMAKSuggestions();
   } catch(e) {
     document.getElementById('approve-alert-icon').textContent = '⚠️';
     document.getElementById('approve-alert-text').textContent = `Gagal: ${e.message}`;
@@ -3083,6 +3315,10 @@ function init() {
   // Pre-warm: load library docxtemplater + template buffer di background
   // supaya klik Preview pertama tidak terhambat fetch template (~1 detik hemat).
   ensureDocxtemplaterLoaded().then(() => loadTemplateBuffer().catch(() => {}));
+
+  // Load history POK (MAK Pembebanan) untuk autocomplete dropdown.
+  // Dijalankan setelah loadSurat selesai biar tidak ada race kalau RLS lambat.
+  loadMAKSuggestions();
 
   // Bersihkan file preview orphan (>1 jam) di Supabase Storage. Fire-and-forget.
   cleanupOrphanPreviewFiles();
