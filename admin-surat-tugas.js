@@ -3141,18 +3141,21 @@ function fmtTglId(isoStr) {
      {des_komponen}, {des_sub_komponen}, {des_akun}, {nip_ppk}
 
    HALAMAN 3 (Lampiran — hanya jika ≥2 pegawai):
-     {#has_lampiran}...{/has_lampiran}        ← bungkus seluruh halaman
-     {#pegawai_lampiran}...{/pegawai_lampiran} ← bungkus baris tabel
+     {#has_lampiran_st}...{/has_lampiran_st}  ← bungkus seluruh halaman
+     {#ul}...{/ul}                            ← bungkus baris tabel
        Field per-iterasi: {no}, {nama_p}, {nip_p},
-                          {pangkat_p}, {jabatan_p}, {asal_p}
-     Header lampiran ikut pakai: {nomor_surat}, {tgl_surat}, {perihal},
+                          {pangkat_p}, {golongan_p},
+                          {jabatan_p}, {bertugas_p}
+     Header lampiran ikut pakai: {nomor_surat}, {tgl_surat}, {awalan},
+                                 {menimbang},
                                  {jabatan_penandatangan}, {penandatangan},
                                  {nip_penandatangan}
 
    Catatan tentang kolom yang BELUM ada di Supabase:
      - {pangkat}     → kolom pangkat/golongan belum ada di riwayat_pegawai → ''
-     - {pangkat_p}, {jabatan_p}, {asal_p} → di-kosongkan dulu di lampiran,
-                     akan diisi setelah skema DB dilengkapi
+     - {pangkat_p}, {golongan_p}, {bertugas_p} → di-kosongkan dulu di lampiran,
+                     akan diisi setelah skema DB dilengkapi.
+                     {jabatan_p} sudah di-lookup dari riwayat_pegawai.
      - {des_*}       → tabel kamus_pok belum dibuat → semua ''
    Field-field di atas akan otomatis terisi setelah skema DB dilengkapi —
    tinggal lookup di buildTemplateData() ini.
@@ -3184,20 +3187,21 @@ async function buildTemplateData(data) {
   const namaHal1    = hasLampiran ? 'Terlampir' : namaPegawai;
   const jabatanHal1 = hasLampiran ? 'Terlampir' : jabatanPegawai;
 
-  // Bangun array pegawai untuk loop di halaman lampiran.
-  // Setiap item: { no, nama_p, nip_p, pangkat_p, jabatan_p, asal_p }
-  // Kolom pangkat_p / jabatan_p / asal_p sengaja dikosongkan dulu —
-  // user akan update belakangan setelah skema DB-nya ada.
+  // Bangun array pegawai untuk loop {#ul}...{/ul} di halaman lampiran.
+  // Setiap item: { no, nama_p, nip_p, pangkat_p, golongan_p, jabatan_p, bertugas_p }
+  // Kolom pangkat_p / golongan_p / jabatan_p / bertugas_p sengaja dikosongkan
+  // dulu — user akan update belakangan setelah skema DB-nya ada.
   const pegawaiLampiran = nameList.map((nm, i) => {
     const nip = String(nipList[i] || '').trim();
     const p   = pegawaiByNIP[nip];
     return {
-      no:        String(i + 1),
-      nama_p:    (p && p.NAMA) || nm || '',
-      nip_p:     nip || '-',
-      pangkat_p: '',
-      jabatan_p: '',
-      asal_p:    '',
+      no:         String(i + 1),
+      nama_p:     (p && p.NAMA) || nm || '',
+      nip_p:      nip || '-',
+      pangkat_p:  '',
+      golongan_p: '',
+      jabatan_p:  lookupJabatan(nip, data.tanggal_surat) || '',
+      bertugas_p: '',
     };
   });
 
@@ -3283,10 +3287,16 @@ async function buildTemplateData(data) {
     des_akun:              mak ? lookupDeskripsi('akun',         mak.akun)                                     : '',
 
     // ─────────────────────────────────────────────────────────────────
-    // HALAMAN 3 — LAMPIRAN (hanya muncul jika has_lampiran = true)
+    // HALAMAN 3 — LAMPIRAN (hanya muncul jika has_lampiran_st = true)
+    //
+    // Template pakai {#has_lampiran_st}...{/has_lampiran_st} sebagai
+    // wrapper section. Saat false, seluruh halaman lampiran (termasuk
+    // page-break sebelumnya kalau di-wrap) akan dihapus oleh
+    // docxtemplater — sehingga surat dengan 1 pegawai cuma 3 halaman.
     // ─────────────────────────────────────────────────────────────────
-    has_lampiran:          hasLampiran,        // boolean — kontrol section
-    ul:      pegawaiLampiran,    // array — looped di tabel
+    has_lampiran_st:       hasLampiran,        // boolean — kontrol section
+    awalan:                hasLampiran ? 'Menimbang' : '',
+    ul:                    hasLampiran ? pegawaiLampiran : [],   // array — looped {#ul}...{/ul}
   };
 }
 
