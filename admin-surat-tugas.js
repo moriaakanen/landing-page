@@ -2697,6 +2697,74 @@ function buildNomorSPD(nomor, tglSuratIso, mak) {
   return `B-${nomor}/668870-92800/SPPD-${kodeMAK}/${mm}/${yyyy}`;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   KAMUS POK — lookup deskripsi kode anggaran
+
+   Tabel `kamus_pok` di Supabase menyimpan deskripsi untuk 7 segmen MAK.
+   Hierarki: KRO punya parent = kode kegiatan, RO punya parent =
+   "kegiatan.kro". Selain itu standalone (parent_kode = NULL).
+
+   Strategi cache: muat sekali per tahun anggaran. Row dengan
+   tahun_anggaran NULL = berlaku semua tahun (default). Row dengan tahun
+   spesifik = override khusus tahun tersebut. Saat lookup, row tahun
+   spesifik selalu menang.
+═══════════════════════════════════════════════════════════════════════ */
+let _kamusPokCache = null;  // Map<string, string>
+let _kamusPokYear  = null;
+
+async function loadKamusPok(tahun) {
+  if (_kamusPokCache && _kamusPokYear === tahun) return _kamusPokCache;
+
+  // Ambil row aktif untuk tahun spesifik DAN row default (NULL).
+  const url = `${SUPABASE_URL}/rest/v1/kamus_pok` +
+    `?aktif=eq.true` +
+    `&or=(tahun_anggaran.eq.${tahun},tahun_anggaran.is.null)` +
+    `&select=segmen,kode,parent_kode,deskripsi,tahun_anggaran`;
+
+  const res = await fetch(url, { headers: { ...H } });
+  if (!res.ok) {
+    console.warn(`[NOVA] Gagal load kamus_pok (HTTP ${res.status}). Deskripsi POK akan kosong.`);
+    _kamusPokCache = {};
+    _kamusPokYear  = tahun;
+    return _kamusPokCache;
+  }
+  const rows = await res.json();
+
+  // Sort: row tahun spesifik di depan supaya menang saat first-wins build.
+  rows.sort((a, b) => {
+    if (a.tahun_anggaran && !b.tahun_anggaran) return -1;
+    if (!a.tahun_anggaran && b.tahun_anggaran) return 1;
+    return 0;
+  });
+
+  const map = {};
+  rows.forEach(r => {
+    const key = `${r.segmen}:${r.kode}:${r.parent_kode || ''}`;
+    if (!(key in map)) map[key] = r.deskripsi || '';
+  });
+
+  _kamusPokCache = map;
+  _kamusPokYear  = tahun;
+  console.log(`[NOVA] Kamus POK loaded: ${rows.length} rows untuk tahun ${tahun}`);
+  return map;
+}
+
+function lookupDeskripsi(segmen, kode, parent_kode) {
+  if (!_kamusPokCache || !kode) return '';
+  const key = `${segmen}:${kode}:${parent_kode || ''}`;
+  return _kamusPokCache[key] || '';
+}
+
+// Dipanggil dari halaman manajemen-kamus-pok kalau admin edit data.
+// Pasang juga listener storage event supaya tab admin lain auto-refresh.
+function invalidateKamusPokCache() {
+  _kamusPokCache = null;
+  _kamusPokYear  = null;
+}
+window.addEventListener('storage', e => {
+  if (e.key === 'nova_kamus_pok_invalidate') invalidateKamusPokCache();
+});
+
 /**
  * Hitung lama hari INCLUSIVE.
  *   - Tanggal tunggal     → 1 hari
@@ -2843,7 +2911,7 @@ function fmtTglId(isoStr) {
    Field-field di atas akan otomatis terisi setelah skema DB dilengkapi —
    tinggal lookup di buildTemplateData() ini.
 */
-function buildTemplateData(data) {
+async function buildTemplateData(data) {
   // ── Pegawai pertama (template saat ini hanya support 1 pegawai per surat) ──
   const nipList  = Array.isArray(data.pegawai_nip)  ? data.pegawai_nip  : [];
   const nameList = Array.isArray(data.pegawai_list) ? data.pegawai_list : [];
@@ -2888,6 +2956,12 @@ function buildTemplateData(data) {
   // ── Waktu pelaksanaan dalam format Indonesia (range-aware) ───────────
   const waktuPelaksanaan = fmtWaktu(data.tanggal_berangkat, data.tanggal_kembali) || '';
 
+  // ── Load kamus POK untuk tahun anggaran surat ────────────────────────
+  // Tahun anggaran = tahun dari tanggal_surat. Kalau tidak valid, fallback ke
+  // tahun saat ini. Cache di-share antar pemanggilan (lihat _kamusPokCache).
+  const tahunAnggaran = tglSuratDate ? tglSuratDate.getFullYear() : new Date().getFullYear();
+  await loadKamusPok(tahunAnggaran);
+
   return {
     // ─────────────────────────────────────────────────────────────────
     // HALAMAN 1 — Surat Tugas
@@ -2921,23 +2995,28 @@ function buildTemplateData(data) {
     tanggal_kembali:       fmtTglId(data.tanggal_kembali || data.tanggal_berangkat),
 
     // ── Mata Anggaran (per komponen) ─────────────────────────────────
+    // Format penulisan di surat (sesuai spesifikasi user):
+    //   - kegiatan         : berdiri sendiri              → "2910"
+    //   - kegiatan.kro     : KRO selalu mengandeng kegiatan → "2910.QMA"
+    //   - kegiatan.kro.ro  : RO selalu mengandeng kro+kegiatan → "2910.QMA.006"
+    //   - komponen, sub_komponen, akun : berdiri sendiri
     program:               mak ? mak.program       : '',
     kegiatan:              mak ? mak.kegiatan      : '',
-    kro:                   mak ? mak.kro           : '',
-    ro:                    mak ? mak.ro            : '',
+    kro:                   mak ? `${mak.kegiatan}.${mak.kro}`               : '',
+    ro:                    mak ? `${mak.kegiatan}.${mak.kro}.${mak.ro}`     : '',
     komponen:              mak ? mak.komponen      : '',
     sub_komponen:          mak ? mak.sub_komponen  : '',
     akun:                  mak ? mak.akun          : '',
 
-    // ── Deskripsi mata anggaran (dari kamus_pok — belum dibuat) ──────
-    // Dikosongkan dulu. Saat tabel kamus_pok sudah ada, ganti ke lookup.
-    des_program:           '',
-    des_kegiatan:          '',
-    des_kro:               '',
-    des_ro:                '',
-    des_komponen:          '',
-    des_sub_komponen:      '',
-    des_akun:              '',
+    // ── Deskripsi mata anggaran (lookup dari kamus_pok) ──────────────
+    // KRO & RO pakai parent_kode hierarkis. Sisanya standalone.
+    des_program:           mak ? lookupDeskripsi('program',      mak.program)                                  : '',
+    des_kegiatan:          mak ? lookupDeskripsi('kegiatan',     mak.kegiatan)                                 : '',
+    des_kro:               mak ? lookupDeskripsi('kro',          mak.kro,          mak.kegiatan)               : '',
+    des_ro:                mak ? lookupDeskripsi('ro',           mak.ro,           `${mak.kegiatan}.${mak.kro}`) : '',
+    des_komponen:          mak ? lookupDeskripsi('komponen',     mak.komponen)                                 : '',
+    des_sub_komponen:      mak ? lookupDeskripsi('sub_komponen', mak.sub_komponen)                             : '',
+    des_akun:              mak ? lookupDeskripsi('akun',         mak.akun)                                     : '',
   };
 }
 
@@ -2974,7 +3053,7 @@ async function buildSuratTugasDoc(data) {
     delimiters: { start: '{', end: '}' },
   });
 
-  const templateData = buildTemplateData(data);
+  const templateData = await buildTemplateData(data);
   try {
     doc.render(templateData);
   } catch (err) {
