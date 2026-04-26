@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portal NOVA — Manajemen Kamus POK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d2340; --navy-2:#1a3055; --gold:#c8a84b; --gold-light:#f5edda;
+  --bg:#fafaf8; --white:#fff; --border:#e2ddd6; --border2:#d4ccc0;
+  --muted:#6b7280; --text:#1a2438; --danger:#991b1b; --success:#065f46; --warning:#92400e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13.5px;line-height:1.5}
+em{font-family:'Fraunces',serif;font-style:italic;font-weight:500;color:var(--gold)}
+
+/* topbar */
+.topbar{background:var(--navy);color:#fff;padding:9px 22px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
+.brand-logo{width:28px;height:28px;background:var(--gold);border-radius:6px;display:grid;place-items:center;color:var(--navy);font-weight:800}
+.topbar-right{display:flex;align-items:center;gap:14px;font-size:12.5px}
+.user-info{text-align:right;line-height:1.25}
+.user-info-name{font-weight:600}
+.user-info-role{color:rgba(255,255,255,.55);font-size:10.5px}
+.menu-toggle{background:transparent;border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;padding:5px 9px;cursor:pointer;display:none}
+@media(max-width:900px){.menu-toggle{display:inline-flex}}
+
+/* layout */
+.layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 46px)}
+.sidebar{background:var(--white);border-right:1px solid var(--border);padding:18px 14px}
+@media(max-width:900px){.sidebar{position:fixed;inset:46px 0 0 0;width:260px;transform:translateX(-100%);transition:transform .25s;z-index:50}.sidebar.open{transform:translateX(0)}.layout{grid-template-columns:1fr}}
+.sidebar-section-label{font-size:10.5px;font-weight:700;letter-spacing:1.4px;color:var(--muted);text-transform:uppercase;padding:0 10px 8px}
+.nav-group-label{font-size:10px;font-weight:600;letter-spacing:1.5px;color:#9aa1ad;text-transform:uppercase;padding:14px 10px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;font-weight:500;margin-bottom:1px}
+.nav-item:hover{background:var(--bg)}
+.nav-item.active{background:var(--gold-light);color:#7a5c10;font-weight:600}
+.nav-item-icon{width:22px;height:22px;display:grid;place-items:center;font-size:14px}
+.sidebar-footer{margin-top:24px;padding:14px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.5}
+.admin-badge{display:inline-block;margin-top:6px;background:var(--gold-light);color:#7a5c10;padding:2px 8px;border-radius:100px;font-weight:600;letter-spacing:.3px;font-size:10px}
+
+/* main */
+.main{padding:22px 26px 42px;max-width:1400px;width:100%}
+.page-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;gap:16px;flex-wrap:wrap}
+.page-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:1.6px;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.page-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;letter-spacing:-.4px}
+.page-desc{color:var(--muted);font-size:12.5px;margin-top:4px;max-width:640px}
+
+.btn-primary{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn-primary:hover{background:var(--navy-2)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;font-family:inherit;font-size:12.5px;font-weight:500;cursor:pointer}
+.btn-outline:hover{background:var(--bg)}
+.btn-gold{background:var(--gold);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn-gold:hover{background:#b8983e}
+.btn-danger{background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn-icon{background:transparent;border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:5px 9px;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;margin-right:4px}
+.btn-icon:hover{background:var(--bg)}
+.btn-icon.danger{color:var(--danger);border-color:#fecaca}
+.btn-icon.danger:hover{background:#fef2f2}
+
+/* alert */
+.alert{padding:11px 14px;border-radius:8px;margin-bottom:14px;font-size:12.5px;font-weight:500;display:none;align-items:center;gap:8px}
+.alert.success{background:#ecfdf5;color:var(--success);border:1px solid #a7f3d0;display:flex}
+.alert.error{background:#fef2f2;color:var(--danger);border:1px solid #fecaca;display:flex}
+.alert.info{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;display:flex}
+
+/* stats */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+.stat-pill{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:13px 14px;display:flex;align-items:center;gap:11px}
+.stat-pill-icon{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-size:16px}
+.stat-pill-num{font-size:20px;font-weight:700;line-height:1.1}
+.stat-pill-label{font-size:11px;color:var(--muted);font-weight:500}
+
+/* toolbar */
+.toolbar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.search-wrap{flex:1;min-width:240px;position:relative}
+.search-input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13px;background:var(--white)}
+.search-input:focus{outline:none;border-color:var(--navy)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:13px}
+.form-input{padding:9px 12px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13px;background:var(--white)}
+.form-input:focus{outline:none;border-color:var(--navy)}
+
+/* table */
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.table-scroll{overflow-x:auto}
+.table-scroll::-webkit-scrollbar{height:10px}
+.table-scroll::-webkit-scrollbar-track{background:var(--bg)}
+.table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:780px}
+thead{background:var(--bg)}
+th{text-align:left;padding:10px 12px;font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:hover{background:var(--bg)}
+tbody tr:last-child td{border-bottom:none}
+.kode-cell{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:12px;font-weight:600;color:var(--navy)}
+.parent-cell{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;color:var(--muted)}
+.empty-row{text-align:center;padding:38px 14px;color:var(--muted);font-size:12.5px}
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;letter-spacing:.3px;text-transform:uppercase}
+.tag-program{background:#e0e7ff;color:#3730a3}
+.tag-kegiatan{background:#dbeafe;color:#1e40af}
+.tag-kro{background:#dcfce7;color:#166534}
+.tag-ro{background:#fef3c7;color:#92400e}
+.tag-komponen{background:#fce7f3;color:#9f1239}
+.tag-sub_komponen{background:#fed7aa;color:#9a3412}
+.tag-akun{background:#e9d5ff;color:#6b21a8}
+.tag-tahun{background:var(--gold-light);color:#7a5c10;margin-left:6px}
+.tag-default{background:#f3f4f6;color:#4b5563;margin-left:6px}
+.tag-inactive{background:#fee2e2;color:#991b1b;margin-left:6px}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,.55);display:none;justify-content:center;align-items:center;z-index:200;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--white);border-radius:12px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,35,64,.3);animation:slideUp .25s ease}
+.modal.large{max-width:760px}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{background:var(--navy);color:#fff;padding:14px 20px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-family:'Fraunces',serif;font-size:17px;font-weight:600}
+.modal-close{background:transparent;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:20px;padding:4px 8px;border-radius:6px}
+.modal-close:hover{background:rgba(255,255,255,.1);color:#fff}
+.modal-body{padding:18px 20px}
+.modal-footer{padding:12px 20px;background:var(--bg);border-radius:0 0 12px 12px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:5px;letter-spacing:.2px}
+.form-label .req{color:var(--danger)}
+.form-hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+textarea.form-input{font-family:inherit;resize:vertical;min-height:64px}
+.bulk-textarea{width:100%;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;padding:10px;border:1px solid var(--border2);border-radius:8px;min-height:200px;resize:vertical}
+.bulk-textarea:focus{outline:none;border-color:var(--navy)}
+.bulk-preview{max-height:240px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:11.5px;padding:8px;font-family:'SF Mono',Menlo,Consolas,monospace}
+.bulk-preview-row{padding:3px 6px;border-radius:4px}
+.bulk-preview-row.ok{color:var(--success)}
+.bulk-preview-row.err{color:var(--danger);background:#fef2f2}
+
+.fade-in{animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* role switcher (nova-role-switcher.js) */
+.user-switcher{position:relative}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><div class="brand-logo">N</div>Portal <em>NOVA</em></div>
+  <div class="topbar-right">
+    <div class="user-switcher" id="user-switcher">
+      <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false">
+        <div class="user-info">
+          <div class="user-info-name" id="topbar-name">—</div>
+          <div class="user-info-role"><span id="active-role-badge" class="active-role-badge user">User</span></div>
+        </div>
+        <span class="user-switcher-caret">▾</span>
+      </button>
+      <div class="user-switcher-dropdown" id="user-switcher-dropdown" role="menu">
+        <div class="usd-header"><div class="usd-header-name" id="usd-header-name">—</div><div class="usd-header-label">Pilih tampilan</div></div>
+        <div class="usd-section-label">Tampilan</div>
+        <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')">
+          <div class="usd-role-icon admin">👑</div>
+          <div><div class="usd-role-name">Admin</div><div class="usd-role-desc">Akses administrasi</div></div>
+          <span class="usd-check">✓</span>
+        </button>
+        <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')">
+          <div class="usd-role-icon user">👤</div>
+          <div><div class="usd-role-name">User</div><div class="usd-role-desc">Akses standar pegawai</div></div>
+          <span class="usd-check">✓</span>
+        </button>
+        <div class="usd-divider"></div>
+        <button class="usd-logout" onclick="logout()" type="button"><span>🚪</span> Keluar dari Portal</button>
+      </div>
+    </div>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section-label">Menu Utama</div>
+    <a class="nav-item" href="index.html"><div class="nav-item-icon">👤</div>Profil Saya</a>
+    <div class="nav-group-label">Persuratan</div>
+    <a class="nav-item" href="surat-tugas.html"><div class="nav-item-icon">📄</div>Surat Tugas</a>
+    <div id="admin-nav">
+      <div class="nav-group-label">Administrasi</div>
+      <a class="nav-item" href="admin-surat-tugas.html"><div class="nav-item-icon">✅</div>Persetujuan Surat</a>
+      <a class="nav-item active" href="manajemen-kamus-pok.html"><div class="nav-item-icon">📚</div>Kamus POK</a>
+      <a class="nav-item" href="manajemen-pengguna.html"><div class="nav-item-icon">👥</div>Manajemen Pengguna</a>
+    </div>
+    <div class="sidebar-footer">
+      <strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>© 2026 Pemerintah RI<br>
+      <span class="admin-badge" id="sidebar-admin-badge">🔑 Administrator</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header fade-in">
+      <div>
+        <div class="page-eyebrow">Administrasi</div>
+        <h1 class="page-title">Kamus <em>POK</em></h1>
+        <p class="page-desc">Kelola deskripsi kode anggaran (Program, Kegiatan, KRO, RO, Komponen, Sub Komponen, Akun) untuk pengisian otomatis SPD halaman 2.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-outline" onclick="openModal('modal-bulk')">📋 Import Excel</button>
+        <button class="btn-primary" onclick="openTambah()">＋ Tambah Entri</button>
+      </div>
+    </div>
+
+    <div id="page-alert" class="alert"><span id="page-alert-icon"></span><span id="page-alert-text"></span></div>
+
+    <div class="stats-row fade-in" style="animation-delay:.06s">
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#e0e7ff">📚</div><div><div class="stat-pill-num" id="st-total">—</div><div class="stat-pill-label">Total Entri</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#dbeafe">🗂️</div><div><div class="stat-pill-num" id="st-segmen">—</div><div class="stat-pill-label">Segmen Aktif</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:var(--gold-light)">📅</div><div><div class="stat-pill-num" id="st-tahun">—</div><div class="stat-pill-label">Tahun Anggaran</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fee2e2">🚫</div><div><div class="stat-pill-num" id="st-nonaktif">—</div><div class="stat-pill-label">Nonaktif</div></div></div>
+    </div>
+
+    <div class="toolbar fade-in" style="animation-delay:.1s">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" id="search-input" placeholder="Cari kode atau deskripsi..." oninput="filterTable()">
+      </div>
+      <select class="form-input" id="filter-segmen" style="width:auto;cursor:pointer" onchange="filterTable()">
+        <option value="">Semua Segmen</option>
+        <option value="program">Program</option>
+        <option value="kegiatan">Kegiatan</option>
+        <option value="kro">KRO</option>
+        <option value="ro">RO</option>
+        <option value="komponen">Komponen</option>
+        <option value="sub_komponen">Sub Komponen</option>
+        <option value="akun">Akun</option>
+      </select>
+      <select class="form-input" id="filter-tahun" style="width:auto;cursor:pointer" onchange="filterTable()">
+        <option value="">Semua Tahun</option>
+      </select>
+      <select class="form-input" id="filter-aktif" style="width:auto;cursor:pointer" onchange="filterTable()">
+        <option value="aktif">Aktif Saja</option>
+        <option value="all">Semua (termasuk nonaktif)</option>
+        <option value="nonaktif">Nonaktif Saja</option>
+      </select>
+    </div>
+
+    <div class="table-wrap fade-in" style="animation-delay:.14s">
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Segmen</th><th>Kode</th><th>Parent</th><th>Deskripsi</th><th>Tahun</th><th>Status</th><th style="text-align:right">Aksi</th>
+          </tr></thead>
+          <tbody id="kamus-tbody"><tr><td colspan="7" class="empty-row">Memuat data…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Tambah / Edit -->
+<div class="modal-overlay" id="modal-form" onclick="if(event.target===this)closeModal('modal-form')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="form-modal-title">Tambah Entri</div>
+      <button class="modal-close" onclick="closeModal('modal-form')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-id">
+      <div class="form-group">
+        <label class="form-label">Segmen <span class="req">*</span></label>
+        <select class="form-input" id="f-segmen" style="width:100%" onchange="onSegmenChange()">
+          <option value="program">Program</option>
+          <option value="kegiatan">Kegiatan</option>
+          <option value="kro">KRO</option>
+          <option value="ro">RO</option>
+          <option value="komponen">Komponen</option>
+          <option value="sub_komponen">Sub Komponen</option>
+          <option value="akun">Akun</option>
+        </select>
+        <div class="form-hint" id="hint-segmen">Pilih jenis kode anggaran.</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Kode <span class="req">*</span></label>
+          <input class="form-input" id="f-kode" style="width:100%;font-family:'SF Mono',Menlo,monospace" placeholder="contoh: 2910">
+          <div class="form-hint" id="hint-kode">Kode polos tanpa parent (mis. <code>QMA</code>, bukan <code>2910.QMA</code>).</div>
+        </div>
+        <div class="form-group" id="grp-parent">
+          <label class="form-label">Parent <span class="req" id="parent-req">*</span></label>
+          <input class="form-input" id="f-parent" style="width:100%;font-family:'SF Mono',Menlo,monospace" placeholder="contoh: 2910">
+          <div class="form-hint" id="hint-parent">Kode parent.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deskripsi <span class="req">*</span></label>
+        <textarea class="form-input" id="f-deskripsi" style="width:100%" placeholder="Deskripsi pendek (maks ~12 kata)"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tahun Anggaran</label>
+          <input class="form-input" id="f-tahun" type="number" min="2020" max="2099" style="width:100%" placeholder="Kosongkan = berlaku semua tahun">
+          <div class="form-hint">Kosongkan untuk default. Isi tahun spesifik jika ada perbedaan deskripsi pada tahun tertentu.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-input" id="f-aktif" style="width:100%">
+            <option value="true">Aktif</option>
+            <option value="false">Nonaktif</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Catatan (opsional)</label>
+        <textarea class="form-input" id="f-catatan" style="width:100%" placeholder="Catatan internal admin"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-form')">Batal</button>
+      <button class="btn-primary" id="btn-simpan" onclick="submitForm()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Bulk Import -->
+<div class="modal-overlay" id="modal-bulk" onclick="if(event.target===this)closeModal('modal-bulk')">
+  <div class="modal large">
+    <div class="modal-header">
+      <div class="modal-title">Import dari Excel</div>
+      <button class="modal-close" onclick="closeModal('modal-bulk')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Segmen <span class="req">*</span></label>
+        <select class="form-input" id="b-segmen" style="width:auto" onchange="updateBulkHelp()">
+          <option value="program">Program</option>
+          <option value="kegiatan">Kegiatan</option>
+          <option value="kro">KRO</option>
+          <option value="ro">RO</option>
+          <option value="komponen">Komponen</option>
+          <option value="sub_komponen">Sub Komponen</option>
+          <option value="akun">Akun</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tahun Anggaran (opsional)</label>
+        <input class="form-input" id="b-tahun" type="number" min="2020" max="2099" placeholder="Kosongkan = semua tahun" style="width:auto">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data <span class="req">*</span></label>
+        <div class="form-hint" id="bulk-help" style="margin-bottom:6px">Paste 2 kolom dari Excel: <strong>Kode</strong> [Tab] <strong>Deskripsi</strong>. Satu baris per entri.</div>
+        <textarea class="bulk-textarea" id="b-data" placeholder="Paste dari Excel..." oninput="renderBulkPreview()"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Preview <span id="b-summary" style="font-weight:500;color:var(--muted);margin-left:6px"></span></label>
+        <div class="bulk-preview" id="b-preview"><div style="color:var(--muted);padding:6px">Belum ada data.</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-bulk')">Batal</button>
+      <button class="btn-primary" id="btn-bulk-submit" onclick="submitBulk()">Import</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="nova-role-switcher.js"></script>
+<script>
+'use strict';
+
+const H = {
+  apikey: SUPABASE_ANON_KEY,
+  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+  'Content-Type': 'application/json',
+};
+
+const SEGMEN_LABEL = {
+  program:      'Program',
+  kegiatan:     'Kegiatan',
+  kro:          'KRO',
+  ro:           'RO',
+  komponen:     'Komponen',
+  sub_komponen: 'Sub Komponen',
+  akun:         'Akun',
+};
+
+// Segmen yang WAJIB punya parent_kode
+const SEGMEN_BERPARENT = new Set(['kro', 'ro']);
+
+let SESSION = null;
+let DATA    = [];   // semua row dari kamus_pok
+let EDITING = null; // row yang sedang di-edit (null = mode tambah)
+
+/* ── Session check ────────────────────────────────────────────────── */
+function checkSession() {
+  let s; try { s = JSON.parse(localStorage.getItem('nova_user') || 'null'); } catch (_) {}
+  if (!s) { window.location.replace('login.html'); return null; }
+  // Validasi 8 jam (sama dengan halaman lain)
+  if (s.expiresAt && Date.now() > s.expiresAt) {
+    localStorage.removeItem('nova_user');
+    window.location.replace('login.html'); return null;
+  }
+  return s;
+}
+function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
+function setTopbarUser(s) {
+  const name = s.full_name || s.username || 'Pengguna';
+  document.getElementById('topbar-name').textContent = name;
+  document.getElementById('usd-header-name').textContent = name;
+}
+
+/* ── Alert ────────────────────────────────────────────────────────── */
+let _alertTimer = null;
+function showPageAlert(msg, type = 'success') {
+  const box = document.getElementById('page-alert');
+  box.className = `alert ${type}`;
+  document.getElementById('page-alert-icon').textContent = type === 'success' ? '✓' : type === 'error' ? '⚠' : 'ℹ';
+  document.getElementById('page-alert-text').textContent = msg;
+  clearTimeout(_alertTimer);
+  _alertTimer = setTimeout(() => box.style.display = 'none', 4500);
+}
+
+/* ── Modal ────────────────────────────────────────────────────────── */
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+/* ── Escape HTML ──────────────────────────────────────────────────── */
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ── Load data ────────────────────────────────────────────────────── */
+async function loadData() {
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/kamus_pok?select=*&order=segmen.asc,parent_kode.asc.nullsfirst,kode.asc`;
+    const res = await fetch(url, { headers: H });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    DATA = await res.json();
+    populateTahunFilter();
+    renderStats();
+    renderTable();
+  } catch (e) {
+    console.error(e);
+    showPageAlert('Gagal memuat data: ' + e.message, 'error');
+    document.getElementById('kamus-tbody').innerHTML = `<tr><td colspan="7" class="empty-row">Gagal memuat data.</td></tr>`;
+  }
+}
+
+function populateTahunFilter() {
+  const sel = document.getElementById('filter-tahun');
+  const tahuns = [...new Set(DATA.map(r => r.tahun_anggaran).filter(Boolean))].sort((a, b) => b - a);
+  sel.innerHTML = '<option value="">Semua Tahun</option><option value="default">Hanya Default (semua tahun)</option>' +
+    tahuns.map(t => `<option value="${t}">${t}</option>`).join('');
+}
+
+function renderStats() {
+  document.getElementById('st-total').textContent     = DATA.filter(r => r.aktif).length;
+  document.getElementById('st-segmen').textContent    = new Set(DATA.filter(r => r.aktif).map(r => r.segmen)).size;
+  const tahuns = new Set(DATA.filter(r => r.aktif).map(r => r.tahun_anggaran).filter(Boolean));
+  document.getElementById('st-tahun').textContent     = tahuns.size > 0 ? `${tahuns.size}+` : 'default';
+  document.getElementById('st-nonaktif').textContent  = DATA.filter(r => !r.aktif).length;
+}
+
+/* ── Render table ─────────────────────────────────────────────────── */
+function renderTable() {
+  const tbody = document.getElementById('kamus-tbody');
+  const q     = (document.getElementById('search-input').value || '').toLowerCase().trim();
+  const fSeg  = document.getElementById('filter-segmen').value;
+  const fTh   = document.getElementById('filter-tahun').value;
+  const fAk   = document.getElementById('filter-aktif').value;
+
+  let rows = DATA.slice();
+
+  if (fAk === 'aktif')    rows = rows.filter(r => r.aktif);
+  if (fAk === 'nonaktif') rows = rows.filter(r => !r.aktif);
+  if (fSeg)               rows = rows.filter(r => r.segmen === fSeg);
+  if (fTh === 'default')  rows = rows.filter(r => r.tahun_anggaran == null);
+  else if (fTh)           rows = rows.filter(r => String(r.tahun_anggaran) === fTh);
+  if (q) rows = rows.filter(r =>
+    (r.kode || '').toLowerCase().includes(q)
+    || (r.deskripsi || '').toLowerCase().includes(q)
+    || (r.parent_kode || '').toLowerCase().includes(q)
+  );
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-row">Tidak ada data yang cocok.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><span class="tag tag-${r.segmen}">${SEGMEN_LABEL[r.segmen] || r.segmen}</span></td>
+      <td><span class="kode-cell">${esc(r.kode)}</span></td>
+      <td><span class="parent-cell">${r.parent_kode ? esc(r.parent_kode) : '<span style="color:var(--muted)">—</span>'}</span></td>
+      <td>${esc(r.deskripsi)}</td>
+      <td>${r.tahun_anggaran
+            ? `<span class="tag tag-tahun">${r.tahun_anggaran}</span>`
+            : `<span class="tag tag-default">Default</span>`}</td>
+      <td>${r.aktif ? '<span style="color:var(--success);font-weight:600">● Aktif</span>'
+                    : '<span class="tag tag-inactive">Nonaktif</span>'}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn-icon" onclick="openEdit(${r.id})">✏ Edit</button>
+        <button class="btn-icon ${r.aktif ? '' : ''}" onclick="toggleAktif(${r.id})">${r.aktif ? '⏸ Nonaktifkan' : '▶ Aktifkan'}</button>
+        <button class="btn-icon danger" onclick="hapusEntri(${r.id})">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterTable() { renderTable(); }
+
+/* ── Form helpers ─────────────────────────────────────────────────── */
+function onSegmenChange() {
+  const seg = document.getElementById('f-segmen').value;
+  const grpParent = document.getElementById('grp-parent');
+  const fParent   = document.getElementById('f-parent');
+  const reqMark   = document.getElementById('parent-req');
+  const hintParent = document.getElementById('hint-parent');
+  const hintKode   = document.getElementById('hint-kode');
+
+  if (SEGMEN_BERPARENT.has(seg)) {
+    grpParent.style.display = '';
+    reqMark.style.display = '';
+    fParent.required = true;
+    if (seg === 'kro') {
+      hintParent.innerHTML = 'Kode <strong>kegiatan</strong> (mis. <code>2910</code>).';
+      hintKode.innerHTML   = 'Kode KRO polos saja (mis. <code>QMA</code>), tanpa kegiatan.';
+    } else {
+      hintParent.innerHTML = 'Format <code>kegiatan.kro</code> (mis. <code>2910.QMA</code>).';
+      hintKode.innerHTML   = 'Kode RO polos saja (mis. <code>006</code>).';
+    }
+  } else {
+    grpParent.style.display = 'none';
+    reqMark.style.display = 'none';
+    fParent.required = false;
+    fParent.value = '';
+    hintKode.innerHTML = 'Kode polos.';
+  }
+}
+
+function openTambah() {
+  EDITING = null;
+  document.getElementById('form-modal-title').textContent = 'Tambah Entri';
+  document.getElementById('f-id').value         = '';
+  document.getElementById('f-segmen').value     = 'kegiatan';
+  document.getElementById('f-kode').value       = '';
+  document.getElementById('f-parent').value     = '';
+  document.getElementById('f-deskripsi').value  = '';
+  document.getElementById('f-tahun').value      = '';
+  document.getElementById('f-aktif').value      = 'true';
+  document.getElementById('f-catatan').value    = '';
+  onSegmenChange();
+  openModal('modal-form');
+}
+
+function openEdit(id) {
+  const row = DATA.find(r => r.id === id);
+  if (!row) return;
+  EDITING = row;
+  document.getElementById('form-modal-title').textContent = 'Edit Entri';
+  document.getElementById('f-id').value         = row.id;
+  document.getElementById('f-segmen').value     = row.segmen;
+  document.getElementById('f-kode').value       = row.kode || '';
+  document.getElementById('f-parent').value     = row.parent_kode || '';
+  document.getElementById('f-deskripsi').value  = row.deskripsi || '';
+  document.getElementById('f-tahun').value      = row.tahun_anggaran || '';
+  document.getElementById('f-aktif').value      = row.aktif ? 'true' : 'false';
+  document.getElementById('f-catatan').value    = row.catatan || '';
+  onSegmenChange();
+  openModal('modal-form');
+}
+
+/* ── Submit form (insert atau update) ─────────────────────────────── */
+async function submitForm() {
+  const seg     = document.getElementById('f-segmen').value;
+  const kode    = document.getElementById('f-kode').value.trim();
+  const parent  = document.getElementById('f-parent').value.trim();
+  const desk    = document.getElementById('f-deskripsi').value.trim();
+  const tahunIn = document.getElementById('f-tahun').value.trim();
+  const aktif   = document.getElementById('f-aktif').value === 'true';
+  const cat     = document.getElementById('f-catatan').value.trim();
+
+  if (!kode)  return showPageAlert('Kode wajib diisi.', 'error');
+  if (!desk)  return showPageAlert('Deskripsi wajib diisi.', 'error');
+  if (SEGMEN_BERPARENT.has(seg) && !parent) {
+    return showPageAlert(`Segmen ${SEGMEN_LABEL[seg]} wajib punya parent.`, 'error');
+  }
+  if (!SEGMEN_BERPARENT.has(seg) && parent) {
+    return showPageAlert(`Segmen ${SEGMEN_LABEL[seg]} tidak boleh punya parent.`, 'error');
+  }
+
+  const body = {
+    segmen:         seg,
+    kode:           kode,
+    parent_kode:    parent || null,
+    deskripsi:      desk,
+    tahun_anggaran: tahunIn ? parseInt(tahunIn) : null,
+    aktif:          aktif,
+    catatan:        cat || null,
+  };
+
+  const btn = document.getElementById('btn-simpan');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Menyimpan…';
+
+  try {
+    let res;
+    if (EDITING) {
+      res = await fetch(`${SUPABASE_URL}/rest/v1/kamus_pok?id=eq.${EDITING.id}`, {
+        method: 'PATCH',
+        headers: { ...H, Prefer: 'return=representation' },
+        body: JSON.stringify(body),
+      });
+    } else {
+      res = await fetch(`${SUPABASE_URL}/rest/v1/kamus_pok`, {
+        method: 'POST',
+        headers: { ...H, Prefer: 'return=representation' },
+        body: JSON.stringify(body),
+      });
+    }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msg = err.message || `HTTP ${res.status}`;
+      // Tangani error duplikat unique constraint dengan pesan ramah
+      if (msg.toLowerCase().includes('uq_kamus_pok') || msg.toLowerCase().includes('duplicate')) {
+        throw new Error('Kombinasi (segmen, kode, parent, tahun) sudah ada di database.');
+      }
+      throw new Error(msg);
+    }
+
+    closeModal('modal-form');
+    showPageAlert(EDITING ? 'Entri berhasil diupdate.' : 'Entri berhasil ditambahkan.', 'success');
+    invalidateAdminCache();
+    await loadData();
+  } catch (e) {
+    showPageAlert('Gagal: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function toggleAktif(id) {
+  const row = DATA.find(r => r.id === id);
+  if (!row) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/kamus_pok?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { ...H, Prefer: 'return=minimal' },
+      body: JSON.stringify({ aktif: !row.aktif }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    showPageAlert(`Entri ${row.aktif ? 'dinonaktifkan' : 'diaktifkan'}.`, 'success');
+    invalidateAdminCache();
+    await loadData();
+  } catch (e) {
+    showPageAlert('Gagal: ' + e.message, 'error');
+  }
+}
+
+async function hapusEntri(id) {
+  const row = DATA.find(r => r.id === id);
+  if (!row) return;
+  if (!confirm(`Hapus permanen entri ${SEGMEN_LABEL[row.segmen]} ${row.kode}?\n\nKalau ragu, gunakan Nonaktifkan saja.`)) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/kamus_pok?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: H,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    showPageAlert('Entri dihapus.', 'success');
+    invalidateAdminCache();
+    await loadData();
+  } catch (e) {
+    showPageAlert('Gagal: ' + e.message, 'error');
+  }
+}
+
+/* ── Bulk import ──────────────────────────────────────────────────── */
+function updateBulkHelp() {
+  const seg = document.getElementById('b-segmen').value;
+  const help = document.getElementById('bulk-help');
+  if (seg === 'kro') {
+    help.innerHTML = 'Format kolom: <strong>Kode (mis. <code>2910.QMA</code>)</strong> [Tab] <strong>Deskripsi</strong>. Kegiatan parent akan diparse otomatis.';
+  } else if (seg === 'ro') {
+    help.innerHTML = 'Format kolom: <strong>Kode (mis. <code>2910.QMA.006</code>)</strong> [Tab] <strong>Deskripsi</strong>. Parent <code>kegiatan.kro</code> akan diparse otomatis.';
+  } else {
+    help.innerHTML = 'Format kolom: <strong>Kode</strong> [Tab] <strong>Deskripsi</strong>. Satu baris per entri.';
+  }
+  renderBulkPreview();
+}
+
+function parseBulkLines() {
+  const seg  = document.getElementById('b-segmen').value;
+  const text = document.getElementById('b-data').value;
+  const tahunIn = document.getElementById('b-tahun').value.trim();
+  const tahun = tahunIn ? parseInt(tahunIn) : null;
+
+  const lines = text.split('\n').map(l => l.replace(/\r$/, '')).filter(l => l.trim().length > 0);
+  const out = [];
+  for (const line of lines) {
+    // Pisah berdasarkan tab; kalau tidak ada tab, pisah pakai spasi pertama saja.
+    let parts = line.includes('\t') ? line.split('\t') : line.split(/\s{2,}|\s/);
+    parts = parts.map(p => p.trim());
+    const rawKode = parts[0] || '';
+    const desk    = parts.slice(1).join(' ').trim();
+    if (!rawKode) { out.push({ ok: false, msg: '(baris kosong/tidak valid)', raw: line }); continue; }
+
+    let kode = rawKode, parent = null, err = null;
+
+    if (seg === 'kro') {
+      const segs = rawKode.split('.');
+      if (segs.length !== 2) err = `Format KRO harus "kegiatan.kro" (mis. 2910.QMA), dapat "${rawKode}"`;
+      else { parent = segs[0]; kode = segs[1]; }
+    } else if (seg === 'ro') {
+      const segs = rawKode.split('.');
+      if (segs.length !== 3) err = `Format RO harus "kegiatan.kro.ro" (mis. 2910.QMA.006), dapat "${rawKode}"`;
+      else { parent = `${segs[0]}.${segs[1]}`; kode = segs[2]; }
+    }
+    if (!err && !desk) err = '(deskripsi kosong)';
+
+    if (err) out.push({ ok: false, msg: err, raw: line });
+    else     out.push({ ok: true, segmen: seg, kode, parent_kode: parent, deskripsi: desk, tahun_anggaran: tahun, raw: line });
+  }
+  return out;
+}
+
+function renderBulkPreview() {
+  const parsed = parseBulkLines();
+  const ok  = parsed.filter(p => p.ok);
+  const err = parsed.filter(p => !p.ok);
+  document.getElementById('b-summary').textContent = `(${ok.length} valid, ${err.length} error)`;
+
+  const box = document.getElementById('b-preview');
+  if (!parsed.length) {
+    box.innerHTML = '<div style="color:var(--muted);padding:6px">Belum ada data.</div>';
+    return;
+  }
+  box.innerHTML = parsed.map(p => p.ok
+    ? `<div class="bulk-preview-row ok">✓ <strong>${esc(p.kode)}</strong>${p.parent_kode ? ` (parent: ${esc(p.parent_kode)})` : ''} — ${esc(p.deskripsi)}</div>`
+    : `<div class="bulk-preview-row err">✗ ${esc(p.msg)} | ${esc(p.raw)}</div>`
+  ).join('');
+}
+
+async function submitBulk() {
+  const parsed = parseBulkLines();
+  const valid  = parsed.filter(p => p.ok);
+  const errs   = parsed.filter(p => !p.ok);
+
+  if (!valid.length) {
+    return showPageAlert('Tidak ada baris yang valid untuk diimport.', 'error');
+  }
+  if (errs.length) {
+    if (!confirm(`Ada ${errs.length} baris error yang akan di-skip. Lanjutkan import ${valid.length} baris valid?`)) return;
+  } else {
+    if (!confirm(`Import ${valid.length} baris ke kamus_pok?`)) return;
+  }
+
+  const btn = document.getElementById('btn-bulk-submit');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Mengimport…';
+
+  try {
+    const body = valid.map(p => ({
+      segmen: p.segmen, kode: p.kode, parent_kode: p.parent_kode,
+      deskripsi: p.deskripsi, tahun_anggaran: p.tahun_anggaran,
+    }));
+    // POST array → batch insert. Pakai Prefer resolution=ignore-duplicates supaya
+    // row yang sudah ada (kena unique constraint) di-skip, bukan menggagalkan semua.
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/kamus_pok`, {
+      method: 'POST',
+      headers: { ...H, Prefer: 'return=representation,resolution=ignore-duplicates' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const inserted = await res.json();
+    closeModal('modal-bulk');
+    showPageAlert(`Berhasil import ${inserted.length} dari ${valid.length} baris (${valid.length - inserted.length} duplikat di-skip).`, 'success');
+    document.getElementById('b-data').value = '';
+    renderBulkPreview();
+    invalidateAdminCache();
+    await loadData();
+  } catch (e) {
+    showPageAlert('Gagal import: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Import';
+  }
+}
+
+/* ── Trigger invalidate cache di tab admin-surat-tugas ──────────────
+   Kami pakai localStorage event sebagai broadcast — tab admin yang
+   sedang terbuka akan auto-clear cache kamus POK-nya.                 */
+function invalidateAdminCache() {
+  try {
+    localStorage.setItem('nova_kamus_pok_invalidate', String(Date.now()));
+  } catch (_) {}
+}
+
+/* ── Init ─────────────────────────────────────────────────────────── */
+function init() {
+  SESSION = checkSession();
+  if (!SESSION) return;
+  setTopbarUser(SESSION);
+  initRoleSwitcher(SESSION, true); // halaman admin
+  loadData();
+}
+init();
+</script>
+</body>
+</html>
