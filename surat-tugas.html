@@ -316,23 +316,7 @@
   </div>
 </div>
 <div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-section-label">Menu Utama</div>
-    <a class="nav-item" href="index.html"><div class="nav-item-icon">&#128100;</div>Profil Saya</a>
-    <div class="nav-group-label">Persuratan</div>
-    <a class="nav-item active" href="surat-tugas.html"><div class="nav-item-icon">&#128196;</div>Surat Tugas</a>
-    <div id="admin-nav" style="display:none">
-      <div class="nav-group-label">Administrasi</div>
-      <a class="nav-item" href="admin-surat-tugas.html"><div class="nav-item-icon">&#9989;</div>Persetujuan Surat</a>
-      <a class="nav-item" href="manajemen-pengguna.html"><div class="nav-item-icon">&#128101;</div>Manajemen Pengguna</a>
-    </div>
-    <div class="sidebar-footer">
-      <strong>Portal NOVA</strong><br>Sistem Informasi Terpadu<br>&copy; 2026 Pemerintah RI
-      <div id="admin-footer-badge" style="display:none;margin-top:6px">
-        <span class="admin-badge" id="sidebar-admin-badge">&#128273; Administrator</span>
-      </div>
-    </div>
-  </aside>
+  <aside class="sidebar" id="sidebar" data-active="surat-tugas"></aside>
   <main class="main">
     <div class="page-header fade-in">
       <div>
@@ -478,6 +462,7 @@
 </div>
 
 <script src="config.js"></script>
+<script src="nova-sidebar.js"></script>
 <script src="nova-role-switcher.js"></script>
 <script>
 function esc(str){if(str==null)return'';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
