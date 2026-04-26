@@ -3122,13 +3122,16 @@ function fmtTglId(isoStr) {
 /* Bangun objek mapping data → placeholder template.
    Satu-satunya tempat di mana field dari DB di-mapping ke nama placeholder.
    ──────────────────────────────────────────────────────────────────────
-   Daftar placeholder yang dipakai template baru — terurut sesuai kemunculan:
+   Daftar placeholder yang dipakai template — terurut sesuai kemunculan:
 
    HALAMAN 1 (Surat Tugas):
      {nomor_surat}, {menimbang}, {nama}, {jabatan}, {perihal},
      {tempat_tujuan}, {waktu_pelaksanaan}, {tahun}, {mak_pembebanan},
      {tgl_surat}, {jabatan_penandatangan}, {penandatangan},
      {nip_penandatangan}
+
+     CATATAN: jika pegawai_list >= 2, {nama} & {jabatan} otomatis
+     terisi "Terlampir" — daftar lengkap dimunculkan di halaman lampiran.
 
    HALAMAN 2 (SPD):
      {nomor_spd}, {nama_ppk}, {nip}, {pangkat}, {angkutan},
@@ -3137,40 +3140,78 @@ function fmtTglId(isoStr) {
      {des_program}, {des_kegiatan}, {des_kro}, {des_ro},
      {des_komponen}, {des_sub_komponen}, {des_akun}, {nip_ppk}
 
+   HALAMAN 3 (Lampiran — hanya jika ≥2 pegawai):
+     {#has_lampiran}...{/has_lampiran}        ← bungkus seluruh halaman
+     {#pegawai_lampiran}...{/pegawai_lampiran} ← bungkus baris tabel
+       Field per-iterasi: {no}, {nama_p}, {nip_p},
+                          {pangkat_p}, {jabatan_p}, {asal_p}
+     Header lampiran ikut pakai: {nomor_surat}, {tgl_surat}, {perihal},
+                                 {jabatan_penandatangan}, {penandatangan},
+                                 {nip_penandatangan}
+
    Catatan tentang kolom yang BELUM ada di Supabase:
      - {pangkat}     → kolom pangkat/golongan belum ada di riwayat_pegawai → ''
+     - {pangkat_p}, {jabatan_p}, {asal_p} → di-kosongkan dulu di lampiran,
+                     akan diisi setelah skema DB dilengkapi
      - {des_*}       → tabel kamus_pok belum dibuat → semua ''
    Field-field di atas akan otomatis terisi setelah skema DB dilengkapi —
    tinggal lookup di buildTemplateData() ini.
 */
+/* ════════════════════════════════════════════════════════════════════
+   PATCH 1 — buildTemplateData()
+   GANTI fungsi buildTemplateData yang ada di admin-surat-tugas.js
+   (sekitar baris 3146-3253) DENGAN versi di bawah ini.
+═══════════════════════════════════════════════════════════════════════ */
 async function buildTemplateData(data) {
-  // ── Pegawai pertama (template saat ini hanya support 1 pegawai per surat) ──
+  // ── Daftar pegawai ───────────────────────────────────────────────────
   const nipList  = Array.isArray(data.pegawai_nip)  ? data.pegawai_nip  : [];
   const nameList = Array.isArray(data.pegawai_list) ? data.pegawai_list : [];
+
+  // Pegawai pertama — dipakai untuk halaman 1 (kalau cuma 1 orang) dan SPD
   const firstNip = String(nipList[0] || '').trim();
   const firstNm  = nameList[0] || '';
-
   const peg              = pegawaiByNIP[firstNip];
   const namaPegawai      = (peg && peg.NAMA) || firstNm || '';
   const jabatanPegawai   = lookupJabatan(firstNip, data.tanggal_surat) || '';
   // Kolom pangkat/golongan belum ada di riwayat_pegawai — kosongkan dulu.
   const pangkatPegawai   = '';
 
+  // ── Logika lampiran: aktif kalau pegawai ≥ 2 ─────────────────────────
+  const hasLampiran = nameList.length >= 2;
+
+  // Halaman 1: kalau ada lampiran, ganti nama & jabatan dengan "Terlampir".
+  // Kalau cuma 1 pegawai, tampilkan nama & jabatan asli seperti semula.
+  const namaHal1    = hasLampiran ? 'Terlampir' : namaPegawai;
+  const jabatanHal1 = hasLampiran ? 'Terlampir' : jabatanPegawai;
+
+  // Bangun array pegawai untuk loop di halaman lampiran.
+  // Setiap item: { no, nama_p, nip_p, pangkat_p, jabatan_p, asal_p }
+  // Kolom pangkat_p / jabatan_p / asal_p sengaja dikosongkan dulu —
+  // user akan update belakangan setelah skema DB-nya ada.
+  const pegawaiLampiran = nameList.map((nm, i) => {
+    const nip = String(nipList[i] || '').trim();
+    const p   = pegawaiByNIP[nip];
+    return {
+      no:        String(i + 1),
+      nama_p:    (p && p.NAMA) || nm || '',
+      nip_p:     nip || '-',
+      pangkat_p: '',
+      jabatan_p: '',
+      asal_p:    '',
+    };
+  });
+
   // ── Penandatangan ────────────────────────────────────────────────────
   const ttdNama    = data.penandatangan_nama || '';
   const ttdNip     = data.penandatangan_nip  || '';
-  // Kalau jabatan sudah disimpan saat approve (penandatangan_jabatan), pakai itu.
-  // Kalau belum, fallback lookup dari riwayat_pegawai pada tanggal surat.
   const ttdJabatan = data.penandatangan_jabatan
                   || lookupJabatan(ttdNip, data.tanggal_surat) || '';
 
   // ── PPK (Pejabat Pembuat Komitmen) ───────────────────────────────────
-  // Nama hardcode sementara, NIP di-lookup runtime dari riwayat_pegawai.
   const namaPPK = PPK_NAMA_DEFAULT;
   const nipPPK  = findNipByNama(namaPPK);
 
-  // ── MAK Pembebanan: parse dari kolom `pembebanan` ────────────────────
-  // Format input yang valid: 054.01.GG.2910.BMA.006.054.A.524119
+  // ── MAK Pembebanan ───────────────────────────────────────────────────
   const mak        = parseMAK(data.pembebanan);
   const makLengkap = formatMAKLengkap(mak);
 
@@ -3189,8 +3230,6 @@ async function buildTemplateData(data) {
   const waktuPelaksanaan = fmtWaktu(data.tanggal_berangkat, data.tanggal_kembali) || '';
 
   // ── Load kamus POK untuk tahun anggaran surat ────────────────────────
-  // Tahun anggaran = tahun dari tanggal_surat. Kalau tidak valid, fallback ke
-  // tahun saat ini. Cache di-share antar pemanggilan (lihat _kamusPokCache).
   const tahunAnggaran = tglSuratDate ? tglSuratDate.getFullYear() : new Date().getFullYear();
   await loadKamusPok(tahunAnggaran);
 
@@ -3200,8 +3239,8 @@ async function buildTemplateData(data) {
     // ─────────────────────────────────────────────────────────────────
     nomor_surat:           nomorSuratFull,
     menimbang:             data.menimbang_custom || '',
-    nama:                  namaPegawai,
-    jabatan:               jabatanPegawai,
+    nama:                  namaHal1,        // ← berubah: "Terlampir" jika ≥2
+    jabatan:               jabatanHal1,     // ← berubah: "Terlampir" jika ≥2
     perihal:               data.perihal || '',
     tempat_tujuan:         data.tujuan  || '',
     waktu_pelaksanaan:     waktuPelaksanaan,
@@ -3213,7 +3252,7 @@ async function buildTemplateData(data) {
     nip_penandatangan:     ttdNip,
 
     // ─────────────────────────────────────────────────────────────────
-    // HALAMAN 2 — Surat Perjalanan Dinas (SPD)
+    // HALAMAN 2 — SPD
     // ─────────────────────────────────────────────────────────────────
     nomor_spd:             nomorSPD,
     nama_ppk:              namaPPK,
@@ -3223,15 +3262,9 @@ async function buildTemplateData(data) {
     angkutan:              data.alat_angkutan || '',
     hari:                  hari ? String(hari) : '',
     tanggal_berangkat:     fmtTglId(data.tanggal_berangkat),
-    // Kalau perjalanan tunggal (selesai null), pakai tanggal berangkat.
     tanggal_kembali:       fmtTglId(data.tanggal_kembali || data.tanggal_berangkat),
 
     // ── Mata Anggaran (per komponen) ─────────────────────────────────
-    // Format penulisan di surat (sesuai spesifikasi user):
-    //   - kegiatan         : berdiri sendiri              → "2910"
-    //   - kegiatan.kro     : KRO selalu mengandeng kegiatan → "2910.QMA"
-    //   - kegiatan.kro.ro  : RO selalu mengandeng kro+kegiatan → "2910.QMA.006"
-    //   - komponen, sub_komponen, akun : berdiri sendiri
     program:               mak ? mak.program       : '',
     kegiatan:              mak ? mak.kegiatan      : '',
     kro:                   mak ? `${mak.kegiatan}.${mak.kro}`               : '',
@@ -3240,8 +3273,7 @@ async function buildTemplateData(data) {
     sub_komponen:          mak ? mak.sub_komponen  : '',
     akun:                  mak ? mak.akun          : '',
 
-    // ── Deskripsi mata anggaran (lookup dari kamus_pok) ──────────────
-    // KRO & RO pakai parent_kode hierarkis. Sisanya standalone.
+    // ── Deskripsi mata anggaran ──────────────────────────────────────
     des_program:           mak ? lookupDeskripsi('program',      mak.program)                                  : '',
     des_kegiatan:          mak ? lookupDeskripsi('kegiatan',     mak.kegiatan)                                 : '',
     des_kro:               mak ? lookupDeskripsi('kro',          mak.kro,          mak.kegiatan)               : '',
@@ -3249,6 +3281,12 @@ async function buildTemplateData(data) {
     des_komponen:          mak ? lookupDeskripsi('komponen',     mak.komponen)                                 : '',
     des_sub_komponen:      mak ? lookupDeskripsi('sub_komponen', mak.sub_komponen)                             : '',
     des_akun:              mak ? lookupDeskripsi('akun',         mak.akun)                                     : '',
+
+    // ─────────────────────────────────────────────────────────────────
+    // HALAMAN 3 — LAMPIRAN (hanya muncul jika has_lampiran = true)
+    // ─────────────────────────────────────────────────────────────────
+    has_lampiran:          hasLampiran,        // boolean — kontrol section
+    ul:      pegawaiLampiran,    // array — looped di tabel
   };
 }
 
