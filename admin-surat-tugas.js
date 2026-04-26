@@ -1980,10 +1980,90 @@ async function downloadFromPreview() {
 }
 
 function printFromPreview() {
-  // Word Online viewer punya tombol Print sendiri di toolbar atas iframe.
-  // Kami arahkan user ke sana karena window.print() tidak bisa menjangkau
-  // konten di dalam iframe cross-origin (Microsoft).
-  showPageAlert('Gunakan tombol Print/Cetak di toolbar Word Online (di atas dokumen).', 'success');
+  // DEPRECATED: tombol "🖨 Print" sudah diganti dengan "📄 Buka di Word & Print".
+  // Fungsi ini di-keep untuk backward compatibility kalau masih ada caller lain.
+  // Forward ke implementasi baru.
+  openInWordForPrint();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   OPEN IN MICROSOFT WORD (untuk print yang reliable)
+
+   Pendekatan: pakai protocol handler "ms-word:" yang di-handle Microsoft
+   Word desktop. Word akan download file dari signed URL Supabase, buka
+   di mode Protected View. Admin tinggal Ctrl+P.
+
+   Kenapa pakai ini, bukan window.print() biasa?
+   - Office Online iframe = cross-origin, window.print() tidak bisa.
+   - Office Online native print sering diblokir Edge tracking prevention
+     atau ad-blockers (ERR_BLOCKED_BY_CLIENT).
+   - Protocol handler ms-word: = pure native handoff, tidak terkena
+     security policy browser.
+
+   Syarat: admin harus punya Microsoft Word desktop terinstall (umumnya
+   ya di kantor BPS). Browser akan tampilkan dialog "Open Microsoft Word?"
+   sekali — admin klik Allow (atau centang "Always allow" supaya tidak
+   muncul lagi).
+═══════════════════════════════════════════════════════════════════════ */
+async function openInWordForPrint() {
+  if (!currentPreviewSurat) {
+    showPageAlert('Belum ada surat yang sedang di-preview.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-open-in-word');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Menyiapkan…'; }
+
+  try {
+    let signedUrl;
+
+    // Re-use file yang sudah di-upload untuk preview kalau masih ada.
+    // Kalau tidak ada (mis. user direct call atau preview gagal), upload ulang.
+    if (_previewUploadedPath) {
+      signedUrl = await getPreviewSignedUrl(_previewUploadedPath, 3600);
+    } else {
+      ensureLibrariesLoaded();
+      const blob = await buildSuratTugasDoc(currentPreviewSurat);
+      const filename = await uploadPreviewDocx(blob, currentPreviewSurat.id);
+      _previewUploadedPath = filename;
+      signedUrl = await getPreviewSignedUrl(filename, 3600);
+    }
+
+    // Format protocol handler Word:
+    //   ms-word:ofe|u|<URL>      → Open For Editing
+    //   ms-word:ofv|u|<URL>      → Open For Viewing (read-only, lebih cocok untuk print)
+    // Kami pakai 'ofe' supaya admin bisa langsung edit kecil kalau ada typo
+    // sebelum print, tanpa harus klik "Enable Editing".
+    const wordProtocolUrl = `ms-word:ofe|u|${signedUrl}`;
+
+    // Trigger protocol handler. Browser akan tampilkan dialog konfirmasi
+    // "Open Microsoft Word?" — admin klik Allow.
+    window.location.href = wordProtocolUrl;
+
+    // Fallback notice: kalau Word tidak terinstall, dialog tidak akan muncul
+    // dan tidak terjadi apa-apa. Kasih hint setelah 2 detik.
+    setTimeout(() => {
+      showPageAlert(
+        'Jika Microsoft Word tidak terbuka, pastikan Word terinstall di komputer Anda. ' +
+        'Sebagai alternatif, klik tombol "📥 Download .docx" lalu buka manual.',
+        'success'
+      );
+    }, 2000);
+
+    // Tutup modal preview otomatis setelah 1 detik supaya admin fokus ke Word
+    setTimeout(() => closeModal('modal-preview'), 1000);
+
+  } catch (e) {
+    console.error('[NOVA] openInWordForPrint error:', e);
+    showPageAlert(`Gagal menyiapkan dokumen untuk Word: ${e.message}`, 'error');
+  } finally {
+    if (btn) {
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = '📄 Buka di Word & Print';
+      }, 1500);
+    }
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════════
