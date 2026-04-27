@@ -3045,21 +3045,33 @@ const PPK_NAMA_DEFAULT = 'Abdillah Humam, SST';
    TEMPLATE-BASED BUILDER — docxtemplater
 
    KONFIGURASI URL TEMPLATE:
-   Ubah TEMPLATE_URL di bawah sesuai lokasi file template-surat-tugas.docx.
+   Ubah TEMPLATE_URL_PORTRAIT / TEMPLATE_URL_LANDSCAPE di bawah sesuai
+   lokasi file di Supabase Storage.
 
-   Pilihan umum:
-   - Same-origin (taruh di folder yang sama dengan HTML):
-       'template-surat-tugas.docx'
-   - Supabase Storage (public bucket) — GANTI <bucket> dan path-nya:
-       'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/templates/template-surat-tugas.docx'
-   - CDN eksternal atau URL absolut lainnya:
-       'https://example.com/path/template.docx'
+   Kenapa 2 template?
+   - Versi PORTRAIT  : 3 halaman, dipakai saat surat tugas hanya 1 pegawai
+                       (TANPA blok lampiran sama sekali).
+   - Versi LANDSCAPE : 4 halaman, dipakai saat surat tugas ≥2 pegawai.
+                       Halaman 4 berisi tabel pegawai dengan orientasi
+                       landscape. Tag {#has_lampiran_st}/{/has_lampiran_st}
+                       sudah dihapus dari template ini karena selalu
+                       ter-render (tidak conditional lagi).
+
+   Pilihan placeholder yang dipakai DI KEDUA template SAMA — kode di
+   buildTemplateData() tidak perlu tahu orientasi yang dipakai.
+   Field `ul` (loop pegawai) cuma akan dipakai oleh template landscape.
+
+   Penamaan file di Supabase Storage:
+       template/template-surat-tugas-portrait.docx
+       template/template-surat-tugas-landscape.docx
 ════════════════════════════════════════════════════════════════════ */
 
-const TEMPLATE_URL = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas.docx';
+const TEMPLATE_URL_PORTRAIT  = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-portrait.docx';
+const TEMPLATE_URL_LANDSCAPE = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-landscape.docx';
 
-// Cache template binary supaya tidak di-fetch berulang kali
-let _templateBuffer = null;
+// Cache template binary supaya tidak di-fetch berulang kali — terpisah per orientasi
+let _templateBufferPortrait  = null;
+let _templateBufferLandscape = null;
 
 /* Helper untuk load script dinamis kalau belum ada di window */
 function loadScript(src) {
@@ -3101,14 +3113,29 @@ async function ensureDocxtemplaterLoaded() {
   return false;
 }
 
-async function loadTemplateBuffer() {
-  if (_templateBuffer) return _templateBuffer;
-  console.log('[NOVA] Memuat template dari:', TEMPLATE_URL);
-  const res = await fetch(TEMPLATE_URL);
-  if (!res.ok) throw new Error(`Gagal memuat template (${res.status}). Pastikan ${TEMPLATE_URL} bisa diakses publik.`);
-  _templateBuffer = await res.arrayBuffer();
-  console.log('[NOVA] Template loaded:', _templateBuffer.byteLength, 'bytes');
-  return _templateBuffer;
+/**
+ * Load template .docx — pilih portrait atau landscape sesuai jumlah pegawai.
+ * @param {boolean} hasLampiran - true kalau ≥2 pegawai (pakai template landscape)
+ * @returns {Promise<ArrayBuffer>}
+ */
+async function loadTemplateBuffer(hasLampiran) {
+  if (hasLampiran) {
+    if (_templateBufferLandscape) return _templateBufferLandscape;
+    console.log('[NOVA] Memuat template LANDSCAPE dari:', TEMPLATE_URL_LANDSCAPE);
+    const res = await fetch(TEMPLATE_URL_LANDSCAPE);
+    if (!res.ok) throw new Error(`Gagal memuat template landscape (${res.status}). Pastikan ${TEMPLATE_URL_LANDSCAPE} bisa diakses publik.`);
+    _templateBufferLandscape = await res.arrayBuffer();
+    console.log('[NOVA] Template landscape loaded:', _templateBufferLandscape.byteLength, 'bytes');
+    return _templateBufferLandscape;
+  } else {
+    if (_templateBufferPortrait) return _templateBufferPortrait;
+    console.log('[NOVA] Memuat template PORTRAIT dari:', TEMPLATE_URL_PORTRAIT);
+    const res = await fetch(TEMPLATE_URL_PORTRAIT);
+    if (!res.ok) throw new Error(`Gagal memuat template portrait (${res.status}). Pastikan ${TEMPLATE_URL_PORTRAIT} bisa diakses publik.`);
+    _templateBufferPortrait = await res.arrayBuffer();
+    console.log('[NOVA] Template portrait loaded:', _templateBufferPortrait.byteLength, 'bytes');
+    return _templateBufferPortrait;
+  }
 }
 
 /* Helper format tanggal ISO → "DD Nama-Bulan YYYY" (Indonesia) */
@@ -3287,16 +3314,25 @@ async function buildTemplateData(data) {
     des_akun:              mak ? lookupDeskripsi('akun',         mak.akun)                                     : '',
 
     // ─────────────────────────────────────────────────────────────────
-    // HALAMAN 3 — LAMPIRAN (hanya muncul jika has_lampiran_st = true)
+    // HALAMAN 4 — LAMPIRAN
     //
-    // Template pakai {#has_lampiran_st}...{/has_lampiran_st} sebagai
-    // wrapper section. Saat false, seluruh halaman lampiran (termasuk
-    // page-break sebelumnya kalau di-wrap) akan dihapus oleh
-    // docxtemplater — sehingga surat dengan 1 pegawai cuma 3 halaman.
+    // Sejak versi multi-template, blok lampiran ada di file template
+    // TERPISAH (template-surat-tugas-landscape.docx). Template portrait
+    // tidak punya placeholder lampiran sama sekali, jadi field-field di
+    // bawah ini diabaikan saat render template portrait — aman dikirim
+    // tanpa conditional.
+    //
+    // - has_lampiran_st: legacy field, dipertahankan untuk backward-compat
+    //   kalau ada template lama yang masih pakai conditional ini.
+    // - awalan: pembuka kalimat sebelum {menimbang} di header lampiran.
+    //   Saat ini dikosongkan — akan diisi belakangan.
+    // - ul: array pegawai untuk loop {#ul}...{/ul} di tabel lampiran.
+    //   Selalu dikirim apa adanya; kalau template portrait, otomatis
+    //   diabaikan karena tidak ada {#ul} di sana.
     // ─────────────────────────────────────────────────────────────────
-    has_lampiran_st:       hasLampiran,        // boolean — kontrol section
-    awalan:                hasLampiran ? 'Menimbang' : '',
-    ul:                    hasLampiran ? pegawaiLampiran : [],   // array — looped {#ul}...{/ul}
+    has_lampiran_st:       hasLampiran,        // legacy / backward-compat
+    awalan:                '',                 // TODO: isi nanti
+    ul:                    pegawaiLampiran,    // array pegawai — loop {#ul}...{/ul}
   };
 }
 
@@ -3325,7 +3361,13 @@ async function buildSuratTugasDoc(data) {
   }
   console.log('[NOVA] Docxtemplater OK — akan pakai template-based rendering');
 
-  const buf = await loadTemplateBuffer();
+  // Tentukan template mana yang dipakai berdasarkan jumlah pegawai.
+  // ≥2 pegawai → landscape (4 halaman, ada lampiran)
+  // 1 pegawai  → portrait (3 halaman, tanpa lampiran)
+  const pegCount  = Array.isArray(data.pegawai_list) ? data.pegawai_list.length : 0;
+  const hasLampiran = pegCount >= 2;
+
+  const buf = await loadTemplateBuffer(hasLampiran);
   const zip = new PizZipCtor(buf);
   const doc = new DocxtemplaterCtor(zip, {
     paragraphLoop: true,
@@ -3362,7 +3404,12 @@ function init() {
 
   // Pre-warm: load library docxtemplater + template buffer di background
   // supaya klik Preview pertama tidak terhambat fetch template (~1 detik hemat).
-  ensureDocxtemplaterLoaded().then(() => loadTemplateBuffer().catch(() => {}));
+  // Load KEDUA template (portrait & landscape) paralel — yang dipakai
+  // tergantung jumlah pegawai saat user klik Preview/Export.
+  ensureDocxtemplaterLoaded().then(() => {
+    loadTemplateBuffer(false).catch(() => {});  // portrait (1 pegawai)
+    loadTemplateBuffer(true).catch(() => {});   // landscape (≥2 pegawai)
+  });
 
   // Load history POK (MAK Pembebanan) untuk autocomplete dropdown.
   // Dijalankan setelah loadSurat selesai biar tidak ada race kalau RLS lambat.
