@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#f5f4f0;--white:#ffffff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--sidebar-w:260px;}
+  :root{--bg:#f5f4f0;--white:#ffffff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--sidebar-w:260px;--red:#c0392b;}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
@@ -54,6 +54,75 @@
   .profil-divider{height:1px;background:var(--border);margin:0 28px}
   .profil-data{padding:24px 28px}
   .data-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
+  /* Calendar Styles */
+  .calendar-section{margin-top:28px;background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,0.06);}
+  .calendar-header{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid var(--border);}
+  .calendar-title{font-size:16px;font-weight:700;color:var(--navy);}
+  .calendar-nav{display:flex;align-items:center;gap:8px;}
+  .cal-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--navy);transition:all 0.15s;}
+  .cal-btn:hover{background:var(--gold-light);border-color:var(--gold);}
+  .cal-btn-primary{padding:6px 14px;width:auto;font-size:12px;font-weight:600;font-family:inherit;background:var(--navy);color:white;border:none;}
+  .cal-btn-primary:hover{background:var(--navy2);}
+  .calendar-month-label{font-size:14px;font-weight:600;color:var(--navy);min-width:140px;text-align:center;}
+  .calendar-grid{padding:20px 28px 28px;}
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px;}
+  .cal-weekday{text-align:center;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:6px 0;}
+  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-day{aspect-ratio:1;min-height:72px;border-radius:8px;border:1px solid var(--border);background:var(--bg);padding:6px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;display:flex;flex-direction:column;}
+  .cal-day:hover{border-color:var(--gold);background:var(--gold-light);}
+  .cal-day.other-month{opacity:0.4;}
+  .cal-day.today{border-color:var(--gold);background:rgba(200,168,75,0.08);}
+  .cal-day.selected{border-color:var(--navy);background:rgba(13,35,64,0.06);}
+  .cal-day-number{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+  .cal-day.today .cal-day-number{color:var(--gold);}
+  .cal-events{flex:1;display:flex;flex-direction:column;gap:2px;overflow:hidden;}
+  .cal-event{font-size:9px;padding:2px 4px;border-radius:3px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
+  .cal-event-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:3px;}
+  .cal-more{font-size:9px;color:var(--muted);margin-top:auto;text-align:right;}
+  @media(max-width:768px){
+    .cal-day{min-height:52px;padding:4px;}
+    .cal-event{font-size:8px;padding:1px 3px;}
+  }
+  @media(max-width:600px){
+    .cal-day{min-height:44px;}
+    .cal-event{display:none;}
+    .cal-day.has-events::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:5px;height:5px;background:var(--gold);border-radius:50%;}
+  }
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,0.4);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--white);border-radius:12px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,35,64,0.25);animation:fadeUp 0.2s ease;}
+  .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .modal-title{font-size:16px;font-weight:700;color:var(--navy);}
+  .modal-close{width:28px;height:28px;border-radius:6px;border:none;background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);transition:all 0.15s;}
+  .modal-close:hover{background:var(--border);color:var(--navy);}
+  .modal-body{padding:20px 24px;}
+  .form-group{margin-bottom:16px;}
+  .form-group label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;}
+  .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:7px;font-family:inherit;font-size:13px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,0.08);}
+  .form-group textarea{resize:vertical;min-height:60px;}
+  .color-options{display:flex;gap:8px;flex-wrap:wrap;}
+  .color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform 0.15s;}
+  .color-opt:hover{transform:scale(1.15);}
+  .color-opt.selected{border-color:var(--navy);}
+  .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+  .btn{width:auto;padding:8px 16px;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;border:none;}
+  .btn-secondary{background:var(--bg);color:var(--navy);border:1px solid var(--border);}
+  .btn-secondary:hover{background:var(--border);}
+  .btn-danger{background:#fef2f2;color:var(--red);border:1px solid #fecaca;}
+  .btn-danger:hover{background:#fee2e2;}
+  .btn-primary{background:var(--navy);color:white;}
+  .btn-primary:hover{background:var(--navy2);}
+  .event-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg);margin-bottom:8px;border:1px solid var(--border);}
+  .event-list-color{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+  .event-list-info{flex:1;min-width:0;}
+  .event-list-title{font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .event-list-time{font-size:11px;color:var(--muted);}
+  .event-list-actions{display:flex;gap:4px;}
+  .event-list-actions button{padding:4px 8px;font-size:11px;border-radius:4px;border:none;cursor:pointer;font-family:inherit;font-weight:500;}
+  .ela-edit{background:var(--gold-light);color:#7a5c10;}
+  .ela-delete{background:#fef2f2;color:var(--red);}
   .data-field{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
   .data-field.full{grid-column:1/-1}
   .data-field-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
@@ -142,7 +211,79 @@
         <div class="skel" style="height:62px;border-radius:8px"></div>
       </div>
     </div>
+
+    <!-- KALENDER KEGIATAN -->
+    <div class="calendar-section fade-in" id="calendar-section" style="animation-delay:0.2s">
+      <div class="calendar-header">
+        <div class="calendar-title">📅 Kalender Kegiatan</div>
+        <div class="calendar-nav">
+          <button class="cal-btn" onclick="changeMonth(-1)" title="Bulan sebelumnya">‹</button>
+          <span class="calendar-month-label" id="cal-month-label">Mei 2026</span>
+          <button class="cal-btn" onclick="changeMonth(1)" title="Bulan berikutnya">›</button>
+          <button class="cal-btn cal-btn-primary" onclick="openModalForToday()">+ Tambah</button>
+        </div>
+      </div>
+      <div class="calendar-grid">
+        <div class="cal-weekdays">
+          <div class="cal-weekday">Min</div>
+          <div class="cal-weekday">Sen</div>
+          <div class="cal-weekday">Sel</div>
+          <div class="cal-weekday">Rab</div>
+          <div class="cal-weekday">Kam</div>
+          <div class="cal-weekday">Jum</div>
+          <div class="cal-weekday">Sab</div>
+        </div>
+        <div class="cal-days" id="cal-days"></div>
+      </div>
+    </div>
   </main>
+</div>
+
+<!-- MODAL KEGIATAN -->
+<div class="modal-overlay" id="event-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Tambah Kegiatan</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tanggal</label>
+        <input type="date" id="evt-date" readonly>
+      </div>
+      <div class="form-group">
+        <label>Judul Kegiatan</label>
+        <input type="text" id="evt-title" placeholder="Contoh: Rapat Koordinasi" maxlength="100">
+      </div>
+      <div class="form-group">
+        <label>Waktu (opsional)</label>
+        <input type="time" id="evt-time">
+      </div>
+      <div class="form-group">
+        <label>Keterangan (opsional)</label>
+        <textarea id="evt-desc" placeholder="Deskripsi kegiatan..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Warna Tanda</label>
+        <div class="color-options" id="color-options">
+          <div class="color-opt selected" style="background:#c8a84b" data-color="#c8a84b" onclick="selectColor(this)"></div>
+          <div class="color-opt" style="background:#3b82f6" data-color="#3b82f6" onclick="selectColor(this)"></div>
+          <div class="color-opt" style="background:#22c55e" data-color="#22c55e" onclick="selectColor(this)"></div>
+          <div class="color-opt" style="background:#ef4444" data-color="#ef4444" onclick="selectColor(this)"></div>
+          <div class="color-opt" style="background:#a855f7" data-color="#a855f7" onclick="selectColor(this)"></div>
+          <div class="color-opt" style="background:#f97316" data-color="#f97316" onclick="selectColor(this)"></div>
+          <div class="color-opt" style="background:#06b6d4" data-color="#06b6d4" onclick="selectColor(this)"></div>
+          <div class="color-opt" style="background:#6b7280" data-color="#6b7280" onclick="selectColor(this)"></div>
+        </div>
+      </div>
+      <div id="day-events-list" style="margin-top:16px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
+      <button class="btn btn-danger" id="btn-delete-event" style="display:none" onclick="deleteCurrentEvent()">Hapus</button>
+      <button class="btn btn-primary" onclick="saveEvent()" id="btn-save-event">Simpan</button>
+    </div>
+  </div>
 </div>
 
 <script src="config.js"></script>
@@ -192,13 +333,271 @@
       card.innerHTML=`<div class="profil-banner"></div><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Gagal Memuat Data</div><div class="empty-desc">Terjadi kesalahan. Muat ulang halaman.</div></div>`;
     }
   }
+  /* ─────────── KALENDER KEGIATAN ─────────── */
+  var calCurrentDate = new Date();
+  var calSelectedDate = null;
+  var calEditingEventId = null;
+  var calCurrentUserId = null;
+  var EVENT_COLORS = {
+    '#c8a84b': {bg:'rgba(200,168,75,0.15)', text:'#7a5c10'},
+    '#3b82f6': {bg:'rgba(59,130,246,0.12)', text:'#1d4ed8'},
+    '#22c55e': {bg:'rgba(34,197,94,0.12)', text:'#15803d'},
+    '#ef4444': {bg:'rgba(239,68,68,0.12)', text:'#b91c1c'},
+    '#a855f7': {bg:'rgba(168,85,247,0.12)', text:'#7e22ce'},
+    '#f97316': {bg:'rgba(249,115,22,0.12)', text:'#c2410c'},
+    '#06b6d4': {bg:'rgba(6,182,212,0.12)', text:'#0e7490'},
+    '#6b7280': {bg:'rgba(107,114,128,0.12)', text:'#374151'},
+  };
+
+  function getCalStorageKey(userId) {
+    return 'nova_calendar_' + (userId || 'anon');
+  }
+
+  function loadEvents(userId) {
+    try {
+      return JSON.parse(localStorage.getItem(getCalStorageKey(userId)) || '[]');
+    } catch(e) { return []; }
+  }
+
+  function saveEvents(userId, events) {
+    localStorage.setItem(getCalStorageKey(userId), JSON.stringify(events));
+  }
+
+  function getMonthData(year, month) {
+    var firstDay = new Date(year, month, 1);
+    var lastDay = new Date(year, month + 1, 0);
+    var startOffset = firstDay.getDay(); // 0=Min
+    var daysInMonth = lastDay.getDate();
+    var prevMonthLast = new Date(year, month, 0).getDate();
+    var days = [];
+    // prev month padding
+    for (var i = startOffset - 1; i >= 0; i--) {
+      days.push({d: prevMonthLast - i, m: month - 1, y: year, other: true});
+    }
+    // current month
+    for (var d = 1; d <= daysInMonth; d++) {
+      days.push({d: d, m: month, y: year, other: false});
+    }
+    // next month padding
+    var rem = 42 - days.length;
+    for (var j = 1; j <= rem; j++) {
+      days.push({d: j, m: month + 1, y: year, other: true});
+    }
+    return days;
+  }
+
+  function formatDateKey(y, m, d) {
+    return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+  }
+
+  function renderCalendar() {
+    var year = calCurrentDate.getFullYear();
+    var month = calCurrentDate.getMonth();
+    var monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    document.getElementById('cal-month-label').textContent = monthNames[month] + ' ' + year;
+
+    var days = getMonthData(year, month);
+    var container = document.getElementById('cal-days');
+    var today = new Date();
+    var todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+    var events = calCurrentUserId ? loadEvents(calCurrentUserId) : [];
+
+    var html = '';
+    for (var i = 0; i < days.length; i++) {
+      var day = days[i];
+      var dateKey = formatDateKey(day.y, day.m, day.d);
+      var isToday = dateKey === todayKey;
+      var dayEvents = events.filter(function(e) { return e.date === dateKey; }).sort(function(a,b){return (a.time||'').localeCompare(b.time||'');});
+      var hasEvents = dayEvents.length > 0;
+      var cls = 'cal-day' + (day.other ? ' other-month' : '') + (isToday ? ' today' : '') + (hasEvents ? ' has-events' : '');
+      html += '<div class="' + cls + '" onclick="openModalForDate(\'' + dateKey + '\')">';
+      html += '<div class="cal-day-number">' + day.d + '</div>';
+      html += '<div class="cal-events">';
+      for (var k = 0; k < Math.min(dayEvents.length, 3); k++) {
+        var ev = dayEvents[k];
+        var c = EVENT_COLORS[ev.color] || EVENT_COLORS['#c8a84b'];
+        html += '<div class="cal-event" style="background:' + c.bg + ';color:' + c.text + '">' + escapeHtml(ev.title) + '</div>';
+      }
+      if (dayEvents.length > 3) {
+        html += '<div class="cal-more">+' + (dayEvents.length - 3) + ' lainnya</div>';
+      }
+      html += '</div></div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function changeMonth(delta) {
+    calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
+    renderCalendar();
+  }
+
+  function openModalForToday() {
+    var today = new Date();
+    var key = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+    openModalForDate(key);
+  }
+
+  function openModalForDate(dateKey) {
+    calSelectedDate = dateKey;
+    calEditingEventId = null;
+    document.getElementById('evt-date').value = dateKey;
+    document.getElementById('evt-title').value = '';
+    document.getElementById('evt-time').value = '';
+    document.getElementById('evt-desc').value = '';
+    document.getElementById('modal-title').textContent = 'Tambah Kegiatan — ' + formatDateId(dateKey);
+    document.getElementById('btn-delete-event').style.display = 'none';
+    document.getElementById('btn-save-event').textContent = 'Simpan';
+    selectColor(document.querySelector('.color-opt[data-color="#c8a84b"]'));
+    renderDayEventList(dateKey);
+    document.getElementById('event-modal').classList.add('show');
+  }
+
+  function formatDateId(dateKey) {
+    var parts = dateKey.split('-');
+    var d = parseInt(parts[2], 10);
+    var m = parseInt(parts[1], 10);
+    var months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    return d + ' ' + months[m - 1] + ' ' + parts[0];
+  }
+
+  function closeModal() {
+    document.getElementById('event-modal').classList.remove('show');
+    calEditingEventId = null;
+    calSelectedDate = null;
+  }
+
+  function selectColor(el) {
+    document.querySelectorAll('.color-opt').forEach(function(c) { c.classList.remove('selected'); });
+    el.classList.add('selected');
+  }
+
+  function getSelectedColor() {
+    var sel = document.querySelector('.color-opt.selected');
+    return sel ? sel.getAttribute('data-color') : '#c8a84b';
+  }
+
+  function saveEvent() {
+    var title = document.getElementById('evt-title').value.trim();
+    if (!title) { alert('Judul kegiatan wajib diisi.'); return; }
+    var events = loadEvents(calCurrentUserId);
+    var evt = {
+      id: calEditingEventId || 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      date: calSelectedDate,
+      title: title,
+      time: document.getElementById('evt-time').value,
+      desc: document.getElementById('evt-desc').value.trim(),
+      color: getSelectedColor(),
+      createdAt: calEditingEventId ? (events.find(function(e){return e.id===calEditingEventId})||{}).createdAt || Date.now() : Date.now()
+    };
+    if (calEditingEventId) {
+      var idx = events.findIndex(function(e) { return e.id === calEditingEventId; });
+      if (idx !== -1) events[idx] = evt;
+      else events.push(evt);
+    } else {
+      events.push(evt);
+    }
+    saveEvents(calCurrentUserId, events);
+    renderCalendar();
+    renderDayEventList(calSelectedDate);
+    // Reset form untuk tambah baru
+    calEditingEventId = null;
+    document.getElementById('evt-title').value = '';
+    document.getElementById('evt-time').value = '';
+    document.getElementById('evt-desc').value = '';
+    document.getElementById('modal-title').textContent = 'Tambah Kegiatan — ' + formatDateId(calSelectedDate);
+    document.getElementById('btn-delete-event').style.display = 'none';
+    document.getElementById('btn-save-event').textContent = 'Simpan';
+  }
+
+  function editEvent(id) {
+    var events = loadEvents(calCurrentUserId);
+    var ev = events.find(function(e) { return e.id === id; });
+    if (!ev) return;
+    calEditingEventId = id;
+    document.getElementById('evt-title').value = ev.title;
+    document.getElementById('evt-time').value = ev.time || '';
+    document.getElementById('evt-desc').value = ev.desc || '';
+    document.getElementById('modal-title').textContent = 'Edit Kegiatan — ' + formatDateId(ev.date);
+    document.getElementById('btn-delete-event').style.display = '';
+    document.getElementById('btn-save-event').textContent = 'Perbarui';
+    var colorOpt = document.querySelector('.color-opt[data-color="' + ev.color + '"]');
+    if (colorOpt) selectColor(colorOpt);
+  }
+
+  function deleteCurrentEvent() {
+    if (!calEditingEventId) return;
+    if (!confirm('Yakin ingin menghapus kegiatan ini?')) return;
+    var events = loadEvents(calCurrentUserId).filter(function(e) { return e.id !== calEditingEventId; });
+    saveEvents(calCurrentUserId, events);
+    renderCalendar();
+    renderDayEventList(calSelectedDate);
+    calEditingEventId = null;
+    document.getElementById('evt-title').value = '';
+    document.getElementById('evt-time').value = '';
+    document.getElementById('evt-desc').value = '';
+    document.getElementById('modal-title').textContent = 'Tambah Kegiatan — ' + formatDateId(calSelectedDate);
+    document.getElementById('btn-delete-event').style.display = 'none';
+    document.getElementById('btn-save-event').textContent = 'Simpan';
+  }
+
+  function renderDayEventList(dateKey) {
+    var events = loadEvents(calCurrentUserId).filter(function(e) { return e.date === dateKey; })
+      .sort(function(a,b){return (a.time||'').localeCompare(b.time||'');});
+    var container = document.getElementById('day-events-list');
+    if (!events.length) { container.innerHTML = ''; return; }
+    var html = '<div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px;">Kegiatan hari ini (' + events.length + ')</div>';
+    for (var i = 0; i < events.length; i++) {
+      var ev = events[i];
+      var c = EVENT_COLORS[ev.color] || EVENT_COLORS['#c8a84b'];
+      html += '<div class="event-list-item">';
+      html += '<div class="event-list-color" style="background:' + ev.color + '"></div>';
+      html += '<div class="event-list-info">';
+      html += '<div class="event-list-title">' + escapeHtml(ev.title) + '</div>';
+      html += '<div class="event-list-time">' + (ev.time ? ev.time + ' · ' : '') + (ev.desc ? escapeHtml(ev.desc) : 'Tanpa keterangan') + '</div>';
+      html += '</div>';
+      html += '<div class="event-list-actions">';
+      html += '<button class="ela-edit" onclick="editEvent(\'' + ev.id + '\')">Edit</button>';
+      html += '<button class="ela-delete" onclick="deleteEventById(\'' + ev.id + '\')">Hapus</button>';
+      html += '</div></div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function deleteEventById(id) {
+    if (!confirm('Yakin ingin menghapus kegiatan ini?')) return;
+    var events = loadEvents(calCurrentUserId).filter(function(e) { return e.id !== id; });
+    saveEvents(calCurrentUserId, events);
+    renderCalendar();
+    renderDayEventList(calSelectedDate);
+    if (calEditingEventId === id) {
+      calEditingEventId = null;
+      document.getElementById('evt-title').value = '';
+      document.getElementById('evt-time').value = '';
+      document.getElementById('evt-desc').value = '';
+      document.getElementById('modal-title').textContent = 'Tambah Kegiatan — ' + formatDateId(calSelectedDate);
+      document.getElementById('btn-delete-event').style.display = 'none';
+      document.getElementById('btn-save-event').textContent = 'Simpan';
+    }
+  }
+
+  function initCalendar(userId) {
+    calCurrentUserId = userId;
+    renderCalendar();
+  }
+
   function init(){
     const s=checkSession();
     if(!s)return;
     setTopbarUser(s);
     fetchProfil(s.id);
-    // Role switcher
     initRoleSwitcher(s, false);
+    initCalendar(s.id);
   }
   init();
 </script>
