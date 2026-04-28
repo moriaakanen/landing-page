@@ -852,15 +852,47 @@
   }
   async function submitHapus() {
     const btn = document.getElementById('btn-hapus-submit');
-    btn.disabled=true; btn.classList.add('loading');
+    btn.disabled = true; btn.classList.add('loading');
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_PENGGUNA}?id=eq.${selectedUserId}`,{method:'DELETE',headers:H});
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      showPageAlert(`🗑 Akun ${selectedUserName} berhasil dihapus.`,'success');
+      // ── Guard sisi-klien (defence-in-depth; server tetap punya guard sendiri) ──
+      // 1. Tidak boleh hapus akun bootstrap admin (ADMIN_USERS di config.js)
+      // 2. Tidak boleh hapus diri sendiri
+      const target = userMap[selectedUserId];
+      if (target && ADMIN_USERS.includes(target.username)) {
+        throw new Error('Akun administrator utama tidak dapat dihapus.');
+      }
+      if (target && SESSION && target.username === SESSION.username) {
+        throw new Error('Tidak dapat menghapus akun Anda sendiri.');
+      }
+
+      // Panggil RPC hapus_pengguna (SECURITY DEFINER) — bukan DELETE REST.
+      // Server akan validasi: target ada, bukan admin terakhir, dst.
+      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/hapus_pengguna`, {
+        method: 'POST',
+        headers: H,
+        body: JSON.stringify({
+          p_user_id:    selectedUserId,
+          p_caller_id:  SESSION ? SESSION.id : null
+        })
+      });
+      if (!rpcRes.ok) {
+        let errMsg = `HTTP ${rpcRes.status}`;
+        try { const err = await rpcRes.json(); errMsg = err.message || errMsg; } catch(_) {}
+        throw new Error(errMsg);
+      }
+      const rpcResult = await rpcRes.json().catch(() => null);
+      if (rpcResult === false) {
+        throw new Error('Hapus pengguna gagal — pengguna tidak ditemukan atau Anda tidak berhak.');
+      }
+      showPageAlert(`🗑 Akun ${selectedUserName} berhasil dihapus.`, 'success');
       closeModal('modal-hapus');
       await loadPengguna();
-    } catch(e) { showPageAlert(`Gagal menghapus: ${e.message}`,'error'); closeModal('modal-hapus'); }
-    finally { btn.disabled=false; btn.classList.remove('loading'); }
+    } catch(e) {
+      showPageAlert(`Gagal menghapus: ${e.message}`, 'error');
+      closeModal('modal-hapus');
+    } finally {
+      btn.disabled = false; btn.classList.remove('loading');
+    }
   }
 
   /* ══ ALERT HELPERS ══ */
