@@ -376,16 +376,46 @@ let SESSION = null;
 let DATA    = [];   // semua row dari kamus_pok
 let EDITING = null; // row yang sedang di-edit (null = mode tambah)
 
-/* ── Session check ────────────────────────────────────────────────── */
+/* ── Session check ──────────────────────────────────────────────────
+   Pola seragam dgn halaman admin lain (manajemen-pengguna.html,
+   admin-surat-tugas.js):
+     1. Tidak ada session       → redirect ke login
+     2. Session expired         → clear & redirect ke login
+     3. Wajib ganti password    → redirect ke ganti-password
+     4. Set active_role default jika belum ada
+     5. Bukan admin atau active_role bukan admin → redirect ke index
+   Field expiry yang BENAR adalah `expires_at` (snake_case) — sesuai
+   yang di-set di login.html. Versi sebelumnya pakai `expiresAt`
+   (camelCase) sehingga validasi expiry diam-diam tidak pernah aktif.
+*/
 function checkSession() {
-  let s; try { s = JSON.parse(localStorage.getItem('nova_user') || 'null'); } catch (_) {}
-  if (!s) { window.location.replace('login.html'); return null; }
-  // Validasi 8 jam (sama dengan halaman lain)
-  if (s.expiresAt && Date.now() > s.expiresAt) {
+  try {
+    const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
+    if (!s) { window.location.replace('login.html'); return null; }
+    if (s.expires_at && Date.now() > s.expires_at) {
+      localStorage.removeItem('nova_user');
+      window.location.replace('login.html');
+      return null;
+    }
+    if (s.must_change_password) {
+      window.location.replace('ganti-password.html');
+      return null;
+    }
+    const roles = getUserRoles(s);
+    if (!s.active_role) {
+      s.active_role = roles.includes('admin') ? 'admin' : 'user';
+      localStorage.setItem('nova_user', JSON.stringify(s));
+    }
+    if (s.active_role !== 'admin' || !roles.includes('admin')) {
+      window.location.replace('index.html');
+      return null;
+    }
+    return s;
+  } catch(e) {
     localStorage.removeItem('nova_user');
-    window.location.replace('login.html'); return null;
+    window.location.replace('login.html');
+    return null;
   }
-  return s;
 }
 function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
 function setTopbarUser(s) {
