@@ -15,6 +15,95 @@ const H = {
   'Content-Type': 'application/json'
 };
 
+/* ═════════════════════════════════════════════════════════════════════
+   TIPE SURAT — fitur multi-template
+   ─────────────────────────────────────────────────────────────────────
+   7 pilihan tipe yg menentukan template .docx yg dipakai saat generate.
+   String value sengaja sama dengan check-constraint surat_tugas_tipe_enum
+   di DB (lihat surat_tugas_add_tipe.sql).
+
+   Ada 3 file template di Supabase Storage:
+     T1: template-surat-tugas-spd-kendaraan-menginap.docx
+         — punya {#has_spd}, {#kendaraan}, {#menginap}
+     T2: template-surat-tugas-lampiran.docx
+         — punya {#ul} (tabel lampiran)
+     T3: template-surat-tugas-lampiran-spd-kendaraan-menginap.docx
+         — punya {#ul} (lampiran), {#kendaraan}, {#menginap}; SPD selalu
+           render (tidak ada {#has_spd} wrapper)
+
+   Catatan tag yg perlu Anda pastikan ADA di template:
+     - T1 & T3: blok kendaraan dibungkus {#kendaraan}...{/kendaraan}
+                blok menginap   dibungkus {#menginap}...{/menginap}
+                (sebelumnya pakai {#ul} dua kali — perlu di-rename)
+═══════════════════════════════════════════════════════════════════════ */
+
+// 7 pilihan tipe (urutan = urutan tampil di dropdown UI).
+const TIPE_OPTIONS = [
+  { value: 'surat_tugas',                                   label: 'Surat Tugas' },
+  { value: 'surat_tugas_kendaraan',                         label: 'Surat Tugas + Kendaraan' },
+  { value: 'surat_tugas_lampiran',                          label: 'Surat Tugas + Lampiran' },
+  { value: 'surat_tugas_spd_kendaraan',                     label: 'Surat Tugas + SPD + Kendaraan' },
+  { value: 'surat_tugas_spd_kendaraan_menginap',            label: 'Surat Tugas + SPD + Kendaraan + Menginap' },
+  { value: 'surat_tugas_lampiran_spd_kendaraan',            label: 'Surat Tugas + Lampiran + SPD + Kendaraan' },
+  { value: 'surat_tugas_lampiran_spd_kendaraan_menginap',   label: 'Surat Tugas + Lampiran + SPD + Kendaraan + Menginap' },
+];
+
+// URL template di Supabase Storage. Pastikan nama file yang Anda upload
+// di bucket `template/` sama persis dengan path di sini.
+const TEMPLATE_URL_T1 = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-spd-kendaraan-menginap.docx';
+const TEMPLATE_URL_T2 = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-lampiran.docx';
+const TEMPLATE_URL_T3 = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-lampiran-spd-kendaraan-menginap.docx';
+
+// Mapping tipe → template URL.
+const TIPE_TO_TEMPLATE = {
+  'surat_tugas':                                  TEMPLATE_URL_T1,
+  'surat_tugas_kendaraan':                        TEMPLATE_URL_T1,
+  'surat_tugas_lampiran':                         TEMPLATE_URL_T2,
+  'surat_tugas_spd_kendaraan':                    TEMPLATE_URL_T1,
+  'surat_tugas_spd_kendaraan_menginap':           TEMPLATE_URL_T1,
+  'surat_tugas_lampiran_spd_kendaraan':           TEMPLATE_URL_T3,
+  'surat_tugas_lampiran_spd_kendaraan_menginap':  TEMPLATE_URL_T3,
+};
+
+// Mapping tipe → flags untuk kontrol section di template.
+//   has_spd       → toggle {#has_spd}...{/has_spd}  (hanya berpengaruh di T1)
+//   has_kendaraan → kalau true, kirim array `kendaraan` (T1 + T3)
+//   has_menginap  → kalau true, kirim array `menginap`  (T1 + T3)
+//   has_lampiran  → kalau true, kirim array `ul` utk tabel lampiran (T2 + T3)
+//
+// Catatan: untuk T3, has_spd dikirim true walau template T3 tidak punya
+// {#has_spd} wrapper — engine docxtemplater akan ignore tag yg tidak ada
+// di template, jadi aman.
+const TIPE_TO_FLAGS = {
+  'surat_tugas':                                  { has_spd:false, has_kendaraan:false, has_menginap:false, has_lampiran:false },
+  'surat_tugas_kendaraan':                        { has_spd:false, has_kendaraan:true,  has_menginap:false, has_lampiran:false },
+  'surat_tugas_lampiran':                         { has_spd:false, has_kendaraan:false, has_menginap:false, has_lampiran:true  },
+  'surat_tugas_spd_kendaraan':                    { has_spd:true,  has_kendaraan:true,  has_menginap:false, has_lampiran:false },
+  'surat_tugas_spd_kendaraan_menginap':           { has_spd:true,  has_kendaraan:true,  has_menginap:true,  has_lampiran:false },
+  'surat_tugas_lampiran_spd_kendaraan':           { has_spd:true,  has_kendaraan:true,  has_menginap:false, has_lampiran:true  },
+  'surat_tugas_lampiran_spd_kendaraan_menginap':  { has_spd:true,  has_kendaraan:true,  has_menginap:true,  has_lampiran:true  },
+};
+
+// Helper: ubah enum value ke label readable. Kalau value tidak dikenal,
+// kembalikan apa adanya (untuk debug).
+function tipeLabel(tipe) {
+  if (!tipe) return '';
+  const opt = TIPE_OPTIONS.find(o => o.value === tipe);
+  return opt ? opt.label : String(tipe);
+}
+
+// Helper: dapatkan flags dari tipe. Return objek dgn semua flag = false
+// kalau tipe NULL/invalid (defensive — caller bisa langsung pakai).
+function tipeFlags(tipe) {
+  return TIPE_TO_FLAGS[tipe] || { has_spd:false, has_kendaraan:false, has_menginap:false, has_lampiran:false };
+}
+
+// Helper: dapatkan URL template dari tipe. Return null kalau tipe
+// NULL/invalid — caller wajib handle (jangan render docx tanpa tipe valid).
+function tipeTemplateUrl(tipe) {
+  return TIPE_TO_TEMPLATE[tipe] || null;
+}
+
 let SESSION = null;
 let allSurat = [];                // descending by created_at (untuk display di table)
 let suratMap = {};                // id → object
@@ -455,6 +544,7 @@ function renderTable(data) {
         ${cellTextareaHTML(s.id, 'alat_angkutan', alat, isMenunggu, 'cth: Kendaraan Darat')}
         ${cellMAKHTML(s.id, mak, isMenunggu)}
         ${cellPenandatanganHTML(s.id, ttdNip, ttdNama, isMenunggu)}
+        ${cellTipeHTML(s.id, s.tipe, isMenunggu)}
 
         <td class="col-status">${badgeHTML(s.status)}</td>
         <td class="col-aksi"><div class="aksi-wrap">${aksi}</div></td>
@@ -476,6 +566,7 @@ function renderTable(data) {
         <th class="col-alat">Alat Angkutan</th>
         <th class="col-mak">POK</th>
         <th class="col-ttd">Penandatangan</th>
+        <th class="col-tipe">Tipe</th>
         ${sortHeader('status',        'Status',            'col-status')}
         <th class="col-aksi">Aksi</th>
         ${sortHeader('pengaju',       'Diajukan oleh',     'col-pengaju')}
@@ -563,6 +654,7 @@ const FIELD_TO_COL = {
   alat_angkutan:    'col-alat',
   pembebanan:       'col-mak',
   penandatangan:    'col-ttd',
+  tipe:             'col-tipe',
 };
 
 function cellTextHTML(id, field, val, editable, placeholder) {
@@ -593,6 +685,39 @@ function cellTextareaHTML(id, field, val, editable, placeholder) {
       data-col-field="${field}"
       placeholder="${escAttr(placeholder)}">${esc(val)}</textarea>
   </td>`;
+}
+
+/* Cell khusus utk kolom Tipe — render <select> dengan 7 pilihan kalau
+   editable, atau ro-text kalau status sudah disetujui/ditolak.
+   Value NULL/empty di-display sebagai '—' (readonly) atau placeholder
+   "— Pilih tipe —" (editable) — admin wajib pilih sebelum approve. */
+function cellTipeHTML(id, val, editable) {
+  if (!editable) {
+    const label = tipeLabel(val);
+    return `<td class="col-tipe">
+      <div class="ro-text${val ? '' : ' muted'}"
+           tabindex="0" data-col-field="tipe">${val ? esc(label) : '—'}</div>
+    </td>`;
+  }
+  const isEmpty = !val;
+  const opts = TIPE_OPTIONS.map(o =>
+    `<option value="${escAttr(o.value)}"${o.value === val ? ' selected' : ''}>${esc(o.label)}</option>`
+  ).join('');
+  return `<td class="col-tipe">
+    <select class="xls-cell${isEmpty ? ' tipe-empty' : ''}"
+            data-field="tipe" data-id="${id}" data-col-field="tipe"
+            onchange="onTipeCellChange(this)">
+      <option value=""${isEmpty ? ' selected' : ''}>— Pilih tipe —</option>
+      ${opts}
+    </select>
+  </td>`;
+}
+
+// Toggle class 'tipe-empty' (placeholder italic) saat user pilih/clear opsi.
+function onTipeCellChange(sel) {
+  if (sel.value) sel.classList.remove('tipe-empty');
+  else           sel.classList.add('tipe-empty');
+  sel.classList.remove('err');
 }
 
 function cellDateHTML(id, field, isoVal, editable, placeholder) {
@@ -1748,6 +1873,7 @@ function collectRowFields(suratId) {
     penandatangan_nip:    ttd.nip,
     penandatangan_nama:   ttd.nama,
     tempat_terbit:        'Waisai',
+    tipe:                 get('tipe') || null,
   };
 }
 
@@ -1762,6 +1888,7 @@ function validateApproveFields(values) {
     ['alat_angkutan',      'Alat Angkutan'],
     ['pembebanan',         'POK'],
     ['penandatangan_nama', 'Penandatangan'],
+    ['tipe',               'Tipe Surat'],
   ];
   const errors = [], errFields = [];
   checks.forEach(([k, label]) => {
@@ -1878,6 +2005,7 @@ function openApprove(id) {
       <em style="color:var(--muted);font-style:italic;font-size:11px">${ttdJabatan ? esc(ttdJabatan) : '<span style="color:var(--red)">⚠ Jabatan tidak ditemukan di riwayat (akan ditampilkan "-" di docx)</span>'}</em><br>
       <span style="color:var(--muted);font-size:11px">NIP. ${esc(values.penandatangan_nip)}</span>
     </span></div>
+    <div class="approve-preview-row"><strong>Tipe Surat</strong><span>${esc(tipeLabel(values.tipe))}</span></div>
   `;
   document.getElementById('inp-catatan-approve').value = s.catatan_admin || '';
   document.getElementById('approve-alert').className = 'alert';
@@ -1917,6 +2045,7 @@ async function submitApprove() {
     penandatangan_nip:     values.penandatangan_nip,
     penandatangan_jabatan: jabatan || '',
     catatan_admin:         document.getElementById('inp-catatan-approve').value.trim() || null,
+    tipe:                  values.tipe,
   };
 
   const btn = document.getElementById('btn-approve-submit');
