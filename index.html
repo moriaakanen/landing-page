@@ -433,6 +433,7 @@
   }
 
   function changeMonth(delta) {
+    calCurrentDate.setDate(1);
     calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
     renderCalendar();
   }
