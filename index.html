@@ -333,11 +333,27 @@
       card.innerHTML=`<div class="profil-banner"></div><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Gagal Memuat Data</div><div class="empty-desc">Terjadi kesalahan. Muat ulang halaman.</div></div>`;
     }
   }
-  /* ─────────── KALENDER KEGIATAN ─────────── */
+  /* ─────────── KALENDER KEGIATAN ───────────
+     Storage: tabel public.kalender_kegiatan di Supabase (pengganti
+     localStorage[nova_calendar_<userId>] versi sebelumnya). Semua
+     mutasi via 3 RPC: kalender_list / kalender_upsert / kalender_delete.
+
+     Strategi rendering:
+       1. Saat init: migrasi legacy localStorage (sekali) → load dari DB
+          → simpan di cache calCachedEvents → render.
+       2. Saat user save / delete: panggil RPC → reload dari DB → render
+          ulang. Cache selalu jadi single source of truth utk fungsi
+          render yang tetap sync (renderCalendar, renderDayEventList).
+
+     Field shape mengikuti kolom DB:
+       { id, user_id, tanggal, judul, waktu, keterangan, warna,
+         created_at, updated_at }
+  */
   var calCurrentDate = new Date();
   var calSelectedDate = null;
-  var calEditingEventId = null;
+  var calEditingEventId = null;       // null = mode tambah, number = mode edit
   var calCurrentUserId = null;
+  var calCachedEvents = [];           // mirror DB; di-refresh setelah setiap mutasi
   var EVENT_COLORS = {
     '#c8a84b': {bg:'rgba(200,168,75,0.15)', text:'#7a5c10'},
     '#3b82f6': {bg:'rgba(59,130,246,0.12)', text:'#1d4ed8'},
@@ -349,20 +365,114 @@
     '#6b7280': {bg:'rgba(107,114,128,0.12)', text:'#374151'},
   };
 
-  function getCalStorageKey(userId) {
-    return 'nova_calendar_' + (userId || 'anon');
+  /* ─── RPC helpers ─── */
+  async function rpcCall(fnName, params) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const err = await res.json(); msg = err.message || err.hint || msg; } catch(_) {}
+      throw new Error(msg);
+    }
+    return res.json();
   }
 
-  function loadEvents(userId) {
+  function rpcListEvents(userId, callerId) {
+    return rpcCall('kalender_list', { p_user_id: userId, p_caller_id: callerId });
+  }
+
+  function rpcUpsertEvent(ev, callerId) {
+    return rpcCall('kalender_upsert', {
+      p_caller_id:  callerId,
+      p_id:         ev.id || null,
+      p_tanggal:    ev.tanggal,
+      p_judul:      ev.judul,
+      p_waktu:      ev.waktu      || null,
+      p_keterangan: ev.keterangan || null,
+      p_warna:      ev.warna      || '#c8a84b'
+    });
+  }
+
+  function rpcDeleteEvent(eventId, callerId) {
+    return rpcCall('kalender_delete', { p_id: eventId, p_caller_id: callerId });
+  }
+
+  /* ─── Utility ─── */
+  // Postgres `time` di-serialize ke 'HH:MM:SS' — strip seconds untuk display.
+  function fmtWaktu(t) {
+    if (!t) return '';
+    return String(t).slice(0, 5);
+  }
+
+  /* ─── Load all events for current user ke cache ─── */
+  async function reloadEvents() {
+    if (!calCurrentUserId) return;
     try {
-      return JSON.parse(localStorage.getItem(getCalStorageKey(userId)) || '[]');
-    } catch(e) { return []; }
+      const rows = await rpcListEvents(calCurrentUserId, calCurrentUserId);
+      calCachedEvents = Array.isArray(rows) ? rows : [];
+    } catch(e) {
+      console.error('[NOVA] Gagal load kalender:', e);
+      calCachedEvents = [];
+    }
   }
 
-  function saveEvents(userId, events) {
-    localStorage.setItem(getCalStorageKey(userId), JSON.stringify(events));
+  /* ─── Migrasi data lama dari localStorage ke DB ───
+     Idempotent: setiap event yg berhasil di-upsert langsung di-remove
+     dari localStorage. Kalau partial fail, sisa event tetap di
+     localStorage utk retry next login (tidak duplikasi).
+  */
+  async function migrateLegacyEvents(userId) {
+    var key = 'nova_calendar_' + userId;
+    var raw = localStorage.getItem(key);
+    if (!raw) return;
+
+    var legacy;
+    try { legacy = JSON.parse(raw); }
+    catch(e) {
+      console.warn('[NOVA] Legacy kalender corrupt — skip migrasi:', e);
+      return;
+    }
+    if (!Array.isArray(legacy)) { localStorage.removeItem(key); return; }
+    if (!legacy.length)         { localStorage.removeItem(key); return; }
+
+    console.log('[NOVA] Migrasi', legacy.length, 'event kalender lama ke DB...');
+    var pending = legacy.slice();
+    var i = 0;
+    while (i < pending.length) {
+      var legacyEv = pending[i];
+      try {
+        await rpcUpsertEvent({
+          id:         null,
+          tanggal:    legacyEv.date,
+          judul:      legacyEv.title || '(tanpa judul)',
+          waktu:      legacyEv.time  || null,
+          keterangan: legacyEv.desc  || null,
+          warna:      legacyEv.color || '#c8a84b'
+        }, userId);
+        // Sukses → keluarkan dari pending, persist ulang ke localStorage
+        pending.splice(i, 1);
+        if (pending.length) localStorage.setItem(key, JSON.stringify(pending));
+        else                localStorage.removeItem(key);
+      } catch(err) {
+        console.error('[NOVA] Gagal migrasi 1 event, akan retry next login:', legacyEv, err);
+        i++;
+      }
+    }
+    if (pending.length) {
+      console.warn('[NOVA] ' + pending.length + ' event gagal migrasi — masih di localStorage.');
+    } else {
+      console.log('[NOVA] Migrasi kalender selesai. localStorage dibersihkan.');
+    }
   }
 
+  /* ─── Calendar grid math (sama seperti versi lama, tidak diubah) ─── */
   function getMonthData(year, month) {
     var firstDay = new Date(year, month, 1);
     var lastDay = new Date(year, month + 1, 0);
@@ -370,15 +480,12 @@
     var daysInMonth = lastDay.getDate();
     var prevMonthLast = new Date(year, month, 0).getDate();
     var days = [];
-    // prev month padding
     for (var i = startOffset - 1; i >= 0; i--) {
       days.push({d: prevMonthLast - i, m: month - 1, y: year, other: true});
     }
-    // current month
     for (var d = 1; d <= daysInMonth; d++) {
       days.push({d: d, m: month, y: year, other: false});
     }
-    // next month padding
     var rem = 42 - days.length;
     for (var j = 1; j <= rem; j++) {
       days.push({d: j, m: month + 1, y: year, other: true});
@@ -390,6 +497,7 @@
     return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
   }
 
+  /* ─── Render bulan + event ─── */
   function renderCalendar() {
     var year = calCurrentDate.getFullYear();
     var month = calCurrentDate.getMonth();
@@ -400,14 +508,15 @@
     var container = document.getElementById('cal-days');
     var today = new Date();
     var todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
-    var events = calCurrentUserId ? loadEvents(calCurrentUserId) : [];
+    var events = calCachedEvents;
 
     var html = '';
     for (var i = 0; i < days.length; i++) {
       var day = days[i];
       var dateKey = formatDateKey(day.y, day.m, day.d);
       var isToday = dateKey === todayKey;
-      var dayEvents = events.filter(function(e) { return e.date === dateKey; }).sort(function(a,b){return (a.time||'').localeCompare(b.time||'');});
+      var dayEvents = events.filter(function(e) { return e.tanggal === dateKey; })
+                            .sort(function(a, b) { return (a.waktu || '').localeCompare(b.waktu || ''); });
       var hasEvents = dayEvents.length > 0;
       var cls = 'cal-day' + (day.other ? ' other-month' : '') + (isToday ? ' today' : '') + (hasEvents ? ' has-events' : '');
       html += '<div class="' + cls + '" onclick="openModalForDate(\'' + dateKey + '\')">';
@@ -415,8 +524,8 @@
       html += '<div class="cal-events">';
       for (var k = 0; k < Math.min(dayEvents.length, 3); k++) {
         var ev = dayEvents[k];
-        var c = EVENT_COLORS[ev.color] || EVENT_COLORS['#c8a84b'];
-        html += '<div class="cal-event" style="background:' + c.bg + ';color:' + c.text + '">' + escapeHtml(ev.title) + '</div>';
+        var c = EVENT_COLORS[ev.warna] || EVENT_COLORS['#c8a84b'];
+        html += '<div class="cal-event" style="background:' + c.bg + ';color:' + c.text + '">' + escapeHtml(ev.judul) + '</div>';
       }
       if (dayEvents.length > 3) {
         html += '<div class="cal-more">+' + (dayEvents.length - 3) + ' lainnya</div>';
@@ -428,7 +537,7 @@
 
   function escapeHtml(text) {
     var div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = text == null ? '' : String(text);
     return div.innerHTML;
   }
 
@@ -483,122 +592,138 @@
     return sel ? sel.getAttribute('data-color') : '#c8a84b';
   }
 
-  function saveEvent() {
-    var title = document.getElementById('evt-title').value.trim();
-    if (!title) { alert('Judul kegiatan wajib diisi.'); return; }
-    var events = loadEvents(calCurrentUserId);
-    var evt = {
-      id: calEditingEventId || 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      date: calSelectedDate,
-      title: title,
-      time: document.getElementById('evt-time').value,
-      desc: document.getElementById('evt-desc').value.trim(),
-      color: getSelectedColor(),
-      createdAt: calEditingEventId ? (events.find(function(e){return e.id===calEditingEventId})||{}).createdAt || Date.now() : Date.now()
-    };
-    if (calEditingEventId) {
-      var idx = events.findIndex(function(e) { return e.id === calEditingEventId; });
-      if (idx !== -1) events[idx] = evt;
-      else events.push(evt);
-    } else {
-      events.push(evt);
-    }
-    saveEvents(calCurrentUserId, events);
-    renderCalendar();
-    renderDayEventList(calSelectedDate);
-    // Reset form untuk tambah baru
+  function resetEventForm(dateKey) {
     calEditingEventId = null;
     document.getElementById('evt-title').value = '';
     document.getElementById('evt-time').value = '';
     document.getElementById('evt-desc').value = '';
-    document.getElementById('modal-title').textContent = 'Tambah Kegiatan — ' + formatDateId(calSelectedDate);
+    document.getElementById('modal-title').textContent = 'Tambah Kegiatan — ' + formatDateId(dateKey);
     document.getElementById('btn-delete-event').style.display = 'none';
     document.getElementById('btn-save-event').textContent = 'Simpan';
+    selectColor(document.querySelector('.color-opt[data-color="#c8a84b"]'));
+  }
+
+  /* ─── CRUD via RPC ─── */
+  async function saveEvent() {
+    var titleVal = document.getElementById('evt-title').value.trim();
+    if (!titleVal) { alert('Judul kegiatan wajib diisi.'); return; }
+
+    var btn = document.getElementById('btn-save-event');
+    var btnDel = document.getElementById('btn-delete-event');
+    btn.disabled = true;
+    if (btnDel) btnDel.disabled = true;
+
+    var payload = {
+      id:         calEditingEventId,                                  // null = create
+      tanggal:    calSelectedDate,
+      judul:      titleVal,
+      waktu:      document.getElementById('evt-time').value || null,
+      keterangan: document.getElementById('evt-desc').value.trim() || null,
+      warna:      getSelectedColor()
+    };
+
+    try {
+      await rpcUpsertEvent(payload, calCurrentUserId);
+      await reloadEvents();
+      renderCalendar();
+      renderDayEventList(calSelectedDate);
+      resetEventForm(calSelectedDate);
+    } catch(e) {
+      alert('Gagal menyimpan kegiatan: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      if (btnDel) btnDel.disabled = false;
+    }
   }
 
   function editEvent(id) {
-    var events = loadEvents(calCurrentUserId);
-    var ev = events.find(function(e) { return e.id === id; });
+    var ev = calCachedEvents.find(function(e) { return e.id === id; });
     if (!ev) return;
     calEditingEventId = id;
-    document.getElementById('evt-title').value = ev.title;
-    document.getElementById('evt-time').value = ev.time || '';
-    document.getElementById('evt-desc').value = ev.desc || '';
-    document.getElementById('modal-title').textContent = 'Edit Kegiatan — ' + formatDateId(ev.date);
+    document.getElementById('evt-title').value = ev.judul || '';
+    document.getElementById('evt-time').value  = fmtWaktu(ev.waktu);
+    document.getElementById('evt-desc').value  = ev.keterangan || '';
+    document.getElementById('modal-title').textContent = 'Edit Kegiatan — ' + formatDateId(ev.tanggal);
     document.getElementById('btn-delete-event').style.display = '';
     document.getElementById('btn-save-event').textContent = 'Perbarui';
-    var colorOpt = document.querySelector('.color-opt[data-color="' + ev.color + '"]');
+    var colorOpt = document.querySelector('.color-opt[data-color="' + ev.warna + '"]');
     if (colorOpt) selectColor(colorOpt);
   }
 
-  function deleteCurrentEvent() {
+  async function deleteCurrentEvent() {
     if (!calEditingEventId) return;
     if (!confirm('Yakin ingin menghapus kegiatan ini?')) return;
-    var events = loadEvents(calCurrentUserId).filter(function(e) { return e.id !== calEditingEventId; });
-    saveEvents(calCurrentUserId, events);
-    renderCalendar();
-    renderDayEventList(calSelectedDate);
-    calEditingEventId = null;
-    document.getElementById('evt-title').value = '';
-    document.getElementById('evt-time').value = '';
-    document.getElementById('evt-desc').value = '';
-    document.getElementById('modal-title').textContent = 'Tambah Kegiatan — ' + formatDateId(calSelectedDate);
-    document.getElementById('btn-delete-event').style.display = 'none';
-    document.getElementById('btn-save-event').textContent = 'Simpan';
+    var btn = document.getElementById('btn-delete-event');
+    btn.disabled = true;
+    try {
+      await rpcDeleteEvent(calEditingEventId, calCurrentUserId);
+      await reloadEvents();
+      renderCalendar();
+      renderDayEventList(calSelectedDate);
+      resetEventForm(calSelectedDate);
+    } catch(e) {
+      alert('Gagal menghapus kegiatan: ' + e.message);
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   function renderDayEventList(dateKey) {
-    var events = loadEvents(calCurrentUserId).filter(function(e) { return e.date === dateKey; })
-      .sort(function(a,b){return (a.time||'').localeCompare(b.time||'');});
+    var events = calCachedEvents.filter(function(e) { return e.tanggal === dateKey; })
+                                .sort(function(a, b) { return (a.waktu || '').localeCompare(b.waktu || ''); });
     var container = document.getElementById('day-events-list');
     if (!events.length) { container.innerHTML = ''; return; }
     var html = '<div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px;">Kegiatan hari ini (' + events.length + ')</div>';
     for (var i = 0; i < events.length; i++) {
       var ev = events[i];
-      var c = EVENT_COLORS[ev.color] || EVENT_COLORS['#c8a84b'];
+      var c = EVENT_COLORS[ev.warna] || EVENT_COLORS['#c8a84b'];
+      var waktuStr = fmtWaktu(ev.waktu);
       html += '<div class="event-list-item">';
-      html += '<div class="event-list-color" style="background:' + ev.color + '"></div>';
+      html += '<div class="event-list-color" style="background:' + ev.warna + '"></div>';
       html += '<div class="event-list-info">';
-      html += '<div class="event-list-title">' + escapeHtml(ev.title) + '</div>';
-      html += '<div class="event-list-time">' + (ev.time ? ev.time + ' · ' : '') + (ev.desc ? escapeHtml(ev.desc) : 'Tanpa keterangan') + '</div>';
+      html += '<div class="event-list-title">' + escapeHtml(ev.judul) + '</div>';
+      html += '<div class="event-list-time">' + (waktuStr ? waktuStr + ' · ' : '') + (ev.keterangan ? escapeHtml(ev.keterangan) : 'Tanpa keterangan') + '</div>';
       html += '</div>';
       html += '<div class="event-list-actions">';
-      html += '<button class="ela-edit" onclick="editEvent(\'' + ev.id + '\')">Edit</button>';
-      html += '<button class="ela-delete" onclick="deleteEventById(\'' + ev.id + '\')">Hapus</button>';
+      html += '<button class="ela-edit" onclick="editEvent(' + ev.id + ')">Edit</button>';
+      html += '<button class="ela-delete" onclick="deleteEventById(' + ev.id + ')">Hapus</button>';
       html += '</div></div>';
     }
     container.innerHTML = html;
   }
 
-  function deleteEventById(id) {
+  async function deleteEventById(id) {
     if (!confirm('Yakin ingin menghapus kegiatan ini?')) return;
-    var events = loadEvents(calCurrentUserId).filter(function(e) { return e.id !== id; });
-    saveEvents(calCurrentUserId, events);
-    renderCalendar();
-    renderDayEventList(calSelectedDate);
-    if (calEditingEventId === id) {
-      calEditingEventId = null;
-      document.getElementById('evt-title').value = '';
-      document.getElementById('evt-time').value = '';
-      document.getElementById('evt-desc').value = '';
-      document.getElementById('modal-title').textContent = 'Tambah Kegiatan — ' + formatDateId(calSelectedDate);
-      document.getElementById('btn-delete-event').style.display = 'none';
-      document.getElementById('btn-save-event').textContent = 'Simpan';
+    try {
+      await rpcDeleteEvent(id, calCurrentUserId);
+      await reloadEvents();
+      renderCalendar();
+      renderDayEventList(calSelectedDate);
+      if (calEditingEventId === id) resetEventForm(calSelectedDate);
+    } catch(e) {
+      alert('Gagal menghapus kegiatan: ' + e.message);
     }
   }
 
-  function initCalendar(userId) {
+  async function initCalendar(userId) {
     calCurrentUserId = userId;
+    // Render skeleton dulu pakai cache kosong supaya UI tidak hang
+    renderCalendar();
+    // Migrasi legacy localStorage → DB (sekali, idempotent)
+    try { await migrateLegacyEvents(userId); }
+    catch(e) { console.warn('[NOVA] Migrasi legacy kalender error:', e); }
+    // Load dari DB → render ulang dgn data sebenarnya
+    await reloadEvents();
     renderCalendar();
   }
 
-  function init(){
-    const s=checkSession();
-    if(!s)return;
+  async function init(){
+    const s = checkSession();
+    if (!s) return;
     setTopbarUser(s);
     fetchProfil(s.id);
     initRoleSwitcher(s, false);
-    initCalendar(s.id);
+    await initCalendar(s.id);
   }
   init();
 </script>
