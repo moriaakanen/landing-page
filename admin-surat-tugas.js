@@ -3173,34 +3173,17 @@ const PPK_NAMA_DEFAULT = 'Abdillah Humam, SST';
 /* ════════════════════════════════════════════════════════════════════
    TEMPLATE-BASED BUILDER — docxtemplater
 
-   KONFIGURASI URL TEMPLATE:
-   Ubah TEMPLATE_URL_PORTRAIT / TEMPLATE_URL_LANDSCAPE di bawah sesuai
-   lokasi file di Supabase Storage.
+   URL template & mapping tipe → template ada di TIPE_TO_TEMPLATE
+   (didefinisikan di awal file). Loader-nya: loadTemplateBuffer(tipe).
 
-   Kenapa 2 template?
-   - Versi PORTRAIT  : 3 halaman, dipakai saat surat tugas hanya 1 pegawai
-                       (TANPA blok lampiran sama sekali).
-   - Versi LANDSCAPE : 4 halaman, dipakai saat surat tugas ≥2 pegawai.
-                       Halaman 4 berisi tabel pegawai dengan orientasi
-                       landscape. Tag {#has_lampiran_st}/{/has_lampiran_st}
-                       sudah dihapus dari template ini karena selalu
-                       ter-render (tidak conditional lagi).
+   Tiga template di Supabase Storage:
+     - template-surat-tugas-spd-kendaraan-menginap.docx              (T1)
+     - template-surat-tugas-lampiran.docx                             (T2)
+     - template-surat-tugas-lampiran-spd-kendaraan-menginap.docx     (T3)
 
-   Pilihan placeholder yang dipakai DI KEDUA template SAMA — kode di
-   buildTemplateData() tidak perlu tahu orientasi yang dipakai.
-   Field `ul` (loop pegawai) cuma akan dipakai oleh template landscape.
-
-   Penamaan file di Supabase Storage:
-       template/template-surat-tugas-portrait.docx
-       template/template-surat-tugas-landscape.docx
+   Tipe surat dipilih admin saat approve (kolom `tipe` di tabel persetujuan).
+   Lihat TIPE_OPTIONS, TIPE_TO_FLAGS untuk daftar lengkap.
 ════════════════════════════════════════════════════════════════════ */
-
-const TEMPLATE_URL_PORTRAIT  = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-portrait.docx';
-const TEMPLATE_URL_LANDSCAPE = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-landscape.docx';
-
-// Cache template binary supaya tidak di-fetch berulang kali — terpisah per orientasi
-let _templateBufferPortrait  = null;
-let _templateBufferLandscape = null;
 
 /* Helper untuk load script dinamis kalau belum ada di window */
 function loadScript(src) {
@@ -3242,29 +3225,44 @@ async function ensureDocxtemplaterLoaded() {
   return false;
 }
 
-/**
- * Load template .docx — pilih portrait atau landscape sesuai jumlah pegawai.
- * @param {boolean} hasLampiran - true kalau ≥2 pegawai (pakai template landscape)
- * @returns {Promise<ArrayBuffer>}
- */
-async function loadTemplateBuffer(hasLampiran) {
-  if (hasLampiran) {
-    if (_templateBufferLandscape) return _templateBufferLandscape;
-    console.log('[NOVA] Memuat template LANDSCAPE dari:', TEMPLATE_URL_LANDSCAPE);
-    const res = await fetch(TEMPLATE_URL_LANDSCAPE);
-    if (!res.ok) throw new Error(`Gagal memuat template landscape (${res.status}). Pastikan ${TEMPLATE_URL_LANDSCAPE} bisa diakses publik.`);
-    _templateBufferLandscape = await res.arrayBuffer();
-    console.log('[NOVA] Template landscape loaded:', _templateBufferLandscape.byteLength, 'bytes');
-    return _templateBufferLandscape;
-  } else {
-    if (_templateBufferPortrait) return _templateBufferPortrait;
-    console.log('[NOVA] Memuat template PORTRAIT dari:', TEMPLATE_URL_PORTRAIT);
-    const res = await fetch(TEMPLATE_URL_PORTRAIT);
-    if (!res.ok) throw new Error(`Gagal memuat template portrait (${res.status}). Pastikan ${TEMPLATE_URL_PORTRAIT} bisa diakses publik.`);
-    _templateBufferPortrait = await res.arrayBuffer();
-    console.log('[NOVA] Template portrait loaded:', _templateBufferPortrait.byteLength, 'bytes');
-    return _templateBufferPortrait;
+/* ════════════════════════════════════════════════════════════════════
+   TEMPLATE LOADER (tipe-based)
+   ─────────────────────────────────────────────────────────────────────
+   Cache buffer per-URL supaya template yg sudah pernah di-fetch tidak
+   di-download ulang. Mendukung 3 template (T1/T2/T3) yg URL-nya
+   ditentukan oleh `data.tipe` lewat helper tipeTemplateUrl() di awal
+   file ini.
+
+   Fungsi loadTemplateBuffer(tipe):
+     - tipe valid → fetch URL yg sesuai (cache-aware) → return ArrayBuffer
+     - tipe null/invalid → throw dengan pesan jelas
+═══════════════════════════════════════════════════════════════════════ */
+
+const _templateBufferCache = {};   // url → ArrayBuffer
+
+async function loadTemplateBuffer(tipe) {
+  const url = tipeTemplateUrl(tipe);
+  if (!url) {
+    throw new Error(
+      `Tipe surat tidak valid atau belum dipilih (tipe="${tipe}"). ` +
+      `Admin wajib memilih tipe sebelum approve. Silakan edit baris ini ` +
+      `dan set ulang tipe.`
+    );
   }
+  if (_templateBufferCache[url]) return _templateBufferCache[url];
+
+  console.log('[NOVA] Memuat template (tipe=' + tipe + ') dari:', url);
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(
+      `Gagal memuat template untuk tipe "${tipe}" (HTTP ${res.status}). ` +
+      `Pastikan file ${url} ada di Supabase Storage dan bisa diakses publik.`
+    );
+  }
+  const buf = await res.arrayBuffer();
+  _templateBufferCache[url] = buf;
+  console.log('[NOVA] Template loaded:', buf.byteLength, 'bytes');
+  return buf;
 }
 
 /* Helper format tanggal ISO → "DD Nama-Bulan YYYY" (Indonesia) */
@@ -3322,6 +3320,11 @@ function fmtTglId(isoStr) {
    (sekitar baris 3146-3253) DENGAN versi di bawah ini.
 ═══════════════════════════════════════════════════════════════════════ */
 async function buildTemplateData(data) {
+  // ── Flags dari tipe ──────────────────────────────────────────────────
+  // Sumber kebenaran sekarang adalah `data.tipe`, bukan jumlah pegawai.
+  // Kalau tipe NULL/invalid, tipeFlags() return all-false (defensive).
+  const flags = tipeFlags(data.tipe);
+
   // ── Daftar pegawai ───────────────────────────────────────────────────
   const nipList  = Array.isArray(data.pegawai_nip)  ? data.pegawai_nip  : [];
   const nameList = Array.isArray(data.pegawai_list) ? data.pegawai_list : [];
@@ -3334,19 +3337,24 @@ async function buildTemplateData(data) {
   const jabatanPegawai   = lookupJabatan(firstNip, data.tanggal_surat) || '';
   // Kolom pangkat/golongan belum ada di riwayat_pegawai — kosongkan dulu.
   const pangkatPegawai   = '';
+  // Satuan kerja: kolom UNIT KERJA dari tabel "data pegawai".
+  const skerjaPegawai    = (peg && (peg['UNIT KERJA'] || peg.UNIT_KERJA)) || '';
 
-  // ── Logika lampiran: aktif kalau pegawai ≥ 2 ─────────────────────────
-  const hasLampiran = nameList.length >= 2;
+  // ── Halaman 1: nama, jabatan, pangkat → "Terlampir" kalau ≥2 pegawai
+  // Sesuai konfirmasi user: untuk pegawai >1 nama, jabatan, pangkat &
+  // golongan, serta jabatan/instansi memang menjadi "Terlampir".
+  // (Termasuk di SPD — sengaja, supaya konsisten.)
+  // ─────────────────────────────────────────────────────────────────────
+  const banyakPegawai = nameList.length >= 2;
+  const namaHal1      = banyakPegawai ? 'Terlampir' : namaPegawai;
+  const jabatanHal1   = banyakPegawai ? 'Terlampir' : jabatanPegawai;
+  const pangkatHal1   = banyakPegawai ? 'Terlampir' : pangkatPegawai;
 
-  // Halaman 1: kalau ada lampiran, ganti nama & jabatan dengan "Terlampir".
-  // Kalau cuma 1 pegawai, tampilkan nama & jabatan asli seperti semula.
-  const namaHal1    = hasLampiran ? 'Terlampir' : namaPegawai;
-  const jabatanHal1 = hasLampiran ? 'Terlampir' : jabatanPegawai;
-
-  // Bangun array pegawai untuk loop {#ul}...{/ul} di halaman lampiran.
-  // Setiap item: { no, nama_p, nip_p, pangkat_p, golongan_p, jabatan_p, bertugas_p }
-  // Kolom pangkat_p / golongan_p / jabatan_p / bertugas_p sengaja dikosongkan
-  // dulu — user akan update belakangan setelah skema DB-nya ada.
+  // Bangun array pegawai untuk loop tabel di halaman lampiran (T2/T3).
+  // Setiap item: { no, nama_p, nip_p, pangkat_p, golongan_p, jabatan_p,
+  //                bertugas_p, skerja_p }
+  // pangkat_p / golongan_p / bertugas_p sengaja dikosongkan dulu — user
+  // akan update belakangan setelah skema DB dilengkapi.
   const pegawaiLampiran = nameList.map((nm, i) => {
     const nip = String(nipList[i] || '').trim();
     const p   = pegawaiByNIP[nip];
@@ -3358,6 +3366,25 @@ async function buildTemplateData(data) {
       golongan_p: '',
       jabatan_p:  lookupJabatan(nip, data.tanggal_surat) || '',
       bertugas_p: '',
+      skerja_p:   (p && (p['UNIT KERJA'] || p.UNIT_KERJA)) || '',
+    };
+  });
+
+  // Array kendaraan & menginap — sama isinya per pegawai. Saat ini cuma
+  // ada satu "iterasi" per pegawai (tabel di template di-loop sekali per
+  // orang). Field belum diisi karena belum ada kolom DB-nya.
+  const pegawaiBaris = nameList.map((nm, i) => {
+    const nip = String(nipList[i] || '').trim();
+    const p   = pegawaiByNIP[nip];
+    return {
+      no:         String(i + 1),
+      nama_p:     (p && p.NAMA) || nm || '',
+      nip_p:      nip || '-',
+      pangkat_p:  '',
+      golongan_p: '',
+      jabatan_p:  lookupJabatan(nip, data.tanggal_surat) || '',
+      bertugas_p: '',
+      skerja_p:   (p && (p['UNIT KERJA'] || p.UNIT_KERJA)) || '',
     };
   });
 
@@ -3399,8 +3426,8 @@ async function buildTemplateData(data) {
     // ─────────────────────────────────────────────────────────────────
     nomor_surat:           nomorSuratFull,
     menimbang:             data.menimbang_custom || '',
-    nama:                  namaHal1,        // ← berubah: "Terlampir" jika ≥2
-    jabatan:               jabatanHal1,     // ← berubah: "Terlampir" jika ≥2
+    nama:                  namaHal1,        // ← "Terlampir" jika ≥2 pegawai
+    jabatan:               jabatanHal1,     // ← "Terlampir" jika ≥2 pegawai
     perihal:               data.perihal || '',
     tempat_tujuan:         data.tujuan  || '',
     waktu_pelaksanaan:     waktuPelaksanaan,
@@ -3412,13 +3439,16 @@ async function buildTemplateData(data) {
     nip_penandatangan:     ttdNip,
 
     // ─────────────────────────────────────────────────────────────────
-    // HALAMAN 2 — SPD
+    // HALAMAN 2 — SPD (toggle dengan {#has_spd}...{/has_spd} di T1)
+    //   Catatan: T3 tidak punya {#has_spd} wrapper — SPD selalu render
+    //   di sana. Aman karena tipe yg pakai T3 memang selalu ada SPD.
     // ─────────────────────────────────────────────────────────────────
+    has_spd:               flags.has_spd,
     nomor_spd:             nomorSPD,
     nama_ppk:              namaPPK,
     nip_ppk:               nipPPK,
     nip:                   firstNip,
-    pangkat:               pangkatPegawai,
+    pangkat:               pangkatHal1,    // ← "Terlampir" jika ≥2 pegawai
     angkutan:              data.alat_angkutan || '',
     hari:                  hari ? String(hari) : '',
     tanggal_berangkat:     fmtTglId(data.tanggal_berangkat),
@@ -3443,25 +3473,28 @@ async function buildTemplateData(data) {
     des_akun:              mak ? lookupDeskripsi('akun',         mak.akun)                                     : '',
 
     // ─────────────────────────────────────────────────────────────────
-    // HALAMAN 4 — LAMPIRAN
+    // BLOK KENDARAAN — toggle {#kendaraan}...{/kendaraan}
+    // BLOK MENGINAP  — toggle {#menginap}...{/menginap}
     //
-    // Sejak versi multi-template, blok lampiran ada di file template
-    // TERPISAH (template-surat-tugas-landscape.docx). Template portrait
-    // tidak punya placeholder lampiran sama sekali, jadi field-field di
-    // bawah ini diabaikan saat render template portrait — aman dikirim
-    // tanpa conditional.
+    // Array kosong → blok hilang dari output.
+    // Array berisi → blok render N kali (N = jumlah pegawai).
+    // ─────────────────────────────────────────────────────────────────
+    kendaraan:             flags.has_kendaraan ? pegawaiBaris : [],
+    menginap:              flags.has_menginap  ? pegawaiBaris : [],
+
+    // ─────────────────────────────────────────────────────────────────
+    // HALAMAN LAMPIRAN — toggle {#ul}...{/ul} (T2 & T3)
     //
-    // - has_lampiran_st: legacy field, dipertahankan untuk backward-compat
-    //   kalau ada template lama yang masih pakai conditional ini.
+    // Untuk T1 (tanpa lampiran), array kosong cukup karena T1 tidak
+    // punya tag {#ul} sama sekali — engine ignore field tak terpakai.
+    // - has_lampiran_st: legacy field (backward-compat dgn template lama
+    //   yg pakai {#has_lampiran_st}, kalau masih ada di production).
     // - awalan: pembuka kalimat sebelum {menimbang} di header lampiran.
     //   Saat ini dikosongkan — akan diisi belakangan.
-    // - ul: array pegawai untuk loop {#ul}...{/ul} di tabel lampiran.
-    //   Selalu dikirim apa adanya; kalau template portrait, otomatis
-    //   diabaikan karena tidak ada {#ul} di sana.
     // ─────────────────────────────────────────────────────────────────
-    has_lampiran_st:       hasLampiran,        // legacy / backward-compat
-    awalan:                '',                 // TODO: isi nanti
-    ul:                    pegawaiLampiran,    // array pegawai — loop {#ul}...{/ul}
+    has_lampiran_st:       flags.has_lampiran,
+    awalan:                '',
+    ul:                    flags.has_lampiran ? pegawaiLampiran : [],
   };
 }
 
@@ -3490,13 +3523,18 @@ async function buildSuratTugasDoc(data) {
   }
   console.log('[NOVA] Docxtemplater OK — akan pakai template-based rendering');
 
-  // Tentukan template mana yang dipakai berdasarkan jumlah pegawai.
-  // ≥2 pegawai → landscape (4 halaman, ada lampiran)
-  // 1 pegawai  → portrait (3 halaman, tanpa lampiran)
-  const pegCount  = Array.isArray(data.pegawai_list) ? data.pegawai_list.length : 0;
-  const hasLampiran = pegCount >= 2;
+  // Tentukan template berdasarkan `data.tipe`. Validasi sudah dilakukan
+  // di sisi UI (admin wajib pilih tipe sebelum approve), tapi defensive
+  // check di sini supaya pesan error-nya jelas kalau ada surat lama yg
+  // tipe-nya null (mis. row legacy yg belum di-backfill).
+  if (!data.tipe) {
+    throw new Error(
+      'Surat tugas ini belum punya tipe. Buka tabel persetujuan, atur ' +
+      'kembali tipe, lalu approve ulang.'
+    );
+  }
 
-  const buf = await loadTemplateBuffer(hasLampiran);
+  const buf = await loadTemplateBuffer(data.tipe);
   const zip = new PizZipCtor(buf);
   const doc = new DocxtemplaterCtor(zip, {
     paragraphLoop: true,
@@ -3531,13 +3569,13 @@ function init() {
   initRoleSwitcher(SESSION, true);
   Promise.all([loadPegawai(), loadRiwayatPegawai(), loadUsers(), loadSurat()]);
 
-  // Pre-warm: load library docxtemplater + template buffer di background
-  // supaya klik Preview pertama tidak terhambat fetch template (~1 detik hemat).
-  // Load KEDUA template (portrait & landscape) paralel — yang dipakai
-  // tergantung jumlah pegawai saat user klik Preview/Export.
+  // Pre-warm: load library docxtemplater + 3 template di background
+  // supaya klik Preview pertama tidak terhambat fetch template.
+  // Cache key adalah URL, jadi load 3 tipe (T1/T2/T3) yang URL-nya unik.
   ensureDocxtemplaterLoaded().then(() => {
-    loadTemplateBuffer(false).catch(() => {});  // portrait (1 pegawai)
-    loadTemplateBuffer(true).catch(() => {});   // landscape (≥2 pegawai)
+    loadTemplateBuffer('surat_tugas_spd_kendaraan_menginap').catch(() => {});           // T1
+    loadTemplateBuffer('surat_tugas_lampiran').catch(() => {});                         // T2
+    loadTemplateBuffer('surat_tugas_lampiran_spd_kendaraan_menginap').catch(() => {});  // T3
   });
 
   // Load history POK (MAK Pembebanan) untuk autocomplete dropdown.
