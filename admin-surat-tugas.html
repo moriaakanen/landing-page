@@ -104,6 +104,19 @@
   .btn-preview:hover{background:#d3e0f8;border-color:var(--navy)}
   .btn-download{background:var(--gold);color:var(--navy);border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .btn-download:hover{background:#b89438}
+  /* Tombol Edit di baris disetujui — outline gold, beda dari Preview/Download */
+  .btn-edit-row{background:var(--gold-light);color:#7a5c10;border:1.5px solid rgba(200,168,75,.5);border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+  .btn-edit-row:hover{background:rgba(200,168,75,.25);border-color:var(--gold)}
+  .btn-save-edit{background:#1a7a4a;color:white;border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;position:relative}
+  .btn-save-edit:hover{background:#15643d}
+  .btn-save-edit:disabled{opacity:.6;cursor:not-allowed}
+  .btn-save-edit.loading{color:transparent}
+  .btn-save-edit.loading::after{content:'';position:absolute;top:50%;left:50%;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;transform:translate(-50%,-50%);animation:spin .7s linear infinite}
+  .btn-cancel-edit{background:transparent;color:var(--muted);border:1.5px solid var(--border2);border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+  .btn-cancel-edit:hover{background:#fef2f2;color:var(--red);border-color:#fecaca}
+  /* Visual highlight untuk baris yang sedang di-edit — border kiri kuning */
+  tr[data-editing="1"] td{background:rgba(200,168,75,.05) !important}
+  tr[data-editing="1"] td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
   .btn-outline{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s;white-space:nowrap}
   .btn-outline:hover{border-color:var(--navy);background:var(--bg)}
   .btn-sm{padding:4px 10px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--navy)}
