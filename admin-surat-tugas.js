@@ -479,6 +479,110 @@ function sortHeader(col, label, cssClass) {
 /* ════════════════════════════════════════════════════════════════════
    RENDER TABLE
 ═══════════════════════════════════════════════════════════════════════ */
+
+// State: id surat yang sedang di-edit (status disetujui di-unlock secara
+// inline). null kalau tidak ada baris yg sedang di-edit. Hanya boleh ada
+// 1 baris dalam mode edit pada satu waktu agar UX tidak ambigu.
+let editingRowId = null;
+
+/* Build HTML untuk SATU <tr> berdasarkan object surat.
+   Dipisah dari renderTable() supaya bisa dipakai juga oleh enableRowEdit()
+   dan cancelRowEdit() — keduanya hanya perlu re-render 1 baris, bukan
+   seluruh tabel. */
+function renderRowHTML(s) {
+  const isMenunggu  = s.status === 'menunggu';
+  const isDisetujui = s.status === 'disetujui';
+  const isDitolak   = s.status === 'ditolak';
+  const isEditing   = editingRowId === s.id;
+
+  // Field-field unlocked kalau: status menunggu, ATAU baris ini sedang di-edit.
+  const editable = isMenunggu || isEditing;
+
+  const todayStr  = todayISO();
+  const urutNo    = suratOrderMap[s.id] || '—';
+  // Prefill nomor surat untuk status menunggu = urutan No. di-pad 3 digit.
+  // Mis. No. = 8 → "008". Admin tetap bisa mengedit via sel input.
+  const urutNomor = (typeof urutNo === 'number') ? String(urutNo).padStart(3, '0') : '';
+
+  const nomorSurat   = s.nomor_surat   || (isMenunggu ? urutNomor : '');
+  const tanggalSurat = s.tanggal_surat || (isMenunggu ? todayStr  : '');
+  const waktuMulai   = s.tanggal_berangkat || '';
+  const waktuSelesai = s.tanggal_kembali   || '';
+  const perihal      = s.perihal      || '';
+  const tujuan       = s.tujuan       || '';
+  // Kolom-kolom berikut TIDAK di-prefill untuk status menunggu —
+  // admin mengisi manual saat approve. Prefill default disimpan terpisah
+  // dan hanya diterapkan di modal approve.
+  const menimbang    = s.menimbang_custom || '';
+  const alat         = s.alat_angkutan || '';
+  const mak          = s.pembebanan    || '';
+  const ttdNama      = s.penandatangan_nama || '';
+  const ttdNip       = s.penandatangan_nip  || '';
+
+  const pegNips  = Array.isArray(s.pegawai_nip)  ? s.pegawai_nip  : [];
+  const pegNames = Array.isArray(s.pegawai_list) ? s.pegawai_list : [];
+
+  let aksi;
+  if (isMenunggu) {
+    aksi = `
+      <button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button>
+      <button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button>`;
+  } else if (isDisetujui) {
+    if (isEditing) {
+      // Mode edit aktif — tampilkan Simpan & Batal, sembunyikan Preview/Download
+      // supaya admin tidak preview docx dengan data yg belum dipersist.
+      aksi = `
+        <button class="btn-save-edit" onclick="saveRowEdit(${s.id})">💾 Simpan</button>
+        <button class="btn-cancel-edit" onclick="cancelRowEdit(${s.id})">✕ Batal</button>`;
+    } else {
+      aksi = `
+        <button class="btn-edit-row" onclick="enableRowEdit(${s.id})" title="Edit field surat ini">✏️ Edit</button>
+        <button class="btn-preview" onclick="openPreview(${s.id})">👁 Preview</button>
+        <button class="btn-download" onclick="downloadSuratTugas(${s.id})">📥</button>`;
+    }
+  } else {
+    // Status ditolak — tanpa aksi
+    aksi = `<span style="font-size:11px;color:var(--muted);font-style:italic">—</span>`;
+  }
+
+  // data-editing sebagai marker tambahan agar styling/CSS bisa membedakan
+  // baris yg sedang di-edit (ditambah border kuning di seksi CSS).
+  return `
+    <tr data-surat-id="${s.id}" data-status="${s.status}"${isEditing ? ' data-editing="1"' : ''}>
+      <td class="col-no">${urutNo}</td>
+
+      ${cellTextHTML(s.id, 'nomor_surat', nomorSurat, editable, 'cth: 001 / 013A')}
+      ${cellDateHTML(s.id, 'tanggal_surat', tanggalSurat, editable, 'tgl/bln/thn')}
+      ${cellDateRangeHTML(s.id, 'waktu', waktuMulai, waktuSelesai, editable)}
+      ${cellTextareaHTML(s.id, 'perihal', perihal, editable, 'Perihal surat')}
+      ${cellTextHTML(s.id, 'tujuan', tujuan, editable, 'Kota/instansi')}
+      ${cellPegawaiMultiHTML(s.id, pegNips, pegNames, editable)}
+      ${cellTextareaHTML(s.id, 'menimbang_custom', menimbang, editable, 'cth: pelaksanaan Survei...')}
+      ${cellTextareaHTML(s.id, 'alat_angkutan', alat, editable, 'cth: Kendaraan Darat')}
+      ${cellMAKHTML(s.id, mak, editable)}
+      ${cellPenandatanganHTML(s.id, ttdNip, ttdNama, editable)}
+      ${cellTipeHTML(s.id, s.tipe, editable)}
+
+      <td class="col-status">${badgeHTML(s.status)}</td>
+      <td class="col-aksi"><div class="aksi-wrap">${aksi}</div></td>
+      <td class="col-pengaju" title="${esc(getPengajuNama(s))}">${esc(getPengajuNama(s)) || '<span style="color:var(--muted);font-style:italic">—</span>'}</td>
+    </tr>`;
+}
+
+/* Pasang event listener (autoGrow + clear err) untuk semua input/textarea
+   editable di dalam scope tertentu. Default scope = whole document.
+   Dipakai oleh renderTable (semua baris) dan setelah re-render 1 baris. */
+function attachEditableListeners(scope) {
+  const root = scope || document;
+  root.querySelectorAll('textarea.xls-cell').forEach(ta => {
+    autoGrow(ta);
+    ta.addEventListener('input', () => { autoGrow(ta); ta.classList.remove('err'); });
+  });
+  root.querySelectorAll('input.xls-cell').forEach(inp => {
+    inp.addEventListener('input', () => inp.classList.remove('err'));
+  });
+}
+
 function renderTable(data) {
   document.getElementById('table-count').textContent = `${data.length} surat`;
   if (!data.length) {
@@ -486,71 +590,13 @@ function renderTable(data) {
     return;
   }
 
-  const todayStr = todayISO();
+  // Kalau baris yg sedang di-edit tidak ada di data (mis. ke-filter out),
+  // reset state edit supaya tombol Edit muncul lagi saat baris kembali.
+  if (editingRowId != null && !data.some(s => s.id === editingRowId)) {
+    editingRowId = null;
+  }
 
-  const rows = data.map(s => {
-    const isMenunggu  = s.status === 'menunggu';
-    const isDisetujui = s.status === 'disetujui';
-    const isDitolak   = s.status === 'ditolak';
-
-    const urutNo    = suratOrderMap[s.id] || '—';
-    // Prefill nomor surat untuk status menunggu = urutan No. di-pad 3 digit.
-    // Mis. No. = 8 → "008". Admin tetap bisa mengedit via sel input.
-    const urutNomor = (typeof urutNo === 'number') ? String(urutNo).padStart(3, '0') : '';
-
-    const nomorSurat   = s.nomor_surat   || (isMenunggu ? urutNomor : '');
-    const tanggalSurat = s.tanggal_surat || (isMenunggu ? todayStr  : '');
-    const waktuMulai   = s.tanggal_berangkat || '';
-    const waktuSelesai = s.tanggal_kembali   || '';
-    const perihal      = s.perihal      || '';
-    const tujuan       = s.tujuan       || '';
-    // Kolom-kolom berikut TIDAK di-prefill untuk status menunggu —
-    // admin mengisi manual saat approve. Prefill default disimpan terpisah
-    // dan hanya diterapkan di modal approve.
-    const menimbang    = s.menimbang_custom || '';
-    const alat         = s.alat_angkutan || '';
-    const mak          = s.pembebanan    || '';
-    const ttdNama      = s.penandatangan_nama || '';
-    const ttdNip       = s.penandatangan_nip  || '';
-
-    const pegNips  = Array.isArray(s.pegawai_nip)  ? s.pegawai_nip  : [];
-    const pegNames = Array.isArray(s.pegawai_list) ? s.pegawai_list : [];
-
-    let aksi;
-    if (isMenunggu) {
-      aksi = `
-        <button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button>
-        <button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button>`;
-    } else if (isDisetujui) {
-      aksi = `
-        <button class="btn-preview" onclick="openPreview(${s.id})">👁 Preview</button>
-        <button class="btn-download" onclick="downloadSuratTugas(${s.id})">📥</button>`;
-    } else {
-      // Status ditolak — tanpa aksi
-      aksi = `<span style="font-size:11px;color:var(--muted);font-style:italic">—</span>`;
-    }
-
-    return `
-      <tr data-surat-id="${s.id}" data-status="${s.status}">
-        <td class="col-no">${urutNo}</td>
-
-        ${cellTextHTML(s.id, 'nomor_surat', nomorSurat, isMenunggu, 'cth: 001 / 013A')}
-        ${cellDateHTML(s.id, 'tanggal_surat', tanggalSurat, isMenunggu, 'tgl/bln/thn')}
-        ${cellDateRangeHTML(s.id, 'waktu', waktuMulai, waktuSelesai, isMenunggu)}
-        ${cellTextareaHTML(s.id, 'perihal', perihal, isMenunggu, 'Perihal surat')}
-        ${cellTextHTML(s.id, 'tujuan', tujuan, isMenunggu, 'Kota/instansi')}
-        ${cellPegawaiMultiHTML(s.id, pegNips, pegNames, isMenunggu)}
-        ${cellTextareaHTML(s.id, 'menimbang_custom', menimbang, isMenunggu, 'cth: pelaksanaan Survei...')}
-        ${cellTextareaHTML(s.id, 'alat_angkutan', alat, isMenunggu, 'cth: Kendaraan Darat')}
-        ${cellMAKHTML(s.id, mak, isMenunggu)}
-        ${cellPenandatanganHTML(s.id, ttdNip, ttdNama, isMenunggu)}
-        ${cellTipeHTML(s.id, s.tipe, isMenunggu)}
-
-        <td class="col-status">${badgeHTML(s.status)}</td>
-        <td class="col-aksi"><div class="aksi-wrap">${aksi}</div></td>
-        <td class="col-pengaju" title="${esc(getPengajuNama(s))}">${esc(getPengajuNama(s)) || '<span style="color:var(--muted);font-style:italic">—</span>'}</td>
-      </tr>`;
-  }).join('');
+  const rows = data.map(renderRowHTML).join('');
 
   document.getElementById('table-area').innerHTML = `
     <table class="list-table">
@@ -575,14 +621,8 @@ function renderTable(data) {
     </table>`;
 
   requestAnimationFrame(() => {
-    document.querySelectorAll('tr[data-status="menunggu"] textarea.xls-cell').forEach(ta => {
-      autoGrow(ta);
-      ta.addEventListener('input', () => { autoGrow(ta); ta.classList.remove('err'); });
-    });
+    attachEditableListeners();
     setupTopScrollbar();
-  });
-  document.querySelectorAll('tr[data-status="menunggu"] input.xls-cell').forEach(inp => {
-    inp.addEventListener('input', () => inp.classList.remove('err'));
   });
 }
 
@@ -2123,6 +2163,138 @@ async function submitReject() {
     btn.disabled = false; btn.classList.remove('loading');
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   EDIT ROW (untuk surat yang sudah disetujui)
+   ─────────────────────────────────────────────────────────────────────
+   Mengubah baris readonly (status='disetujui') menjadi editable inline
+   tanpa membuka modal. Tombol Aksi berubah jadi Simpan / Batal.
+
+   Aturan:
+     - Hanya 1 baris yg boleh edit pada satu waktu. Klik Edit pada baris
+       lain otomatis menutup edit yang sedang berjalan.
+     - Status TIDAK berubah setelah save — tetap 'disetujui'. Hanya
+       field-field yg di-PATCH.
+     - Validasi field memakai validateApproveFields() yang sama dengan
+       flow approve, supaya tidak ada celah field invalid lolos.
+     - Jabatan penandatangan di-recompute dari riwayat_pegawai berdasar
+       NIP+tanggal_surat baru (sama seperti saat approve).
+═══════════════════════════════════════════════════════════════════════ */
+
+function enableRowEdit(id) {
+  // Kalau ada baris lain yg sedang di-edit, batalkan dulu (revert ke
+  // readonly). Pakai cancelRowEdit supaya logikanya konsisten.
+  if (editingRowId != null && editingRowId !== id) {
+    cancelRowEdit(editingRowId);
+  }
+
+  const s = suratMap[id];
+  if (!s || s.status !== 'disetujui') return;
+
+  editingRowId = id;
+  const row = document.querySelector(`tr[data-surat-id="${id}"]`);
+  if (!row) return;
+
+  // Re-render hanya baris ini dgn editable=true. Pakai template dummy
+  // untuk parse string HTML jadi <tr> element, lalu replace.
+  const wrapper = document.createElement('tbody');
+  wrapper.innerHTML = renderRowHTML(s);
+  const newRow = wrapper.firstElementChild;
+  row.replaceWith(newRow);
+
+  // Pasang autoGrow + clear-err handler hanya untuk baris baru ini.
+  attachEditableListeners(newRow);
+
+  // Fokus ke field pertama yg editable supaya admin langsung bisa ngetik.
+  const firstInput = newRow.querySelector('.xls-cell, .pg-input');
+  if (firstInput) {
+    setTimeout(() => firstInput.focus(), 50);
+  }
+}
+
+function cancelRowEdit(id) {
+  const s = suratMap[id];
+  if (!s) { editingRowId = null; return; }
+
+  editingRowId = null;
+  const row = document.querySelector(`tr[data-surat-id="${id}"]`);
+  if (!row) return;
+
+  // Render ulang baris dgn editable=false (data lama dari suratMap).
+  // Tidak ada perubahan ke DB — ini benar-benar discard.
+  const wrapper = document.createElement('tbody');
+  wrapper.innerHTML = renderRowHTML(s);
+  row.replaceWith(wrapper.firstElementChild);
+}
+
+async function saveRowEdit(id) {
+  if (editingRowId !== id) return;
+
+  // Pakai collectRowFields & validateApproveFields yang sama dgn approve
+  // — biar field rules-nya konsisten (mis. format MAK, required field).
+  const values = collectRowFields(id);
+  if (!values) return;
+  const { errors, errFields } = validateApproveFields(values);
+  if (errors.length) {
+    highlightRowFieldErrors(id, errFields);
+    showPageAlert(`⚠️ Lengkapi dulu: ${errors.join(', ')}`, 'error');
+    return;
+  }
+
+  // Recompute jabatan penandatangan berdasarkan tanggal_surat (mungkin
+  // berubah) — sama seperti di submitApprove.
+  const jabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
+
+  // Payload TANPA field 'status' — status tetap 'disetujui'.
+  const payload = {
+    nomor_surat:           values.nomor_surat,
+    tanggal_surat:         values.tanggal_surat,
+    tanggal_berangkat:     values.tanggal_berangkat,
+    tanggal_kembali:       values.tanggal_kembali || null,
+    perihal:               values.perihal,
+    tujuan:                values.tujuan,
+    pegawai_nip:           values.pegawai_nip,
+    pegawai_list:          values.pegawai_list,
+    menimbang_custom:      values.menimbang_custom,
+    alat_angkutan:         values.alat_angkutan,
+    pembebanan:            values.pembebanan,
+    tempat_terbit:         values.tempat_terbit,
+    penandatangan_nama:    values.penandatangan_nama,
+    penandatangan_nip:     values.penandatangan_nip,
+    penandatangan_jabatan: jabatan || '',
+    tipe:                  values.tipe,
+  };
+
+  const row = document.querySelector(`tr[data-surat-id="${id}"]`);
+  const btn = row ? row.querySelector('.btn-save-edit') : null;
+  if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { ...H, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const j = await res.json(); msg = j.message || msg; } catch(_) {}
+      throw new Error(msg);
+    }
+
+    // Sukses — exit edit mode & reload data dari server agar in-memory
+    // suratMap ter-sinkron (termasuk updated_at, dll).
+    editingRowId = null;
+    showPageAlert('✅ Perubahan berhasil disimpan.', 'success');
+    await loadSurat();
+    // Refresh autocomplete POK kalau MAK pembebanan diganti — sama
+    // perlakuannya dgn submitApprove.
+    loadMAKSuggestions();
+  } catch(e) {
+    showPageAlert(`Gagal menyimpan: ${e.message}`, 'error');
+    if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+  }
+}
+
 
 /* ════════════════════════════════════════════════════════════════════
    LOOKUP JABATAN dari riwayat_pegawai
