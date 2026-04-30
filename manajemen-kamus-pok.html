@@ -9,57 +9,74 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --navy:#0d2340; --navy-2:#1a3055; --gold:#c8a84b; --gold-light:#f5edda;
-  --bg:#fafaf8; --white:#fff; --border:#e2ddd6; --border2:#d4ccc0;
-  --muted:#6b7280; --text:#1a2438; --danger:#991b1b; --success:#065f46; --warning:#92400e;
+  --bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;--navy-2:#163358;
+  --gold:#c8a84b;--gold-light:#f5edda;
+  --text:#1a1a2e;--muted:#6b7280;
+  --border:#e2ddd6;--border2:#d1ccc3;
+  --red:#c0392b;--danger:#991b1b;--success:#065f46;--warning:#92400e;
+  --sidebar-w:260px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13.5px;line-height:1.5}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;line-height:1.5;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
 em{font-family:'Fraunces',serif;font-style:italic;font-weight:500;color:var(--gold)}
 
 /* topbar */
-.topbar{background:var(--navy);color:#fff;padding:9px 22px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
-.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
-.brand-logo{width:28px;height:28px;background:var(--gold);border-radius:6px;display:grid;place-items:center;color:var(--navy);font-weight:800}
-.topbar-right{display:flex;align-items:center;gap:14px;font-size:12.5px}
-.user-info{text-align:right;line-height:1.25}
-.user-info-name{font-weight:600}
-.user-info-role{color:rgba(255,255,255,.55);font-size:10.5px}
-.menu-toggle{background:transparent;border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;padding:5px 9px;cursor:pointer;display:none}
-@media(max-width:900px){.menu-toggle{display:inline-flex}}
+.topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200}
+.topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0}
+.brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.brand-name{font-size:14px;font-weight:700;color:white;letter-spacing:.5px;line-height:1}
+.brand-tag{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.topbar-time{font-size:11px;color:rgba(255,255,255,.35)}
+.topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
+.topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
 
 /* layout */
-.layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 46px)}
-.sidebar{background:var(--white);border-right:1px solid var(--border);padding:18px 14px}
-@media(max-width:900px){.sidebar{position:fixed;inset:46px 0 0 0;width:260px;transform:translateX(-100%);transition:transform .25s;z-index:50}.sidebar.open{transform:translateX(0)}.layout{grid-template-columns:1fr}}
-.sidebar-section-label{font-size:10.5px;font-weight:700;letter-spacing:1.4px;color:var(--muted);text-transform:uppercase;padding:0 10px 8px}
-.nav-group-label{font-size:10px;font-weight:600;letter-spacing:1.5px;color:#9aa1ad;text-transform:uppercase;padding:14px 10px 6px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;font-weight:500;margin-bottom:1px}
-.nav-item:hover{background:var(--bg)}
-.nav-item.active{background:var(--gold-light);color:#7a5c10;font-weight:600}
-.nav-item-icon{width:22px;height:22px;display:grid;place-items:center;font-size:14px}
-.sidebar-footer{margin-top:24px;padding:14px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.5}
-.admin-badge{display:inline-block;margin-top:6px;background:var(--gold-light);color:#7a5c10;padding:2px 8px;border-radius:100px;font-weight:600;letter-spacing:.3px;font-size:10px}
+.layout{display:flex;flex:1;min-height:0}
+.sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
+.nav-group-label{font-size:10px;font-weight:600;color:var(--border2);letter-spacing:1.2px;text-transform:uppercase;padding:16px 20px 6px;margin-top:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;text-decoration:none;user-select:none;transition:background .15s,color .15s}
+.nav-item:hover{background:var(--bg);color:var(--navy)}
+.nav-item.active{background:var(--gold-light);color:var(--navy);border-left-color:var(--gold);font-weight:600}
+.nav-item-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--bg);flex-shrink:0;transition:background .15s}
+.nav-item.active .nav-item-icon{background:rgba(200,168,75,.2)}
+.nav-item:hover .nav-item-icon{background:var(--border)}
+.sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
+.sidebar-footer strong{color:var(--navy);font-weight:600}
+.admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.35);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--gold);margin-top:4px;letter-spacing:.3px}
 
 /* main */
-.main{padding:22px 26px 42px;max-width:1400px;width:100%}
-.page-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;gap:16px;flex-wrap:wrap}
-.page-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:1.6px;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
-.page-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;letter-spacing:-.4px}
-.page-desc{color:var(--muted);font-size:12.5px;margin-top:4px;max-width:640px}
+.main{flex:1;overflow-y:auto;padding:32px 36px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap}
+.page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
+.page-title{font-family:'Fraunces',serif;font-size:clamp(22px,2.5vw,30px);font-weight:300;color:var(--navy);line-height:1.2}
+.page-title em{font-style:italic;color:var(--gold)}
+.page-desc{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.7;max-width:640px}
 
-.btn-primary{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
-.btn-primary:hover{background:var(--navy-2)}
-.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;font-family:inherit;font-size:12.5px;font-weight:500;cursor:pointer}
-.btn-outline:hover{background:var(--bg)}
-.btn-gold{background:var(--gold);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn-primary{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--navy);color:white;border:none;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,transform .15s,box-shadow .2s;white-space:nowrap;box-shadow:0 2px 8px rgba(13,35,64,.2)}
+.btn-primary:hover:not(:disabled){background:var(--navy2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(13,35,64,.25)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-outline{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-outline:hover{border-color:var(--navy);background:var(--bg)}
+.btn-gold{background:var(--gold);color:#fff;border:none;border-radius:7px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .btn-gold:hover{background:#b8983e}
-.btn-danger{background:var(--danger);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn-danger{background:var(--danger);color:#fff;border:none;border-radius:7px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .btn-icon{background:transparent;border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:5px 9px;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;margin-right:4px}
 .btn-icon:hover{background:var(--bg)}
 .btn-icon.danger{color:var(--danger);border-color:#fecaca}
 .btn-icon.danger:hover{background:#fef2f2}
+
+.menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
+@media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.topbar-time{display:none}}
+@media(max-width:600px){
+  .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
+  .sidebar.open{left:0}.layout{display:block}.menu-toggle{display:flex!important}
+  .stats-row{flex-wrap:wrap}.stat-pill{min-width:calc(50% - 6px)}
+  .toolbar{flex-direction:column;align-items:stretch}
+}
 
 /* alert */
 .alert{padding:11px 14px;border-radius:8px;margin-bottom:14px;font-size:12.5px;font-weight:500;display:none;align-items:center;gap:8px}
@@ -148,25 +165,31 @@ textarea.form-input{font-family:inherit;resize:vertical;min-height:64px}
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-logo">N</div>Portal <em>NOVA</em></div>
+  <div class="topbar-brand">
+    <div class="brand-emblem">🏛</div>
+    <div><div class="brand-name">PORTAL NOVA</div><div class="brand-tag">Sistem Informasi Terpadu</div></div>
+  </div>
   <div class="topbar-right">
+    <span class="topbar-time" id="topbar-time"></span>
     <div class="user-switcher" id="user-switcher">
-      <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false">
-        <div class="user-info">
-          <div class="user-info-name" id="topbar-name">—</div>
-          <div class="user-info-role"><span id="active-role-badge" class="active-role-badge user">User</span></div>
-        </div>
-        <span class="user-switcher-caret">▾</span>
+      <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false" type="button">
+        <div class="topbar-avatar" id="topbar-avatar">—</div>
+        <span class="topbar-username" id="topbar-username">Pengguna</span>
+        <span class="active-role-badge admin" id="active-role-badge">Admin</span>
+        <span class="user-switcher-caret">▼</span>
       </button>
-      <div class="user-switcher-dropdown" id="user-switcher-dropdown" role="menu">
-        <div class="usd-header"><div class="usd-header-name" id="usd-header-name">—</div><div class="usd-header-label">Pilih tampilan</div></div>
-        <div class="usd-section-label">Tampilan</div>
-        <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')">
+      <div class="user-switcher-dropdown" id="user-switcher-dropdown">
+        <div class="usd-header">
+          <div class="usd-header-name" id="usd-header-name">Pengguna</div>
+          <div class="usd-header-label">Akun aktif · Ganti tampilan role</div>
+        </div>
+        <div class="usd-section-label">Tampilkan sebagai</div>
+        <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')" type="button">
           <div class="usd-role-icon admin">👑</div>
-          <div><div class="usd-role-name">Admin</div><div class="usd-role-desc">Akses administrasi</div></div>
+          <div><div class="usd-role-name">Administrator</div><div class="usd-role-desc">Akses penuh semua menu</div></div>
           <span class="usd-check">✓</span>
         </button>
-        <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')">
+        <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')" type="button">
           <div class="usd-role-icon user">👤</div>
           <div><div class="usd-role-name">User</div><div class="usd-role-desc">Akses standar pegawai</div></div>
           <span class="usd-check">✓</span>
@@ -420,9 +443,17 @@ function checkSession() {
 function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
 function setTopbarUser(s) {
   const name = s.full_name || s.username || 'Pengguna';
-  document.getElementById('topbar-name').textContent = name;
+  const i = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  document.getElementById('topbar-avatar').textContent = i;
+  document.getElementById('topbar-username').textContent = name;
   document.getElementById('usd-header-name').textContent = name;
 }
+function updateClock() {
+  const el = document.getElementById('topbar-time');
+  if (!el) return;
+  el.textContent = new Date().toLocaleString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+updateClock(); setInterval(updateClock, 1000);
 
 /* ── Alert ────────────────────────────────────────────────────────── */
 let _alertTimer = null;
