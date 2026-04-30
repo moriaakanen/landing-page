@@ -54,6 +54,12 @@
   .profil-divider{height:1px;background:var(--border);margin:0 28px}
   .profil-data{padding:24px 28px}
   .data-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
+  /* 2-column layout: profil di kiri, kalender di kanan */
+  .profile-grid{display:grid;grid-template-columns:minmax(320px,360px) 1fr;gap:24px;align-items:start;}
+  .profile-grid .calendar-section{margin-top:0;}
+  @media(max-width:1024px){
+    .profile-grid{grid-template-columns:1fr;gap:20px;}
+  }
   /* Calendar Styles */
   .calendar-section{margin-top:28px;background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,0.06);}
   .calendar-header{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid var(--border);}
@@ -192,6 +198,7 @@
       <h1 class="page-title">Data <em>Pribadi</em> Pegawai</h1>
       <p class="page-desc">Informasi data kepegawaian Anda yang tersimpan dalam sistem.</p>
     </div>
+    <div class="profile-grid">
     <div class="profil-wrap fade-in" id="profil-card" style="animation-delay:0.1s">
       <div class="profil-banner"></div>
       <div style="padding:0 28px;margin-top:-32px;margin-bottom:20px;display:flex;align-items:flex-end;gap:16px">
@@ -235,6 +242,7 @@
         </div>
         <div class="cal-days" id="cal-days"></div>
       </div>
+    </div>
     </div>
   </main>
 </div>
