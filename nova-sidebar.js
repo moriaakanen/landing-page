@@ -23,13 +23,13 @@
   // Daftar menu untuk USER (selalu terlihat untuk siapa saja yang login)
   var NAV_USER_ITEMS = [
     { key: 'profil',        href: 'index.html',        icon: '👤', label: 'Profil Saya',  group: 'Menu Utama' },
-    { key: 'surat-tugas',   href: 'surat-tugas.html',  icon: '📄', label: 'Surat Tugas',  group: 'Persuratan' },
+    { key: 'surat-tugas',   href: 'surat-tugas.html',  icon: '📄', label: 'Minta Surat Tugas',  group: 'Persuratan' },
   ];
 
   // Daftar menu untuk ADMIN (di-show/hide oleh nova-role-switcher.js
   // berdasarkan active_role)
   var NAV_ADMIN_ITEMS = [
-    { key: 'admin-surat',         href: 'admin-surat-tugas.html',    icon: '✅', label: 'Persetujuan Surat' },
+    { key: 'admin-surat',         href: 'admin-surat-tugas.html',    icon: '✅', label: 'Surat Tugas' },
     { key: 'kamus-pok',           href: 'manajemen-kamus-pok.html',  icon: '📚', label: 'Kamus POK' },
     { key: 'manajemen-pengguna',  href: 'manajemen-pengguna.html',   icon: '👥', label: 'Manajemen Pengguna' },
   ];
