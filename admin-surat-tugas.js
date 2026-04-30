@@ -221,7 +221,7 @@ function fmtWaktu(mulai, selesai) {
 function fmtWaktuDash(mulai, selesai) { return fmtWaktu(mulai, selesai) || '—'; }
 
 function badgeHTML(status) {
-  const m = { menunggu:['menunggu','⏳ Menunggu'], disetujui:['disetujui','✅ Disetujui'], ditolak:['ditolak','❌ Ditolak'] };
+  const m = { menunggu:['menunggu','⏳ Menunggu'], selesai:['selesai','✅ Selesai'] };
   const [cls, lbl] = m[status] || ['menunggu', status];
   return `<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;
 }
@@ -373,11 +373,95 @@ async function loadSurat() {
   }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   TAMBAH SURAT (Tugas #4) — admin bikin surat baru tanpa lewat user
+   ─────────────────────────────────────────────────────────────────────
+   Insert row baru ke tabel `surat_tugas` dengan:
+     - user_id    = SESSION.id (admin sendiri sebagai pengaju)
+     - status     = 'menunggu'
+     - field2 lain kosong/default
+   Setelah insert, reload tabel (dengan dirty-preserve agar edit di
+   baris menunggu lain tidak hilang) lalu scroll & focus ke baris baru
+   supaya admin bisa langsung mengisi.
+═══════════════════════════════════════════════════════════════════════ */
+async function addNewSurat() {
+  if (!SESSION || !SESSION.id) {
+    showPageAlert('Sesi tidak valid. Silakan refresh halaman.', 'error');
+    return;
+  }
+
+  // Disable tombol selama proses agar tidak double-click
+  const btn = document.querySelector('button[onclick="addNewSurat()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '… Menambahkan'; }
+
+  // Payload minimal — sesuai pattern dari surat-tugas.html (user side).
+  // Field-field detail (nomor_surat, penandatangan_*, tipe, dll.) di-NULL
+  // dulu — admin akan mengisi via tabel inline lalu klik Setujui.
+  const todayIso = todayISO();
+  const payload = {
+    user_id:           SESSION.id,
+    perihal:           '',
+    tanggal_berangkat: todayIso,
+    tanggal_kembali:   null,
+    tujuan:            '',
+    pegawai_nip:       [],
+    pegawai_list:      [],
+    status:            'menunggu',
+    created_at:        new Date().toISOString(),
+  };
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas`, {
+      method: 'POST',
+      headers: { ...H, 'Prefer': 'return=representation' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const j = await res.json(); msg = j.message || j.hint || msg; } catch(_) {}
+      throw new Error(msg);
+    }
+    const inserted = await res.json();
+    const newId = Array.isArray(inserted) && inserted.length ? inserted[0].id : null;
+
+    showPageAlert('✅ Baris baru ditambahkan. Lengkapi data lalu klik Setujui.', 'success');
+
+    // Reload tabel — pakai pattern dirty-preserve yg sama dgn submitApprove
+    // supaya edit di baris menunggu lain (kalau ada) tidak hilang.
+    const dirtySnapshot = captureMenungguDirty(null);
+    await loadSurat();
+    reapplyMenungguDirty(dirtySnapshot);
+
+    // Scroll & focus ke baris baru, isi sel pertama (perihal) supaya admin
+    // bisa langsung ngetik.
+    if (newId != null) {
+      setTimeout(() => {
+        const newRow = document.querySelector(`tr[data-surat-id="${newId}"]`);
+        if (newRow) {
+          newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Highlight sebentar agar visible
+          newRow.classList.add('row-focused');
+          setTimeout(() => newRow.classList.remove('row-focused'), 2000);
+          // Focus ke sel perihal (text input pertama di baris)
+          const firstCell = newRow.querySelector('.xls-cell[data-field="perihal"], .xls-cell, .pg-input');
+          if (firstCell) {
+            firstCell.focus();
+            if (firstCell.select) try { firstCell.select(); } catch(_) {}
+          }
+        }
+      }, 50);
+    }
+  } catch(e) {
+    showPageAlert(`Gagal menambahkan: ${e.message}`, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '+ Tambah Surat'; }
+  }
+}
+
 function updateStats() {
   document.getElementById('st-total').textContent    = allSurat.length;
   document.getElementById('st-menunggu').textContent = allSurat.filter(s => s.status === 'menunggu').length;
-  document.getElementById('st-disetujui').textContent= allSurat.filter(s => s.status === 'disetujui').length;
-  document.getElementById('st-ditolak').textContent  = allSurat.filter(s => s.status === 'ditolak').length;
+  document.getElementById('st-selesai').textContent  = allSurat.filter(s => s.status === 'selesai').length;
 }
 
 function filterTable() {
@@ -440,8 +524,8 @@ function sortData(arr) {
         return va.localeCompare(vb, 'id') * mul;
 
       case 'status': {
-        // Urutan logis: menunggu → disetujui → ditolak
-        const order = { menunggu: 0, disetujui: 1, ditolak: 2 };
+        // Urutan logis: menunggu → selesai
+        const order = { menunggu: 0, selesai: 1 };
         va = order[a.status] ?? 99;
         vb = order[b.status] ?? 99;
         return (va - vb) * mul;
@@ -480,7 +564,7 @@ function sortHeader(col, label, cssClass) {
    RENDER TABLE
 ═══════════════════════════════════════════════════════════════════════ */
 
-// State: id surat yang sedang di-edit (status disetujui di-unlock secara
+// State: id surat yang sedang di-edit (status selesai di-unlock secara
 // inline). null kalau tidak ada baris yg sedang di-edit. Hanya boleh ada
 // 1 baris dalam mode edit pada satu waktu agar UX tidak ambigu.
 let editingRowId = null;
@@ -491,8 +575,7 @@ let editingRowId = null;
    seluruh tabel. */
 function renderRowHTML(s) {
   const isMenunggu  = s.status === 'menunggu';
-  const isDisetujui = s.status === 'disetujui';
-  const isDitolak   = s.status === 'ditolak';
+  const isSelesai   = s.status === 'selesai';
   const isEditing   = editingRowId === s.id;
 
   // Field-field unlocked kalau: status menunggu, ATAU baris ini sedang di-edit.
@@ -525,9 +608,8 @@ function renderRowHTML(s) {
   let aksi;
   if (isMenunggu) {
     aksi = `
-      <button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button>
-      <button class="btn-reject" onclick="openReject(${s.id})">❌ Tolak</button>`;
-  } else if (isDisetujui) {
+      <button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button>`;
+  } else if (isSelesai) {
     if (isEditing) {
       // Mode edit aktif — tampilkan Simpan & Batal, sembunyikan Preview/Download
       // supaya admin tidak preview docx dengan data yg belum dipersist.
@@ -541,14 +623,22 @@ function renderRowHTML(s) {
         <button class="btn-download" onclick="downloadSuratTugas(${s.id})">📥</button>`;
     }
   } else {
-    // Status ditolak — tanpa aksi
+    // Status tidak dikenal — tampilkan placeholder
     aksi = `<span style="font-size:11px;color:var(--muted);font-style:italic">—</span>`;
   }
+
+  // Checkbox bulk-download — enabled hanya untuk row status 'selesai'
+  // (yang siap di-generate ke .docx). Row 'menunggu' dapat checkbox
+  // disabled supaya layout konsisten tapi tidak bisa dipilih.
+  const checkCell = isSelesai
+    ? `<td class="col-check"><input type="checkbox" class="bulk-dl-check" data-surat-id="${s.id}" onchange="updateBulkDownloadCounter()"></td>`
+    : `<td class="col-check"><input type="checkbox" disabled title="Hanya surat yang sudah selesai bisa di-download"></td>`;
 
   // data-editing sebagai marker tambahan agar styling/CSS bisa membedakan
   // baris yg sedang di-edit (ditambah border kuning di seksi CSS).
   return `
     <tr data-surat-id="${s.id}" data-status="${s.status}"${isEditing ? ' data-editing="1"' : ''}>
+      ${checkCell}
       <td class="col-no">${urutNo}</td>
 
       ${cellTextHTML(s.id, 'nomor_surat', nomorSurat, editable, 'cth: 001 / 013A')}
@@ -601,6 +691,7 @@ function renderTable(data) {
   document.getElementById('table-area').innerHTML = `
     <table class="list-table">
       <thead><tr>
+        <th class="col-check" title="Centang semua surat selesai untuk bulk download"><input type="checkbox" id="bulk-dl-master" onchange="toggleBulkDownloadAll(this.checked)"></th>
         ${sortHeader('no',            'No',                'col-no')}
         ${sortHeader('nomor_surat',   'Nomor Surat',       'col-nomor-surat')}
         ${sortHeader('tanggal_surat', 'Tgl Surat',         'col-tgl-surat')}
@@ -623,6 +714,8 @@ function renderTable(data) {
   requestAnimationFrame(() => {
     attachEditableListeners();
     setupTopScrollbar();
+    // Reset state bulk download (master + counter) setelah re-render
+    updateBulkDownloadCounter();
   });
 }
 
@@ -728,7 +821,7 @@ function cellTextareaHTML(id, field, val, editable, placeholder) {
 }
 
 /* Cell khusus utk kolom Tipe — render <select> dengan 7 pilihan kalau
-   editable, atau ro-text kalau status sudah disetujui/ditolak.
+   editable, atau ro-text kalau status sudah selesai.
    Value NULL/empty di-display sebagai '—' (readonly) atau placeholder
    "— Pilih tipe —" (editable) — admin wajib pilih sebelum approve. */
 function cellTipeHTML(id, val, editable) {
@@ -939,6 +1032,9 @@ let calState = {
   month:    new Date().getMonth(),
   rangePhase: 0,
   yearMode: false,
+  // Tugas #2 — keyboard navigation: tanggal yg sedang di-highlight
+  // (di-set saat openCal, digerakkan oleh ←↑→↓, dipilih dgn Enter).
+  focusedDay: '',
 };
 
 function openCal(el, isRange) {
@@ -950,6 +1046,8 @@ function openCal(el, isRange) {
   let initIso = isRange ? (el.dataset.isoMulai || todayISO()) : (el.dataset.iso || todayISO());
   const d = parseISODate(initIso);
   if (d) { calState.year = d.getFullYear(); calState.month = d.getMonth(); }
+  // Init focusedDay ke tanggal yg sedang di-pick (atau hari ini kalau kosong)
+  calState.focusedDay = initIso;
   const popup = document.getElementById('cal-popup');
   popup.classList.remove('year-mode');
   popup.classList.add('open');
@@ -991,6 +1089,7 @@ function renderCal() {
     } else if (startIso && ds === startIso) {
       cls += calState.isRange ? (endIso === startIso ? ' cal-single' : ' cal-start') : ' cal-single';
     }
+    if (ds === calState.focusedDay) cls += ' cal-focused';
     html += `<div class="${cls}" data-date="${ds}">${d}</div>`;
   }
   document.getElementById('cal-days').innerHTML = html;
@@ -1072,34 +1171,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('cal-days').onclick = (e) => {
     const d = e.target.closest('.cal-day');
     if (!d || d.classList.contains('cal-empty')) return;
-    const ds = d.dataset.date;
-    const el = calState.targetEl;
-    if (!el) return;
-    if (!calState.isRange) {
-      el.dataset.iso = ds;
-      el.value = fmtTgl(ds);
-      el.classList.remove('err');
-      closeCal();
-      return;
-    }
-   if (calState.rangePhase === 0) {
-      el.dataset.isoMulai = ds;
-      el.dataset.isoSelesai = '';
-      el.value = fmtTgl(ds) + ' s.d. …';
-      calState.rangePhase = 1;
-      renderCal();   
-    } else {
-      let mulai = el.dataset.isoMulai;
-      let selesai = ds;
-      if (selesai < mulai) { [mulai, selesai] = [selesai, mulai]; }
-      el.dataset.isoMulai = mulai;
-      el.dataset.isoSelesai = (selesai === mulai) ? '' : selesai;
-      el.value = fmtWaktu(mulai, el.dataset.isoSelesai);
-      el.classList.remove('err');
-      calState.rangePhase = 0;
-      renderCal();
-      setTimeout(closeCal, 150);
-    }
+    calPickDate(d.dataset.date);
   };
   document.getElementById('cal-year-grid').onclick = (e) => {
     const c = e.target.closest('.cal-year-cell');
@@ -1109,6 +1181,87 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCal();
   };
 });
+
+/* ──────────────────────────────────────────────────────────────────
+   Tugas #2 — Keyboard navigation di calendar popup
+   ──────────────────────────────────────────────────────────────────
+   ←↑→↓  navigasi 1 hari / 1 minggu (auto-pindah bulan kalau lewat batas)
+   Enter pilih tanggal yg sedang di-focus
+   Esc   tutup popup (sudah di-handle di Escape clause global)
+─────────────────────────────────────────────────────────────────── */
+
+/**
+ * Pick tanggal ds ke target input. Dipanggil oleh klik mouse (event handler
+ * di onclick cal-days) DAN keyboard Enter.
+ */
+function calPickDate(ds) {
+  const el = calState.targetEl;
+  if (!el) return;
+  if (!calState.isRange) {
+    el.dataset.iso = ds;
+    el.value = fmtTgl(ds);
+    el.classList.remove('err');
+    closeCal();
+    return;
+  }
+  if (calState.rangePhase === 0) {
+    el.dataset.isoMulai = ds;
+    el.dataset.isoSelesai = '';
+    el.value = fmtTgl(ds) + ' s.d. …';
+    calState.rangePhase = 1;
+    renderCal();
+  } else {
+    let mulai = el.dataset.isoMulai;
+    let selesai = ds;
+    if (selesai < mulai) { [mulai, selesai] = [selesai, mulai]; }
+    el.dataset.isoMulai = mulai;
+    el.dataset.isoSelesai = (selesai === mulai) ? '' : selesai;
+    el.value = fmtWaktu(mulai, el.dataset.isoSelesai);
+    el.classList.remove('err');
+    calState.rangePhase = 0;
+    renderCal();
+    setTimeout(closeCal, 150);
+  }
+}
+
+/**
+ * Geser focusedDay sebanyak deltaDays. Auto-pindah bulan kalau pindah ke
+ * tanggal di bulan lain. Skip kalau popup tidak terbuka atau di year-mode.
+ */
+function calMoveFocus(deltaDays) {
+  const popup = document.getElementById('cal-popup');
+  if (!popup || !popup.classList.contains('open') || calState.yearMode) return;
+
+  let baseIso = calState.focusedDay;
+  if (!baseIso) {
+    // Fallback: pakai tgl yg sedang di-set di target, atau hari ini
+    const el = calState.targetEl;
+    baseIso = (el && (calState.isRange ? el.dataset.isoMulai : el.dataset.iso))
+           || todayISO();
+  }
+  const d = parseISODate(baseIso) || new Date();
+  d.setDate(d.getDate() + deltaDays);
+  const newIso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  // Pindah bulan kalau perlu
+  if (d.getFullYear() !== calState.year || d.getMonth() !== calState.month) {
+    calState.year  = d.getFullYear();
+    calState.month = d.getMonth();
+  }
+  calState.focusedDay = newIso;
+  renderCal();
+  // Scroll ke focused cell kalau ke luar viewport (rare di calendar 6×7)
+  const focusedEl = document.querySelector(`#cal-days .cal-day.cal-focused`);
+  if (focusedEl && focusedEl.scrollIntoView) {
+    focusedEl.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+}
+
+function calPickFocused() {
+  if (!calState.focusedDay) return;
+  // Pastikan tanggal yg di-focus adalah dalam bulan yang sedang di-render
+  // (calMoveFocus sudah jaga ini, tapi defensive)
+  calPickDate(calState.focusedDay);
+}
 
 /* ════════════════════════════════════════════════════════════════════
    AUTOCOMPLETE PEGAWAI
@@ -1683,10 +1836,24 @@ function navFocusCell(grid, r, c) {
 ═══════════════════════════════════════════════════════════════════════ */
 document.addEventListener('keydown', (e) => {
 
+  /* ── Tugas #2 — Calendar popup keyboard nav ──────────────────────
+     Saat cal-popup terbuka, arrow keys navigasi tanggal & Enter pilih.
+     Listener ini di atas Escape clause supaya tidak konflik dengan
+     handler grid di bawah (yg juga consume arrow keys). */
+  const calPopup = document.getElementById('cal-popup');
+  if (calPopup && calPopup.classList.contains('open') && !calState.yearMode) {
+    if (e.key === 'ArrowUp')    { e.preventDefault(); calMoveFocus(-7); return; }
+    if (e.key === 'ArrowDown')  { e.preventDefault(); calMoveFocus( 7); return; }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); calMoveFocus(-1); return; }
+    if (e.key === 'ArrowRight') { e.preventDefault(); calMoveFocus( 1); return; }
+    if (e.key === 'Enter')      { e.preventDefault(); calPickFocused(); return; }
+    // Escape tetap fall-through ke clause Escape di bawah (close popup)
+  }
+
   /* ── Escape ─────────────────────────────────────────────────────── */
   if (e.key === 'Escape') {
     closeAllPopups();
-    ['modal-approve','modal-reject','modal-preview'].forEach(closeModal);
+    ['modal-approve','modal-preview'].forEach(closeModal);
     document.querySelectorAll('tr.row-focused').forEach(tr => tr.classList.remove('row-focused'));
     return;
   }
@@ -2052,6 +2219,115 @@ function openApprove(id) {
   openModal('modal-approve');
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   PRESERVE DIRTY EDITS — helper supaya edit DOM di baris-baris
+   "menunggu" lain tidak hilang saat tabel di-render ulang setelah
+   sebuah baris di-approve / di-save edit. Bug-fix untuk skenario:
+     1. Admin edit banyak baris menunggu sekaligus (belum di-approve)
+     2. Approve 1 baris → loadSurat() reload semua → re-render tabel
+     3. Edit di baris-baris lain hilang karena DOM dibangun ulang
+        dari data server (yang belum punya edit tsb).
+   Fix: capture nilai DOM dirty SEBELUM reload, lalu re-apply ke DOM
+   SETELAH render ulang.
+═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Snapshot nilai semua cell yang "dirty" di baris status="menunggu".
+ * @param {*} excludeId — id baris yang baru di-approve (tidak perlu di-snap
+ *                       karena status-nya akan berubah jadi 'selesai').
+ * @returns {Object<string, {cells:Array, pegawai:?{nips,names}}>}
+ */
+function captureMenungguDirty(excludeId = null) {
+  const out = {};
+  const exclStr = excludeId != null ? String(excludeId) : null;
+
+  document.querySelectorAll('tr[data-status="menunggu"]').forEach(tr => {
+    const id = tr.dataset.suratId;
+    if (!id) return;
+    if (exclStr && String(id) === exclStr) return;
+
+    const entry = { cells: [], pegawai: null };
+
+    // Capture semua xls-cell (input/textarea/select)
+    tr.querySelectorAll('.xls-cell').forEach(el => {
+      const field = el.dataset.field;
+      if (!field) return;
+      const cell = { field, value: el.value || '' };
+      // Date cells: simpan dataset attr juga (single date dan range)
+      if (el.dataset.iso        !== undefined) cell.iso        = el.dataset.iso        || '';
+      if (el.dataset.isoMulai   !== undefined) cell.isoMulai   = el.dataset.isoMulai   || '';
+      if (el.dataset.isoSelesai !== undefined) cell.isoSelesai = el.dataset.isoSelesai || '';
+      entry.cells.push(cell);
+    });
+
+    // Capture pg-cell (pegawai multi-select)
+    const pg = tr.querySelector('.pg-cell');
+    if (pg) {
+      try {
+        entry.pegawai = {
+          nips:  JSON.parse(pg.dataset.nips  || '[]'),
+          names: JSON.parse(pg.dataset.names || '[]'),
+        };
+      } catch(_) { entry.pegawai = { nips: [], names: [] }; }
+    }
+
+    out[id] = entry;
+  });
+
+  return out;
+}
+
+/**
+ * Restore snapshot ke DOM. Hanya target baris yang masih ada DAN masih
+ * berstatus 'menunggu' (defensive — kalau status berubah krn admin lain
+ * meng-approve di window yg sama, kita skip).
+ */
+function reapplyMenungguDirty(snapshot) {
+  if (!snapshot) return;
+  Object.keys(snapshot).forEach(id => {
+    const tr = document.querySelector(`tr[data-surat-id="${id}"][data-status="menunggu"]`);
+    if (!tr) return;
+    const entry = snapshot[id];
+
+    // Re-apply cells
+    entry.cells.forEach(cell => {
+      const el = tr.querySelector(`.xls-cell[data-field="${cell.field}"]`);
+      if (!el) return;
+      el.value = cell.value;
+      if (cell.iso        !== undefined) el.dataset.iso        = cell.iso;
+      if (cell.isoMulai   !== undefined) el.dataset.isoMulai   = cell.isoMulai;
+      if (cell.isoSelesai !== undefined) el.dataset.isoSelesai = cell.isoSelesai;
+      // Untuk select tipe: sinkronkan class tipe-empty (placeholder italic)
+      if (el.tagName === 'SELECT' && cell.field === 'tipe') {
+        el.classList.toggle('tipe-empty', !cell.value);
+      }
+    });
+
+    // Re-apply pegawai (re-render visual tag-tag)
+    if (entry.pegawai) {
+      const pg = tr.querySelector('.pg-cell');
+      if (pg) {
+        const nips  = entry.pegawai.nips  || [];
+        const names = entry.pegawai.names || [];
+        pg.dataset.nips  = JSON.stringify(nips);
+        pg.dataset.names = JSON.stringify(names);
+
+        // Hapus tag-tag lama
+        pg.querySelectorAll('.pg-tag').forEach(t => t.remove());
+        // Insert tag baru SEBELUM input
+        const inp = pg.querySelector('.pg-input');
+        const tagsHTML = nips.map((nip, i) => buildPegTag(nip, names[i] || nip, false)).join('');
+        if (inp) {
+          inp.insertAdjacentHTML('beforebegin', tagsHTML);
+          inp.placeholder = nips.length ? '' : 'Ketik nama...';
+        } else {
+          pg.insertAdjacentHTML('afterbegin', tagsHTML);
+        }
+      }
+    }
+  });
+}
+
 async function submitApprove() {
   const values = collectRowFields(selectedId);
   if (!values) return;
@@ -2068,7 +2344,7 @@ async function submitApprove() {
   const jabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
 
   const payload = {
-    status: 'disetujui',
+    status: 'selesai',
     nomor_surat:           values.nomor_surat,
     tanggal_surat:         values.tanggal_surat,
     tanggal_berangkat:     values.tanggal_berangkat,
@@ -2113,8 +2389,12 @@ async function submitApprove() {
     }
 
     closeModal('modal-approve');
-    showPageAlert('✅ Surat tugas berhasil disetujui.', 'success');
+    showPageAlert('✅ Surat tugas berhasil ditandai selesai.', 'success');
+    // BUG FIX (#5): preserve edit di baris menunggu lain — capture sebelum
+    // reload, re-apply sesudah render ulang.
+    const dirtySnapshot = captureMenungguDirty(selectedId);
     await loadSurat();
+    reapplyMenungguDirty(dirtySnapshot);
     // Refresh autocomplete POK — kalau MAK yang baru di-approve belum
     // pernah ada di history, tambahkan ke daftar suggestion.
     loadMAKSuggestions();
@@ -2128,52 +2408,15 @@ async function submitApprove() {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   REJECT
-═══════════════════════════════════════════════════════════════════════ */
-function openReject(id) {
-  selectedId = id;
-  const s = suratMap[id]; if (!s) return;
-  document.getElementById('reject-perihal').textContent = s.perihal || '—';
-  document.getElementById('inp-catatan-reject').value = '';
-  document.getElementById('err-catatan-reject').classList.remove('show');
-  document.getElementById('reject-alert').className = 'alert';
-  openModal('modal-reject');
-}
-async function submitReject() {
-  const catatan = document.getElementById('inp-catatan-reject').value.trim();
-  if (!catatan) { document.getElementById('err-catatan-reject').classList.add('show'); return; }
-  document.getElementById('err-catatan-reject').classList.remove('show');
-  const btn = document.getElementById('btn-reject-submit');
-  btn.disabled = true; btn.classList.add('loading');
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${selectedId}`, {
-      method: 'PATCH',
-      headers: { ...H, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ status: 'ditolak', catatan_admin: catatan })
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    closeModal('modal-reject');
-    showPageAlert('❌ Surat tugas telah ditolak.', 'success');
-    await loadSurat();
-  } catch(e) {
-    document.getElementById('reject-alert-icon').textContent = '⚠️';
-    document.getElementById('reject-alert-text').textContent = `Gagal: ${e.message}`;
-    document.getElementById('reject-alert').className = 'alert error show';
-  } finally {
-    btn.disabled = false; btn.classList.remove('loading');
-  }
-}
-
-/* ════════════════════════════════════════════════════════════════════
-   EDIT ROW (untuk surat yang sudah disetujui)
+   EDIT ROW (untuk surat yang sudah selesai)
    ─────────────────────────────────────────────────────────────────────
-   Mengubah baris readonly (status='disetujui') menjadi editable inline
+   Mengubah baris readonly (status='selesai') menjadi editable inline
    tanpa membuka modal. Tombol Aksi berubah jadi Simpan / Batal.
 
    Aturan:
      - Hanya 1 baris yg boleh edit pada satu waktu. Klik Edit pada baris
        lain otomatis menutup edit yang sedang berjalan.
-     - Status TIDAK berubah setelah save — tetap 'disetujui'. Hanya
+     - Status TIDAK berubah setelah save — tetap 'selesai'. Hanya
        field-field yg di-PATCH.
      - Validasi field memakai validateApproveFields() yang sama dengan
        flow approve, supaya tidak ada celah field invalid lolos.
@@ -2189,7 +2432,7 @@ function enableRowEdit(id) {
   }
 
   const s = suratMap[id];
-  if (!s || s.status !== 'disetujui') return;
+  if (!s || s.status !== 'selesai') return;
 
   editingRowId = id;
   const row = document.querySelector(`tr[data-surat-id="${id}"]`);
@@ -2245,7 +2488,7 @@ async function saveRowEdit(id) {
   // berubah) — sama seperti di submitApprove.
   const jabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
 
-  // Payload TANPA field 'status' — status tetap 'disetujui'.
+  // Payload TANPA field 'status' — status tetap 'selesai'.
   const payload = {
     nomor_surat:           values.nomor_surat,
     tanggal_surat:         values.tanggal_surat,
@@ -2285,7 +2528,13 @@ async function saveRowEdit(id) {
     // suratMap ter-sinkron (termasuk updated_at, dll).
     editingRowId = null;
     showPageAlert('✅ Perubahan berhasil disimpan.', 'success');
+    // BUG FIX (#5): preserve edit di baris menunggu lain — capture sebelum
+    // reload, re-apply sesudah render ulang. (Baris yg di-edit di sini
+    // sendiri ber-status 'selesai', jadi tidak ter-include di dirty
+    // snapshot — exclude id sebagai safety net.)
+    const dirtySnapshot = captureMenungguDirty(id);
     await loadSurat();
+    reapplyMenungguDirty(dirtySnapshot);
     // Refresh autocomplete POK kalau MAK pembebanan diganti — sama
     // perlakuannya dgn submitApprove.
     loadMAKSuggestions();
@@ -2436,8 +2685,8 @@ function buildFileName(surat) {
 async function openPreview(suratId) {
   const surat = suratMap[suratId];
   if (!surat) return;
-  if (surat.status !== 'disetujui') {
-    showPageAlert('Surat hanya bisa di-preview jika sudah disetujui.', 'error');
+  if (surat.status !== 'selesai') {
+    showPageAlert('Surat hanya bisa di-preview jika sudah selesai.', 'error');
     return;
   }
   currentPreviewSurat = surat;
@@ -2484,8 +2733,8 @@ async function openPreview(suratId) {
 async function downloadSuratTugas(suratId) {
   const surat = suratMap[suratId];
   if (!surat) return;
-  if (surat.status !== 'disetujui') {
-    showPageAlert('Surat hanya bisa di-download jika sudah disetujui.', 'error'); return;
+  if (surat.status !== 'selesai') {
+    showPageAlert('Surat hanya bisa di-download jika sudah selesai.', 'error'); return;
   }
   try {
     ensureLibrariesLoaded();
@@ -2495,6 +2744,129 @@ async function downloadSuratTugas(suratId) {
   } catch(e) {
     console.error(e);
     showPageAlert(`Gagal download: ${e.message}`, 'error');
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   BULK DOWNLOAD (Tugas #7) — admin pilih banyak surat selesai
+                              dan download semua sekaligus
+   ─────────────────────────────────────────────────────────────────────
+   Approach: sequential download dengan jeda kecil antar file. Browser
+   bisa memunculkan dialog "Site is requesting to download multiple
+   files" — admin tinggal Allow.
+
+   Flow:
+     1. Master checkbox di header → toggle semua .bulk-dl-check
+        (yang TIDAK disabled — yaitu hanya status='selesai').
+     2. Setiap perubahan checkbox → updateBulkDownloadCounter()
+        update label tombol dengan count selected.
+     3. Klik "Download Terpilih" → bulkDownloadSelected() loop
+        sequentially: generate doc + saveAs + jeda 400ms.
+═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Update label & disabled state tombol bulk download berdasarkan
+ * jumlah checkbox yang dicentang. Juga sinkron master checkbox state.
+ */
+function updateBulkDownloadCounter() {
+  const all      = document.querySelectorAll('.bulk-dl-check');
+  const checked  = document.querySelectorAll('.bulk-dl-check:checked');
+  const btn      = document.getElementById('btn-bulk-download');
+  const master   = document.getElementById('bulk-dl-master');
+
+  if (btn) {
+    if (checked.length === 0) {
+      btn.textContent = '📥 Download Terpilih';
+      btn.disabled    = true;
+    } else {
+      btn.textContent = `📥 Download Terpilih (${checked.length})`;
+      btn.disabled    = false;
+    }
+  }
+
+  // Master checkbox state: checked kalau semua di-check, indeterminate
+  // kalau sebagian, unchecked kalau tidak ada.
+  if (master) {
+    if (all.length === 0 || checked.length === 0) {
+      master.checked       = false;
+      master.indeterminate = false;
+    } else if (checked.length === all.length) {
+      master.checked       = true;
+      master.indeterminate = false;
+    } else {
+      master.checked       = false;
+      master.indeterminate = true;
+    }
+  }
+}
+
+/** Toggle semua checkbox baris selesai mengikuti state master checkbox. */
+function toggleBulkDownloadAll(checked) {
+  document.querySelectorAll('.bulk-dl-check').forEach(c => { c.checked = !!checked; });
+  updateBulkDownloadCounter();
+}
+
+/**
+ * Loop checked surat dan trigger download .docx satu per satu.
+ * Dipanggil dari onclick tombol "Download Terpilih".
+ */
+async function bulkDownloadSelected() {
+  const checked = Array.from(document.querySelectorAll('.bulk-dl-check:checked'));
+  const ids = checked.map(c => parseInt(c.dataset.suratId, 10)).filter(Number.isFinite);
+  if (!ids.length) {
+    showPageAlert('Pilih minimal 1 surat untuk di-download.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-bulk-download');
+  const originalLabel = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; }
+
+  let success = 0;
+  const failures = [];
+
+  // Pre-warm library sekali saja (bukan per-iteration)
+  try { ensureLibrariesLoaded(); } catch(_) {}
+
+  for (let i = 0; i < ids.length; i++) {
+    const id    = ids[i];
+    const surat = suratMap[id];
+
+    // Update progress di tombol
+    if (btn) btn.textContent = `📥 ${i + 1}/${ids.length}…`;
+
+    if (!surat || surat.status !== 'selesai') {
+      failures.push(`#${id}: status bukan 'selesai'`);
+      continue;
+    }
+
+    try {
+      const blob = await buildSuratTugasDoc(surat);
+      saveAs(blob, buildFileName(surat));
+      success++;
+      // Jeda antar download supaya browser tidak block multi-trigger.
+      // 400ms umumnya cukup untuk Chrome/Edge/Firefox.
+      if (i < ids.length - 1) {
+        await new Promise(r => setTimeout(r, 400));
+      }
+    } catch(e) {
+      console.error(`[NOVA] bulk download gagal id=${id}:`, e);
+      failures.push(`${surat.perihal || 'surat #' + id}: ${e.message}`);
+    }
+  }
+
+  // Restore tombol & uncheck semua checkbox setelah selesai
+  if (btn) { btn.textContent = originalLabel; btn.disabled = false; }
+  document.querySelectorAll('.bulk-dl-check:checked').forEach(c => { c.checked = false; });
+  updateBulkDownloadCounter();
+
+  // Tampilkan hasil
+  if (failures.length === 0) {
+    showPageAlert(`✅ ${success} surat berhasil di-download.`, 'success');
+  } else if (success === 0) {
+    showPageAlert(`Gagal download semua: ${failures.slice(0, 3).join('; ')}${failures.length > 3 ? '…' : ''}`, 'error');
+  } else {
+    showPageAlert(`⚠️ ${success} berhasil, ${failures.length} gagal. Cek console untuk detail.`, 'error');
   }
 }
 
@@ -3670,6 +4042,132 @@ async function buildTemplateData(data) {
   };
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   POST-PROCESSING: hapus paragraf kosong di akhir body (Tugas #6)
+   ─────────────────────────────────────────────────────────────────────
+   Konteks: blok loop {#menginap}...{/menginap} di template kadang
+   meninggalkan paragraf kosong di akhir document (artefak engine
+   docxtemplater) yang men-trigger blank page di Word. Karena meta-module
+   `dropLastPageIfEmpty()` adalah PAID module, kita lakukan post-processing
+   manual: ambil `word/document.xml` dari zip, parse via DOMParser, hapus
+   paragraf kosong yang ada DI AKHIR body (tepat sebelum final <w:sectPr>),
+   lalu write back ke zip.
+
+   Defensive:
+     - SEMUA error dibungkus try/catch — kalau apapun gagal, document
+       asli TIDAK disentuh (no-op fallback).
+     - Berhenti iterasi begitu ketemu konten meaningful (text run, gambar,
+       atau sectPr nested).
+     - Cap maksimal 30 paragraf untuk mencegah loop accidental.
+
+   Aman dipanggil walaupun template tidak punya trailing empty para
+   (no-op).
+═══════════════════════════════════════════════════════════════════════ */
+function dropTrailingEmptyParagraphs(doc) {
+  let zip;
+  try { zip = doc.getZip(); } catch(_) { return; }
+
+  const xmlPath = 'word/document.xml';
+  const file = zip.file(xmlPath);
+  if (!file) {
+    console.warn('[NOVA] dropTrailingEmpty: word/document.xml not found');
+    return;
+  }
+
+  let xml;
+  try { xml = file.asText(); } catch(_) { return; }
+  if (!xml || typeof xml !== 'string') return;
+
+  // Preserve XML declaration kalau ada (XMLSerializer biasanya drop ini)
+  let xmlDecl = '';
+  const declMatch = xml.match(/^<\?xml[^?]*\?>\s*/);
+  if (declMatch) xmlDecl = declMatch[0];
+
+  // Parse
+  let xmlDoc;
+  try {
+    xmlDoc = new DOMParser().parseFromString(xml, 'application/xml');
+  } catch(e) {
+    console.warn('[NOVA] dropTrailingEmpty: parse failed', e);
+    return;
+  }
+
+  // Cek error parse (browser inject <parsererror>)
+  if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+    console.warn('[NOVA] dropTrailingEmpty: parsererror found, skip');
+    return;
+  }
+
+  // Cari <w:body> (namespace-agnostic via localName)
+  const body = xmlDoc.getElementsByTagNameNS('*', 'body')[0];
+  if (!body) {
+    console.warn('[NOVA] dropTrailingEmpty: <w:body> not found');
+    return;
+  }
+
+  // Walk children dari belakang. Hapus paragraf kosong sampai ketemu
+  // konten meaningful atau sectPr.
+  let removed = 0;
+  const MAX_REMOVE = 30;
+
+  while (removed < MAX_REMOVE) {
+    const last = body.lastElementChild;
+    if (!last) break;
+    const tag = last.localName;
+
+    // Final sectPr (di luar paragraf) — STOP, jangan disentuh.
+    if (tag === 'sectPr') break;
+
+    // Hanya proses elemen <w:p>
+    if (tag !== 'p') break;
+
+    // Kalau paragraf ini carry sectPr di pPr (final section properties
+    // dipindah ke last paragraph), JANGAN hapus — dokumen butuh sectPr.
+    if (last.getElementsByTagNameNS('*', 'sectPr').length > 0) break;
+
+    // Cek text run dengan content (whitespace-only juga dianggap kosong)
+    const texts = last.getElementsByTagNameNS('*', 't');
+    let hasText = false;
+    for (let i = 0; i < texts.length; i++) {
+      if ((texts[i].textContent || '').length > 0) { hasText = true; break; }
+    }
+    if (hasText) break;
+
+    // Cek konten media (drawing, picture, OLE object)
+    if (last.getElementsByTagNameNS('*', 'drawing').length > 0)  break;
+    if (last.getElementsByTagNameNS('*', 'pict').length > 0)     break;
+    if (last.getElementsByTagNameNS('*', 'object').length > 0)   break;
+
+    // Paragraf kosong (atau cuma berisi page break / properties) — hapus
+    body.removeChild(last);
+    removed++;
+  }
+
+  if (removed === 0) return;
+
+  // Serialize kembali ke string XML
+  let newXml;
+  try {
+    newXml = new XMLSerializer().serializeToString(xmlDoc);
+  } catch(e) {
+    console.warn('[NOVA] dropTrailingEmpty: serialize failed', e);
+    return;
+  }
+
+  // Restore XML declaration kalau XMLSerializer drop
+  if (xmlDecl && !newXml.startsWith('<?xml')) {
+    newXml = xmlDecl + newXml;
+  }
+
+  // Write back ke zip
+  try {
+    zip.file(xmlPath, newXml);
+    console.log(`[NOVA] dropTrailingEmpty: removed ${removed} empty trailing paragraph(s)`);
+  } catch(e) {
+    console.warn('[NOVA] dropTrailingEmpty: zip update failed', e);
+  }
+}
+
 async function buildSuratTugasDoc(data) {
   console.log('[NOVA] buildSuratTugasDoc() dipanggil', { suratId: data.id });
 
@@ -3721,6 +4219,15 @@ async function buildSuratTugasDoc(data) {
     // Docxtemplater error biasanya informatif — munculkan ke console
     console.error('Template render error:', err, err.properties);
     throw new Error(`Template error: ${err.message}`);
+  }
+
+  // Tugas #6: post-processing untuk hapus blank page yg muncul setelah
+  // {#menginap}...{/menginap} (atau loop lain) — wrapped try/catch supaya
+  // error apapun di sini TIDAK menggagalkan generate doc.
+  try {
+    dropTrailingEmptyParagraphs(doc);
+  } catch (e) {
+    console.warn('[NOVA] dropTrailingEmptyParagraphs error (non-fatal):', e);
   }
 
   const out = doc.getZip().generate({
