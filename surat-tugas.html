@@ -75,8 +75,7 @@
   .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
   .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
   .badge.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
-  .badge.disetujui{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
-  .badge.ditolak{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+  .badge.selesai{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
   .badge.draft{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1}
   .btn-sm{padding:4px 10px;background:transparent;border:1px solid var(--border2);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s}
   .btn-sm:hover{background:var(--gold-light);border-color:var(--gold)}
@@ -128,7 +127,7 @@
   .table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
   .table-scroll::-webkit-scrollbar-thumb:hover{background:#a9a298}
 
-  table.xls-table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px;table-layout:fixed}
+  table.xls-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1050px;table-layout:fixed}
   table.xls-table thead th{
     background:#f9f8f5;padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;
     color:var(--navy);letter-spacing:.5px;text-transform:uppercase;
@@ -159,6 +158,7 @@
   .col-waktu    { width:180px }
   .col-tujuan   { width:170px }
   .col-nama     { width:260px }
+  .col-pok      { width:150px }
 
   td.col-no{text-align:center;font-weight:700;color:var(--muted);font-size:12px;padding:11px 4px;background:#fafaf8;vertical-align:middle}
   td.col-check{text-align:center;padding:11px 4px;background:#fafaf8;vertical-align:middle}
@@ -242,6 +242,8 @@
   .cal-day.cal-start.cal-end,.cal-day.cal-single{border-radius:5px}
   .cal-day.cal-today::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--gold)}
   .cal-day.cal-start.cal-today::after,.cal-day.cal-end.cal-today::after,.cal-day.cal-single.cal-today::after{background:rgba(255,255,255,.7)}
+  /* Tugas #2 — keyboard focus ring (outline kuning) */
+  .cal-day.cal-focused{box-shadow:0 0 0 2px var(--gold) inset;z-index:1}
   .cal-footer{border-top:1px solid var(--border);padding:7px 12px;display:flex;align-items:center;justify-content:space-between;font-size:11px;background:#fafaf8}
   .cal-footer-text{color:var(--navy);font-weight:500;flex:1}
   .cal-clear{background:none;border:1px solid var(--border2);border-radius:5px;padding:3px 9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;color:var(--muted);cursor:pointer;transition:all .2s}
@@ -322,7 +324,7 @@
       <div>
         <div class="page-eyebrow">Persuratan</div>
         <h1 class="page-title">Surat <em>Tugas</em></h1>
-        <p class="page-desc">Kelola pengajuan surat tugas. Nomor surat dan tanggal surat akan ditetapkan oleh administrator setelah disetujui.</p>
+        <p class="page-desc">Kelola pengajuan surat tugas. Nomor surat dan tanggal surat akan ditetapkan oleh administrator setelah surat selesai.</p>
       </div>
     </div>
     <div class="tabs fade-in" style="animation-delay:.05s">
@@ -333,8 +335,7 @@
       <div class="stats-row fade-in" style="animation-delay:.1s">
         <div class="stat-pill"><div class="stat-pill-icon" style="background:#e8f0fe">&#128203;</div><div><div class="stat-pill-num" id="st-total">&mdash;</div><div class="stat-pill-label">Total</div></div></div>
         <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef3c7">&#9203;</div><div><div class="stat-pill-num" id="st-menunggu">&mdash;</div><div class="stat-pill-label">Menunggu</div></div></div>
-        <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">&#9989;</div><div><div class="stat-pill-num" id="st-disetujui">&mdash;</div><div class="stat-pill-label">Disetujui</div></div></div>
-        <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef2f2">&#10060;</div><div><div class="stat-pill-num" id="st-ditolak">&mdash;</div><div class="stat-pill-label">Ditolak</div></div></div>
+        <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">&#9989;</div><div><div class="stat-pill-num" id="st-selesai">&mdash;</div><div class="stat-pill-label">Selesai</div></div></div>
       </div>
       <div class="filter-bar">
         <div class="search-wrap">
@@ -344,8 +345,7 @@
         <select class="filter-select" id="filter-status" onchange="filterTable()">
           <option value="">Semua Status</option>
           <option value="menunggu">Menunggu</option>
-          <option value="disetujui">Disetujui</option>
-          <option value="ditolak">Ditolak</option>
+          <option value="selesai">Selesai</option>
         </select>
       </div>
       <div class="table-wrap">
@@ -372,11 +372,11 @@
         <span>&#9000;&#65039;</span>
         <span>
           <strong>Mode Excel:</strong>
-          <kbd>Tab</kbd> / <kbd>Enter</kbd> = pindah sel &middot;
+          <kbd>Tab</kbd> = pindah sel &middot;
           <kbd>Shift</kbd>+<kbd>Tab</kbd> = ke kiri &middot;
           <kbd>&#8593;</kbd> <kbd>&#8595;</kbd> <kbd>&#8592;</kbd> <kbd>&#8594;</kbd> = navigasi antar sel &middot;
           Tanggal: ketik bebas (<em>2/1/26</em>, <em>02-01-2026</em>, <em>2 jan 2026</em>) atau <kbd>Alt</kbd>+<kbd>&#8595;</kbd> untuk popup &middot;
-          Pegawai: ketik nama lalu Enter / klik dari saran.
+          Pegawai: ketik nama lalu <kbd>Enter</kbd> / klik dari saran.
         </span>
       </div>
       <div id="bulk-alert" class="alert"><span id="bulk-alert-icon"></span><span id="bulk-alert-text"></span></div>
@@ -406,6 +406,7 @@
               <th class="col-waktu">Waktu Pelaksanaan *</th>
               <th class="col-tujuan">Tempat Tujuan *</th>
               <th class="col-nama">Nama Pegawai *</th>
+              <th class="col-pok">POK <span style="font-weight:400;color:var(--muted);font-size:10px">(opsional)</span></th>
             </tr></thead>
             <tbody id="bulk-tbody"></tbody>
           </table>
@@ -478,11 +479,11 @@ const BULAN_ID=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustu
 function fmtWaktu(mulai,selesai){if(!mulai)return'\u2014';const a=new Date(mulai+'T00:00:00');if(!selesai||selesai===mulai){return`${a.getDate()} ${BULAN_ID[a.getMonth()]} ${a.getFullYear()}`;}const b=new Date(selesai+'T00:00:00');if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()){return`${a.getDate()} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;}if(a.getFullYear()===b.getFullYear()){return`${a.getDate()} ${BULAN_ID[a.getMonth()]} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;}return`${a.getDate()} ${BULAN_ID[a.getMonth()]} ${a.getFullYear()} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;}
 async function loadPegawai(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/data%20pegawai?select=id,NAMA,NIP&order=NAMA.asc`,{headers:H});if(!res.ok)throw new Error();allPegawai=await res.json();}catch(e){console.error('Gagal load pegawai',e);}}
 async function loadSurat(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?user_id=eq.${encodeURIComponent(SESSION.id)}&order=created_at.desc`,{headers:H});if(!res.ok)throw new Error();allSurat=await res.json();updateStats();renderTable(allSurat);document.getElementById('tc-list').textContent=allSurat.length;}catch(e){document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">\u26a0\ufe0f</div><div class="table-empty-text">Gagal memuat data.</div></div>';}}
-function updateStats(){document.getElementById('st-total').textContent=allSurat.length;document.getElementById('st-menunggu').textContent=allSurat.filter(s=>s.status==='menunggu').length;document.getElementById('st-disetujui').textContent=allSurat.filter(s=>s.status==='disetujui').length;document.getElementById('st-ditolak').textContent=allSurat.filter(s=>s.status==='ditolak').length;}
-function badgeHTML(status){const m={menunggu:['menunggu','Menunggu'],disetujui:['disetujui','Disetujui'],ditolak:['ditolak','Ditolak']};const[cls,lbl]=m[status]||['draft',esc(status)||'Draft'];return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;}
+function updateStats(){document.getElementById('st-total').textContent=allSurat.length;document.getElementById('st-menunggu').textContent=allSurat.filter(s=>s.status==='menunggu').length;document.getElementById('st-selesai').textContent=allSurat.filter(s=>s.status==='selesai').length;}
+function badgeHTML(status){const m={menunggu:['menunggu','Menunggu'],selesai:['selesai','Selesai']};const[cls,lbl]=m[status]||['draft',esc(status)||'Draft'];return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;}
 function renderTable(data){document.getElementById('table-count').textContent=`${data.length} surat`;if(!data.length){document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">\ud83d\udced</div><div class="table-empty-text">Belum ada surat tugas.</div></div>';return;}data.forEach(s=>{suratMap[s.id]=s;});const r=data.map(s=>`<tr><td style="max-width:220px;white-space:normal;word-break:break-word;line-height:1.5">${esc(s.perihal)||'\u2014'}</td><td style="white-space:nowrap;font-size:12px">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td><td>${esc(s.tujuan)||'\u2014'}</td><td><span style="font-size:11px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td><td>${badgeHTML(s.status)}</td><td><button class="btn-sm" onclick="showDetail(${JSON.stringify(s.id)})">Detail</button></td></tr>`).join('');document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu Pelaksanaan</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th></th></tr></thead><tbody>${r}</tbody></table>`;}
 function filterTable(){const q=document.getElementById('search-input').value.toLowerCase();const st=document.getElementById('filter-status').value;const f=allSurat.filter(s=>(!q||(s.perihal||'').toLowerCase().includes(q)||(s.tujuan||'').toLowerCase().includes(q))&&(!st||s.status===st));renderTable(f);document.getElementById('table-count').textContent=`${f.length} surat`;}
-function showDetail(id){const s=suratMap[id];if(!s)return;const field=(label,val)=>`<div><div class="modal-field-label">${label}</div><div class="modal-field-val">${val||'\u2014'}</div></div>`;document.getElementById('modal-body').innerHTML=`${field('Perihal',esc(s.perihal))}${field('Waktu Pelaksanaan',esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali)))}${field('Tujuan',esc(s.tujuan))}${field('Status',badgeHTML(s.status))}${field('Pegawai',(s.pegawai_list||[]).map(esc).join(', ')||'\u2014')}${s.nomor_surat?field('Nomor Surat',esc(s.nomor_surat)):''} ${s.tanggal_surat?field('Tanggal Surat',esc(s.tanggal_surat)):''} ${s.catatan_admin?field('Catatan Admin',esc(s.catatan_admin)):''}`;document.getElementById('detail-modal').style.display='flex';}
+function showDetail(id){const s=suratMap[id];if(!s)return;const field=(label,val)=>`<div><div class="modal-field-label">${label}</div><div class="modal-field-val">${val||'\u2014'}</div></div>`;document.getElementById('modal-body').innerHTML=`${field('Perihal',esc(s.perihal))}${field('Waktu Pelaksanaan',esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali)))}${field('Tujuan',esc(s.tujuan))}${field('Status',badgeHTML(s.status))}${field('Pegawai',(s.pegawai_list||[]).map(esc).join(', ')||'\u2014')}${s.pembebanan?field('POK',esc(s.pembebanan)):''}${s.nomor_surat?field('Nomor Surat',esc(s.nomor_surat)):''} ${s.tanggal_surat?field('Tanggal Surat',esc(s.tanggal_surat)):''} ${s.catatan_admin?field('Catatan Admin',esc(s.catatan_admin)):''}`;document.getElementById('detail-modal').style.display='flex';}
 function closeDetailModal(){document.getElementById('detail-modal').style.display='none';}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDetailModal();});
 /* ═══════════════════════════════════════════════════════════════════
@@ -566,6 +567,16 @@ function cellTextareaHTML(field,val,placeholder){
   </td>`;
 }
 
+/* Single-line text input cell — dipakai untuk POK (pembebanan) yang
+   biasanya kode pendek satu baris. */
+function cellTextHTML(field,val,placeholder,colClass){
+  return`<td class="col-${colClass||field}">
+    <input type="text" class="xls-cell" data-field="${field}" data-col-field="${field}"
+      value="${escAttr(val||'')}"
+      placeholder="${escAttr(placeholder)}">
+  </td>`;
+}
+
 function cellDateRangeHTML(field,isoMulai,isoSelesai){
   const display=isoMulai?fmtWaktu(isoMulai,isoSelesai):'';
   return`<td class="col-waktu">
@@ -638,7 +649,7 @@ function onRangeBlur(el){
 }
 
 /* ══ CALENDAR POPUP ══ */
-let calState={targetEl:null,isRange:false,year:new Date().getFullYear(),month:new Date().getMonth(),rangePhase:0,yearMode:false};
+let calState={targetEl:null,isRange:false,year:new Date().getFullYear(),month:new Date().getMonth(),rangePhase:0,yearMode:false,focusedDay:''};
 
 function openCal(el,isRange){
   closeAllPopups();
@@ -649,6 +660,8 @@ function openCal(el,isRange){
   const initIso=el.dataset.isoMulai||todayISO();
   const d=parseISODate(initIso);
   if(d){calState.year=d.getFullYear();calState.month=d.getMonth();}
+  // Tugas #2: init focusedDay untuk keyboard navigation
+  calState.focusedDay=initIso;
   const popup=document.getElementById('cal-popup');
   popup.classList.remove('year-mode');
   popup.classList.add('open');
@@ -684,6 +697,7 @@ function renderCal(){
     } else if(startIso&&ds===startIso){
       cls+=calState.isRange?(endIso===startIso?' cal-single':' cal-start'):' cal-single';
     }
+    if(ds===calState.focusedDay)cls+=' cal-focused';
     html+=`<div class="${cls}" data-date="${ds}">${d}</div>`;
   }
   document.getElementById('cal-days').innerHTML=html;
@@ -754,7 +768,20 @@ document.getElementById('cal-clear').onclick=(e)=>{
 document.getElementById('cal-days').onclick=(e)=>{
   const d=e.target.closest('.cal-day');
   if(!d||d.classList.contains('cal-empty'))return;
-  const ds=d.dataset.date;
+  calPickDate(d.dataset.date);
+};
+document.getElementById('cal-year-grid').onclick=(e)=>{
+  const c=e.target.closest('.cal-year-cell');
+  if(!c)return;
+  calState.year=parseInt(c.dataset.year,10);
+  calState.yearMode=false;
+  renderCal();
+};
+
+/* ── Tugas #2 — Calendar keyboard navigation ──
+   ←↑→↓ navigasi 1 hari/1 minggu, Enter pilih, Esc tutup (sudah di-handle).
+   Logic identik dgn admin (admin-surat-tugas.js). */
+function calPickDate(ds){
   const el=calState.targetEl;
   if(!el)return;
   if(!calState.isRange){
@@ -782,14 +809,33 @@ document.getElementById('cal-days').onclick=(e)=>{
     renderCal();
     setTimeout(closeCal,150);
   }
-};
-document.getElementById('cal-year-grid').onclick=(e)=>{
-  const c=e.target.closest('.cal-year-cell');
-  if(!c)return;
-  calState.year=parseInt(c.dataset.year,10);
-  calState.yearMode=false;
+}
+function calMoveFocus(deltaDays){
+  const popup=document.getElementById('cal-popup');
+  if(!popup||!popup.classList.contains('open')||calState.yearMode)return;
+  let baseIso=calState.focusedDay;
+  if(!baseIso){
+    const el=calState.targetEl;
+    baseIso=(el&&el.dataset.isoMulai)||todayISO();
+  }
+  const d=parseISODate(baseIso)||new Date();
+  d.setDate(d.getDate()+deltaDays);
+  const newIso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  if(d.getFullYear()!==calState.year||d.getMonth()!==calState.month){
+    calState.year=d.getFullYear();
+    calState.month=d.getMonth();
+  }
+  calState.focusedDay=newIso;
   renderCal();
-};
+  const focusedEl=document.querySelector('#cal-days .cal-day.cal-focused');
+  if(focusedEl&&focusedEl.scrollIntoView){
+    focusedEl.scrollIntoView({block:'nearest',inline:'nearest'});
+  }
+}
+function calPickFocused(){
+  if(!calState.focusedDay)return;
+  calPickDate(calState.focusedDay);
+}
 
 /* ══ AUTOCOMPLETE PEGAWAI ══ */
 let acState={cellEl:null,inputEl:null,filtered:[],focusIdx:-1,isSingle:false};
@@ -981,7 +1027,7 @@ function removePegTag(cellEl,nip){
 }
 
 /* ══ ARROW NAVIGATION (grid antar sel) ══ */
-const NAV_FIELDS=['perihal','waktu','tujuan','pegawai_multi'];
+const NAV_FIELDS=['perihal','waktu','tujuan','pegawai_multi','pembebanan'];
 function buildNavGrid(){
   const trs=Array.from(document.querySelectorAll('#bulk-tbody tr[data-row-id]'));
   return trs.map(row=>{
@@ -1038,8 +1084,22 @@ function moveCellFocus(currentEl,direction){
 }
 function closeAllPopups(){closeCal();closeAc();}
 
-/* ══ GLOBAL KEYDOWN (Tab/Enter linear + Arrow grid) ══ */
+/* ══ GLOBAL KEYDOWN (Tab linear + Arrow grid) ══ */
 document.addEventListener('keydown',(e)=>{
+  /* ── Tugas #2 — Calendar popup keyboard nav ──
+     Saat cal-popup terbuka, arrow keys navigasi tanggal & Enter pilih.
+     Letakkan di atas semua handler lain agar arrow tidak konflik dgn
+     navigasi grid tabel. */
+  const calPopup=document.getElementById('cal-popup');
+  if(calPopup&&calPopup.classList.contains('open')&&!calState.yearMode){
+    if(e.key==='ArrowUp')   {e.preventDefault();calMoveFocus(-7);return;}
+    if(e.key==='ArrowDown') {e.preventDefault();calMoveFocus( 7);return;}
+    if(e.key==='ArrowLeft') {e.preventDefault();calMoveFocus(-1);return;}
+    if(e.key==='ArrowRight'){e.preventDefault();calMoveFocus( 1);return;}
+    if(e.key==='Enter')     {e.preventDefault();calPickFocused();return;}
+    // Escape fall-through ke clause Escape di bawah (close popup)
+  }
+
   if(e.key==='Escape'){
     closeAllPopups();
     document.querySelectorAll('tr.row-focused').forEach(tr=>tr.classList.remove('row-focused'));
@@ -1081,7 +1141,13 @@ document.addEventListener('keydown',(e)=>{
       return;
     }
   }
-  if(isTextarea&&e.key==='Enter'&&e.shiftKey)return;
+  // Catatan: Enter sengaja TIDAK dipakai untuk navigasi cell — pindah kolom
+  // hanya via Tab atau arrow keys. Behavior ini disamakan dengan admin
+  // supaya Enter di field pegawai bisa untuk pilih item dari autocomplete
+  // (handler onPgKeydown) tanpa di-intercept oleh handler global.
+  // - Plain Enter di textarea = newline default browser
+  // - Plain Enter di input single-line = no-op
+  // - Plain Enter di pg-input = buka/pilih dari autocomplete (onPgKeydown)
   if(e.key==='Tab'){
     e.preventDefault();
     moveCellFocus(target,e.shiftKey?-1:1);
@@ -1097,9 +1163,6 @@ document.addEventListener('keydown',(e)=>{
         },30);
       }
     }
-  } else if(e.key==='Enter'&&!e.shiftKey){
-    e.preventDefault();
-    moveCellFocus(target,1);
   }
 });
 
@@ -1131,6 +1194,7 @@ function renderRowHTML(id){
     ${cellDateRangeHTML('waktu','','')}
     ${cellTextareaHTML('tujuan','','Kota / instansi')}
     ${cellPegawaiMultiHTML('pegawai_multi',[],[])}
+    ${cellTextHTML('pembebanan','','cth: 054.01.GG\u2026','pok')}
   </tr>`;
 }
 function addRows(n){
@@ -1247,11 +1311,12 @@ function handlePaste(e){
       const refreshed=Array.from(document.querySelectorAll('#bulk-tbody tr[data-row-id]'));
       tr=refreshed[refreshed.length-1];
     }
-    // Mapping kolom: [perihal, waktu-text, tujuan]
-    // (waktu di-coba-parse via parseFlexRange; bila gagal biarkan kosong)
+    // Mapping kolom: [perihal, waktu-text, tujuan, POK]
+    // (pegawai sengaja di-skip karena multi-tag UI tidak bisa di-paste plain text)
     const perihalEl=tr.querySelector('textarea.xls-cell[data-field="perihal"]');
     const waktuEl=tr.querySelector('input.xls-cell[data-field="waktu"]');
     const tujuanEl=tr.querySelector('textarea.xls-cell[data-field="tujuan"]');
+    const pokEl=tr.querySelector('input.xls-cell[data-field="pembebanan"]');
     if(perihalEl&&cells[0]!==undefined){
       perihalEl.value=cells[0].trim();
       autoGrow(perihalEl);
@@ -1273,6 +1338,9 @@ function handlePaste(e){
       tujuanEl.value=cells[2].trim();
       autoGrow(tujuanEl);
     }
+    if(pokEl&&cells[3]!==undefined){
+      pokEl.value=cells[3].trim();
+    }
   });
   reNumberRows();
   updateBulkCounters();
@@ -1283,6 +1351,7 @@ function collectRow(tr){
   const perihalEl=tr.querySelector('textarea.xls-cell[data-field="perihal"]');
   const tujuanEl=tr.querySelector('textarea.xls-cell[data-field="tujuan"]');
   const waktuEl=tr.querySelector('input.xls-cell[data-field="waktu"]');
+  const pokEl=tr.querySelector('input.xls-cell[data-field="pembebanan"]');
   const pegCell=tr.querySelector('.pg-cell[data-field="pegawai_multi"]');
   let nips=[],names=[];
   try{nips=JSON.parse(pegCell?.dataset.nips||'[]');}catch(_){}
@@ -1291,9 +1360,10 @@ function collectRow(tr){
     tr,
     perihal:(perihalEl?.value||'').trim(),
     tujuan:(tujuanEl?.value||'').trim(),
+    pembebanan:(pokEl?.value||'').trim(),
     waktuMulai:waktuEl?.dataset.isoMulai||'',
     waktuSelesai:waktuEl?.dataset.isoSelesai||'',
-    waktuEl,perihalEl,tujuanEl,pegCell,
+    waktuEl,perihalEl,tujuanEl,pokEl,pegCell,
     nips,names
   };
 }
@@ -1335,6 +1405,7 @@ async function submitChecked(){
     tujuan:d.tujuan,
     pegawai_nip:d.nips,
     pegawai_list:d.names,
+    pembebanan:d.pembebanan||null,
     status:'menunggu',
     created_at:new Date().toISOString()
   }));
