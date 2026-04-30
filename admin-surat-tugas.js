@@ -3686,6 +3686,35 @@ function hitungHariInclusive(isoMulai, isoSelesai) {
 }
 
 /**
+ * Hitung jumlah destinasi dari teks tujuan, untuk loop {#destinasi}
+ * di Section II SPD (Tiba di / Berangkat dari … N kali).
+ *
+ * Logika: count berapa kali kata "Kampung", "Desa", atau "Kelurahan"
+ * muncul di teks tujuan (case-insensitive, word boundary).
+ *
+ * Contoh:
+ *   "Kampung A dan Kampung C, Distrik Z; Kampung G, Distrik F;
+ *    dan Kampung Y, Distrik X"
+ *   → 4 (kata "Kampung" muncul 4 kali)
+ *
+ * Edge cases:
+ * - Word boundary `\b` mencegah false-match (mis. "kampungan" tidak match)
+ * - Case-insensitive (KAMPUNG, Kampung, kampung — semua match)
+ * - Fallback minimum 1 — kalau tujuan kosong / tidak ada kata kunci,
+ *   tetap render 1 baris supaya Section II tidak hilang.
+ *
+ * Kata kunci ke depan bisa ditambah (Pekon/Nagari/Gampong/dll) dengan
+ * meng-extend regex di bawah.
+ */
+const RE_DESTINASI = /\b(kampung|desa|kelurahan)\b/gi;
+function countDestinasi(tujuanText) {
+  if (!tujuanText) return 1;
+  const matches = String(tujuanText).match(RE_DESTINASI);
+  const count = matches ? matches.length : 0;
+  return Math.max(1, count);
+}
+
+/**
  * Cari NIP berdasarkan nama di tabel riwayat_pegawai.
  * Toleran terhadap suffix gelar setelah koma — mis. "Abdillah Humam, SST"
  * akan match record dengan nama "Abdillah Humam, SST" maupun "Abdillah Humam".
@@ -4025,6 +4054,22 @@ async function buildTemplateData(data) {
     // ─────────────────────────────────────────────────────────────────
     kendaraan:             flags.has_kendaraan ? pegawaiBaris : [],
     menginap:              flags.has_menginap  ? pegawaiBaris : [],
+
+    // ─────────────────────────────────────────────────────────────────
+    // SECTION II SPD — multi-row loop {#destinasi}...{/destinasi}
+    //
+    // 4 baris tabel (Tiba di / Berangkat dari / Pada tanggal / spasi)
+    // direplikasi N kali. N dihitung dari jumlah kata "Kampung/Desa/
+    // Kelurahan" di teks tujuan (lihat countDestinasi() di atas).
+    //
+    // Setiap iterasi adalah object KOSONG ({}) — tidak ada placeholder
+    // di template Section II, semua label-only. User isi manual di Word
+    // setelah generate.
+    //
+    // Hanya aktif di tipe yang punya SPD (T1/T3 dengan {#has_spd}).
+    // Untuk tipe non-SPD, array tetap di-build tapi tidak dipakai.
+    // ─────────────────────────────────────────────────────────────────
+    destinasi:             Array(countDestinasi(data.tujuan)).fill({}),
 
     // ─────────────────────────────────────────────────────────────────
     // HALAMAN LAMPIRAN — toggle {#ul}...{/ul} (T2 & T3)
