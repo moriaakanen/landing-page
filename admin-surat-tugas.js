@@ -108,7 +108,7 @@ let SESSION = null;
 let allSurat = [];                // descending by created_at (untuk display di table)
 let suratMap = {};                // id → object
 let suratOrderMap = {};           // id → urutan global ascending (1-based)
-let pegawaiList = [];             // dari "data pegawai"
+let pegawaiList = [];             // dari "data_pegawai"
 let pegawaiByNIP = {};            // index NIP → object
 let riwayatPegawai = [];          // dari "riwayat_pegawai"
 let userMap = {};                 // id → { full_name, username } — untuk tampilkan nama pengaju surat
@@ -317,7 +317,7 @@ function parseFlexRange(input) {
 ═══════════════════════════════════════════════════════════════════════ */
 async function loadPegawai() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/data%20pegawai?select=NIP,NAMA&order=NAMA.asc`, { headers: H });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=NIP,NAMA&order=NAMA.asc`, { headers: H });
     if (!res.ok) return;
     pegawaiList = await res.json();
     pegawaiByNIP = {};
@@ -3910,7 +3910,7 @@ async function buildTemplateData(data) {
   const jabatanPegawai   = lookupJabatan(firstNip, data.tanggal_surat) || '';
   // Kolom pangkat/golongan belum ada di riwayat_pegawai — kosongkan dulu.
   const pangkatPegawai   = '';
-  // Satuan kerja: kolom UNIT KERJA dari tabel "data pegawai".
+  // Satuan kerja: kolom UNIT KERJA dari tabel "data_pegawai".
   const skerjaPegawai    = (peg && (peg['UNIT KERJA'] || peg.UNIT_KERJA)) || '';
 
   // ── Halaman 1: nama, jabatan, pangkat → "Terlampir" kalau ≥2 pegawai
