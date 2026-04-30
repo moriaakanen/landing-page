@@ -98,13 +98,11 @@
   .btn-primary.loading::after{content:'';position:absolute;top:50%;left:50%;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;transform:translate(-50%,-50%);animation:spin .7s linear infinite}
   .btn-approve{background:#1a7a4a;color:white;border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .btn-approve:hover{background:#15643d}
-  .btn-reject{background:#c0392b;color:white;border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
-  .btn-reject:hover{background:#a03020}
   .btn-preview{background:#e8f0fe;color:var(--navy);border:1.5px solid #b4cdf5;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .btn-preview:hover{background:#d3e0f8;border-color:var(--navy)}
   .btn-download{background:var(--gold);color:var(--navy);border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .btn-download:hover{background:#b89438}
-  /* Tombol Edit di baris disetujui — outline gold, beda dari Preview/Download */
+  /* Tombol Edit di baris selesai — outline gold, beda dari Preview/Download */
   .btn-edit-row{background:var(--gold-light);color:#7a5c10;border:1.5px solid rgba(200,168,75,.5);border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .btn-edit-row:hover{background:rgba(200,168,75,.25);border-color:var(--gold)}
   .btn-save-edit{background:#1a7a4a;color:white;border:none;border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;position:relative}
@@ -151,7 +149,7 @@
   .table-scroll-top::-webkit-scrollbar-thumb:hover{background:#a9a298}
   .table-scroll-top-inner{height:1px}
 
-  table.list-table{width:100%;border-collapse:separate;border-spacing:0;min-width:2250px;table-layout:fixed}
+  table.list-table{width:100%;border-collapse:separate;border-spacing:0;min-width:2288px;table-layout:fixed}
   table.list-table thead th{
     background:#f9f8f5;padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;
     color:var(--navy);letter-spacing:.5px;text-transform:uppercase;
@@ -183,6 +181,7 @@
   table.list-table tbody tr:last-child td{border-bottom:none}
 
   /* Lebar kolom — urutan baru */
+  .col-check         { width:38px;  text-align:center;padding:6px 0 }
   .col-no            { width:46px;  text-align:center }
   .col-nomor-surat   { width:115px }
   .col-tgl-surat     { width:145px }
@@ -240,7 +239,7 @@
   select.xls-cell option[value=""]{color:#c8c3ba;font-style:italic}
   select.xls-cell.tipe-empty{color:#a89e8d;font-style:italic}
 
-  /* Display readonly text (untuk row disetujui/ditolak) */
+  /* Display readonly text (untuk row selesai) */
   .ro-text{padding:9px 10px;font-size:12.5px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word;min-height:42px}
   .ro-text.muted{color:var(--muted);font-style:italic;font-size:11.5px}
   .ro-text strong{font-weight:600;color:var(--navy)}
@@ -252,13 +251,16 @@
 
   /* Sticky look untuk No. & Status */
   td.col-no{text-align:center;font-weight:700;color:var(--muted);font-size:12px;padding:11px 4px;background:#fafaf8}
+  td.col-check{text-align:center;padding:11px 4px;background:#fafaf8}
+  td.col-check input[type="checkbox"]{width:14px;height:14px;accent-color:var(--navy);cursor:pointer;vertical-align:middle}
+  td.col-check input[type="checkbox"]:disabled{cursor:not-allowed;opacity:.3}
+  th.col-check input[type="checkbox"]{width:14px;height:14px;accent-color:var(--navy);cursor:pointer;vertical-align:middle}
   td.col-status{padding:11px 9px}
 
   .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
   .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
   .badge.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
-  .badge.disetujui{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
-  .badge.ditolak{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+  .badge.selesai{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
 
   td.col-aksi{padding:8px 10px}
   .aksi-wrap{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
@@ -358,6 +360,8 @@
   .cal-day.cal-start.cal-end,.cal-day.cal-single{border-radius:5px}
   .cal-day.cal-today::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--gold)}
   .cal-day.cal-start.cal-today::after,.cal-day.cal-end.cal-today::after,.cal-day.cal-single.cal-today::after{background:rgba(255,255,255,.7)}
+  /* Tugas #2 — keyboard focus ring (outline kuning) */
+  .cal-day.cal-focused{box-shadow:0 0 0 2px var(--gold) inset;z-index:1}
   .cal-footer{border-top:1px solid var(--border);padding:7px 12px;display:flex;align-items:center;justify-content:space-between;font-size:11px;background:#fafaf8}
   .cal-footer-text{color:var(--navy);font-weight:500;flex:1}
   .cal-clear{background:none;border:1px solid var(--border2);border-radius:5px;padding:3px 9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;color:var(--muted);cursor:pointer;transition:all .2s}
@@ -384,7 +388,6 @@
   @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
   .modal-header{padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
   .modal-header.approve{background:#1a7a4a}
-  .modal-header.reject{background:#991b1b}
   .modal-header.detail{background:var(--navy)}
   .modal-title{font-family:'Fraunces',serif;font-size:18px;font-weight:300;color:white}
   .modal-title em{font-style:italic;color:var(--gold)}
@@ -537,10 +540,14 @@
     <div class="page-header fade-in">
       <div>
         <div class="page-eyebrow">Administrasi</div>
-        <h1 class="page-title">Persetujuan <em>Surat Tugas</em></h1>
-        <p class="page-desc">Lengkapi data surat seperti di Excel — gunakan <kbd style="font-family:ui-monospace,monospace;font-size:11px;background:#f0efeb;border:1px solid var(--border);padding:1px 5px;border-radius:3px">Tab</kbd> / <kbd style="font-family:ui-monospace,monospace;font-size:11px;background:#f0efeb;border:1px solid var(--border);padding:1px 5px;border-radius:3px">Enter</kbd> untuk pindah sel.</p>
+        <h1 class="page-title">Surat <em>Tugas</em></h1>
+        <p class="page-desc">Kelola dan setujui surat tugas. Gunakan <kbd style="font-family:ui-monospace,monospace;font-size:11px;background:#f0efeb;border:1px solid var(--border);padding:1px 5px;border-radius:3px">Tab</kbd> dan tombol panah untuk pindah sel.</p>
       </div>
-      <button class="btn-outline fade-in" style="animation-delay:.1s" onclick="loadSurat()">↺ Muat Ulang</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-primary fade-in" style="animation-delay:.08s;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600" onclick="addNewSurat()" title="Tambah surat tugas baru sebagai admin">+ Tambah Surat</button>
+        <button class="btn-outline fade-in" id="btn-bulk-download" style="animation-delay:.09s;background:var(--gold);color:var(--navy);border-color:var(--gold)" onclick="bulkDownloadSelected()" disabled title="Pilih dulu surat yang ingin di-download">📥 Download Terpilih</button>
+        <button class="btn-outline fade-in" style="animation-delay:.1s" onclick="loadSurat()">↺ Muat Ulang</button>
+      </div>
     </div>
 
     <div id="page-alert" class="alert"><span id="page-alert-icon"></span><span id="page-alert-text"></span></div>
@@ -548,8 +555,7 @@
     <div class="stats-row fade-in" style="animation-delay:.08s">
       <div class="stat-pill"><div class="stat-pill-icon" style="background:#e8f0fe">📋</div><div><div class="stat-pill-num" id="st-total">—</div><div class="stat-pill-label">Total</div></div></div>
       <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef3c7">⏳</div><div><div class="stat-pill-num" id="st-menunggu">—</div><div class="stat-pill-label">Menunggu</div></div></div>
-      <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">✅</div><div><div class="stat-pill-num" id="st-disetujui">—</div><div class="stat-pill-label">Disetujui</div></div></div>
-      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef2f2">❌</div><div><div class="stat-pill-num" id="st-ditolak">—</div><div class="stat-pill-label">Ditolak</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">✅</div><div><div class="stat-pill-num" id="st-selesai">—</div><div class="stat-pill-label">Selesai</div></div></div>
     </div>
 
     <div class="filter-bar fade-in" style="animation-delay:.1s">
@@ -560,8 +566,7 @@
       <select class="filter-select" id="filter-status" onchange="filterTable()">
         <option value="">Semua Status</option>
         <option value="menunggu">Menunggu Persetujuan</option>
-        <option value="disetujui">Disetujui</option>
-        <option value="ditolak">Ditolak</option>
+        <option value="selesai">Selesai</option>
       </select>
     </div>
 
@@ -674,29 +679,6 @@
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-approve')">Batal</button>
       <button class="btn-primary" id="btn-approve-submit" onclick="submitApprove()" style="background:#1a7a4a">✅ Setujui Surat</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL REJECT -->
-<div class="modal-overlay" id="modal-reject" style="display:none" onclick="if(event.target===this)closeModal('modal-reject')">
-  <div class="modal">
-    <div class="modal-header reject">
-      <span class="modal-title">❌ Tolak <em>Surat Tugas</em></span>
-      <button class="modal-close" onclick="closeModal('modal-reject')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="reject-alert" class="alert"><span id="reject-alert-icon"></span><span id="reject-alert-text"></span></div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6">Menolak: <strong id="reject-perihal" style="color:var(--navy)"></strong></p>
-      <div class="form-group">
-        <label class="form-label">Alasan Penolakan <span style="color:var(--red)">*</span></label>
-        <textarea class="form-textarea" id="inp-catatan-reject" placeholder="Tuliskan alasan penolakan..."></textarea>
-        <span class="error-msg" id="err-catatan-reject">Alasan penolakan wajib diisi</span>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-outline" onclick="closeModal('modal-reject')">Batal</button>
-      <button class="btn-primary" id="btn-reject-submit" onclick="submitReject()" style="background:#c0392b">❌ Tolak Surat</button>
     </div>
   </div>
 </div>
