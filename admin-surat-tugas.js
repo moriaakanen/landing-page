@@ -3706,10 +3706,10 @@ function hitungHariInclusive(isoMulai, isoSelesai) {
  * Kata kunci ke depan bisa ditambah (Pekon/Nagari/Gampong/dll) dengan
  * meng-extend regex di bawah.
  */
-const RE_DESTINASI = /\b(kampung|desa|kelurahan)\b/gi;
-function countDestinasi(tujuanText) {
+const RE_DE = /\b(kampung|desa|kelurahan)\b/gi;
+function countDe(tujuanText) {
   if (!tujuanText) return 1;
-  const matches = String(tujuanText).match(RE_DESTINASI);
+  const matches = String(tujuanText).match(RE_DE);
   const count = matches ? matches.length : 0;
   return Math.max(1, count);
 }
@@ -4069,7 +4069,7 @@ async function buildTemplateData(data) {
     // Hanya aktif di tipe yang punya SPD (T1/T3 dengan {#has_spd}).
     // Untuk tipe non-SPD, array tetap di-build tapi tidak dipakai.
     // ─────────────────────────────────────────────────────────────────
-    destinasi:             Array(countDestinasi(data.tujuan)).fill({}),
+    de:             Array(countDe(data.tujuan)).fill({}),
 
     // ─────────────────────────────────────────────────────────────────
     // HALAMAN LAMPIRAN — toggle {#ul}...{/ul} (T2 & T3)
