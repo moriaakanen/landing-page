@@ -4,16 +4,14 @@
    Ketergantungan global:
      - SUPABASE_URL, SUPABASE_ANON_KEY (config.js)
      - getUserRoles, ADMIN_USERS (config.js)
-     - initRoleSwitcher, toggleUserDropdown, switchViewRole (nova-role-switcher.js)
-     - LOGO_BPS_BASE64 (logo-bps.js, opsional)
-     - window.docxGen, window.docxPreview, saveAs (libs eksternal)
+     - SUPABASE_HEADERS, esc, novaCheckSession, novaRpc, BULAN, logout
+       (nova-shared.js)
+     - initRoleSwitcher, toggleUserDropdown, switchViewRole
+       (nova-role-switcher.js)
+     - window.docxPreview, saveAs, docxtemplater, PizZip (libs eksternal)
 ═══════════════════════════════════════════════════════════════════════ */
 
-const H = {
-  'apikey': SUPABASE_ANON_KEY,
-  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-  'Content-Type': 'application/json'
-};
+const H = SUPABASE_HEADERS;
 
 /* ═════════════════════════════════════════════════════════════════════
    TIPE SURAT — fitur multi-template
@@ -141,41 +139,16 @@ function saveApproveDefaults(d) {
 /* ════════════════════════════════════════════════════════════════════
    SESSION & TOPBAR
 ═══════════════════════════════════════════════════════════════════════ */
-function checkSession() {
-  try {
-    const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
-    if (!s) { window.location.replace('login.html'); return null; }
-    if (s.expires_at && Date.now() > s.expires_at) {
-      localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
-    }
-    if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
-    const roles = getUserRoles(s);
-    if (!s.active_role) {
-      s.active_role = roles.includes('admin') ? 'admin' : 'user';
-      localStorage.setItem('nova_user', JSON.stringify(s));
-    }
-    if (!roles.includes('admin') || s.active_role !== 'admin') {
-      window.location.replace('index.html'); return null;
-    }
-    return s;
-  } catch(e) {
-    localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
-  }
-}
-function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
+// `checkSession`, `logout`, `esc`, dan `BULAN` di-load dari nova-shared.js.
+// Halaman ini admin-only — pakai novaCheckSession({ requireAdmin: true })
+// di init().
 // Topbar (clock + user info) di-handle oleh nova-topbar.js.
 // Panggil NovaTopbar.setUser(SESSION) saat init untuk set avatar+username.
 
 /* ════════════════════════════════════════════════════════════════════
    HELPERS — escape, format tanggal, badge
 ═══════════════════════════════════════════════════════════════════════ */
-function esc(str) {
-  if (str==null) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-function escAttr(str) { return esc(str); }
-
-const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+// `esc` dari nova-shared.js. `escAttr` adalah alias `esc` (juga shared).
 
 function fmtTgl(str) {
   if (!str) return '';
@@ -183,7 +156,6 @@ function fmtTgl(str) {
   if (!d) return '';
   return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
 }
-function fmtTglDash(str) { return fmtTgl(str) || '—'; }
 
 function parseISODate(str) {
   if (!str) return null;
@@ -209,7 +181,6 @@ function fmtWaktu(mulai, selesai) {
     return `${a.getDate()} ${BULAN[a.getMonth()]} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;
   return `${fmtTgl(mulai)} s.d. ${fmtTgl(selesai)}`;
 }
-function fmtWaktuDash(mulai, selesai) { return fmtWaktu(mulai, selesai) || '—'; }
 
 function badgeHTML(status) {
   const m = { menunggu:['menunggu','⏳ Menunggu'], selesai:['selesai','✅ Selesai'] };
@@ -2557,11 +2528,6 @@ function lookupJabatan(nip, tglSuratIso) {
   return '';
 }
 
-function lookupJabatanForSurat(s) {
-  if (s.penandatangan_jabatan) return s.penandatangan_jabatan;
-  return lookupJabatan(s.penandatangan_nip, s.tanggal_surat);
-}
-
 /* ════════════════════════════════════════════════════════════════════
    FORMAT NOMOR SURAT LENGKAP
 ═══════════════════════════════════════════════════════════════════════ */
@@ -2657,9 +2623,8 @@ async function cleanupOrphanPreviewFiles() {
 }
 
 function ensureLibrariesLoaded() {
-  if (typeof window.docxGen === 'undefined' && typeof window.docx === 'undefined') {
-    throw new Error('Library docx gagal dimuat. Periksa koneksi internet/firewall, lalu refresh halaman.');
-  }
+  // docx-preview dipakai oleh openPreview() untuk render docx blob ke HTML.
+  // Library di-load di admin-surat-tugas.html.
   if (typeof window.docxPreview === 'undefined' || typeof window.docxPreview.renderAsync !== 'function') {
     throw new Error('Library docx-preview gagal dimuat. Periksa koneksi dan refresh halaman.');
   }
@@ -2972,562 +2937,6 @@ const MENGINGAT_ITEMS = [
   'Peraturan Badan Pusat Statistik Nomor 5 Tahun 2019 tentang Tata Naskah Dinas di Lingkungan Badan Pusat Statistik;',
   'Peraturan Badan Pusat Statistik Nomor 3 Tahun 2025 tentang Perubahan atas Peraturan Badan Pusat Statistik Nomor 5 Tahun 2023 tentang Organisasi dan Tata Kerja Badan Pusat Statistik Provinsi dan Badan Pusat Statistik Kabupaten/Kota;',
 ];
-
-function buildMenimbang(custom) {
-  return `bahwa untuk kepentingan administrasi kegiatan ${custom || '[kegiatan]'}, Kepala Badan Pusat Statistik Kabupaten Raja Ampat perlu menetapkan Surat Tugas;`;
-}
-
-function getPegawaiInfoForDoc(nip, fallbackName, tglSuratIso) {
-  const peg = pegawaiByNIP[String(nip || '').trim()];
-  const nama = (peg && peg.NAMA) || fallbackName || '-';
-  const jabatan = lookupJabatan(nip, tglSuratIso);
-  return { nama, jabatan: jabatan || '' };
-}
-
-function base64ToUint8Array(base64) {
-  const cleaned = base64.replace(/^data:image\/[a-z]+;base64,/i, '');
-  const raw = atob(cleaned);
-  const arr = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
-  return arr;
-}
-
-/* ════════════════════════════════════════════════════════════════════
-   LEGACY BUILDER — build-from-code pakai docx-js.
-   Dipertahankan sebagai fallback kalau template docxtemplater gagal load.
-   Tidak dipanggil langsung — lihat buildSuratTugasDoc() di bawah.
-════════════════════════════════════════════════════════════════════ */
-async function buildSuratTugasDocLegacy(data) {
-  const docxLib = window.docxGen || window.docx;
-  const {
-    Document, Packer, Paragraph, TextRun, ImageRun,
-    Table, TableRow, TableCell,
-    AlignmentType, BorderStyle, WidthType, VerticalAlign, HeightRule,
-    PageBreak,
-  } = docxLib;
-
-  const p = (text, opts = {}) => new Paragraph({
-    alignment: opts.align || AlignmentType.LEFT,
-    spacing: { after: opts.spaceAfter != null ? opts.spaceAfter : 100, line: opts.line || 276 },
-    indent: opts.indent,
-    children: [new TextRun({
-      text: text,
-      bold: opts.bold || false,
-      italics: opts.italic || false,
-      underline: opts.underline || undefined,
-      size: opts.size || 22,
-      font: opts.font || 'Times New Roman',
-    })],
-  });
-  const empty = (sa) => new Paragraph({ spacing:{after:sa||0}, children:[new TextRun('')] });
-
-  const NO_BORDER = {
-    top:{style:BorderStyle.NONE,size:0,color:'FFFFFF'},
-    bottom:{style:BorderStyle.NONE,size:0,color:'FFFFFF'},
-    left:{style:BorderStyle.NONE,size:0,color:'FFFFFF'},
-    right:{style:BorderStyle.NONE,size:0,color:'FFFFFF'},
-    insideHorizontal:{style:BorderStyle.NONE,size:0,color:'FFFFFF'},
-    insideVertical:{style:BorderStyle.NONE,size:0,color:'FFFFFF'},
-  };
-  const cell = (children, opts = {}) => new TableCell({
-    width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined,
-    verticalAlign: opts.valign || VerticalAlign.TOP,
-    borders: NO_BORDER,
-    children: Array.isArray(children) ? children : [children],
-  });
-
-  const tempat = data.tempat_terbit || 'Waisai';
-
-  let ttdJabatan = data.penandatangan_jabatan;
-  if (!ttdJabatan) ttdJabatan = lookupJabatan(data.penandatangan_nip, data.tanggal_surat);
-  ttdJabatan = ttdJabatan || '-';
-
-  const nomorFull = buildNomorSuratFull(data.nomor_surat, data.tanggal_surat);
-
-  /* ════════════════════════════════════════════════════════════════════
-     HALAMAN SPD (Surat Perjalanan Dinas) — TEMPLATE HARDCODE
-     Nilai di-hardcode mengikuti template1.docx untuk pengujian visual.
-     TODO: nanti ganti nilai-nilai di bawah jadi data dinamis dari `data` & `pegInfo`.
-  ════════════════════════════════════════════════════════════════════ */
-  const SPD_HC = {
-    // ── HEADER & INSTANSI ────────────────────────────────────────────
-    nomor:             'B-688/668870-92800/SPPD-PPIS/11/2025',
-    lembar:            '',
-    instansi_l1:       'Badan Pusat Statistik Kabupaten Raja Ampat',
-    instansi_l2:       'Jl. Jend. Ahmad Yani, Waisai',
-    instansi_l3:       'Raja Ampat',
-
-    // ── PPK ───────────────────────────────────────────────────────────
-    ppk_nama:          'Abdillah Humam, SST',
-    ppk_nip:           '199510152018021001',
-
-    // ── BARIS 2-7 TABEL UTAMA ─────────────────────────────────────────
-    pegawai_nama:      'Maulana Tahir, SST., M.AP.',
-    pangkat_gol:       'Penata / IIIc',
-    jabatan_instansi:  'Statistisi Ahli Muda di BPS Kabupaten Raja Ampat',
-    tingkat_biaya:     'C',
-    maksud:            'Mengikuti Konsultasi Neraca Wilayah dan Analisis Statistik ke BPS Provinsi Papua Barat di Manokwari, Papua Barat',
-    alat_angkutan:     'Kendaraan Umum',
-    tempat_berangkat:  'Kabupaten Raja Ampat',
-    tempat_tujuan:     'Kabupaten Manokwari',
-    lama_perjalanan:   '4 (empat) hari',
-    tgl_berangkat:     '18 November 2025',
-    tgl_kembali:       '21 November 2025',
-
-    // ── BARIS 9 PEMBEBANAN ANGGARAN ──────────────────────────────────
-    program_kode:      'GG',
-    program_desc:      'Program Penyediaan dan Pelayanan Informasi Statistik',
-    kegiatan_kode:     '2899',
-    kegiatan_desc:     'Penyediaan dan Pengembangan Statistik Neraca Produksi',
-    komponen_kode:     '052',
-    komponen_desc:     'Pengumpulan Data',
-    instansi_anggaran: 'Badan Pusat Statistik Kabupaten Raja Ampat',
-    mata_anggaran:     '524111',
-    keterangan_lain:   '',
-
-    // ── FOOTER HALAMAN 2 (DIKELUARKAN) ──────────────────────────────
-    dikeluarkan_di:    'Waisai',
-    tgl_dikeluarkan:   '14 November 2025',
-
-    // ── HALAMAN 3: BLOK ATAS (KEPALA BPS) ───────────────────────────
-    kepala_nama:       'Ir. Nurhaida Sirun',
-    kepala_nip:        '196803201994012001',
-    hal3_berangkat_dari: 'Kabupaten Raja Ampat',
-    hal3_tempat_kedudukan: '(Tempat Kedudukan)',
-    hal3_tgl_berangkat:  '18 November 2025',
-    hal3_ke:             'Kabupaten Manokwari',
-
-    // ── HALAMAN 3: SEL TABEL 2x2 ────────────────────────────────────
-    tiba_tujuan_kota:    'Kabupaten Manokwari',
-    tiba_tujuan_tgl:     '19 November 2025',
-    berangkat_balik_dari:'Kabupaten Manokwari',
-    berangkat_balik_ke:  'Kabupaten Raja Ampat',
-    berangkat_balik_tgl: '21 November 2025',
-    tiba_kembali_kota:   'Kabupaten Raja Ampat',
-    tiba_kembali_tgl:    '21 November 2025',
-  };
-
-  const BORDER_ALL = {
-    top:              { style: BorderStyle.SINGLE, size: 4, color: '000000' },
-    bottom:           { style: BorderStyle.SINGLE, size: 4, color: '000000' },
-    left:             { style: BorderStyle.SINGLE, size: 4, color: '000000' },
-    right:            { style: BorderStyle.SINGLE, size: 4, color: '000000' },
-    insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: '000000' },
-    insideVertical:   { style: BorderStyle.SINGLE, size: 4, color: '000000' },
-  };
-
-  const bCell = (children, opts = {}) => new TableCell({
-    width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined,
-    verticalAlign: opts.valign || VerticalAlign.TOP,
-    columnSpan: opts.colSpan || undefined,
-    rowSpan:    opts.rowSpan || undefined,
-    margins:    { top: 80, bottom: 80, left: 100, right: 100 },
-    children:   Array.isArray(children) ? children : [children],
-  });
-
-  const pc = (text, opts = {}) => new Paragraph({
-    alignment: opts.align || AlignmentType.LEFT,
-    spacing:   { after: opts.spaceAfter != null ? opts.spaceAfter : 0, line: opts.line || 240 },
-    indent:    opts.indent,
-    children:  [new TextRun({
-      text:      text || '',
-      bold:      opts.bold || false,
-      italics:   opts.italic || false,
-      underline: opts.underline || undefined,
-      size:      opts.size || 20,
-      font:      opts.font || 'Times New Roman',
-    })],
-  });
-
-  function buildHalamanSPD() {
-    const ch = [];
-
-    /* ── HEADER: Nomor + Lembar (rata kanan di atas) ───────────────── */
-    ch.push(p(`Nomor : ${SPD_HC.nomor}`, { align: AlignmentType.RIGHT, spaceAfter: 0, size: 22 }));
-    ch.push(p(`Lembar : ${SPD_HC.lembar}`, { align: AlignmentType.RIGHT, spaceAfter: 160, size: 22 }));
-
-    /* ── BLOK INSTANSI (kiri, 3 baris) ─────────────────────────────── */
-    ch.push(pc(SPD_HC.instansi_l1, { spaceAfter: 40, size: 22 }));
-    ch.push(pc(SPD_HC.instansi_l2, { spaceAfter: 40, size: 22 }));
-    ch.push(pc(SPD_HC.instansi_l3, { spaceAfter: 160, size: 22 }));
-
-    /* ── TABEL UTAMA 10 BARIS ─────────────────────────────────────────
-       Layout: kolom kiri (label) 52% | kolom kanan (value) 48% */
-    const W_L = 52, W_R = 48;
-
-    const simpleRow = (label, value, opts = {}) => new TableRow({
-      children: [
-        bCell([pc(label, { spaceAfter: 0, size: 22 })], { width: W_L }),
-        bCell([pc(value, { spaceAfter: 0, size: 22, bold: opts.bold })], { width: W_R }),
-      ],
-    });
-
-    const multiRow = (labelLines, valueLines) => new TableRow({
-      children: [
-        bCell(labelLines.map(l => pc(l, { spaceAfter: 0, size: 22 })), { width: W_L }),
-        bCell(valueLines.map(v => pc(v, { spaceAfter: 0, size: 22 })), { width: W_R }),
-      ],
-    });
-
-    const rows = [];
-    rows.push(simpleRow('1. Pejabat Pembuat Komitmen', SPD_HC.ppk_nama));
-    rows.push(simpleRow('2. Nama pegawai yang melaksanakan perjalanan dinas', SPD_HC.pegawai_nama));
-    rows.push(multiRow(
-      ['3.  a.  Pangkat dan golongan', '     b.  Jabatan/ instansi', '     c.  Tingkat Biaya Perjalanan Dinas'],
-      [SPD_HC.pangkat_gol, SPD_HC.jabatan_instansi, SPD_HC.tingkat_biaya],
-    ));
-    rows.push(simpleRow('4. Maksud perjalanan dinas', SPD_HC.maksud));
-    rows.push(simpleRow('5. Alat Angkutan yang dipergunakan', SPD_HC.alat_angkutan));
-    rows.push(multiRow(
-      ['6.  a.  Tempat keberangkatan', '     b.  Tempat tujuan'],
-      [SPD_HC.tempat_berangkat, SPD_HC.tempat_tujuan],
-    ));
-    rows.push(multiRow(
-      ['7.  a.  Lamanya perjalanan Dinas', '     b.  Tanggal Berangkat', '     c.  Tanggal harus kembali/ tiba ditempat baru *)'],
-      [SPD_HC.lama_perjalanan, SPD_HC.tgl_berangkat, SPD_HC.tgl_kembali],
-    ));
-
-    /* Row 8: Pengikut — kolom kiri = label "8. Pengikut : Nama"
-       kolom kanan = sub-tabel 2 kolom "Umur | Hubungan keluarga/keterangan" */
-    const pengikutSubTable = new Table({
-      borders: NO_BORDER,
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({ children: [
-          cell([pc('Umur',                         { spaceAfter: 0, size: 22 })], { width: 30 }),
-          cell([pc('Hubungan keluarga/keterangan', { spaceAfter: 0, size: 22 })], { width: 70 }),
-        ]}),
-        new TableRow({ children: [
-          cell([pc(' ', { spaceAfter: 0, size: 22 })], { width: 30 }),
-          cell([pc(' ', { spaceAfter: 0, size: 22 })], { width: 70 }),
-        ]}),
-      ],
-    });
-    rows.push(new TableRow({ children: [
-      bCell([pc('8. Pengikut :                                Nama', { spaceAfter: 0, size: 22 })], { width: W_L }),
-      bCell([pengikutSubTable], { width: W_R }),
-    ]}));
-
-    /* Row 9: Pembebanan anggaran — label kiri dengan sub-item,
-       value kanan = pasangan kode + desc (Program/Kegiatan/Komponen),
-       Instansi, Mata anggaran */
-    const labelPembebanan = [
-      pc('9. Pembebanan anggaran', { spaceAfter: 40, size: 22 }),
-      pc('                                                Program',  { spaceAfter: 40, size: 22 }),
-      pc('                                                Kegiatan', { spaceAfter: 40, size: 22 }),
-      pc('                                                Komponen', { spaceAfter: 80, size: 22 }),
-      pc('    a.  Instansi',      { spaceAfter: 40, size: 22 }),
-      pc('    b.  Mata anggaran', { spaceAfter: 0, size: 22 }),
-    ];
-    // Value kanan: sub-tabel 2 kolom (kode | desc) supaya kode rata kiri, desc wrap
-    const valuePembebananTable = new Table({
-      borders: NO_BORDER,
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({ children: [
-          cell([pc(SPD_HC.program_kode,  { spaceAfter: 40, size: 22 })], { width: 18 }),
-          cell([pc(SPD_HC.program_desc,  { spaceAfter: 40, size: 22 })], { width: 82 }),
-        ]}),
-        new TableRow({ children: [
-          cell([pc(SPD_HC.kegiatan_kode, { spaceAfter: 40, size: 22 })], { width: 18 }),
-          cell([pc(SPD_HC.kegiatan_desc, { spaceAfter: 40, size: 22 })], { width: 82 }),
-        ]}),
-        new TableRow({ children: [
-          cell([pc(SPD_HC.komponen_kode, { spaceAfter: 80, size: 22 })], { width: 18 }),
-          cell([pc(SPD_HC.komponen_desc, { spaceAfter: 80, size: 22 })], { width: 82 }),
-        ]}),
-        new TableRow({ children: [
-          cell([pc(SPD_HC.instansi_anggaran, { spaceAfter: 40, size: 22 })], { width: 100, colSpan: 2 }),
-        ]}),
-        new TableRow({ children: [
-          cell([pc(SPD_HC.mata_anggaran,     { spaceAfter: 0,  size: 22 })], { width: 100, colSpan: 2 }),
-        ]}),
-      ],
-    });
-    rows.push(new TableRow({ children: [
-      bCell(labelPembebanan,         { width: W_L }),
-      bCell([valuePembebananTable],  { width: W_R }),
-    ]}));
-
-    rows.push(simpleRow('10. Keterangan lain-lain', SPD_HC.keterangan_lain || ''));
-
-    ch.push(new Table({
-      rows,
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      borders: BORDER_ALL,
-    }));
-
-    /* ── FOOTER: "Tembusan" di kiri, "Dikeluarkan + PPK ttd" di kanan,
-       pakai tabel 2 kolom tanpa border supaya sejajar ────────────── */
-    ch.push(empty(120));
-
-    const footerKiri = [
-      pc('', { spaceAfter: 1400, size: 22 }),                              // spacer — supaya "Tembusan" turun ke bawah
-      pc('Tembusan disampaikan kepada', { spaceAfter: 0, size: 22 }),
-      pc(': 1.', { spaceAfter: 0, size: 22 }),
-      pc('2.',   { spaceAfter: 0, size: 22 }),
-    ];
-    const footerKanan = [
-      pc(`Dikeluarkan di : ${SPD_HC.dikeluarkan_di}`,  { spaceAfter: 40,  size: 22 }),
-      pc(`Pada Tanggal   : ${SPD_HC.tgl_dikeluarkan}`, { spaceAfter: 160, size: 22 }),
-      pc('PEJABAT PEMBUAT KOMITMEN', { align: AlignmentType.CENTER, spaceAfter: 1400, size: 22 }),
-      pc(SPD_HC.ppk_nama, { align: AlignmentType.CENTER, bold: true, underline: { type: 'single' }, spaceAfter: 0, size: 22 }),
-      pc(`NIP. ${SPD_HC.ppk_nip}`, { align: AlignmentType.CENTER, spaceAfter: 0, size: 22 }),
-    ];
-    ch.push(new Table({
-      borders: NO_BORDER,
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [ new TableRow({ children: [
-        cell(footerKiri,  { width: 50 }),
-        cell(footerKanan, { width: 50 }),
-      ]}) ],
-    }));
-
-    ch.push(new Paragraph({ children: [new PageBreak()] }));
-    return ch;
-  }
-
-  /* ════════════════════════════════════════════════════════════════════
-     HALAMAN PENGESAHAN (I, II, III, IV, V) — TEMPLATE HARDCODE
-  ════════════════════════════════════════════════════════════════════ */
-  function buildHalamanPengesahan() {
-    const ch = [];
-
-    /* ── BAGIAN ATAS: Blok "Berangkat dari…" di kolom kanan + TTD Kepala BPS.
-       Tanpa border — gunakan tabel 2 kolom (kiri kosong | kanan isi) ── */
-    const blokAtasKanan = [
-      pc(`Berangkat dari  :   ${SPD_HC.hal3_berangkat_dari}`, { spaceAfter: 40, size: 22 }),
-      pc(SPD_HC.hal3_tempat_kedudukan,                         { spaceAfter: 40, size: 22 }),
-      pc(`Pada Tanggal     :   ${SPD_HC.hal3_tgl_berangkat}`,  { spaceAfter: 40, size: 22 }),
-      pc(`Ke                      :   ${SPD_HC.hal3_ke}`,      { spaceAfter: 200, size: 22 }),
-      pc('Kepala BPS Kabupaten Raja Ampat', { spaceAfter: 1400, size: 22 }),
-      pc(SPD_HC.kepala_nama, { bold: true, underline: { type: 'single' }, spaceAfter: 0, size: 22 }),
-      pc(`NIP. ${SPD_HC.kepala_nip}`, { spaceAfter: 0, size: 22 }),
-    ];
-    ch.push(new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      borders: NO_BORDER,
-      rows: [ new TableRow({ children: [
-        cell([pc('', { spaceAfter: 0 })], { width: 50 }),
-        cell(blokAtasKanan,                { width: 50 }),
-      ]}) ],
-    }));
-
-    ch.push(empty(0));
-
-    /* ── TABEL 2×2 (isi laporan tiba/berangkat) ─────────────────────
-       Row 1: Tiba tujuan | Berangkat balik
-       Row 2: Tiba kembali + TTD PPK | Telah diperiksa + TTD PPK */
-
-    const selTibaTujuan = [
-      pc(`Tiba di           :   ${SPD_HC.tiba_tujuan_kota}`, { spaceAfter: 40, size: 22 }),
-      pc(`Pada Tanggal  :   ${SPD_HC.tiba_tujuan_tgl}`,      { spaceAfter: 0,  size: 22 }),
-    ];
-    const selBerangkatBalik = [
-      pc(`Berangkat dari  :   ${SPD_HC.berangkat_balik_dari}`, { spaceAfter: 40, size: 22 }),
-      pc(`Ke                      :   ${SPD_HC.berangkat_balik_ke}`,  { spaceAfter: 40, size: 22 }),
-      pc(`Pada Tanggal     :   ${SPD_HC.berangkat_balik_tgl}`,        { spaceAfter: 0,  size: 22 }),
-    ];
-    const selTibaKembali = [
-      pc(`Tiba di           :   ${SPD_HC.tiba_kembali_kota}`, { spaceAfter: 40, size: 22 }),
-      pc('(Tempat Kedudukan)',                                 { spaceAfter: 40, size: 22 }),
-      pc(`Pada Tanggal  :   ${SPD_HC.tiba_kembali_tgl}`,       { spaceAfter: 200, size: 22 }),
-      pc('Pejabat Pembuat Komitmen', { align: AlignmentType.CENTER, spaceAfter: 1400, size: 22 }),
-      pc(SPD_HC.ppk_nama, { align: AlignmentType.CENTER, bold: true, underline: { type: 'single' }, spaceAfter: 0, size: 22 }),
-      pc(`NIP. ${SPD_HC.ppk_nip}`, { align: AlignmentType.CENTER, spaceAfter: 0, size: 22 }),
-    ];
-    const selDiperiksa = [
-      pc('Telah diperiksa dengan keterangan bahwa perjalanan tersebut atas perintahnya dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat singkatnya',
-         { align: AlignmentType.JUSTIFIED, spaceAfter: 200, size: 22 }),
-      pc('Pejabat Pembuat Komitmen', { align: AlignmentType.CENTER, spaceAfter: 1400, size: 22 }),
-      pc(SPD_HC.ppk_nama, { align: AlignmentType.CENTER, bold: true, underline: { type: 'single' }, spaceAfter: 0, size: 22 }),
-      pc(`NIP. ${SPD_HC.ppk_nip}`, { align: AlignmentType.CENTER, spaceAfter: 0, size: 22 }),
-    ];
-
-    const rowHeight = HeightRule ? { value: 3000, rule: HeightRule.ATLEAST } : undefined;
-
-    ch.push(new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      borders: BORDER_ALL,
-      rows: [
-        new TableRow({
-          height: rowHeight,
-          children: [
-            bCell(selTibaTujuan,     { width: 50 }),
-            bCell(selBerangkatBalik, { width: 50 }),
-          ],
-        }),
-        new TableRow({
-          height: rowHeight,
-          children: [
-            bCell(selTibaKembali, { width: 50 }),
-            bCell(selDiperiksa,   { width: 50 }),
-          ],
-        }),
-      ],
-    }));
-
-    /* ── CATATAN LAIN - LAIN + PERHATIAN (di luar tabel) ──────────── */
-    ch.push(empty(0));
-    ch.push(pc('CATATAN LAIN - LAIN', { spaceAfter: 80, size: 22 }));
-
-    ch.push(new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      borders: NO_BORDER,
-      rows: [ new TableRow({ children: [
-        cell([pc('PERHATIAN   :', { spaceAfter: 0, size: 22 })], { width: 18 }),
-        cell([pc(
-          'Pejabat yang berwenang menerbitkan SPD pegawai yang melakukan perjalanan dinas para pejabat yang mengesahkan tanggal berangkat/tiba serta bendaharawan bertanggung jawab berdasarkan peraturan-peraturan keuangan Negara apabila Negara menderita rugi akibat kesalahan, kelalaian dan kealpaannya.',
-          { align: AlignmentType.JUSTIFIED, spaceAfter: 0, size: 22 }
-        )], { width: 82 }),
-      ]}) ],
-    }));
-
-    return ch;
-  }
-
-  function buildHalamanPegawai(pegInfo, isLast) {
-    const ch = [];
-
-    if (typeof LOGO_BPS_BASE64 !== 'undefined' && LOGO_BPS_BASE64) {
-      try {
-        ch.push(new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 100 },
-          children: [new ImageRun({
-            data: base64ToUint8Array(LOGO_BPS_BASE64),
-            transformation: { width: 90, height: 90 },
-          })],
-        }));
-      } catch(e) { console.warn('Gagal embed logo:', e); }
-    }
-
-    ch.push(
-      p('BADAN PUSAT STATISTIK', { bold:true, italic:true, align: AlignmentType.CENTER, size:28, spaceAfter:0 }),
-      p('KABUPATEN RAJA AMPAT',  { bold:true, italic:true, align: AlignmentType.CENTER, size:28, spaceAfter:300 }),
-    );
-
-    ch.push(
-      p('SURAT TUGAS', { align: AlignmentType.CENTER, size:24, spaceAfter:60 }),
-      p(`NOMOR ${nomorFull}`, { align: AlignmentType.CENTER, size:24, spaceAfter:240 }),
-    );
-
-    const menimbangTxt = buildMenimbang(data.menimbang_custom);
-
-    const rowMenimbang = new TableRow({ children: [
-      cell(p('Menimbang', { spaceAfter:0 }),  { width:20 }),
-      cell(p(':',         { spaceAfter:0 }),  { width:3 }),
-      cell(p(menimbangTxt, { align: AlignmentType.JUSTIFIED, spaceAfter:0 }), { width:77 }),
-    ]});
-    const mengingatRows = MENGINGAT_ITEMS.map((it, idx) => new TableRow({ children: [
-      cell(p(idx===0 ? 'Mengingat' : '', { spaceAfter:0 }), { width:20 }),
-      cell(p(idx===0 ? ':' : '',          { spaceAfter:0 }), { width:3 }),
-      cell(new Paragraph({
-        alignment: AlignmentType.JUSTIFIED,
-        spacing: { after: 60, line: 276 },
-        children: [new TextRun({ text:`${idx+1}. ${it}`, size:22, font:'Times New Roman' })],
-      }), { width:77 }),
-    ]}));
-    ch.push(new Table({ rows: [rowMenimbang, ...mengingatRows], width:{size:100,type:WidthType.PERCENTAGE}, borders:NO_BORDER }));
-
-    ch.push(empty(100));
-    ch.push(p('Memberi Tugas', { align: AlignmentType.CENTER, spaceAfter:100 }));
-
-    const untukTxt = `${data.perihal || '-'} di ${data.tujuan || '-'} pada tanggal ${fmtWaktu(data.tanggal_berangkat, data.tanggal_kembali) || '-'}`;
-
-    const detailRows = [
-      new TableRow({ children: [
-        cell(p('Kepada',  { spaceAfter:0 }), { width:20 }),
-        cell(p(':',        { spaceAfter:0 }), { width:3 }),
-        cell(p(pegInfo.nama, { spaceAfter:0 }), { width:77 }),
-      ]}),
-      new TableRow({ children: [
-        cell(p('Jabatan', { spaceAfter:0 }), { width:20 }),
-        cell(p(':',        { spaceAfter:0 }), { width:3 }),
-        cell(p(pegInfo.jabatan || '-', { spaceAfter:0 }), { width:77 }),
-      ]}),
-      new TableRow({ children: [
-        cell(p('Untuk',   { spaceAfter:0 }), { width:20 }),
-        cell(p(':',        { spaceAfter:0 }), { width:3 }),
-        cell(p(untukTxt, { align: AlignmentType.JUSTIFIED, spaceAfter:0 }), { width:77 }),
-      ]}),
-    ];
-    ch.push(new Table({ rows: detailRows, width:{size:100,type:WidthType.PERCENTAGE}, borders:NO_BORDER }));
-    ch.push(empty(100));
-
-    const akhirRows = [
-      new TableRow({ children: [
-        cell(p('Alat Angkutan', { spaceAfter:0 }),                      { width:20 }),
-        cell(p(':',              { spaceAfter:0 }),                      { width:3 }),
-        cell(p(data.alat_angkutan || '-', { spaceAfter:0 }),             { width:77 }),
-      ]}),
-      new TableRow({ children: [
-        cell(p('Pembebanan',    { spaceAfter:0 }),                       { width:20 }),
-        cell(p(':',              { spaceAfter:0 }),                       { width:3 }),
-        cell(p(data.pembebanan || '-', { spaceAfter:0 }),                { width:77 }),
-      ]}),
-    ];
-    ch.push(new Table({ rows: akhirRows, width:{size:100,type:WidthType.PERCENTAGE}, borders:NO_BORDER }));
-
-    ch.push(empty(400));
-
-    const tglSuratFmt = data.tanggal_surat ? fmtTgl(data.tanggal_surat) : fmtTgl(todayISO());
-    ch.push(
-      p(`${tempat}, ${tglSuratFmt}`,        { align: AlignmentType.RIGHT, spaceAfter:0 }),
-      p(ttdJabatan,                          { align: AlignmentType.RIGHT, spaceAfter:900 }),
-      p(data.penandatangan_nama || '-',      { align: AlignmentType.RIGHT, underline:{type:'single'}, spaceAfter:0 }),
-      p(`NIP. ${data.penandatangan_nip || '-'}`, { align: AlignmentType.RIGHT, spaceAfter:0 }),
-    );
-
-    if (!isLast) ch.push(new Paragraph({ children: [new PageBreak()] }));
-    return ch;
-  }
-
-  const nipList  = Array.isArray(data.pegawai_nip)  ? data.pegawai_nip  : [];
-  const nameList = Array.isArray(data.pegawai_list) ? data.pegawai_list : [];
-
-  let pegawaiInfoList = [];
-  if (nipList.length) {
-    pegawaiInfoList = nipList.map((nip, i) => getPegawaiInfoForDoc(nip, nameList[i], data.tanggal_surat));
-  } else if (nameList.length) {
-    pegawaiInfoList = nameList.map(n => ({ nama: n, jabatan: '' }));
-  } else {
-    pegawaiInfoList = [{ nama: '-', jabatan: '' }];
-  }
-
-  const allChildren = [];
-  pegawaiInfoList.forEach((info, idx) => {
-    const isLast = idx === pegawaiInfoList.length - 1;
-
-    // Halaman 1: Surat Tugas (tanpa page break internal — dipindah ke setelah halaman 3)
-    buildHalamanPegawai(info, true).forEach(c => allChildren.push(c));
-    allChildren.push(new Paragraph({ children: [new PageBreak()] }));
-
-    // Halaman 2: SPD (fungsi ini sudah memasukkan PageBreak di akhir)
-    buildHalamanSPD().forEach(c => allChildren.push(c));
-
-    // Halaman 3: Lembar Pengesahan
-    buildHalamanPengesahan().forEach(c => allChildren.push(c));
-
-    // Page break antar pegawai (kecuali pegawai terakhir)
-    if (!isLast) {
-      allChildren.push(new Paragraph({ children: [new PageBreak()] }));
-    }
-  });
-
-  const doc = new Document({
-    creator: 'Portal NOVA',
-    title: `Surat Tugas ${data.nomor_surat || data.id}`,
-    description: 'Surat Tugas digenerate oleh Portal NOVA',
-    styles: { default: { document: { run: { font: 'Times New Roman', size: 22 } } } },
-    sections: [{
-      properties: { page: { margin: { top:1134, right:1134, bottom:1134, left:1134 } } },
-      children: allChildren,
-    }],
-  });
-
-  return await Packer.toBlob(doc);
-}
 
 /* ════════════════════════════════════════════════════════════════════
    HELPERS UNTUK TEMPLATE BARU — MAK Pembebanan, Hari Inclusive, PPK Lookup
@@ -4220,12 +3629,15 @@ async function buildSuratTugasDoc(data) {
    || (window.pizzip  && (window.pizzip.default  || window.pizzip));
 
   if (!DocxtemplaterCtor || !PizZipCtor) {
-    console.warn('[NOVA] Docxtemplater / PizZip belum dimuat — fallback ke legacy builder.',
+    console.error('[NOVA] Docxtemplater / PizZip belum dimuat.',
       'window.docxtemplater =', typeof window.docxtemplater,
       'window.Docxtemplater =', typeof window.Docxtemplater,
       'window.PizZip =', typeof window.PizZip,
       'window.pizzip =', typeof window.pizzip);
-    return buildSuratTugasDocLegacy(data);
+    throw new Error(
+      'Library docxtemplater / PizZip gagal dimuat. ' +
+      'Periksa koneksi internet/firewall, lalu refresh halaman.'
+    );
   }
   console.log('[NOVA] Docxtemplater OK — akan pakai template-based rendering');
 
@@ -4278,7 +3690,7 @@ async function buildSuratTugasDoc(data) {
    INIT
 ═══════════════════════════════════════════════════════════════════════ */
 function init() {
-  SESSION = checkSession();
+  SESSION = novaCheckSession({ requireAdmin: true });
   if (!SESSION) return;
   NovaTopbar.setUser(SESSION);
   initRoleSwitcher(SESSION, true);
