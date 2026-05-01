@@ -3,255 +3,269 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal NOVA</title>
+<title>Portal NOVA — Profil Saya</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#f5f4f0;--white:#ffffff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--sidebar-w:260px;--red:#c0392b;}
+  :root{
+    --bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;
+    --gold:#c8a84b;--gold-light:#f5edda;--gold-dark:#a78a3a;
+    --text:#1a1a2e;--muted:#6b7280;
+    --border:#e2ddd6;--border2:#d1ccc3;
+    --red:#c0392b;--success:#1a7a4a;
+    --sidebar-w:260px;
+  }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
-  .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200;}
-  .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0;}
-  .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-  .brand-name{font-size:14px;font-weight:700;color:white;letter-spacing:0.5px;line-height:1}
-  .brand-tag{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;text-transform:uppercase}
-  .topbar-right{display:flex;align-items:center;gap:14px}
-  .topbar-time{font-size:11px;color:rgba(255,255,255,0.35)}
-  .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);}
-  .topbar-username{font-size:13px;color:rgba(255,255,255,0.75);font-weight:500}
-  .btn-logout{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.2s;}
-  .btn-logout:hover{border-color:rgba(255,255,255,0.4);color:rgba(255,255,255,0.9)}
+
+  /* ════════ LAYOUT ════════ */
   .layout{display:flex;flex:1;min-height:0}
-  .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
-  .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px;}
-  .nav-group-label{font-size:10px;font-weight:600;color:var(--border2);letter-spacing:1.2px;text-transform:uppercase;padding:16px 20px 6px;margin-top:4px;}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;text-decoration:none;user-select:none;transition:background 0.15s,color 0.15s;}
+  .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+  .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
+  .nav-group-label{font-size:10px;font-weight:600;color:var(--border2);letter-spacing:1.2px;text-transform:uppercase;padding:16px 20px 6px;margin-top:4px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;text-decoration:none;user-select:none;transition:background .15s,color .15s}
   .nav-item:hover{background:var(--bg);color:var(--navy)}
-  .nav-item.active{background:var(--gold-light);color:var(--navy);border-left-color:var(--gold);font-weight:600;}
-  .nav-item-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--bg);flex-shrink:0;transition:background 0.15s;}
-  .nav-item.active .nav-item-icon{background:rgba(200,168,75,0.2)}
+  .nav-item.active{background:var(--gold-light);color:var(--navy);border-left-color:var(--gold);font-weight:600}
+  .nav-item-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--bg);flex-shrink:0;transition:background .15s}
+  .nav-item.active .nav-item-icon{background:rgba(200,168,75,.2)}
   .nav-item:hover .nav-item-icon{background:var(--border)}
-  .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7;}
+  .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
   .sidebar-footer strong{color:var(--navy);font-weight:600}
-  .admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.35);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--gold);margin-top:4px;letter-spacing:.3px}
-  .main{flex:1;overflow-y:auto;padding:36px 40px}
-  .page-header{margin-bottom:28px}
-  .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.35);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--gold);margin-top:4px;letter-spacing:.3px}
+
+  .main{flex:1;overflow-y:auto;padding:32px 40px 60px}
+
+  /* ════════ PAGE HEADER ════════ */
+  .page-header{margin-bottom:24px}
+  .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
-  .page-title{font-family:'Fraunces',serif;font-size:clamp(24px,2.5vw,32px);font-weight:300;color:var(--navy);line-height:1.2;}
-  .page-title em{font-style:italic;color:var(--gold)}
-  .page-desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.7}
-  .profil-wrap{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,0.06);}
-  .profil-banner{background:var(--navy);height:80px;position:relative;overflow:hidden;}
-  .profil-banner::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(200,168,75,0.08) 1px,transparent 1px);background-size:22px 22px;}
-  .profil-banner::after{content:'';position:absolute;right:-40px;bottom:-40px;width:160px;height:160px;border:28px solid rgba(200,168,75,0.07);border-radius:50%;}
-  .profil-identity{display:flex;align-items:flex-end;gap:16px;padding:0 28px;margin-top:-32px;margin-bottom:20px;position:relative;z-index:1;}
-  .profil-avatar{width:68px;height:68px;border-radius:50%;background:var(--navy);border:3px solid var(--white);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--gold);flex-shrink:0;box-shadow:0 2px 8px rgba(13,35,64,0.15);}
-  .profil-namebox{padding-bottom:4px}
-  .profil-nama{font-size:18px;font-weight:700;color:var(--navy)}
-  .profil-nip{font-size:12px;color:var(--muted);margin-top:2px}
-  .profil-divider{height:1px;background:var(--border);margin:0 28px}
-  .profil-data{padding:24px 28px}
-  .data-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
-  /* 2-column layout: profil di kiri, kalender di kanan */
-  .profile-grid{display:grid;grid-template-columns:minmax(320px,360px) 1fr;gap:24px;align-items:start;}
-  .profile-grid .calendar-section{margin-top:0;}
-  @media(max-width:1024px){
-    .profile-grid{grid-template-columns:1fr;gap:20px;}
-  }
-  /* Calendar Styles */
-  .calendar-section{margin-top:28px;background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,0.06);}
-  .calendar-header{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid var(--border);}
-  .calendar-title{font-size:16px;font-weight:700;color:var(--navy);}
-  .calendar-nav{display:flex;align-items:center;gap:8px;}
-  .cal-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--navy);transition:all 0.15s;}
-  .cal-btn:hover{background:var(--gold-light);border-color:var(--gold);}
-  .cal-btn-primary{padding:6px 14px;width:auto;font-size:12px;font-weight:600;font-family:inherit;background:var(--navy);color:white;border:none;}
-  .cal-btn-primary:hover{background:var(--navy2);}
-  .calendar-month-label{font-size:14px;font-weight:600;color:var(--navy);min-width:140px;text-align:center;}
-  .calendar-grid{padding:20px 28px 28px;}
-  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px;}
-  .cal-weekday{text-align:center;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:6px 0;}
-  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-  .cal-day{aspect-ratio:1;min-height:72px;border-radius:8px;border:1px solid var(--border);background:var(--bg);padding:6px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;display:flex;flex-direction:column;}
-  .cal-day:hover{border-color:var(--gold);background:var(--gold-light);}
-  .cal-day.other-month{opacity:0.4;}
-  .cal-day.today{border-color:var(--gold);background:rgba(200,168,75,0.08);}
-  .cal-day.selected{border-color:var(--navy);background:rgba(13,35,64,0.06);}
-  .cal-day-number{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px;}
-  .cal-day.today .cal-day-number{color:var(--gold);}
-  .cal-events{flex:1;display:flex;flex-direction:column;gap:2px;overflow:hidden;}
-  .cal-event{font-size:9px;padding:2px 4px;border-radius:3px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
-  .cal-event-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:3px;}
-  .cal-more{font-size:9px;color:var(--muted);margin-top:auto;text-align:right;}
-  @media(max-width:768px){
-    .cal-day{min-height:52px;padding:4px;}
-    .cal-event{font-size:8px;padding:1px 3px;}
-  }
-  @media(max-width:600px){
-    .cal-day{min-height:44px;}
-    .cal-event{display:none;}
-    .cal-day.has-events::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:5px;height:5px;background:var(--gold);border-radius:50%;}
-  }
-  /* Modal */
-  .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,0.4);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
-  .modal-overlay.show{display:flex;}
-  .modal{background:var(--white);border-radius:12px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,35,64,0.25);animation:fadeUp 0.2s ease;}
-  .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-  .modal-title{font-size:16px;font-weight:700;color:var(--navy);}
-  .modal-close{width:28px;height:28px;border-radius:6px;border:none;background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);transition:all 0.15s;}
-  .modal-close:hover{background:var(--border);color:var(--navy);}
-  .modal-body{padding:20px 24px;}
-  .form-group{margin-bottom:16px;}
-  .form-group label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;}
-  .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:7px;font-family:inherit;font-size:13px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
-  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,0.08);}
-  .form-group textarea{resize:vertical;min-height:60px;}
-  .color-options{display:flex;gap:8px;flex-wrap:wrap;}
-  .color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform 0.15s;}
-  .color-opt:hover{transform:scale(1.15);}
-  .color-opt.selected{border-color:var(--navy);}
-  .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
-  .btn{width:auto;padding:8px 16px;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;border:none;}
-  .btn-secondary{background:var(--bg);color:var(--navy);border:1px solid var(--border);}
-  .btn-secondary:hover{background:var(--border);}
-  .btn-danger{background:#fef2f2;color:var(--red);border:1px solid #fecaca;}
-  .btn-danger:hover{background:#fee2e2;}
-  .btn-primary{background:var(--navy);color:white;}
-  .btn-primary:hover{background:var(--navy2);}
-  .event-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg);margin-bottom:8px;border:1px solid var(--border);}
-  .event-list-color{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
-  .event-list-info{flex:1;min-width:0;}
-  .event-list-title{font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .event-list-time{font-size:11px;color:var(--muted);}
-  .event-list-actions{display:flex;gap:4px;}
-  .event-list-actions button{padding:4px 8px;font-size:11px;border-radius:4px;border:none;cursor:pointer;font-family:inherit;font-weight:500;}
-  .ela-edit{background:var(--gold-light);color:#7a5c10;}
-  .ela-delete{background:#fef2f2;color:var(--red);}
-  .data-field{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
-  .data-field.full{grid-column:1/-1}
-  .data-field-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
-  .data-field-val{font-size:14px;font-weight:600;color:var(--navy);line-height:1.4;}
-  .data-field-val.empty{color:var(--muted);font-weight:400;font-style:italic}
-  .skel{background:linear-gradient(90deg,rgba(13,35,64,0.05) 25%,rgba(13,35,64,0.1) 50%,rgba(13,35,64,0.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;}
+  .page-title{font-family:'Fraunces',serif;font-size:clamp(24px,2.5vw,30px);font-weight:300;color:var(--navy);line-height:1.2}
+  .page-title em{font-style:italic;color:var(--gold);font-weight:400}
+  .page-desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6}
+
+  /* ════════ 2-COLUMN GRID ════════ */
+  .profile-grid{display:grid;grid-template-columns:minmax(380px,440px) 1fr;gap:24px;align-items:start}
+  @media(max-width:1100px){.profile-grid{grid-template-columns:1fr;gap:20px}}
+
+  /* ════════ HERO CARD ════════ */
+  .hero-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.06)}
+  .hero-banner{height:96px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);position:relative;overflow:hidden}
+  .hero-banner::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(200,168,75,.12) 1px,transparent 1px);background-size:22px 22px}
+  .hero-banner::after{content:'';position:absolute;right:-50px;top:-50px;width:180px;height:180px;border:32px solid rgba(200,168,75,.08);border-radius:50%}
+  .hero-identity{padding:0 24px 22px;display:flex;flex-direction:column;align-items:center;text-align:center;margin-top:-44px;position:relative;z-index:1}
+  .hero-avatar{width:88px;height:88px;border-radius:50%;background:var(--navy);border:4px solid var(--white);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:30px;font-weight:600;color:var(--gold);box-shadow:0 4px 12px rgba(13,35,64,.18);margin-bottom:14px}
+  .hero-name{font-family:'Fraunces',serif;font-size:20px;font-weight:500;color:var(--navy);line-height:1.25;letter-spacing:-.2px;margin-bottom:6px}
+  .hero-jabatan{font-size:12px;color:var(--gold-dark);font-weight:600;letter-spacing:.4px;text-transform:uppercase;margin-bottom:10px;line-height:1.4}
+  .hero-nip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--bg);border:1px solid var(--border);border-radius:100px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:var(--muted);letter-spacing:.5px}
+  .hero-nip strong{color:var(--navy);font-weight:700}
+
+  /* Quick stats di hero card */
+  .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);background:var(--bg)}
+  .hero-stat{padding:14px 8px;text-align:center;border-right:1px solid var(--border);position:relative}
+  .hero-stat:last-child{border-right:none}
+  .hero-stat-value{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--navy);line-height:1.2;margin-bottom:3px;word-break:break-word}
+  .hero-stat-label{font-size:9.5px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;font-weight:600}
+
+  /* ════════ INFO SECTIONS ════════ */
+  .info-stack{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+  .info-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(13,35,64,.04)}
+  .info-card-head{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--border);background:#fafaf6}
+  .info-card-icon{width:28px;height:28px;border-radius:7px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+  .info-card-title{font-size:12px;font-weight:700;color:var(--navy);letter-spacing:.6px;text-transform:uppercase}
+  .info-card-body{padding:6px 0}
+  .info-row{display:grid;grid-template-columns:130px 1fr;gap:14px;padding:9px 18px;align-items:start;border-bottom:1px solid #f4f1e9;line-height:1.5}
+  .info-row:last-child{border-bottom:none}
+  .info-label{font-size:11.5px;color:var(--muted);font-weight:500;padding-top:1px}
+  .info-value{font-size:13px;color:var(--navy);font-weight:600;word-break:break-word}
+  .info-value.empty{color:var(--muted);font-weight:400;font-style:italic}
+  .info-value.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12.5px;letter-spacing:.3px}
+
+  /* Skeleton states */
+  .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
   @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
-  .empty-state{padding:48px 28px;text-align:center;}
-  .empty-icon{font-size:32px;margin-bottom:12px;opacity:0.4}
-  .empty-title{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px}
-  .empty-desc{font-size:13px;color:var(--muted);line-height:1.7}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-  .fade-in{animation:fadeUp 0.5s ease both}
-  .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px;}
-  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 20px}.topbar-time{display:none}}
+
+  /* Empty / error state */
+  .state-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:48px 28px;text-align:center}
+  .state-icon{font-size:36px;margin-bottom:14px;opacity:.4}
+  .state-title{font-family:'Fraunces',serif;font-size:18px;font-weight:500;color:var(--navy);margin-bottom:6px}
+  .state-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:380px;margin:0 auto}
+
+  /* ════════ CALENDAR (preserved + ringan retouch) ════════ */
+  .calendar-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.06)}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
+  .cal-head-title{font-family:'Fraunces',serif;font-size:18px;font-weight:500;color:var(--navy);display:flex;align-items:center;gap:10px}
+  .cal-head-title em{font-style:italic;color:var(--gold)}
+  .cal-head-icon{width:32px;height:32px;border-radius:8px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:15px}
+  .cal-nav{display:flex;align-items:center;gap:6px}
+  .cal-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--navy);transition:all .15s;font-family:inherit}
+  .cal-btn:hover{background:var(--gold-light);border-color:var(--gold)}
+  .cal-btn-primary{padding:7px 14px;width:auto;font-size:12px;font-weight:600;background:var(--navy);color:#fff;border:none;letter-spacing:.2px}
+  .cal-btn-primary:hover{background:var(--navy2)}
+  .cal-month-label{font-size:13px;font-weight:600;color:var(--navy);min-width:130px;text-align:center;letter-spacing:.2px}
+  .cal-grid{padding:18px 22px 22px}
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px}
+  .cal-weekday{text-align:center;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:6px 0}
+  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-day{aspect-ratio:1;min-height:74px;border-radius:8px;border:1px solid var(--border);background:var(--bg);padding:6px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .cal-day:hover{border-color:var(--gold);background:var(--gold-light)}
+  .cal-day.other-month{opacity:.4}
+  .cal-day.today{border-color:var(--gold);background:rgba(200,168,75,.08);box-shadow:inset 0 0 0 1px var(--gold)}
+  .cal-day-number{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px}
+  .cal-day.today .cal-day-number{color:var(--gold-dark)}
+  .cal-events{flex:1;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+  .cal-event{font-size:9.5px;padding:2px 5px;border-radius:3px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;letter-spacing:.1px}
+  .cal-more{font-size:9px;color:var(--muted);margin-top:auto;text-align:right;font-weight:500}
+  @media(max-width:768px){
+    .cal-day{min-height:54px;padding:4px}
+    .cal-event{font-size:8px;padding:1px 3px}
+  }
   @media(max-width:600px){
-    .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left 0.25s ease;box-shadow:4px 0 20px rgba(13,35,64,0.12)}
-    .sidebar.open{left:0}.layout{display:block}.main{padding:20px 16px}.menu-toggle{display:flex!important}
-    .data-grid{grid-template-columns:1fr}.profil-identity{flex-direction:column;align-items:flex-start;margin-top:-20px;gap:12px}
+    .cal-day{min-height:44px}
+    .cal-event{display:none}
+    .cal-day.has-events::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:5px;height:5px;background:var(--gold);border-radius:50%}
+  }
+
+  /* ════════ MODAL KEGIATAN ════════ */
+  .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,.4);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.show{display:flex}
+  .modal{background:var(--white);border-radius:14px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,35,64,.25);animation:popIn .22s cubic-bezier(.175,.885,.32,1.275)}
+  @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .modal-header{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fafaf6}
+  .modal-title{font-family:'Fraunces',serif;font-size:17px;font-weight:500;color:var(--navy)}
+  .modal-title em{font-style:italic;color:var(--gold)}
+  .modal-close{width:30px;height:30px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);transition:all .15s}
+  .modal-close:hover{background:var(--border);color:var(--navy)}
+  .modal-body{padding:20px 22px}
+  .form-group{margin-bottom:14px}
+  .form-group label{display:block;font-size:11px;font-weight:600;color:var(--navy);letter-spacing:.3px;text-transform:uppercase;margin-bottom:6px}
+  .form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:7px;font-family:inherit;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;background:var(--white)}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
+  .form-group textarea{resize:vertical;min-height:60px}
+  .color-options{display:flex;gap:8px;flex-wrap:wrap}
+  .color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .15s}
+  .color-opt:hover{transform:scale(1.15)}
+  .color-opt.selected{border-color:var(--navy)}
+  .modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:#fafaf6}
+  .btn{padding:8px 16px;border-radius:7px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:none}
+  .btn-secondary{background:var(--bg);color:var(--navy);border:1px solid var(--border)}
+  .btn-secondary:hover{background:var(--border)}
+  .btn-danger{background:#fef2f2;color:var(--red);border:1px solid #fecaca}
+  .btn-danger:hover{background:#fee2e2}
+  .btn-primary{background:var(--navy);color:#fff}
+  .btn-primary:hover{background:var(--navy2)}
+  .event-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg);margin-bottom:8px;border:1px solid var(--border)}
+  .event-list-color{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+  .event-list-info{flex:1;min-width:0}
+  .event-list-title{font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .event-list-time{font-size:11px;color:var(--muted)}
+  .event-list-actions{display:flex;gap:4px}
+  .event-list-actions button{padding:4px 8px;font-size:11px;border-radius:4px;border:none;cursor:pointer;font-family:inherit;font-weight:500}
+  .ela-edit{background:var(--gold-light);color:var(--gold-dark)}
+  .ela-delete{background:#fef2f2;color:var(--red)}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .fade-in{animation:fadeUp .5s cubic-bezier(.2,.7,.3,1) both}
+
+  /* ════════ RESPONSIVE ════════ */
+  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 20px 60px}.info-row{grid-template-columns:1fr;gap:2px;padding:10px 16px}.info-label{font-size:10.5px;letter-spacing:.5px;text-transform:uppercase}}
+  @media(max-width:600px){
+    .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
+    .sidebar.open{left:0}
+    .layout{display:block}
+    .main{padding:20px 16px 60px}
+    .hero-stats{grid-template-columns:1fr}
+    .hero-stat{border-right:none;border-bottom:1px solid var(--border)}
+    .hero-stat:last-child{border-bottom:none}
   }
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="topbar-brand">
-    <div class="brand-emblem">🏛</div>
-    <div><div class="brand-name">PORTAL NOVA</div><div class="brand-tag">Sistem Informasi Terpadu</div></div>
-  </div>
-  <div class="topbar-right">
-    <span class="topbar-time" id="topbar-time"></span>
-    <!-- ROLE SWITCHER -->
-    <div class="user-switcher" id="user-switcher">
-      <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false" type="button">
-        <div class="topbar-avatar" id="topbar-avatar">—</div>
-        <span class="topbar-username" id="topbar-username">Pengguna</span>
-        <span class="active-role-badge admin" id="active-role-badge">Admin</span>
-        <span class="user-switcher-caret">▼</span>
-      </button>
-      <div class="user-switcher-dropdown" id="user-switcher-dropdown">
-        <div class="usd-header">
-          <div class="usd-header-name" id="usd-header-name">Pengguna</div>
-          <div class="usd-header-label">Akun aktif · Ganti tampilan role</div>
-        </div>
-        <div class="usd-section-label">Tampilkan sebagai</div>
-        <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')" type="button">
-          <div class="usd-role-icon admin">👑</div>
-          <div><div class="usd-role-name">Administrator</div><div class="usd-role-desc">Akses penuh semua menu</div></div>
-          <span class="usd-check">✓</span>
-        </button>
-        <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')" type="button">
-          <div class="usd-role-icon user">👤</div>
-          <div><div class="usd-role-name">User</div><div class="usd-role-desc">Akses standar pegawai</div></div>
-          <span class="usd-check">✓</span>
-        </button>
-        <div class="usd-divider"></div>
-        <button class="usd-logout" onclick="logout()" type="button"><span>🚪</span> Keluar dari Portal</button>
-      </div>
-    </div>
-    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-  </div>
-</div>
+
+<!-- Topbar di-render oleh nova-topbar.js -->
+<div id="topbar-mount"></div>
+
 <div class="layout">
   <aside class="sidebar" id="sidebar" data-active="profil"></aside>
+
   <main class="main">
     <div class="page-header fade-in">
       <div class="page-eyebrow">Profil Saya</div>
       <h1 class="page-title">Data <em>Pribadi</em> Pegawai</h1>
       <p class="page-desc">Informasi data kepegawaian Anda yang tersimpan dalam sistem.</p>
     </div>
-    <div class="profile-grid">
-    <div class="profil-wrap fade-in" id="profil-card" style="animation-delay:0.1s">
-      <div class="profil-banner"></div>
-      <div style="padding:0 28px;margin-top:-32px;margin-bottom:20px;display:flex;align-items:flex-end;gap:16px">
-        <div class="skel" style="width:68px;height:68px;border-radius:50%;flex-shrink:0"></div>
-        <div style="padding-bottom:8px;display:flex;flex-direction:column;gap:8px">
-          <div class="skel" style="height:18px;width:200px"></div>
-          <div class="skel" style="height:12px;width:130px"></div>
-        </div>
-      </div>
-      <div style="height:1px;background:var(--border);margin:0 28px"></div>
-      <div style="padding:24px 28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
-        <div class="skel" style="height:62px;border-radius:8px"></div>
-        <div class="skel" style="height:62px;border-radius:8px"></div>
-        <div class="skel" style="height:62px;border-radius:8px"></div>
-        <div class="skel" style="height:62px;border-radius:8px"></div>
-        <div class="skel" style="height:62px;border-radius:8px"></div>
-        <div class="skel" style="height:62px;border-radius:8px"></div>
-      </div>
-    </div>
 
-    <!-- KALENDER KEGIATAN -->
-    <div class="calendar-section fade-in" id="calendar-section" style="animation-delay:0.2s">
-      <div class="calendar-header">
-        <div class="calendar-title">📅 Kalender Kegiatan</div>
-        <div class="calendar-nav">
-          <button class="cal-btn" onclick="changeMonth(-1)" title="Bulan sebelumnya">‹</button>
-          <span class="calendar-month-label" id="cal-month-label">Mei 2026</span>
-          <button class="cal-btn" onclick="changeMonth(1)" title="Bulan berikutnya">›</button>
-          <button class="cal-btn cal-btn-primary" onclick="openModalForToday()">+ Tambah</button>
+    <div class="profile-grid">
+      <!-- ─── KOLOM KIRI: HERO + INFO CARDS ─── -->
+      <div>
+        <!-- Hero card (loading skeleton awal) -->
+        <div id="hero-mount" class="fade-in" style="animation-delay:.05s">
+          <div class="hero-card">
+            <div class="hero-banner"></div>
+            <div class="hero-identity">
+              <div class="skel" style="width:88px;height:88px;border-radius:50%;margin-top:-44px;margin-bottom:14px"></div>
+              <div class="skel" style="height:18px;width:200px;margin-bottom:8px"></div>
+              <div class="skel" style="height:11px;width:140px;margin-bottom:10px"></div>
+              <div class="skel" style="height:22px;width:160px;border-radius:100px"></div>
+            </div>
+            <div class="hero-stats">
+              <div class="hero-stat"><div class="skel" style="height:14px;width:60%;margin:0 auto 4px"></div><div class="skel" style="height:8px;width:50%;margin:0 auto"></div></div>
+              <div class="hero-stat"><div class="skel" style="height:14px;width:60%;margin:0 auto 4px"></div><div class="skel" style="height:8px;width:50%;margin:0 auto"></div></div>
+              <div class="hero-stat"><div class="skel" style="height:14px;width:60%;margin:0 auto 4px"></div><div class="skel" style="height:8px;width:50%;margin:0 auto"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info cards mount -->
+        <div id="info-mount" class="info-stack fade-in" style="animation-delay:.1s">
+          <div class="info-card">
+            <div class="info-card-head"><div class="info-card-icon">🪪</div><div class="info-card-title">Identitas</div></div>
+            <div class="info-card-body">
+              <div class="info-row"><div class="info-label">Memuat...</div><div class="skel" style="height:14px;width:60%"></div></div>
+              <div class="info-row"><div class="info-label">Memuat...</div><div class="skel" style="height:14px;width:80%"></div></div>
+              <div class="info-row"><div class="info-label">Memuat...</div><div class="skel" style="height:14px;width:50%"></div></div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="calendar-grid">
-        <div class="cal-weekdays">
-          <div class="cal-weekday">Min</div>
-          <div class="cal-weekday">Sen</div>
-          <div class="cal-weekday">Sel</div>
-          <div class="cal-weekday">Rab</div>
-          <div class="cal-weekday">Kam</div>
-          <div class="cal-weekday">Jum</div>
-          <div class="cal-weekday">Sab</div>
+
+      <!-- ─── KOLOM KANAN: KALENDER ─── -->
+      <div class="calendar-card fade-in" id="calendar-card" style="animation-delay:.15s">
+        <div class="cal-head">
+          <div class="cal-head-title">
+            <div class="cal-head-icon">📅</div>
+            <span>Kalender <em>Kegiatan</em></span>
+          </div>
+          <div class="cal-nav">
+            <button class="cal-btn" onclick="changeMonth(-1)" title="Bulan sebelumnya">‹</button>
+            <span class="cal-month-label" id="cal-month-label">—</span>
+            <button class="cal-btn" onclick="changeMonth(1)" title="Bulan berikutnya">›</button>
+            <button class="cal-btn cal-btn-primary" onclick="openModalForToday()">+ Tambah</button>
+          </div>
         </div>
-        <div class="cal-days" id="cal-days"></div>
+        <div class="cal-grid">
+          <div class="cal-weekdays">
+            <div class="cal-weekday">Min</div>
+            <div class="cal-weekday">Sen</div>
+            <div class="cal-weekday">Sel</div>
+            <div class="cal-weekday">Rab</div>
+            <div class="cal-weekday">Kam</div>
+            <div class="cal-weekday">Jum</div>
+            <div class="cal-weekday">Sab</div>
+          </div>
+          <div class="cal-days" id="cal-days"></div>
+        </div>
       </div>
-    </div>
     </div>
   </main>
 </div>
 
-<!-- MODAL KEGIATAN -->
+<!-- ════════ MODAL KEGIATAN ════════ -->
 <div class="modal-overlay" id="event-modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title" id="modal-title">Tambah Kegiatan</div>
+      <div class="modal-title" id="modal-title">Tambah <em>Kegiatan</em></div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -284,7 +298,7 @@
           <div class="color-opt" style="background:#6b7280" data-color="#6b7280" onclick="selectColor(this)"></div>
         </div>
       </div>
-      <div id="day-events-list" style="margin-top:16px;"></div>
+      <div id="day-events-list" style="margin-top:16px"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
@@ -295,445 +309,466 @@
 </div>
 
 <script src="config.js"></script>
+<script src="nova-topbar.js"></script>
 <script src="nova-sidebar.js"></script>
 <script src="nova-role-switcher.js"></script>
 <script>
-  function checkSession(){
-    try{
-      const s=JSON.parse(localStorage.getItem('nova_user')||'null');
-      if(!s){window.location.replace('login.html');return null;}
-      if(s.expires_at&&Date.now()>s.expires_at){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}
-      if(s.must_change_password){window.location.replace('ganti-password.html');return null;}
-      if (!s.active_role) {
-        const roles = getUserRoles(s);
-        s.active_role = roles.includes('admin') ? 'admin' : 'user';
-        localStorage.setItem('nova_user', JSON.stringify(s));
-      }
-      return s;
-    }catch(e){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}
-  }
-  function logout(){localStorage.removeItem('nova_user');window.location.replace('login.html');}
-  function updateClock(){document.getElementById('topbar-time').textContent=new Date().toLocaleString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});}
-  updateClock();setInterval(updateClock,1000);
-  function setTopbarUser(s){
-    const name=s.full_name||s.username||'Pengguna';
-    const i=name.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('topbar-avatar').textContent=i;
-    document.getElementById('topbar-username').textContent=name;
-  }
-  async function fetchProfil(userId){
-    const card=document.getElementById('profil-card');
-    try{
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?id=eq.${encodeURIComponent(userId)}&select=*&limit=1`,{
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`}
-      });
-      if(!res.ok)throw new Error();
-      const data=await res.json();
-      if(!data||!data.length){
-        card.innerHTML=`<div class="profil-banner"></div><div class="empty-state"><div class="empty-icon">🗂</div><div class="empty-title">Data Tidak Ditemukan</div><div class="empty-desc">Data pegawai untuk akun ini belum tersedia.</div></div>`;
-        return;
-      }
-      const p=data[0];const nama=p['NAMA']||'-';const nip=p['NIP']||'-';
-      const ini=nama.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);
-      const f=(label,value,full)=>{const val=value&&String(value).trim()?String(value).trim():null;return`<div class="data-field${full?' full':''}"><div class="data-field-label">${label}</div><div class="data-field-val${val?'':' empty'}">${val||'Tidak tersedia'}</div></div>`;};
-      card.innerHTML=`<div class="profil-banner"></div><div class="profil-identity"><div class="profil-avatar">${ini}</div><div class="profil-namebox"><div class="profil-nama">${nama}</div><div class="profil-nip">NIP ${nip}</div></div></div><div class="profil-divider"></div><div class="profil-data"><div class="data-grid">${f('Nama Lengkap',p['NAMA'],true)}${f('NIP',p['NIP'])}${f('Nomor Seri Karpeg',p['NOMOR SERI KARPEG'])}${f('Tempat / Tanggal Lahir',p['TEMPAT/TANGGAL LAHIR'])}${f('Jenis Kelamin',p['JENIS KELAMIN'])}${f('Agama',p['AGAMA'])}${f('Pendidikan Terakhir',p['PENDIDIKAN TERAKHIR'])}${f('Unit Kerja',p['UNIT KERJA'])}${f('Jabatan',p['JABATAN'])}${f('Golongan / Ruang',p['GOLONGAN/RUANG']||p['GOLONGAN']||p['GOL/RUANG'])}${f('TMT Golongan',p['TMT GOLONGAN']||p['TMT GOL'])}${f('Masa Kerja',p['MASA KERJA'])}</div></div>`;
-    }catch(e){
-      card.innerHTML=`<div class="profil-banner"></div><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Gagal Memuat Data</div><div class="empty-desc">Terjadi kesalahan. Muat ulang halaman.</div></div>`;
+// ═══════════════════════════════════════════════════════════════
+// PROFIL SAYA — versi modern. Logika fetch profil dirombak menjadi
+// info cards berkategori; logika kalender dipertahankan apa adanya
+// (DB-backed via 3 RPC: kalender_list / kalender_upsert / kalender_delete)
+// ═══════════════════════════════════════════════════════════════
+
+// ─── SESSION ────────────────────────────────────────────────────
+function checkSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
+    if (!s) { window.location.replace('login.html'); return null; }
+    if (s.expires_at && Date.now() > s.expires_at) {
+      localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
     }
+    if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
+    if (!s.active_role) {
+      const roles = getUserRoles(s);
+      s.active_role = roles.includes('admin') ? 'admin' : 'user';
+      localStorage.setItem('nova_user', JSON.stringify(s));
+    }
+    return s;
+  } catch(e) {
+    localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
   }
-  /* ─────────── KALENDER KEGIATAN ───────────
-     Storage: tabel public.kalender_kegiatan di Supabase (pengganti
-     localStorage[nova_calendar_<userId>] versi sebelumnya). Semua
-     mutasi via 3 RPC: kalender_list / kalender_upsert / kalender_delete.
+}
+function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
 
-     Strategi rendering:
-       1. Saat init: migrasi legacy localStorage (sekali) → load dari DB
-          → simpan di cache calCachedEvents → render.
-       2. Saat user save / delete: panggil RPC → reload dari DB → render
-          ulang. Cache selalu jadi single source of truth utk fungsi
-          render yang tetap sync (renderCalendar, renderDayEventList).
+// ─── HELPERS ────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function clean(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s === '' || s === '-' ? null : s;
+}
+function initialsOf(name) {
+  return (name || 'Pengguna').split(' ').filter(Boolean)
+    .map(w => w[0]).join('').toUpperCase().slice(0,2) || '—';
+}
 
-     Field shape mengikuti kolom DB:
-       { id, user_id, tanggal, judul, waktu, keterangan, warna,
-         created_at, updated_at }
-  */
-  var calCurrentDate = new Date();
-  var calSelectedDate = null;
-  var calEditingEventId = null;       // null = mode tambah, number = mode edit
-  var calCurrentUserId = null;
-  var calCachedEvents = [];           // mirror DB; di-refresh setelah setiap mutasi
-  var EVENT_COLORS = {
-    '#c8a84b': {bg:'rgba(200,168,75,0.15)', text:'#7a5c10'},
-    '#3b82f6': {bg:'rgba(59,130,246,0.12)', text:'#1d4ed8'},
-    '#22c55e': {bg:'rgba(34,197,94,0.12)', text:'#15803d'},
-    '#ef4444': {bg:'rgba(239,68,68,0.12)', text:'#b91c1c'},
-    '#a855f7': {bg:'rgba(168,85,247,0.12)', text:'#7e22ce'},
-    '#f97316': {bg:'rgba(249,115,22,0.12)', text:'#c2410c'},
-    '#06b6d4': {bg:'rgba(6,182,212,0.12)', text:'#0e7490'},
-    '#6b7280': {bg:'rgba(107,114,128,0.12)', text:'#374151'},
-  };
+// ─── RENDER PROFIL ──────────────────────────────────────────────
+function renderProfilNotFound() {
+  document.getElementById('hero-mount').innerHTML = `
+    <div class="state-card">
+      <div class="state-icon">🗂</div>
+      <div class="state-title">Data Tidak Ditemukan</div>
+      <div class="state-desc">Data pegawai untuk akun ini belum tersedia di sistem. Hubungi administrator untuk pendaftaran.</div>
+    </div>`;
+  document.getElementById('info-mount').innerHTML = '';
+}
 
-  /* ─── RPC helpers ─── */
-  async function rpcCall(fnName, params) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'apikey':        SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify(params)
+function renderProfilError() {
+  document.getElementById('hero-mount').innerHTML = `
+    <div class="state-card">
+      <div class="state-icon">⚠️</div>
+      <div class="state-title">Gagal Memuat Data</div>
+      <div class="state-desc">Terjadi kesalahan saat menghubungi server. Silakan muat ulang halaman atau coba lagi nanti.</div>
+    </div>`;
+  document.getElementById('info-mount').innerHTML = '';
+}
+
+function renderInfoRow(label, value) {
+  const v = clean(value);
+  return `<div class="info-row">
+    <div class="info-label">${esc(label)}</div>
+    <div class="info-value${v ? '' : ' empty'}">${v ? esc(v) : 'Tidak tersedia'}</div>
+  </div>`;
+}
+function renderInfoRowMono(label, value) {
+  const v = clean(value);
+  return `<div class="info-row">
+    <div class="info-label">${esc(label)}</div>
+    <div class="info-value${v ? ' mono' : ' empty'}">${v ? esc(v) : 'Tidak tersedia'}</div>
+  </div>`;
+}
+
+function renderProfil(p) {
+  const nama = clean(p['NAMA']) || 'Pegawai';
+  const nip = clean(p['NIP']) || '-';
+  const jabatan = clean(p['JABATAN']) || 'Belum ada jabatan';
+
+  // Gabungkan golongan/ruang dari beberapa kemungkinan kolom
+  const golRuang = clean(p['GOLONGAN/RUANG']) || clean(p['GOLONGAN']) || clean(p['GOL/RUANG']) || '-';
+  const masaKerja = clean(p['MASA KERJA']) || '-';
+  const pendidikan = clean(p['PENDIDIKAN TERAKHIR']) || '-';
+
+  // Hero card
+  document.getElementById('hero-mount').innerHTML = `
+    <div class="hero-card">
+      <div class="hero-banner"></div>
+      <div class="hero-identity">
+        <div class="hero-avatar">${esc(initialsOf(nama))}</div>
+        <div class="hero-name">${esc(nama)}</div>
+        <div class="hero-jabatan">${esc(jabatan)}</div>
+        <div class="hero-nip">NIP <strong>${esc(nip)}</strong></div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value">${esc(golRuang)}</div>
+          <div class="hero-stat-label">Gol / Ruang</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">${esc(masaKerja)}</div>
+          <div class="hero-stat-label">Masa Kerja</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">${esc(pendidikan)}</div>
+          <div class="hero-stat-label">Pendidikan</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Info cards berkategori
+  const infoHTML = `
+    <div class="info-card">
+      <div class="info-card-head"><div class="info-card-icon">🪪</div><div class="info-card-title">Identitas</div></div>
+      <div class="info-card-body">
+        ${renderInfoRow('Nama Lengkap', p['NAMA'])}
+        ${renderInfoRow('Tempat / Tanggal Lahir', p['TEMPAT/TANGGAL LAHIR'])}
+        ${renderInfoRow('Jenis Kelamin', p['JENIS KELAMIN'])}
+        ${renderInfoRow('Agama', p['AGAMA'])}
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-head"><div class="info-card-icon">💼</div><div class="info-card-title">Kepegawaian</div></div>
+      <div class="info-card-body">
+        ${renderInfoRowMono('NIP', p['NIP'])}
+        ${renderInfoRowMono('Nomor Seri Karpeg', p['NOMOR SERI KARPEG'])}
+        ${renderInfoRow('Pangkat / Golongan / Ruang', p['GOLONGAN/RUANG'] || p['GOLONGAN'] || p['GOL/RUANG'])}
+        ${renderInfoRow('TMT Golongan', p['TMT GOLONGAN'] || p['TMT GOL'])}
+        ${renderInfoRow('Masa Kerja', p['MASA KERJA'])}
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-head"><div class="info-card-icon">🎓</div><div class="info-card-title">Pendidikan</div></div>
+      <div class="info-card-body">
+        ${renderInfoRow('Pendidikan Terakhir', p['PENDIDIKAN TERAKHIR'])}
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-head"><div class="info-card-icon">🏛</div><div class="info-card-title">Penempatan</div></div>
+      <div class="info-card-body">
+        ${renderInfoRow('Unit Kerja', p['UNIT KERJA'])}
+        ${renderInfoRow('Jabatan', p['JABATAN'])}
+      </div>
+    </div>
+  `;
+  document.getElementById('info-mount').innerHTML = infoHTML;
+}
+
+async function fetchProfil(userId) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?id=eq.${encodeURIComponent(userId)}&select=*&limit=1`, {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
     });
-    if (!res.ok) {
-      let msg = `HTTP ${res.status}`;
-      try { const err = await res.json(); msg = err.message || err.hint || msg; } catch(_) {}
-      throw new Error(msg);
-    }
-    return res.json();
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data || !data.length) { renderProfilNotFound(); return; }
+    renderProfil(data[0]);
+  } catch(e) {
+    console.error('[NOVA] Gagal load profil:', e);
+    renderProfilError();
   }
+}
 
-  function rpcListEvents(userId, callerId) {
-    return rpcCall('kalender_list', { p_user_id: userId, p_caller_id: callerId });
+// ═══════════════════════════════════════════════════════════════
+// KALENDER KEGIATAN — preserved dari versi sebelumnya
+// (DB-backed via RPC kalender_list / kalender_upsert / kalender_delete)
+// ═══════════════════════════════════════════════════════════════
+var calCurrentDate = new Date();
+var calSelectedDate = null;
+var calEditingEventId = null;
+var calCurrentUserId = null;
+var calCachedEvents = [];
+var EVENT_COLORS = {
+  '#c8a84b': {bg:'rgba(200,168,75,.15)', text:'#7a5c10'},
+  '#3b82f6': {bg:'rgba(59,130,246,.12)', text:'#1d4ed8'},
+  '#22c55e': {bg:'rgba(34,197,94,.12)', text:'#15803d'},
+  '#ef4444': {bg:'rgba(239,68,68,.12)', text:'#b91c1c'},
+  '#a855f7': {bg:'rgba(168,85,247,.12)', text:'#7e22ce'},
+  '#f97316': {bg:'rgba(249,115,22,.12)', text:'#c2410c'},
+  '#06b6d4': {bg:'rgba(6,182,212,.12)', text:'#0e7490'},
+  '#6b7280': {bg:'rgba(107,114,128,.12)', text:'#374151'},
+};
+
+async function rpcCall(fnName, params) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'apikey':        SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+    },
+    body: JSON.stringify(params)
+  });
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const err = await res.json(); msg = err.message || err.hint || msg; } catch(_) {}
+    throw new Error(msg);
   }
+  return res.json();
+}
+const rpcListEvents   = (uid, cid) => rpcCall('kalender_list',   { p_user_id: uid, p_caller_id: cid });
+const rpcUpsertEvent  = (ev,  cid) => rpcCall('kalender_upsert', {
+  p_caller_id:cid, p_id:ev.id||null, p_tanggal:ev.tanggal,
+  p_judul:ev.judul, p_waktu:ev.waktu||null, p_keterangan:ev.keterangan||null,
+  p_warna:ev.warna||'#c8a84b'
+});
+const rpcDeleteEvent  = (id, cid) => rpcCall('kalender_delete', { p_id: id, p_caller_id: cid });
 
-  function rpcUpsertEvent(ev, callerId) {
-    return rpcCall('kalender_upsert', {
-      p_caller_id:  callerId,
-      p_id:         ev.id || null,
-      p_tanggal:    ev.tanggal,
-      p_judul:      ev.judul,
-      p_waktu:      ev.waktu      || null,
-      p_keterangan: ev.keterangan || null,
-      p_warna:      ev.warna      || '#c8a84b'
-    });
-  }
+function fmtWaktu(t) { return t ? String(t).slice(0,5) : ''; }
+function escapeHtml(t) { var d=document.createElement('div'); d.textContent = t==null?'':String(t); return d.innerHTML; }
 
-  function rpcDeleteEvent(eventId, callerId) {
-    return rpcCall('kalender_delete', { p_id: eventId, p_caller_id: callerId });
-  }
+async function reloadEvents() {
+  if (!calCurrentUserId) return;
+  try {
+    const rows = await rpcListEvents(calCurrentUserId, calCurrentUserId);
+    calCachedEvents = Array.isArray(rows) ? rows : [];
+  } catch(e) { console.error('[NOVA] Gagal load kalender:', e); calCachedEvents = []; }
+}
 
-  /* ─── Utility ─── */
-  // Postgres `time` di-serialize ke 'HH:MM:SS' — strip seconds untuk display.
-  function fmtWaktu(t) {
-    if (!t) return '';
-    return String(t).slice(0, 5);
-  }
-
-  /* ─── Load all events for current user ke cache ─── */
-  async function reloadEvents() {
-    if (!calCurrentUserId) return;
+async function migrateLegacyEvents(userId) {
+  var key = 'nova_calendar_' + userId;
+  var raw = localStorage.getItem(key);
+  if (!raw) return;
+  var legacy;
+  try { legacy = JSON.parse(raw); } catch(e) { console.warn('[NOVA] Legacy kalender corrupt:', e); return; }
+  if (!Array.isArray(legacy) || !legacy.length) { localStorage.removeItem(key); return; }
+  console.log('[NOVA] Migrasi', legacy.length, 'event kalender lama ke DB...');
+  var pending = legacy.slice(); var i = 0;
+  while (i < pending.length) {
+    var ev = pending[i];
     try {
-      const rows = await rpcListEvents(calCurrentUserId, calCurrentUserId);
-      calCachedEvents = Array.isArray(rows) ? rows : [];
-    } catch(e) {
-      console.error('[NOVA] Gagal load kalender:', e);
-      calCachedEvents = [];
-    }
+      await rpcUpsertEvent({
+        id:null, tanggal:ev.date, judul:ev.title||'(tanpa judul)',
+        waktu:ev.time||null, keterangan:ev.desc||null, warna:ev.color||'#c8a84b'
+      }, userId);
+      pending.splice(i,1);
+      if (pending.length) localStorage.setItem(key, JSON.stringify(pending));
+      else localStorage.removeItem(key);
+    } catch(err) { console.error('[NOVA] Gagal migrasi 1 event:', ev, err); i++; }
   }
+}
 
-  /* ─── Migrasi data lama dari localStorage ke DB ───
-     Idempotent: setiap event yg berhasil di-upsert langsung di-remove
-     dari localStorage. Kalau partial fail, sisa event tetap di
-     localStorage utk retry next login (tidak duplikasi).
-  */
-  async function migrateLegacyEvents(userId) {
-    var key = 'nova_calendar_' + userId;
-    var raw = localStorage.getItem(key);
-    if (!raw) return;
+function getMonthData(year, month) {
+  var firstDay = new Date(year, month, 1);
+  var lastDay  = new Date(year, month+1, 0);
+  var startOffset = firstDay.getDay();
+  var daysInMonth = lastDay.getDate();
+  var prevMonthLast = new Date(year, month, 0).getDate();
+  var days = [];
+  for (var i = startOffset-1; i >= 0; i--) days.push({d:prevMonthLast-i, m:month-1, y:year, other:true});
+  for (var d = 1; d <= daysInMonth; d++) days.push({d:d, m:month, y:year, other:false});
+  var rem = 42 - days.length;
+  for (var j = 1; j <= rem; j++) days.push({d:j, m:month+1, y:year, other:true});
+  return days;
+}
+function formatDateKey(y,m,d) { return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+function formatDateId(dk) {
+  var p = dk.split('-'), d = +p[2], m = +p[1];
+  var months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  return d + ' ' + months[m-1] + ' ' + p[0];
+}
 
-    var legacy;
-    try { legacy = JSON.parse(raw); }
-    catch(e) {
-      console.warn('[NOVA] Legacy kalender corrupt — skip migrasi:', e);
-      return;
-    }
-    if (!Array.isArray(legacy)) { localStorage.removeItem(key); return; }
-    if (!legacy.length)         { localStorage.removeItem(key); return; }
-
-    console.log('[NOVA] Migrasi', legacy.length, 'event kalender lama ke DB...');
-    var pending = legacy.slice();
-    var i = 0;
-    while (i < pending.length) {
-      var legacyEv = pending[i];
-      try {
-        await rpcUpsertEvent({
-          id:         null,
-          tanggal:    legacyEv.date,
-          judul:      legacyEv.title || '(tanpa judul)',
-          waktu:      legacyEv.time  || null,
-          keterangan: legacyEv.desc  || null,
-          warna:      legacyEv.color || '#c8a84b'
-        }, userId);
-        // Sukses → keluarkan dari pending, persist ulang ke localStorage
-        pending.splice(i, 1);
-        if (pending.length) localStorage.setItem(key, JSON.stringify(pending));
-        else                localStorage.removeItem(key);
-      } catch(err) {
-        console.error('[NOVA] Gagal migrasi 1 event, akan retry next login:', legacyEv, err);
-        i++;
-      }
-    }
-    if (pending.length) {
-      console.warn('[NOVA] ' + pending.length + ' event gagal migrasi — masih di localStorage.');
-    } else {
-      console.log('[NOVA] Migrasi kalender selesai. localStorage dibersihkan.');
-    }
-  }
-
-  /* ─── Calendar grid math (sama seperti versi lama, tidak diubah) ─── */
-  function getMonthData(year, month) {
-    var firstDay = new Date(year, month, 1);
-    var lastDay = new Date(year, month + 1, 0);
-    var startOffset = firstDay.getDay(); // 0=Min
-    var daysInMonth = lastDay.getDate();
-    var prevMonthLast = new Date(year, month, 0).getDate();
-    var days = [];
-    for (var i = startOffset - 1; i >= 0; i--) {
-      days.push({d: prevMonthLast - i, m: month - 1, y: year, other: true});
-    }
-    for (var d = 1; d <= daysInMonth; d++) {
-      days.push({d: d, m: month, y: year, other: false});
-    }
-    var rem = 42 - days.length;
-    for (var j = 1; j <= rem; j++) {
-      days.push({d: j, m: month + 1, y: year, other: true});
-    }
-    return days;
-  }
-
-  function formatDateKey(y, m, d) {
-    return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-  }
-
-  /* ─── Render bulan + event ─── */
-  function renderCalendar() {
-    var year = calCurrentDate.getFullYear();
-    var month = calCurrentDate.getMonth();
-    var monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-    document.getElementById('cal-month-label').textContent = monthNames[month] + ' ' + year;
-
-    var days = getMonthData(year, month);
-    var container = document.getElementById('cal-days');
-    var today = new Date();
-    var todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
-    var events = calCachedEvents;
-
-    var html = '';
-    for (var i = 0; i < days.length; i++) {
-      var day = days[i];
-      var dateKey = formatDateKey(day.y, day.m, day.d);
-      var isToday = dateKey === todayKey;
-      var dayEvents = events.filter(function(e) { return e.tanggal === dateKey; })
-                            .sort(function(a, b) { return (a.waktu || '').localeCompare(b.waktu || ''); });
-      var hasEvents = dayEvents.length > 0;
-      var cls = 'cal-day' + (day.other ? ' other-month' : '') + (isToday ? ' today' : '') + (hasEvents ? ' has-events' : '');
-      html += '<div class="' + cls + '" onclick="openModalForDate(\'' + dateKey + '\')">';
-      html += '<div class="cal-day-number">' + day.d + '</div>';
-      html += '<div class="cal-events">';
-      for (var k = 0; k < Math.min(dayEvents.length, 3); k++) {
-        var ev = dayEvents[k];
-        var c = EVENT_COLORS[ev.warna] || EVENT_COLORS['#c8a84b'];
-        html += '<div class="cal-event" style="background:' + c.bg + ';color:' + c.text + '">' + escapeHtml(ev.judul) + '</div>';
-      }
-      if (dayEvents.length > 3) {
-        html += '<div class="cal-more">+' + (dayEvents.length - 3) + ' lainnya</div>';
-      }
-      html += '</div></div>';
-    }
-    container.innerHTML = html;
-  }
-
-  function escapeHtml(text) {
-    var div = document.createElement('div');
-    div.textContent = text == null ? '' : String(text);
-    return div.innerHTML;
-  }
-
-  function changeMonth(delta) {
-    calCurrentDate.setDate(1);
-    calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
-    renderCalendar();
-  }
-
-  function openModalForToday() {
-    var today = new Date();
-    var key = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
-    openModalForDate(key);
-  }
-
-  function openModalForDate(dateKey) {
-    calSelectedDate = dateKey;
-    calEditingEventId = null;
-    document.getElementById('evt-date').value = dateKey;
-    document.getElementById('evt-title').value = '';
-    document.getElementById('evt-time').value = '';
-    document.getElementById('evt-desc').value = '';
-    document.getElementById('modal-title').textContent = 'Tambah Kegiatan — ' + formatDateId(dateKey);
-    document.getElementById('btn-delete-event').style.display = 'none';
-    document.getElementById('btn-save-event').textContent = 'Simpan';
-    selectColor(document.querySelector('.color-opt[data-color="#c8a84b"]'));
-    renderDayEventList(dateKey);
-    document.getElementById('event-modal').classList.add('show');
-  }
-
-  function formatDateId(dateKey) {
-    var parts = dateKey.split('-');
-    var d = parseInt(parts[2], 10);
-    var m = parseInt(parts[1], 10);
-    var months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-    return d + ' ' + months[m - 1] + ' ' + parts[0];
-  }
-
-  function closeModal() {
-    document.getElementById('event-modal').classList.remove('show');
-    calEditingEventId = null;
-    calSelectedDate = null;
-  }
-
-  function selectColor(el) {
-    document.querySelectorAll('.color-opt').forEach(function(c) { c.classList.remove('selected'); });
-    el.classList.add('selected');
-  }
-
-  function getSelectedColor() {
-    var sel = document.querySelector('.color-opt.selected');
-    return sel ? sel.getAttribute('data-color') : '#c8a84b';
-  }
-
-  function resetEventForm(dateKey) {
-    calEditingEventId = null;
-    document.getElementById('evt-title').value = '';
-    document.getElementById('evt-time').value = '';
-    document.getElementById('evt-desc').value = '';
-    document.getElementById('modal-title').textContent = 'Tambah Kegiatan — ' + formatDateId(dateKey);
-    document.getElementById('btn-delete-event').style.display = 'none';
-    document.getElementById('btn-save-event').textContent = 'Simpan';
-    selectColor(document.querySelector('.color-opt[data-color="#c8a84b"]'));
-  }
-
-  /* ─── CRUD via RPC ─── */
-  async function saveEvent() {
-    var titleVal = document.getElementById('evt-title').value.trim();
-    if (!titleVal) { alert('Judul kegiatan wajib diisi.'); return; }
-
-    var btn = document.getElementById('btn-save-event');
-    var btnDel = document.getElementById('btn-delete-event');
-    btn.disabled = true;
-    if (btnDel) btnDel.disabled = true;
-
-    var payload = {
-      id:         calEditingEventId,                                  // null = create
-      tanggal:    calSelectedDate,
-      judul:      titleVal,
-      waktu:      document.getElementById('evt-time').value || null,
-      keterangan: document.getElementById('evt-desc').value.trim() || null,
-      warna:      getSelectedColor()
-    };
-
-    try {
-      await rpcUpsertEvent(payload, calCurrentUserId);
-      await reloadEvents();
-      renderCalendar();
-      renderDayEventList(calSelectedDate);
-      resetEventForm(calSelectedDate);
-    } catch(e) {
-      alert('Gagal menyimpan kegiatan: ' + e.message);
-    } finally {
-      btn.disabled = false;
-      if (btnDel) btnDel.disabled = false;
-    }
-  }
-
-  function editEvent(id) {
-    var ev = calCachedEvents.find(function(e) { return e.id === id; });
-    if (!ev) return;
-    calEditingEventId = id;
-    document.getElementById('evt-title').value = ev.judul || '';
-    document.getElementById('evt-time').value  = fmtWaktu(ev.waktu);
-    document.getElementById('evt-desc').value  = ev.keterangan || '';
-    document.getElementById('modal-title').textContent = 'Edit Kegiatan — ' + formatDateId(ev.tanggal);
-    document.getElementById('btn-delete-event').style.display = '';
-    document.getElementById('btn-save-event').textContent = 'Perbarui';
-    var colorOpt = document.querySelector('.color-opt[data-color="' + ev.warna + '"]');
-    if (colorOpt) selectColor(colorOpt);
-  }
-
-  async function deleteCurrentEvent() {
-    if (!calEditingEventId) return;
-    if (!confirm('Yakin ingin menghapus kegiatan ini?')) return;
-    var btn = document.getElementById('btn-delete-event');
-    btn.disabled = true;
-    try {
-      await rpcDeleteEvent(calEditingEventId, calCurrentUserId);
-      await reloadEvents();
-      renderCalendar();
-      renderDayEventList(calSelectedDate);
-      resetEventForm(calSelectedDate);
-    } catch(e) {
-      alert('Gagal menghapus kegiatan: ' + e.message);
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  function renderDayEventList(dateKey) {
-    var events = calCachedEvents.filter(function(e) { return e.tanggal === dateKey; })
-                                .sort(function(a, b) { return (a.waktu || '').localeCompare(b.waktu || ''); });
-    var container = document.getElementById('day-events-list');
-    if (!events.length) { container.innerHTML = ''; return; }
-    var html = '<div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px;">Kegiatan hari ini (' + events.length + ')</div>';
-    for (var i = 0; i < events.length; i++) {
-      var ev = events[i];
+function renderCalendar() {
+  var year  = calCurrentDate.getFullYear();
+  var month = calCurrentDate.getMonth();
+  var monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  document.getElementById('cal-month-label').textContent = monthNames[month] + ' ' + year;
+  var days = getMonthData(year, month);
+  var container = document.getElementById('cal-days');
+  var today = new Date();
+  var todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  var html = '';
+  for (var i = 0; i < days.length; i++) {
+    var day = days[i];
+    var dateKey = formatDateKey(day.y, day.m, day.d);
+    var isToday = dateKey === todayKey;
+    var dayEvents = calCachedEvents.filter(e => e.tanggal === dateKey)
+                                    .sort((a,b) => (a.waktu||'').localeCompare(b.waktu||''));
+    var hasEvents = dayEvents.length > 0;
+    var cls = 'cal-day' + (day.other ? ' other-month':'') + (isToday ? ' today':'') + (hasEvents ? ' has-events':'');
+    html += '<div class="' + cls + '" onclick="openModalForDate(\'' + dateKey + '\')">';
+    html += '<div class="cal-day-number">' + day.d + '</div>';
+    html += '<div class="cal-events">';
+    for (var k = 0; k < Math.min(dayEvents.length, 3); k++) {
+      var ev = dayEvents[k];
       var c = EVENT_COLORS[ev.warna] || EVENT_COLORS['#c8a84b'];
-      var waktuStr = fmtWaktu(ev.waktu);
-      html += '<div class="event-list-item">';
-      html += '<div class="event-list-color" style="background:' + ev.warna + '"></div>';
-      html += '<div class="event-list-info">';
-      html += '<div class="event-list-title">' + escapeHtml(ev.judul) + '</div>';
-      html += '<div class="event-list-time">' + (waktuStr ? waktuStr + ' · ' : '') + (ev.keterangan ? escapeHtml(ev.keterangan) : 'Tanpa keterangan') + '</div>';
-      html += '</div>';
-      html += '<div class="event-list-actions">';
-      html += '<button class="ela-edit" onclick="editEvent(' + ev.id + ')">Edit</button>';
-      html += '<button class="ela-delete" onclick="deleteEventById(' + ev.id + ')">Hapus</button>';
-      html += '</div></div>';
+      html += '<div class="cal-event" style="background:' + c.bg + ';color:' + c.text + '">' + escapeHtml(ev.judul) + '</div>';
     }
-    container.innerHTML = html;
+    if (dayEvents.length > 3) html += '<div class="cal-more">+' + (dayEvents.length - 3) + ' lainnya</div>';
+    html += '</div></div>';
   }
+  container.innerHTML = html;
+}
 
-  async function deleteEventById(id) {
-    if (!confirm('Yakin ingin menghapus kegiatan ini?')) return;
-    try {
-      await rpcDeleteEvent(id, calCurrentUserId);
-      await reloadEvents();
-      renderCalendar();
-      renderDayEventList(calSelectedDate);
-      if (calEditingEventId === id) resetEventForm(calSelectedDate);
-    } catch(e) {
-      alert('Gagal menghapus kegiatan: ' + e.message);
-    }
-  }
+function changeMonth(delta) {
+  calCurrentDate.setDate(1);
+  calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
+  renderCalendar();
+}
+function openModalForToday() {
+  var today = new Date();
+  openModalForDate(formatDateKey(today.getFullYear(), today.getMonth(), today.getDate()));
+}
+function openModalForDate(dateKey) {
+  calSelectedDate = dateKey;
+  calEditingEventId = null;
+  document.getElementById('evt-date').value = dateKey;
+  document.getElementById('evt-title').value = '';
+  document.getElementById('evt-time').value = '';
+  document.getElementById('evt-desc').value = '';
+  document.getElementById('modal-title').innerHTML = 'Tambah <em>Kegiatan</em> — ' + formatDateId(dateKey);
+  document.getElementById('btn-delete-event').style.display = 'none';
+  document.getElementById('btn-save-event').textContent = 'Simpan';
+  selectColor(document.querySelector('.color-opt[data-color="#c8a84b"]'));
+  renderDayEventList(dateKey);
+  document.getElementById('event-modal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('event-modal').classList.remove('show');
+  calEditingEventId = null;
+  calSelectedDate  = null;
+}
+function selectColor(el) {
+  document.querySelectorAll('.color-opt').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function getSelectedColor() {
+  var sel = document.querySelector('.color-opt.selected');
+  return sel ? sel.getAttribute('data-color') : '#c8a84b';
+}
+function resetEventForm(dateKey) {
+  calEditingEventId = null;
+  document.getElementById('evt-title').value = '';
+  document.getElementById('evt-time').value = '';
+  document.getElementById('evt-desc').value = '';
+  document.getElementById('modal-title').innerHTML = 'Tambah <em>Kegiatan</em> — ' + formatDateId(dateKey);
+  document.getElementById('btn-delete-event').style.display = 'none';
+  document.getElementById('btn-save-event').textContent = 'Simpan';
+  selectColor(document.querySelector('.color-opt[data-color="#c8a84b"]'));
+}
 
-  async function initCalendar(userId) {
-    calCurrentUserId = userId;
-    // Render skeleton dulu pakai cache kosong supaya UI tidak hang
-    renderCalendar();
-    // Migrasi legacy localStorage → DB (sekali, idempotent)
-    try { await migrateLegacyEvents(userId); }
-    catch(e) { console.warn('[NOVA] Migrasi legacy kalender error:', e); }
-    // Load dari DB → render ulang dgn data sebenarnya
+async function saveEvent() {
+  var titleVal = document.getElementById('evt-title').value.trim();
+  if (!titleVal) { alert('Judul kegiatan wajib diisi.'); return; }
+  var btn = document.getElementById('btn-save-event');
+  var btnDel = document.getElementById('btn-delete-event');
+  btn.disabled = true; if (btnDel) btnDel.disabled = true;
+  var payload = {
+    id:         calEditingEventId,
+    tanggal:    calSelectedDate,
+    judul:      titleVal,
+    waktu:      document.getElementById('evt-time').value || null,
+    keterangan: document.getElementById('evt-desc').value.trim() || null,
+    warna:      getSelectedColor()
+  };
+  try {
+    await rpcUpsertEvent(payload, calCurrentUserId);
     await reloadEvents();
     renderCalendar();
+    renderDayEventList(calSelectedDate);
+    resetEventForm(calSelectedDate);
+  } catch(e) {
+    alert('Gagal menyimpan kegiatan: ' + e.message);
+  } finally {
+    btn.disabled = false; if (btnDel) btnDel.disabled = false;
   }
+}
 
-  async function init(){
-    const s = checkSession();
-    if (!s) return;
-    setTopbarUser(s);
-    fetchProfil(s.id);
-    initRoleSwitcher(s, false);
-    await initCalendar(s.id);
+function editEvent(id) {
+  var ev = calCachedEvents.find(e => e.id === id);
+  if (!ev) return;
+  calEditingEventId = id;
+  document.getElementById('evt-title').value = ev.judul || '';
+  document.getElementById('evt-time').value  = fmtWaktu(ev.waktu);
+  document.getElementById('evt-desc').value  = ev.keterangan || '';
+  document.getElementById('modal-title').innerHTML = 'Edit <em>Kegiatan</em> — ' + formatDateId(ev.tanggal);
+  document.getElementById('btn-delete-event').style.display = '';
+  document.getElementById('btn-save-event').textContent = 'Perbarui';
+  var colorOpt = document.querySelector('.color-opt[data-color="' + ev.warna + '"]');
+  if (colorOpt) selectColor(colorOpt);
+}
+
+async function deleteCurrentEvent() {
+  if (!calEditingEventId) return;
+  if (!confirm('Yakin ingin menghapus kegiatan ini?')) return;
+  var btn = document.getElementById('btn-delete-event');
+  btn.disabled = true;
+  try {
+    await rpcDeleteEvent(calEditingEventId, calCurrentUserId);
+    await reloadEvents();
+    renderCalendar();
+    renderDayEventList(calSelectedDate);
+    resetEventForm(calSelectedDate);
+  } catch(e) {
+    alert('Gagal menghapus kegiatan: ' + e.message);
+  } finally { btn.disabled = false; }
+}
+
+function renderDayEventList(dateKey) {
+  var events = calCachedEvents.filter(e => e.tanggal === dateKey)
+                              .sort((a,b) => (a.waktu||'').localeCompare(b.waktu||''));
+  var container = document.getElementById('day-events-list');
+  if (!events.length) { container.innerHTML = ''; return; }
+  var html = '<div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px">Kegiatan hari ini (' + events.length + ')</div>';
+  for (var i = 0; i < events.length; i++) {
+    var ev = events[i];
+    var waktuStr = fmtWaktu(ev.waktu);
+    html += '<div class="event-list-item">';
+    html += '<div class="event-list-color" style="background:' + ev.warna + '"></div>';
+    html += '<div class="event-list-info">';
+    html += '<div class="event-list-title">' + escapeHtml(ev.judul) + '</div>';
+    html += '<div class="event-list-time">' + (waktuStr ? waktuStr + ' · ' : '') + (ev.keterangan ? escapeHtml(ev.keterangan) : 'Tanpa keterangan') + '</div>';
+    html += '</div>';
+    html += '<div class="event-list-actions">';
+    html += '<button class="ela-edit" onclick="editEvent(' + ev.id + ')">Edit</button>';
+    html += '<button class="ela-delete" onclick="deleteEventById(' + ev.id + ')">Hapus</button>';
+    html += '</div></div>';
   }
-  init();
+  container.innerHTML = html;
+}
+
+async function deleteEventById(id) {
+  if (!confirm('Yakin ingin menghapus kegiatan ini?')) return;
+  try {
+    await rpcDeleteEvent(id, calCurrentUserId);
+    await reloadEvents();
+    renderCalendar();
+    renderDayEventList(calSelectedDate);
+    if (calEditingEventId === id) resetEventForm(calSelectedDate);
+  } catch(e) { alert('Gagal menghapus kegiatan: ' + e.message); }
+}
+
+async function initCalendar(userId) {
+  calCurrentUserId = userId;
+  renderCalendar();
+  try { await migrateLegacyEvents(userId); } catch(e) { console.warn('[NOVA] Migrasi legacy kalender error:', e); }
+  await reloadEvents();
+  renderCalendar();
+}
+
+// ─── INIT ──────────────────────────────────────────────────────
+async function init() {
+  const s = checkSession();
+  if (!s) return;
+  NovaTopbar.setUser(s);
+  fetchProfil(s.id);
+  initRoleSwitcher(s, false);
+  await initCalendar(s.id);
+}
+init();
 </script>
 </body>
 </html>
