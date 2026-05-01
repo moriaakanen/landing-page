@@ -1,0 +1,173 @@
+/**
+ * NOVA SHARED — utilitas umum yang dipakai semua halaman
+ * ─────────────────────────────────────────────────────────
+ * Diload SETELAH config.js, SEBELUM nova-topbar.js / nova-sidebar.js /
+ * nova-role-switcher.js dan script init() halaman.
+ *
+ * Mengexpose ke global scope:
+ *   - SUPABASE_HEADERS              header siap-pakai untuk fetch ke Supabase
+ *   - esc(s) / escAttr(s)           escape HTML (alias)
+ *   - logout()                      hapus session & redirect ke login
+ *   - novaCheckSession({...})       seragam: cek session, expiry, ganti-sandi,
+ *                                   set active_role default, gate role admin
+ *   - novaRpc(fnName, params)       POST RPC dengan error handling konsisten
+ *   - BULAN                         array nama bulan Indonesia
+ *
+ * Catatan:
+ * - Fungsi `logout` SENGAJA di-expose sebagai global karena dipanggil dari
+ *   onclick="logout()" di template topbar (nova-topbar.js).
+ * - Date utilities (parseISODate, fmtTgl, fmtWaktu, dst.) TIDAK ada di sini
+ *   karena beberapa halaman punya behavior berbeda halus (mis. em-dash vs
+ *   empty string untuk input null). Tetap didefinisikan per-file.
+ */
+(function () {
+  'use strict';
+
+  // ─── Sanity check: config.js wajib sudah di-load duluan ────────
+  if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
+    console.error('[NovaShared] config.js belum di-load. Pastikan urutan script: '
+                + 'config.js → nova-shared.js → ...');
+  }
+
+  // ─── Headers Supabase ──────────────────────────────────────────
+  // Pengganti pola `const H = { 'apikey': ..., 'Authorization': ..., ... }`
+  // yang sebelumnya diduplikasi di setiap halaman.
+  window.SUPABASE_HEADERS = {
+    'apikey':        typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : '',
+    'Authorization': typeof SUPABASE_ANON_KEY !== 'undefined' ? `Bearer ${SUPABASE_ANON_KEY}` : '',
+    'Content-Type':  'application/json'
+  };
+
+  // ─── Escape HTML ───────────────────────────────────────────────
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])
+    );
+  }
+  window.esc = esc;
+  // Alias backward-compat: beberapa file lama pakai escAttr() — sama persis.
+  window.escAttr = esc;
+
+  // ─── Logout ────────────────────────────────────────────────────
+  // Dipanggil dari template topbar (onclick="logout()") DAN dari halaman lain.
+  function logout() {
+    localStorage.removeItem('nova_user');
+    window.location.replace('login.html');
+  }
+  window.logout = logout;
+
+  // ─── novaCheckSession ──────────────────────────────────────────
+  /**
+   * Seragam check session untuk semua halaman aplikasi (kecuali login &
+   * ganti-password yang punya alur sendiri).
+   *
+   * Behaviour:
+   *   1. Tidak ada session             → redirect login.html
+   *   2. Session corrupt (parse fail)  → clear & redirect login.html
+   *   3. expires_at lewat              → clear & redirect login.html
+   *   4. must_change_password === true → redirect ganti-password.html
+   *   5. active_role belum di-set      → set default (admin kalau punya, else user)
+   *   6. active_role tidak valid       → reset ke role yang dimiliki
+   *   7. requireAdmin = true tapi      → redirect index.html
+   *      user bukan admin
+   *
+   * @param {object}  opts
+   * @param {boolean} opts.requireAdmin  true untuk halaman admin-only
+   * @returns {object|null} session object (sukses), atau null bila sudah redirect
+   */
+  function novaCheckSession(opts) {
+    opts = opts || {};
+    const requireAdmin = !!opts.requireAdmin;
+
+    let s;
+    try {
+      s = JSON.parse(localStorage.getItem('nova_user') || 'null');
+    } catch (e) {
+      localStorage.removeItem('nova_user');
+      window.location.replace('login.html');
+      return null;
+    }
+
+    if (!s) {
+      window.location.replace('login.html');
+      return null;
+    }
+    if (s.expires_at && Date.now() > s.expires_at) {
+      localStorage.removeItem('nova_user');
+      window.location.replace('login.html');
+      return null;
+    }
+    if (s.must_change_password) {
+      window.location.replace('ganti-password.html');
+      return null;
+    }
+
+    // Sumber kebenaran role: DB (lewat getUserRoles dari config.js).
+    // Kalau config.js belum loaded (seharusnya tidak terjadi), fallback aman.
+    const roles = (typeof getUserRoles === 'function')
+      ? getUserRoles(s)
+      : (Array.isArray(s.roles) && s.roles.length ? s.roles : ['user']);
+
+    if (!s.active_role) {
+      s.active_role = roles.includes('admin') ? 'admin' : 'user';
+      localStorage.setItem('nova_user', JSON.stringify(s));
+    }
+    // Kalau active_role yang ter-pin bukan role yang user miliki (mis. admin
+    // dicabut admin lain), reset ke role yang sah.
+    if (!roles.includes(s.active_role)) {
+      s.active_role = roles[0] || 'user';
+      localStorage.setItem('nova_user', JSON.stringify(s));
+    }
+
+    if (requireAdmin) {
+      if (!roles.includes('admin') || s.active_role !== 'admin') {
+        window.location.replace('index.html');
+        return null;
+      }
+    }
+    return s;
+  }
+  window.novaCheckSession = novaCheckSession;
+
+  // ─── novaRpc ───────────────────────────────────────────────────
+  /**
+   * POST ke endpoint Supabase RPC dengan error handling konsisten.
+   *
+   * Versi sebelumnya (callRPC di login.html / ganti-password.html) TIDAK
+   * memeriksa res.ok — kalau server return 4xx/5xx dengan body JSON error,
+   * caller mengira sukses. Versi ini selalu lempar Error dengan pesan yang
+   * berasal dari server kalau response non-2xx.
+   *
+   * @param {string} fnName  nama RPC function
+   * @param {object} params  payload (akan di-JSON.stringify)
+   * @returns {*}            hasil parse JSON dari body, atau null kalau body kosong
+   * @throws  {Error}        kalau status non-2xx
+   */
+  async function novaRpc(fnName, params) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+      method:  'POST',
+      headers: window.SUPABASE_HEADERS,
+      body:    JSON.stringify(params || {})
+    });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try {
+        const err = await res.json();
+        msg = err.message || err.hint || err.details || msg;
+      } catch (_) { /* body bukan JSON, biarkan msg default */ }
+      throw new Error(msg);
+    }
+    const text = await res.text();
+    if (!text) return null;
+    try { return JSON.parse(text); } catch (_) { return text; }
+  }
+  window.novaRpc = novaRpc;
+
+  // ─── Konstanta: nama bulan Indonesia ───────────────────────────
+  // Sebelumnya didefinisikan ulang sebagai BULAN / BULAN_ID di banyak file.
+  window.BULAN = [
+    'Januari','Februari','Maret','April','Mei','Juni',
+    'Juli','Agustus','September','Oktober','November','Desember'
+  ];
+
+})();
