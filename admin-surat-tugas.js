@@ -163,17 +163,8 @@ function checkSession() {
   }
 }
 function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
-function updateClock() {
-  document.getElementById('topbar-time').textContent =
-    new Date().toLocaleString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
-}
-updateClock(); setInterval(updateClock, 1000);
-function setTopbarUser(s) {
-  const name = s.full_name || s.username || 'Pengguna';
-  const i = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  document.getElementById('topbar-avatar').textContent = i;
-  document.getElementById('topbar-username').textContent = name;
-}
+// Topbar (clock + user info) di-handle oleh nova-topbar.js.
+// Panggil NovaTopbar.setUser(SESSION) saat init untuk set avatar+username.
 
 /* ════════════════════════════════════════════════════════════════════
    HELPERS — escape, format tanggal, badge
@@ -4289,7 +4280,7 @@ async function buildSuratTugasDoc(data) {
 function init() {
   SESSION = checkSession();
   if (!SESSION) return;
-  setTopbarUser(SESSION);
+  NovaTopbar.setUser(SESSION);
   initRoleSwitcher(SESSION, true);
   Promise.all([loadPegawai(), loadRiwayatJabatan(), loadUsers(), loadSurat()]);
 
