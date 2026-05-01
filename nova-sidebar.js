@@ -75,8 +75,8 @@
 
     // Footer — admin-badge juga di-show/hide oleh role switcher
     html += '<div class="sidebar-footer">' +
-            '<strong>Portal NOVA</strong><br>' +
-            'Sistem Informasi Terpadu<br>' +
+            '<strong>9201</strong><br>' +
+            'BPS Kabupaten Raja Ampat<br>' +
             '© 2026 Pemerintah RI' +
             '<div id="admin-footer-badge" style="display:none;margin-top:6px">' +
               '<span class="admin-badge" id="sidebar-admin-badge">🔑 Administrator</span>' +
