@@ -18,15 +18,7 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
-  .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200}
-  .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0}
-  .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-  .brand-name{font-size:14px;font-weight:700;color:white;letter-spacing:.5px;line-height:1}
-  .brand-tag{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
-  .topbar-right{display:flex;align-items:center;gap:14px}
-  .topbar-time{font-size:11px;color:rgba(255,255,255,.35)}
-  .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
-  .topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
+  /* CSS topbar (.topbar, .topbar-brand, .brand-emblem, .topbar-time, .topbar-avatar, .topbar-username, .menu-toggle, dst.) di-handle oleh nova-topbar.js */
   .layout{display:flex;flex:1;min-height:0}
   .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
   .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
@@ -182,11 +174,10 @@
   @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .fade-in{animation:fadeUp .5s ease both}
-  .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
-  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.topbar-time{display:none}}
+  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}}
   @media(max-width:600px){
     .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
-    .sidebar.open{left:0}.layout{display:block}.menu-toggle{display:flex!important}
+    .sidebar.open{left:0}.layout{display:block}
     .stats-row{flex-wrap:wrap}.stat-pill{min-width:calc(50% - 6px)}
     .modal{max-width:100%}.toolbar{flex-direction:column;align-items:stretch}
     .role-selector{flex-direction:column}
@@ -431,38 +422,19 @@
 </div>
 
 <script src="config.js"></script>
+<script src="nova-shared.js"></script>
 <script src="nova-topbar.js"></script>
 <script src="nova-sidebar.js"></script>
 <script src="nova-role-switcher.js"></script>
 <script>
+  // `checkSession`, `logout`, `esc`, dan `SUPABASE_HEADERS` di-load dari
+  // nova-shared.js. Halaman ini admin-only — pakai
+  // novaCheckSession({ requireAdmin: true }) di init().
   const TABLE_PENGGUNA = 'users';
-  const H = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+  const H = SUPABASE_HEADERS;
 
   let SESSION = null, allPengguna = [], userMap = {}, selectedUserId = null, selectedUserName = '';
   let newUserRoles = ['user'];
-  let newUserRole  = 'user'; // backward compat
-
-  /* ══ SESSION ══ */
-  function checkSession() {
-    try {
-      const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
-      if (!s) { window.location.replace('login.html'); return null; }
-      if (s.expires_at && Date.now() > s.expires_at) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
-      if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
-      const roles = getUserRoles(s);
-      if (!s.active_role) {
-        s.active_role = roles.includes('admin') ? 'admin' : 'user';
-        localStorage.setItem('nova_user', JSON.stringify(s));
-      }
-      if (s.active_role !== 'admin' || !roles.includes('admin')) {
-        window.location.replace('index.html'); return null;
-      }
-      return s;
-    } catch(e) { localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null; }
-  }
-
-  function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
-
 
   /* ══ LOAD DATA ══ */
   async function loadPengguna() {
@@ -558,11 +530,6 @@
       </tr>`;
     }).join('');
     document.getElementById('table-area').innerHTML = `<table class="list-table"><thead><tr><th>Pengguna</th><th>Role</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th></tr></thead><tbody>${rows}</tbody></table>`;
-  }
-
-  function esc(str) {
-    if (str == null) return '';
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
   function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
@@ -694,12 +661,17 @@
   }
 
   /* ══ TAMBAH PENGGUNA ══ */
+  // Toggle role pada modal "Tambah Pengguna". Klik chip role yang sudah aktif
+  // akan menonaktifkannya — kecuali itu satu-satunya role aktif (user wajib
+  // punya minimal 1 role, jadi klik di kondisi itu silent no-op).
   function selectNewRole(role) {
-    newUserRole = role;
     const idx = newUserRoles.indexOf(role);
-    if (idx >= 0 && newUserRoles.length > 1) newUserRoles.splice(idx, 1);
-    else if (idx < 0) newUserRoles.push(role);
-    else newUserRoles = [role];
+    if (idx >= 0) {
+      if (newUserRoles.length > 1) newUserRoles.splice(idx, 1);
+      // else: silent no-op (jangan biarkan user tanpa role sama sekali)
+    } else {
+      newUserRoles.push(role);
+    }
     document.getElementById('new-role-opt-user').className  = 'role-option' + (newUserRoles.includes('user')  ? ' sel-user'  : '');
     document.getElementById('new-role-opt-admin').className = 'role-option' + (newUserRoles.includes('admin') ? ' sel-admin' : '');
   }
@@ -735,7 +707,6 @@
     const btn = document.getElementById('btn-tambah-submit');
     btn.disabled = true; btn.classList.add('loading');
     try {
-      let ok = false;
       const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`,{
         method:'POST', headers:H,
         body:JSON.stringify({
@@ -776,7 +747,6 @@
     const btn = document.getElementById('btn-reset-submit');
     btn.disabled=true; btn.classList.add('loading');
     try {
-      let ok = false;
       const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`,{
         method:'POST', headers:H,
         body:JSON.stringify({p_user_id:selectedUserId, p_new_password:newPass})
@@ -868,7 +838,7 @@
   }
 
   function init() {
-    SESSION = checkSession();
+    SESSION = novaCheckSession({ requireAdmin: true });
     if (!SESSION) return;
     NovaTopbar.setUser(SESSION);
     initRoleSwitcher(SESSION, true);
