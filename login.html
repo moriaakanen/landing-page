@@ -237,6 +237,7 @@
 </div>
 
 <script src="config.js"></script>
+<script src="nova-shared.js"></script>
 <script>
   const MAX_ATTEMPTS    = 5;
   const LOCKOUT_MINUTES = 10;
@@ -249,6 +250,7 @@
     }
   } catch(e) { localStorage.removeItem('nova_user'); }
 
+  // ─── Lockout (per device, sebagai UX nudge — bukan security control) ───
   function getLockout() {
     try { return JSON.parse(localStorage.getItem('nova_lockout') || 'null'); } catch(e) { return null; }
   }
@@ -285,6 +287,7 @@
     } else { el.textContent = ''; }
   }
 
+  // ─── UI helpers (alert, error, loading) ───
   function showAlert(msg, type = 'error') {
     const icons = { error: '⚠️', success: '✅', warning: '⚠️' };
     document.getElementById('alert-icon').textContent = icons[type] || '⚠️';
@@ -309,19 +312,10 @@
     btn.classList.toggle('loading', v);
   }
 
-  async function callRPC(fn, params) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify(params)
-    });
-    return res.json();
-  }
-
+  // ─── Handle login ───
+  // RPC verify_login HARAPAN: HTTP 200 + array baris user (sukses) ATAU
+  // HTTP 200 + array kosong / null (kredensial salah). Network/server error
+  // → novaRpc throw → tangkap di catch.
   async function handleLogin() {
     clearErrors();
     if (checkLockout()) return;
@@ -336,7 +330,7 @@
 
     setLoading(true);
     try {
-      const data = await callRPC('verify_login', {
+      const data = await novaRpc('verify_login', {
         p_username: username,
         p_password: password
       });
@@ -360,11 +354,10 @@
       clearLockout();
       const user = data[0];
 
-      // ── Bangun daftar roles ──────────────────────────────────────────
-      // Mendukung field 'roles' (array) dan 'role' (string) dari DB.
-      // _getSessionRoles() di nova-role-switcher.js akan baca field ini.
-      // Bangun rolesArr dari response DB.
-      // RPC verify_login versi baru SELALU return kolom roles (array).
+      // ── Bangun daftar roles ──
+      // Sumber prioritas: kolom roles (array) → kolom role (string) →
+      // ADMIN_USERS sebagai bootstrap fallback. Logika selaras dengan
+      // getUserRoles() di config.js.
       let rolesArr;
       if (Array.isArray(user.roles) && user.roles.length) {
         rolesArr = user.roles;
@@ -373,12 +366,10 @@
       } else if (user.role) {
         rolesArr = [user.role];
       } else if (ADMIN_USERS.includes(user.username)) {
-        // Bootstrap fallback jika DB belum ada kolom roles
         rolesArr = ['admin', 'user'];
       } else {
         rolesArr = ['user'];
       }
-      // ────────────────────────────────────────────────────────────────
 
       const session = {
         id:                   user.id,
@@ -386,7 +377,6 @@
         full_name:            user.full_name,
         must_change_password: user.must_change_password,
         expires_at:           Date.now() + 8 * 60 * 60 * 1000,
-        // Field role info — dipakai oleh nova-role-switcher.js
         role:                 user.role  || null,
         roles:                rolesArr,
       };
@@ -399,6 +389,8 @@
       }
 
     } catch(e) {
+      // novaRpc lempar Error untuk HTTP non-2xx atau network error
+      console.error('[Login] verify_login error:', e);
       showAlert('Terjadi kesalahan jaringan. Periksa koneksi internet Anda.', 'error');
       setLoading(false);
     }
