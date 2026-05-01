@@ -26,7 +26,8 @@
   var CSS = `
   :where(.topbar){height:52px;background:var(--navy,#0d2340);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;line-height:1.4}
   :where(.topbar-brand){width:var(--sidebar-w,260px);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,.07);height:100%;flex-shrink:0}
-  :where(.brand-emblem){width:30px;height:30px;background:var(--gold,#c8a84b);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:#fff}
+  :where(.brand-emblem){width:30px;height:30px;background:var(--gold,#c8a84b);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;padding:5px}
+  :where(.brand-emblem) svg{width:100%;height:100%}
   :where(.brand-name){font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px;line-height:1}
   :where(.brand-tag){font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;line-height:1.4;margin-top:2px}
   :where(.topbar-right){display:flex;align-items:center;gap:14px;padding-right:0}
@@ -51,10 +52,25 @@
   var TOPBAR_HTML = `
   <div class="topbar">
     <div class="topbar-brand">
-      <div class="brand-emblem">🏛</div>
+      <div class="brand-emblem" aria-label="Logo">
+        <svg viewBox="0 0 32 32" width="20" height="20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M 5 15 C 2 13, 1 9, 3 4 C 4 8, 6 11, 9 13 Z" opacity="0.55"/>
+          <path d="M 6 18 C 3 16, 2 11, 4 7 C 5 10, 7 14, 10 16 Z" opacity="0.85"/>
+          <path d="M 8 18 Q 8 12, 13 11 L 19 11 Q 23 12, 23 16 Q 23 20, 19 21 L 14 22 Q 8 22, 8 18 Z"/>
+          <circle cx="20" cy="11" r="3.2"/>
+          <path d="M 18 8 Q 18 6, 19 6 Q 19 5, 20 5.5 Q 20 4.5, 21 5 Q 21 6, 22 6.5 L 22 8 Z"/>
+          <path d="M 23 11 L 25.5 10.5 L 23 12.5 Z"/>
+          <path d="M 22 12.5 Q 22.5 14.5, 21.5 14.5 L 21 12.5 Z"/>
+          <circle cx="20.2" cy="10.5" r="0.65" fill="white"/>
+          <rect x="13" y="22" width="1" height="4" rx="0.3"/>
+          <rect x="17.5" y="22" width="1" height="4" rx="0.3"/>
+          <path d="M 11.5 26 L 14.5 26 L 14 26.5 L 12 26.5 Z"/>
+          <path d="M 16 26 L 19 26 L 18.5 26.5 L 16.5 26.5 Z"/>
+        </svg>
+      </div>
       <div>
-        <div class="brand-name">PORTAL NOVA</div>
-        <div class="brand-tag">Sistem Informasi Terpadu</div>
+        <div class="brand-name">9201</div>
+        <div class="brand-tag">BPS Kabupaten Raja Ampat</div>
       </div>
     </div>
     <div class="topbar-right">
@@ -121,16 +137,34 @@
   }
 
   // ─── Set user info di topbar ─────────────────────────────────────
+  // Update visual berdasarkan apa yg ada di session SAAT ITU (sync, instant).
+  // Kalau session.full_name kosong, trigger novaEnsureFullName() async untuk
+  // resolve dari data_pegawai. Setelah resolve, setUser dipanggil ulang
+  // (dari dalam novaEnsureFullName) dengan session yang sudah lengkap.
   function setUser(session) {
     if (!session) return;
-    var name = session.full_name || session.username || 'Pengguna';
-    var initials = name.split(' ').filter(Boolean)
-      .map(function (w) { return w[0]; }).join('')
-      .toUpperCase().slice(0, 2) || '—';
+    var name = session.full_name || session.username || '';
+    var initials = name
+      ? name.split(' ').filter(Boolean)
+            .map(function (w) { return w[0]; }).join('')
+            .toUpperCase().slice(0, 2)
+      : '';
+    if (!initials) initials = '—';
+
     var avatarEl = document.getElementById('topbar-avatar');
     var unameEl  = document.getElementById('topbar-username');
     if (avatarEl) avatarEl.textContent = initials;
-    if (unameEl)  unameEl.textContent  = name;
+    if (unameEl)  unameEl.textContent  = name || 'Pengguna';
+
+    // Auto-resolve full_name dari data_pegawai kalau session belum punya.
+    // Guarded by session.full_name check di novaEnsureFullName supaya tidak
+    // infinite loop — setelah berhasil/gagal, full_name selalu ter-set
+    // (minimal ke username sebagai fallback).
+    if (!session.full_name && typeof novaEnsureFullName === 'function') {
+      novaEnsureFullName(session);
+      // Tidak perlu .then() — novaEnsureFullName akan call setUser ulang
+      // sendiri setelah resolve.
+    }
   }
 
   // ─── Init ────────────────────────────────────────────────────────
