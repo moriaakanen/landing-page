@@ -309,6 +309,7 @@
 </div>
 
 <script src="config.js"></script>
+<script src="nova-shared.js"></script>
 <script src="nova-topbar.js"></script>
 <script src="nova-sidebar.js"></script>
 <script src="nova-role-switcher.js"></script>
@@ -317,33 +318,14 @@
 // PROFIL SAYA — versi modern. Logika fetch profil dirombak menjadi
 // info cards berkategori; logika kalender dipertahankan apa adanya
 // (DB-backed via 3 RPC: kalender_list / kalender_upsert / kalender_delete)
+//
+// Helpers umum (esc, logout, novaRpc, novaCheckSession, SUPABASE_HEADERS)
+// di-load dari nova-shared.js — tidak lagi dideklarasi ulang di sini.
 // ═══════════════════════════════════════════════════════════════
 
-// ─── SESSION ────────────────────────────────────────────────────
-function checkSession() {
-  try {
-    const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
-    if (!s) { window.location.replace('login.html'); return null; }
-    if (s.expires_at && Date.now() > s.expires_at) {
-      localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
-    }
-    if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
-    if (!s.active_role) {
-      const roles = getUserRoles(s);
-      s.active_role = roles.includes('admin') ? 'admin' : 'user';
-      localStorage.setItem('nova_user', JSON.stringify(s));
-    }
-    return s;
-  } catch(e) {
-    localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
-  }
-}
-function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
-
-// ─── HELPERS ────────────────────────────────────────────────────
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+// ─── HELPERS LOKAL ──────────────────────────────────────────────
+// `esc` & `logout` di-handle nova-shared.js. Di sini hanya helper
+// spesifik halaman profil.
 function clean(v) {
   if (v == null) return null;
   const s = String(v).trim();
@@ -470,7 +452,7 @@ function renderProfil(p) {
 async function fetchProfil(userId) {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?id=eq.${encodeURIComponent(userId)}&select=*&limit=1`, {
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+      headers: SUPABASE_HEADERS
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
@@ -502,30 +484,14 @@ var EVENT_COLORS = {
   '#6b7280': {bg:'rgba(107,114,128,.12)', text:'#374151'},
 };
 
-async function rpcCall(fnName, params) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'apikey':        SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-    },
-    body: JSON.stringify(params)
-  });
-  if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
-    try { const err = await res.json(); msg = err.message || err.hint || msg; } catch(_) {}
-    throw new Error(msg);
-  }
-  return res.json();
-}
-const rpcListEvents   = (uid, cid) => rpcCall('kalender_list',   { p_user_id: uid, p_caller_id: cid });
-const rpcUpsertEvent  = (ev,  cid) => rpcCall('kalender_upsert', {
+// Helper RPC kalender — pakai novaRpc dari nova-shared.js
+const rpcListEvents   = (uid, cid) => novaRpc('kalender_list',   { p_user_id: uid, p_caller_id: cid });
+const rpcUpsertEvent  = (ev,  cid) => novaRpc('kalender_upsert', {
   p_caller_id:cid, p_id:ev.id||null, p_tanggal:ev.tanggal,
   p_judul:ev.judul, p_waktu:ev.waktu||null, p_keterangan:ev.keterangan||null,
   p_warna:ev.warna||'#c8a84b'
 });
-const rpcDeleteEvent  = (id, cid) => rpcCall('kalender_delete', { p_id: id, p_caller_id: cid });
+const rpcDeleteEvent  = (id, cid) => novaRpc('kalender_delete', { p_id: id, p_caller_id: cid });
 
 function fmtWaktu(t) { return t ? String(t).slice(0,5) : ''; }
 function escapeHtml(t) { var d=document.createElement('div'); d.textContent = t==null?'':String(t); return d.innerHTML; }
@@ -761,7 +727,7 @@ async function initCalendar(userId) {
 
 // ─── INIT ──────────────────────────────────────────────────────
 async function init() {
-  const s = checkSession();
+  const s = novaCheckSession({ requireAdmin: false });
   if (!s) return;
   NovaTopbar.setUser(s);
   fetchProfil(s.id);
