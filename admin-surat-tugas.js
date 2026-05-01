@@ -110,7 +110,7 @@ let suratMap = {};                // id → object
 let suratOrderMap = {};           // id → urutan global ascending (1-based)
 let pegawaiList = [];             // dari "data_pegawai"
 let pegawaiByNIP = {};            // index NIP → object
-let riwayatPegawai = [];          // dari "riwayat_pegawai"
+let riwayatJabatan = [];          // dari "riwayat_jabatan"
 let userMap = {};                 // id → { full_name, username } — untuk tampilkan nama pengaju surat
 let selectedId = null;
 
@@ -328,12 +328,12 @@ async function loadPegawai() {
   } catch(e) { console.warn('Gagal load pegawai:', e); }
 }
 
-async function loadRiwayatPegawai() {
+async function loadRiwayatJabatan() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/riwayat_pegawai?select=*&order=tmt.desc`, { headers: H });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/riwayat_jabatan?select=*&order=tmt.desc`, { headers: H });
     if (!res.ok) return;
-    riwayatPegawai = await res.json();
-  } catch(e) { console.warn('Gagal load riwayat_pegawai:', e); }
+    riwayatJabatan = await res.json();
+  } catch(e) { console.warn('Gagal load riwayat_jabatan:', e); }
 }
 
 // Load daftar user → dipakai untuk tampilkan nama pengaju di kolom "Diajukan oleh"
@@ -2420,7 +2420,7 @@ async function submitApprove() {
        field-field yg di-PATCH.
      - Validasi field memakai validateApproveFields() yang sama dengan
        flow approve, supaya tidak ada celah field invalid lolos.
-     - Jabatan penandatangan di-recompute dari riwayat_pegawai berdasar
+     - Jabatan penandatangan di-recompute dari riwayat_jabatan berdasar
        NIP+tanggal_surat baru (sama seperti saat approve).
 ═══════════════════════════════════════════════════════════════════════ */
 
@@ -2546,18 +2546,18 @@ async function saveRowEdit(id) {
 
 
 /* ════════════════════════════════════════════════════════════════════
-   LOOKUP JABATAN dari riwayat_pegawai
+   LOOKUP JABATAN dari riwayat_jabatan
 ═══════════════════════════════════════════════════════════════════════ */
 function lookupJabatan(nip, tglSuratIso) {
   if (!nip || !tglSuratIso) return '';
-  const candidates = riwayatPegawai
+  const candidates = riwayatJabatan
     .filter(r => String(r.pegawai_nip || '').trim() === String(nip).trim())
     .filter(r => r.tmt && r.tmt <= tglSuratIso)
     .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
   if (candidates.length) return candidates[0].jabatan || '';
   const peg = pegawaiByNIP[nip];
   if (peg && peg.NAMA) {
-    const candByName = riwayatPegawai
+    const candByName = riwayatJabatan
       .filter(r => (r.nama || '').trim().toLowerCase() === (peg.NAMA || '').trim().toLowerCase())
       .filter(r => r.tmt && r.tmt <= tglSuratIso)
       .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
@@ -3715,18 +3715,18 @@ function countDe(tujuanText) {
 }
 
 /**
- * Cari NIP berdasarkan nama di tabel riwayat_pegawai.
+ * Cari NIP berdasarkan nama di tabel riwayat_jabatan.
  * Toleran terhadap suffix gelar setelah koma — mis. "Abdillah Humam, SST"
  * akan match record dengan nama "Abdillah Humam, SST" maupun "Abdillah Humam".
  * Kalau lebih dari satu record (riwayat jabatan banyak), ambil yang pertama
  * — semua record untuk orang yang sama akan punya pegawai_nip yang sama.
  */
 function findNipByNama(namaCari) {
-  if (!namaCari || !Array.isArray(riwayatPegawai)) return '';
+  if (!namaCari || !Array.isArray(riwayatJabatan)) return '';
   const target     = String(namaCari).toLowerCase().trim();
   const targetCore = target.split(',')[0].trim(); // tanpa gelar
 
-  const found = riwayatPegawai.find(r => {
+  const found = riwayatJabatan.find(r => {
     const nama = (r.nama || '').toLowerCase().trim();
     if (!nama) return false;
     const namaCore = nama.split(',')[0].trim();
@@ -3738,7 +3738,7 @@ function findNipByNama(namaCari) {
 /**
  * Konstanta nama PPK — sementara hardcode di kode.
  * Nanti idealnya dipindah ke kolom config / DB agar tidak perlu deploy ulang
- * saat ada pergantian PPK. NIP di-lookup runtime dari riwayat_pegawai.
+ * saat ada pergantian PPK. NIP di-lookup runtime dari riwayat_jabatan.
  */
 const PPK_NAMA_DEFAULT = 'Abdillah Humam, SST';
 
@@ -3879,10 +3879,10 @@ function fmtTglId(isoStr) {
                                  {nip_penandatangan}
 
    Catatan tentang kolom yang BELUM ada di Supabase:
-     - {pangkat}     → kolom pangkat/golongan belum ada di riwayat_pegawai → ''
+     - {pangkat}     → kolom pangkat/golongan belum ada di riwayat_jabatan → ''
      - {pangkat_p}, {golongan_p}, {bertugas_p} → di-kosongkan dulu di lampiran,
                      akan diisi setelah skema DB dilengkapi.
-                     {jabatan_p} sudah di-lookup dari riwayat_pegawai.
+                     {jabatan_p} sudah di-lookup dari riwayat_jabatan.
      - {des_*}       → tabel kamus_pok belum dibuat → semua ''
    Field-field di atas akan otomatis terisi setelah skema DB dilengkapi —
    tinggal lookup di buildTemplateData() ini.
@@ -3908,7 +3908,7 @@ async function buildTemplateData(data) {
   const peg              = pegawaiByNIP[firstNip];
   const namaPegawai      = (peg && peg.NAMA) || firstNm || '';
   const jabatanPegawai   = lookupJabatan(firstNip, data.tanggal_surat) || '';
-  // Kolom pangkat/golongan belum ada di riwayat_pegawai — kosongkan dulu.
+  // Kolom pangkat/golongan belum ada di riwayat_jabatan — kosongkan dulu.
   const pangkatPegawai   = '';
   // Satuan kerja: kolom UNIT KERJA dari tabel "data_pegawai".
   const skerjaPegawai    = (peg && (peg['UNIT KERJA'] || peg.UNIT_KERJA)) || '';
@@ -4291,7 +4291,7 @@ function init() {
   if (!SESSION) return;
   setTopbarUser(SESSION);
   initRoleSwitcher(SESSION, true);
-  Promise.all([loadPegawai(), loadRiwayatPegawai(), loadUsers(), loadSurat()]);
+  Promise.all([loadPegawai(), loadRiwayatJabatan(), loadUsers(), loadSurat()]);
 
   // Pre-warm: load library docxtemplater + 3 template di background
   // supaya klik Preview pertama tidak terhambat fetch template.
