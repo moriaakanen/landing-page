@@ -7,21 +7,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
 
-<!-- Library docx generate & preview (sama seperti file asli) -->
-<script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
-<script>
-  if (typeof docx === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/docx@7.1.0/build/index.js"><\/script>');
-</script>
-<script>if (typeof docx !== 'undefined') window.docxGen = docx;</script>
+<!-- Library: render docx preview (HTML) + save blob untuk download -->
 <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://unpkg.com/docx-preview@0.3.5/dist/docx-preview.min.js"></script>
 <script>
-  if (typeof docx !== 'undefined' && typeof docx.renderAsync === 'function') window.docxPreview = docx;
-  if (window.docxGen) window.docx = window.docxGen;
+  // docx-preview expose API via global `window.docx`. Alias ke
+  // `window.docxPreview` agar konsumen (ensureLibrariesLoaded, openPreview)
+  // pakai nama yang konsisten dgn fungsinya.
+  if (typeof docx !== 'undefined' && typeof docx.renderAsync === 'function') {
+    window.docxPreview = docx;
+  }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
-<!-- docxtemplater — template-based generation.
+<!-- docxtemplater — template-based generation (engine utama generate surat).
      Library ini expose global sebagai window.docxtemplater (lowercase).
      Lihat https://docxtemplater.com/docs/get-started-browser/ -->
 <script src="https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js"></script>
@@ -41,16 +40,7 @@
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
 
-  /* TOPBAR + SIDEBAR */
-  .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200}
-  .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0}
-  .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-  .brand-name{font-size:14px;font-weight:700;color:white;letter-spacing:.5px;line-height:1}
-  .brand-tag{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
-  .topbar-right{display:flex;align-items:center;gap:14px}
-  .topbar-time{font-size:11px;color:rgba(255,255,255,.35)}
-  .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
-  .topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
+  /* TOPBAR di-handle nova-topbar.js. Sidebar struktur di bawah. */
   .layout{display:flex;flex:1;min-height:0}
   .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
   .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
@@ -443,11 +433,10 @@
     #modal-preview .preview-container section.docx:last-child { page-break-after:auto; }
   }
 
-  .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
-  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.topbar-time{display:none}}
+  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}}
   @media(max-width:600px){
     .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
-    .sidebar.open{left:0}.layout{display:block}.menu-toggle{display:flex!important}
+    .sidebar.open{left:0}.layout{display:block}
     .detail-grid{grid-template-columns:1fr}.modal{max-width:100%}
   }
 
@@ -668,10 +657,10 @@
 </div>
 
 <script src="config.js"></script>
+<script src="nova-shared.js"></script>
 <script src="nova-topbar.js"></script>
 <script src="nova-sidebar.js"></script>
 <script src="nova-role-switcher.js"></script>
-<script src="logo-bps.js"></script>
 
 <!-- ═══════════════════════════════════════════════════════════
      LOGIC — di file terpisah agar mudah di-maintain
