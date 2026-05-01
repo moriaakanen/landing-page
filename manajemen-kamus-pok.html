@@ -21,16 +21,7 @@ html{height:100%}
 body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
 em{font-family:'Fraunces',serif;font-style:italic;font-weight:500;color:var(--gold)}
 
-/* topbar */
-.topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200}
-.topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,0.07);height:100%;flex-shrink:0}
-.brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.brand-name{font-size:14px;font-weight:700;color:white;letter-spacing:.5px;line-height:1}
-.brand-tag{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
-.topbar-right{display:flex;align-items:center;gap:14px}
-.topbar-time{font-size:11px;color:rgba(255,255,255,.35)}
-.topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
-.topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
+/* topbar — di-handle nova-topbar.js (tidak dideklarasi di sini) */
 
 /* layout */
 .layout{display:flex;flex:1;min-height:0}
@@ -69,11 +60,10 @@ em{font-family:'Fraunces',serif;font-style:italic;font-weight:500;color:var(--go
 .btn-icon.danger{color:var(--danger);border-color:#fecaca}
 .btn-icon.danger:hover{background:#fef2f2}
 
-.menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
-@media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.topbar-time{display:none}}
+@media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}}
 @media(max-width:600px){
   .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
-  .sidebar.open{left:0}.layout{display:block}.menu-toggle{display:flex!important}
+  .sidebar.open{left:0}.layout{display:block}
   .stats-row{flex-wrap:wrap}.stat-pill{min-width:calc(50% - 6px)}
   .toolbar{flex-direction:column;align-items:stretch}
 }
@@ -157,9 +147,6 @@ textarea.form-input{font-family:inherit;resize:vertical;min-height:64px}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* role switcher (nova-role-switcher.js) */
-.user-switcher{position:relative}
 </style>
 </head>
 <body>
@@ -335,17 +322,17 @@ textarea.form-input{font-family:inherit;resize:vertical;min-height:64px}
 </div>
 
 <script src="config.js"></script>
+<script src="nova-shared.js"></script>
 <script src="nova-topbar.js"></script>
 <script src="nova-sidebar.js"></script>
 <script src="nova-role-switcher.js"></script>
 <script>
 'use strict';
 
-const H = {
-  apikey: SUPABASE_ANON_KEY,
-  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-  'Content-Type': 'application/json',
-};
+// `checkSession`, `logout`, `esc`, `BULAN`, `novaRpc`, dan `SUPABASE_HEADERS`
+// di-load dari nova-shared.js. Halaman ini admin-only — pakai
+// novaCheckSession({ requireAdmin: true }) di init().
+const H = SUPABASE_HEADERS;
 
 const SEGMEN_LABEL = {
   program:      'Program',
@@ -364,49 +351,6 @@ let SESSION = null;
 let DATA    = [];   // semua row dari kamus_pok
 let EDITING = null; // row yang sedang di-edit (null = mode tambah)
 
-/* ── Session check ──────────────────────────────────────────────────
-   Pola seragam dgn halaman admin lain (manajemen-pengguna.html,
-   admin-surat-tugas.js):
-     1. Tidak ada session       → redirect ke login
-     2. Session expired         → clear & redirect ke login
-     3. Wajib ganti password    → redirect ke ganti-password
-     4. Set active_role default jika belum ada
-     5. Bukan admin atau active_role bukan admin → redirect ke index
-   Field expiry yang BENAR adalah `expires_at` (snake_case) — sesuai
-   yang di-set di login.html. Versi sebelumnya pakai `expiresAt`
-   (camelCase) sehingga validasi expiry diam-diam tidak pernah aktif.
-*/
-function checkSession() {
-  try {
-    const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
-    if (!s) { window.location.replace('login.html'); return null; }
-    if (s.expires_at && Date.now() > s.expires_at) {
-      localStorage.removeItem('nova_user');
-      window.location.replace('login.html');
-      return null;
-    }
-    if (s.must_change_password) {
-      window.location.replace('ganti-password.html');
-      return null;
-    }
-    const roles = getUserRoles(s);
-    if (!s.active_role) {
-      s.active_role = roles.includes('admin') ? 'admin' : 'user';
-      localStorage.setItem('nova_user', JSON.stringify(s));
-    }
-    if (s.active_role !== 'admin' || !roles.includes('admin')) {
-      window.location.replace('index.html');
-      return null;
-    }
-    return s;
-  } catch(e) {
-    localStorage.removeItem('nova_user');
-    window.location.replace('login.html');
-    return null;
-  }
-}
-function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
-
 /* ── Alert ────────────────────────────────────────────────────────── */
 let _alertTimer = null;
 function showPageAlert(msg, type = 'success') {
@@ -421,9 +365,6 @@ function showPageAlert(msg, type = 'success') {
 /* ── Modal ────────────────────────────────────────────────────────── */
 function openModal(id) { document.getElementById(id).classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-
-/* ── Escape HTML ──────────────────────────────────────────────────── */
-function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 /* ── Load data ────────────────────────────────────────────────────── */
 async function loadData() {
@@ -798,7 +739,7 @@ function invalidateAdminCache() {
 
 /* ── Init ─────────────────────────────────────────────────────────── */
 function init() {
-  SESSION = checkSession();
+  SESSION = novaCheckSession({ requireAdmin: true });
   if (!SESSION) return;
   NovaTopbar.setUser(SESSION);
   initRoleSwitcher(SESSION, true); // halaman admin
