@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal NOVA — Riwayat Kepegawaian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;
+    --gold:#c8a84b;--gold-light:#f5edda;--gold-dark:#a78a3a;
+    --text:#1a1a2e;--muted:#6b7280;
+    --border:#e2ddd6;--border2:#d1ccc3;
+    --red:#c0392b;--success:#1a7a4a;--warn:#92400e;
+    --sidebar-w:260px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
+
+  /* ════════ TOPBAR + SIDEBAR (sama seperti admin-surat-tugas.html) ════════ */
+  .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200}
+  .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,.07);height:100%;flex-shrink:0}
+  .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .brand-name{font-size:14px;font-weight:700;color:white;letter-spacing:.5px;line-height:1}
+  .brand-tag{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
+  .topbar-right{display:flex;align-items:center;gap:14px}
+  .topbar-time{font-size:11px;color:rgba(255,255,255,.35)}
+  .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
+  .topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
+
+  .layout{display:flex;flex:1;min-height:0}
+  .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+  .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
+  .nav-group-label{font-size:10px;font-weight:600;color:var(--border2);letter-spacing:1.2px;text-transform:uppercase;padding:16px 20px 6px;margin-top:4px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;text-decoration:none;user-select:none;transition:background .15s,color .15s}
+  .nav-item:hover{background:var(--bg);color:var(--navy)}
+  .nav-item.active{background:var(--gold-light);color:var(--navy);border-left-color:var(--gold);font-weight:600}
+  .nav-item-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--bg);flex-shrink:0;transition:background .15s}
+  .nav-item.active .nav-item-icon{background:rgba(200,168,75,.2)}
+  .nav-item:hover .nav-item-icon{background:var(--border)}
+  .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
+  .sidebar-footer strong{color:var(--navy);font-weight:600}
+  .admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.35);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--gold);margin-top:4px;letter-spacing:.3px}
+
+  /* ════════ MAIN ════════ */
+  .main{flex:1;overflow-y:auto;padding:32px 40px 60px}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .fade-in{animation:fadeUp .5s cubic-bezier(.2,.7,.3,1) both}
+
+  /* ════════ PAGE HEADER ════════ */
+  .page-header{margin-bottom:22px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .page-header-left{flex:1;min-width:280px}
+  .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold-dark);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
+  .page-title{font-family:'Fraunces',serif;font-size:clamp(24px,2.5vw,30px);font-weight:300;color:var(--navy);line-height:1.2}
+  .page-title em{font-style:italic;color:var(--gold);font-weight:400}
+  .page-desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6;max-width:680px}
+
+  /* Filter pegawai (combobox) */
+  .filter-pegawai{position:relative;min-width:280px;max-width:340px}
+  .filter-pegawai-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;display:block}
+  .cb-trigger{width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--white);border:1.5px solid var(--border2);border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;color:var(--navy);transition:border-color .15s,box-shadow .15s;text-align:left}
+  .cb-trigger:hover{border-color:var(--gold)}
+  .cb-trigger.open{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
+  .cb-trigger-icon{font-size:14px;flex-shrink:0;opacity:.6}
+  .cb-trigger-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cb-trigger-text.placeholder{color:#9ca3af;font-weight:400}
+  .cb-trigger-clear{margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--bg);border:none;color:var(--muted);font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,color .15s;font-family:inherit}
+  .cb-trigger-clear:hover{background:var(--red);color:#fff}
+  .cb-trigger.has-value .cb-trigger-clear{display:flex}
+  .cb-trigger-caret{font-size:9px;color:var(--muted);flex-shrink:0;transition:transform .15s}
+  .cb-trigger.open .cb-trigger-caret{transform:rotate(180deg)}
+
+  .cb-dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 32px rgba(13,35,64,.12);z-index:300;display:none;overflow:hidden;animation:fadeUp .15s ease}
+  .cb-dropdown.open{display:block}
+  .cb-search-wrap{padding:10px 10px 8px;border-bottom:1px solid var(--border)}
+  .cb-search{width:100%;padding:8px 10px;border:1.5px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s}
+  .cb-search:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.06)}
+  .cb-options{max-height:280px;overflow-y:auto;padding:4px 0}
+  .cb-option{padding:8px 14px;cursor:pointer;font-size:13px;color:var(--navy);display:flex;align-items:center;gap:8px;transition:background .12s}
+  .cb-option:hover,.cb-option.active{background:var(--gold-light)}
+  .cb-option-name{flex:1;min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cb-option-nip{font-size:11px;color:var(--muted);font-family:ui-monospace,monospace}
+  .cb-option-all{font-style:italic;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:4px}
+  .cb-empty{padding:18px 14px;text-align:center;font-size:12px;color:var(--muted);font-style:italic}
+
+  /* ════════ TABS NAV ════════ */
+  .tabs-nav{display:flex;gap:4px;border-bottom:1.5px solid var(--border);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
+  .tabs-nav::-webkit-scrollbar{display:none}
+  .tab-btn{display:flex;align-items:center;gap:8px;padding:11px 18px;background:transparent;border:none;border-bottom:2.5px solid transparent;margin-bottom:-1.5px;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap;letter-spacing:.2px}
+  .tab-btn:hover{color:var(--navy)}
+  .tab-btn.active{color:var(--navy);border-bottom-color:var(--gold)}
+  .tab-btn-icon{font-size:14px}
+  .tab-btn-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 6px;background:var(--bg);color:var(--muted);font-size:10px;font-weight:700;border-radius:100px;letter-spacing:.3px}
+  .tab-btn.active .tab-btn-count{background:var(--gold-light);color:var(--gold-dark)}
+
+  /* ════════ TAB CONTENT ════════ */
+  .tab-content{display:none;animation:fadeUp .35s ease}
+  .tab-content.active{display:block}
+
+  /* Toolbar (search + add button) */
+  .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .search-wrap{flex:1;min-width:220px;max-width:380px;position:relative}
+  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;opacity:.5}
+  .search-input{width:100%;padding:9px 12px 9px 34px;background:var(--white);border:1.5px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s}
+  .search-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.06)}
+
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border:none;border-radius:7px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s,transform .12s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--navy);color:#fff}
+  .btn-primary:hover{background:var(--navy2)}
+  .btn-outline{background:var(--white);color:var(--navy);border:1.5px solid var(--border2)}
+  .btn-outline:hover{border-color:var(--navy);background:var(--bg)}
+  .btn-danger{background:#fef2f2;color:var(--red);border:1.5px solid #fecaca}
+  .btn-danger:hover{background:#fee2e2;border-color:#fca5a5}
+  .btn-sm{padding:5px 10px;font-size:11px;border-radius:5px}
+  .btn-icon{padding:6px 8px;font-size:12px}
+
+  /* Stats pills */
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+  .stat-pill{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}
+  .stat-pill::before{content:'';position:absolute;top:0;left:0;width:24px;height:2px;background:var(--gold)}
+  .stat-pill-icon{width:36px;height:36px;border-radius:8px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+  .stat-pill-num{font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--navy);line-height:1}
+  .stat-pill-label{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:.2px}
+
+  /* Table */
+  .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(13,35,64,.04)}
+  .table-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:#fafaf6}
+  .table-head-title{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--navy)}
+  .table-head-meta{font-size:11px;color:var(--muted)}
+  .table-scroll{overflow-x:auto;max-width:100%}
+  table.list{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
+  table.list thead{background:#fafaf6;border-bottom:1.5px solid var(--border)}
+  table.list th{padding:11px 14px;text-align:left;font-weight:600;color:var(--muted);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;user-select:none}
+  table.list th.sortable{cursor:pointer;transition:color .15s}
+  table.list th.sortable:hover{color:var(--navy)}
+  table.list th.sortable .sort-icon{display:inline-block;margin-left:4px;font-size:9px;opacity:.4;vertical-align:1px}
+  table.list th.sortable.active .sort-icon{opacity:1;color:var(--gold-dark)}
+  table.list td{padding:13px 14px;border-bottom:1px solid var(--border);color:var(--navy);vertical-align:middle}
+  table.list tbody tr:last-child td{border-bottom:none}
+  table.list tbody tr{transition:background .12s}
+  table.list tbody tr:hover{background:#fafdf6}
+  .col-no{width:48px;color:var(--muted);font-weight:600;font-size:12px}
+  .col-aksi{width:128px;text-align:right;white-space:nowrap}
+  .cell-pegawai-name{font-weight:600;color:var(--navy);line-height:1.2}
+  .cell-pegawai-nip{font-size:11px;color:var(--muted);font-family:ui-monospace,monospace;margin-top:2px;letter-spacing:.3px}
+  .cell-tmt{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .cell-empty{color:var(--muted);font-style:italic;font-size:12px}
+  .cell-ak{font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:.3px}
+  .pgg-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--gold-light);border:1px solid rgba(200,168,75,.3);color:var(--gold-dark);border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.2px;white-space:nowrap}
+
+  /* Empty state */
+  .empty-state{padding:56px 28px;text-align:center;background:var(--white)}
+  .empty-icon{font-size:36px;margin-bottom:14px;opacity:.4}
+  .empty-title{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px}
+  .empty-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:380px;margin:0 auto 18px}
+
+  /* Skeleton */
+  .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+  @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+  /* ════════ MODAL ════════ */
+  .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,.4);z-index:400;display:none;align-items:flex-start;justify-content:center;padding:60px 20px 20px;overflow-y:auto}
+  .modal-overlay.show{display:flex;animation:fadeIn .15s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--white);border-radius:14px;width:100%;max-width:520px;box-shadow:0 18px 50px rgba(13,35,64,.22);animation:popIn .22s cubic-bezier(.175,.885,.32,1.275);overflow:hidden}
+  @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .modal-header{padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fafaf6}
+  .modal-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--navy);line-height:1.2}
+  .modal-title em{font-style:italic;color:var(--gold)}
+  .modal-close{width:30px;height:30px;border-radius:50%;background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;flex-shrink:0}
+  .modal-close:hover{background:var(--border);color:var(--navy)}
+  .modal-body{padding:20px 24px;max-height:calc(100vh - 220px);overflow-y:auto}
+  .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:#fafaf6}
+
+  /* Form */
+  .form-group{margin-bottom:14px}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-label{display:block;font-size:11px;font-weight:600;color:var(--navy);letter-spacing:.3px;text-transform:uppercase;margin-bottom:6px}
+  .form-label .req{color:var(--red);margin-left:2px}
+  .form-label .opt{color:var(--muted);font-weight:400;font-style:italic;text-transform:none;letter-spacing:0}
+  .form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:7px;font-family:inherit;font-size:13px;color:var(--navy);outline:none;transition:border-color .15s,box-shadow .15s;background:var(--white)}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
+  .form-input.error,.form-select.error{border-color:var(--red)}
+  .form-help{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;font-style:italic}
+  .form-error{font-size:11px;color:var(--red);margin-top:4px;display:none}
+  .form-error.show{display:block}
+
+  /* Inline pegawai picker — pakai combobox sama seperti filter */
+  .modal .filter-pegawai{min-width:0;max-width:none}
+
+  /* Alert in modal */
+  .alert{padding:10px 13px;border-radius:7px;font-size:12px;line-height:1.55;margin-bottom:14px;display:none;gap:8px;align-items:flex-start}
+  .alert.show{display:flex}
+  .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+  .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+  .alert.warn{background:#fffbeb;border:1px solid #fde68a;color:var(--warn)}
+
+  /* Confirm modal */
+  .modal-confirm{max-width:420px}
+  .modal-confirm .modal-body{padding:24px}
+  .confirm-icon{width:56px;height:56px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px}
+  .confirm-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--navy);text-align:center;margin-bottom:8px}
+  .confirm-desc{font-size:13px;color:var(--muted);line-height:1.6;text-align:center}
+  .confirm-detail{margin-top:14px;padding:11px 14px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--navy);line-height:1.6}
+  .confirm-detail strong{color:var(--navy);font-weight:700}
+
+  /* Toast */
+  .toast-stack{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:600;pointer-events:none}
+  .toast{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--navy);box-shadow:0 8px 24px rgba(13,35,64,.12);min-width:240px;max-width:380px;display:flex;align-items:center;gap:10px;pointer-events:auto;animation:toastIn .25s ease}
+  .toast.success{border-left-color:var(--success)}
+  .toast.error{border-left-color:var(--red)}
+  .toast-icon{font-size:14px;flex-shrink:0}
+  .toast-msg{flex:1;line-height:1.5}
+  @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(20px)}}
+  .toast.exit{animation:toastOut .2s ease forwards}
+
+  /* Loading state on buttons */
+  .btn.loading{color:transparent!important;position:relative;pointer-events:none;opacity:.7}
+  .btn.loading::after{content:'';position:absolute;top:50%;left:50%;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;transform:translate(-50%,-50%);animation:spin .7s linear infinite}
+  .btn-outline.loading::after{border-color:rgba(13,35,64,.2);border-top-color:var(--navy)}
+  @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+  /* User-switcher (di-style oleh nova-role-switcher.js, sebagian) */
+  .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
+
+  /* ════════ RESPONSIVE ════════ */
+  @media(max-width:980px){.main{padding:24px 24px 60px}.page-header{flex-direction:column}.filter-pegawai{max-width:none;width:100%}}
+  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:20px 16px 60px}.topbar-time{display:none}.form-row{grid-template-columns:1fr}}
+  @media(max-width:600px){
+    .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
+    .sidebar.open{left:0}
+    .layout{display:block}
+    .menu-toggle{display:flex!important}
+    .main{padding:18px 14px 60px}
+    .stats-row{grid-template-columns:1fr 1fr}
+    .modal-overlay{padding:20px 12px}
+    .toast-stack{left:12px;right:12px;bottom:12px}
+    .toast{max-width:none;min-width:0}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ TOPBAR ═══════════════════════ -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-emblem">🏛</div>
+    <div><div class="brand-name">PORTAL NOVA</div><div class="brand-tag">Sistem Informasi Terpadu</div></div>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-time" id="topbar-time"></span>
+    <div class="user-switcher" id="user-switcher">
+      <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false" type="button">
+        <div class="topbar-avatar" id="topbar-avatar">—</div>
+        <span class="topbar-username" id="topbar-username">Pengguna</span>
+        <span class="active-role-badge admin" id="active-role-badge">Admin</span>
+        <span class="user-switcher-caret">▼</span>
+      </button>
+      <div class="user-switcher-dropdown" id="user-switcher-dropdown">
+        <div class="usd-header">
+          <div class="usd-header-name" id="usd-header-name">Pengguna</div>
+          <div class="usd-header-label">Akun aktif · Ganti tampilan role</div>
+        </div>
+        <div class="usd-section-label">Tampilkan sebagai</div>
+        <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')" type="button">
+          <div class="usd-role-icon admin">👑</div>
+          <div><div class="usd-role-name">Administrator</div><div class="usd-role-desc">Akses penuh semua menu</div></div>
+          <span class="usd-check">✓</span>
+        </button>
+        <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')" type="button">
+          <div class="usd-role-icon user">👤</div>
+          <div><div class="usd-role-name">User</div><div class="usd-role-desc">Akses standar pegawai</div></div>
+          <span class="usd-check">✓</span>
+        </button>
+        <div class="usd-divider"></div>
+        <button class="usd-logout" onclick="logout()" type="button"><span>🚪</span> Keluar dari Portal</button>
+      </div>
+    </div>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ LAYOUT ═══════════════════════ -->
+<div class="layout">
+  <aside class="sidebar" id="sidebar" data-active="riwayat"></aside>
+
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header fade-in">
+      <div class="page-header-left">
+        <div class="page-eyebrow">Administrasi</div>
+        <h1 class="page-title">Riwayat <em>Kepegawaian</em></h1>
+        <p class="page-desc">Kelola riwayat jabatan, pangkat &amp; golongan, perubahan gelar, dan angka kredit pegawai. Pilih pegawai di samping untuk filter, atau kosongkan untuk lihat semua data.</p>
+      </div>
+      <div class="filter-pegawai">
+        <span class="filter-pegawai-label">Filter Pegawai</span>
+        <button class="cb-trigger" id="filter-trigger" type="button" onclick="toggleFilterDropdown()">
+          <span class="cb-trigger-icon">👤</span>
+          <span class="cb-trigger-text placeholder" id="filter-text">Semua Pegawai</span>
+          <button class="cb-trigger-clear" id="filter-clear" onclick="event.stopPropagation();clearFilterPegawai()" title="Hapus filter" type="button">✕</button>
+          <span class="cb-trigger-caret">▼</span>
+        </button>
+        <div class="cb-dropdown" id="filter-dropdown">
+          <div class="cb-search-wrap">
+            <input class="cb-search" id="filter-search" type="text" placeholder="Cari nama pegawai..." oninput="renderFilterOptions()">
+          </div>
+          <div class="cb-options" id="filter-options"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS NAV -->
+    <nav class="tabs-nav fade-in" style="animation-delay:.05s" role="tablist">
+      <button class="tab-btn active" role="tab" data-tab="jabatan"  onclick="switchTab('jabatan')">
+        <span class="tab-btn-icon">💼</span> Jabatan <span class="tab-btn-count" id="count-jabatan">0</span>
+      </button>
+      <button class="tab-btn" role="tab" data-tab="pangkat" onclick="switchTab('pangkat')">
+        <span class="tab-btn-icon">📈</span> Pangkat &amp; Golongan <span class="tab-btn-count" id="count-pangkat">0</span>
+      </button>
+      <button class="tab-btn" role="tab" data-tab="gelar"   onclick="switchTab('gelar')">
+        <span class="tab-btn-icon">🎓</span> Gelar <span class="tab-btn-count" id="count-gelar">0</span>
+      </button>
+      <button class="tab-btn" role="tab" data-tab="ak"      onclick="switchTab('ak')">
+        <span class="tab-btn-icon">⭐</span> Angka Kredit <span class="tab-btn-count" id="count-ak">0</span>
+      </button>
+    </nav>
+
+    <!-- TAB CONTENT (rendered via JS) -->
+    <div id="tab-pane" class="fade-in" style="animation-delay:.1s"></div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════ MODAL ADD/EDIT ═══════════════════════ -->
+<div class="modal-overlay" id="modal-form" onclick="if(event.target===this)closeFormModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-form-title">Tambah <em>Riwayat</em></span>
+      <button class="modal-close" onclick="closeFormModal()" type="button">✕</button>
+    </div>
+    <div class="modal-body" id="modal-form-body">
+      <div class="alert error" id="form-alert"><span id="form-alert-icon">⚠️</span><span id="form-alert-text"></span></div>
+      <div id="form-fields"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeFormModal()" type="button">Batal</button>
+      <button class="btn btn-primary" id="btn-form-submit" onclick="submitForm()" type="button">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MODAL CONFIRM DELETE ═══════════════════════ -->
+<div class="modal-overlay" id="modal-delete" onclick="if(event.target===this)closeDeleteModal()">
+  <div class="modal modal-confirm">
+    <div class="modal-body">
+      <div class="confirm-icon">🗑</div>
+      <div class="confirm-title">Hapus Riwayat Ini?</div>
+      <div class="confirm-desc">Tindakan ini tidak dapat dibatalkan. Data akan dihapus permanen dari database.</div>
+      <div class="confirm-detail" id="delete-detail"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDeleteModal()" type="button">Batal</button>
+      <button class="btn btn-danger" id="btn-delete-submit" onclick="submitDelete()" type="button">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ TOAST STACK ═══════════════════════ -->
+<div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+<script src="config.js"></script>
+<script src="nova-sidebar.js"></script>
+<script src="nova-role-switcher.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// PORTAL NOVA — Riwayat Kepegawaian (Admin)
+// 4 tab: Jabatan, Pangkat & Golongan, Gelar, Angka Kredit
+// Pattern: filter pegawai global, tabel + modal form CRUD per tab
+// ════════════════════════════════════════════════════════════════════
+
+const H = {
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+  'Content-Type': 'application/json',
+};
+
+// ─── Pangkat/Golongan PNS standar ────────────────────────────────
+// Dipakai untuk dropdown di tab Pangkat & Golongan.
+const PANGKAT_GOLONGAN_OPTIONS = [
+  { gol: 'Ia',   pangkat: 'Juru Muda' },
+  { gol: 'Ib',   pangkat: 'Juru Muda Tk. I' },
+  { gol: 'Ic',   pangkat: 'Juru' },
+  { gol: 'Id',   pangkat: 'Juru Tk. I' },
+  { gol: 'IIa',  pangkat: 'Pengatur Muda' },
+  { gol: 'IIb',  pangkat: 'Pengatur Muda Tk. I' },
+  { gol: 'IIc',  pangkat: 'Pengatur' },
+  { gol: 'IId',  pangkat: 'Pengatur Tk. I' },
+  { gol: 'IIIa', pangkat: 'Penata Muda' },
+  { gol: 'IIIb', pangkat: 'Penata Muda Tk. I' },
+  { gol: 'IIIc', pangkat: 'Penata' },
+  { gol: 'IIId', pangkat: 'Penata Tk. I' },
+  { gol: 'IVa',  pangkat: 'Pembina' },
+  { gol: 'IVb',  pangkat: 'Pembina Tk. I' },
+  { gol: 'IVc',  pangkat: 'Pembina Utama Muda' },
+  { gol: 'IVd',  pangkat: 'Pembina Utama Madya' },
+  { gol: 'IVe',  pangkat: 'Pembina Utama' },
+];
+
+// ─── TAB CONFIG — sumber kebenaran semua per-tab behavior ────────
+// Tiap tab punya: nama tabel di DB, label, kolom tabel, field form.
+// Function `render` di kolom: terima row object, return HTML string
+// untuk cell. Function `getValue` di field: terima form payload,
+// return value untuk validation/submission.
+const TAB_CONFIG = {
+  jabatan: {
+    table:    'riwayat_jabatan',
+    label:    'Jabatan',
+    icon:     '💼',
+    titleAdd: 'Tambah Riwayat Jabatan',
+    titleEdit:'Edit Riwayat Jabatan',
+    columns: [
+      { key:'no',       label:'No',       cls:'col-no' },
+      { key:'pegawai',  label:'Pegawai',  cls:'col-pegawai',
+        render: r => renderPegawaiCell(r) },
+      { key:'jabatan',  label:'Jabatan',  sortable:true, sortKey:'jabatan',
+        render: r => esc(r.jabatan || '-') },
+      { key:'tmt',      label:'TMT',      sortable:true, sortKey:'tmt', cls:'cell-tmt',
+        render: r => fmtTgl(r.tmt) },
+      { key:'tmt_pak',  label:'TMT Ikut PAK', sortable:true, sortKey:'tmt_ikut_pak', cls:'cell-tmt',
+        render: r => r.tmt_ikut_pak ? fmtTgl(r.tmt_ikut_pak) : '<span class="cell-empty">—</span>' },
+      { key:'aksi',     label:'Aksi',     cls:'col-aksi' },
+    ],
+    fields: [
+      { name:'pegawai_nip', label:'Pegawai',      type:'pegawai',  required:true },
+      { name:'jabatan',     label:'Jabatan',      type:'text',     required:true,
+        placeholder:'mis. Statistisi Pelaksana', maxLength:200 },
+      { name:'tmt',         label:'TMT',          type:'date',     required:true },
+      { name:'tmt_ikut_pak',label:'TMT Ikut PAK', type:'date',     required:false,
+        help:'Opsional. Dapat dikosongkan jika belum diketahui.' },
+    ],
+    // Build payload untuk insert/update.
+    buildPayload(form) {
+      const peg = pegawaiByNIP[form.pegawai_nip];
+      return {
+        pegawai_nip:  form.pegawai_nip,
+        nama:         peg ? (peg.NAMA || '') : '',  // denormalized di tabel ini
+        jabatan:      form.jabatan.trim(),
+        tmt:          form.tmt,
+        tmt_ikut_pak: form.tmt_ikut_pak || null,
+      };
+    },
+    // Untuk modal edit: pre-fill form dari row.
+    rowToForm: r => ({
+      pegawai_nip:  r.pegawai_nip || '',
+      jabatan:      r.jabatan || '',
+      tmt:          r.tmt || '',
+      tmt_ikut_pak: r.tmt_ikut_pak || '',
+    }),
+    // Untuk confirm delete dialog: tampilan ringkas.
+    summarize: r => `<strong>${esc(r.jabatan || '-')}</strong><br>${esc(r.nama || pegawaiByNIP[r.pegawai_nip]?.NAMA || r.pegawai_nip)} · TMT ${fmtTgl(r.tmt)}`,
+    // Fungsi search: cocokkan query ke field text.
+    matchSearch: (r, q) => {
+      const t = q.toLowerCase();
+      return (r.jabatan || '').toLowerCase().includes(t)
+          || (r.nama || pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
+    },
+    defaultSort: { key:'tmt', dir:'desc' },
+  },
+
+  pangkat: {
+    table:    'riwayat_pangkat_golongan',
+    label:    'Pangkat & Golongan',
+    icon:     '📈',
+    titleAdd: 'Tambah Riwayat Pangkat &amp; Golongan',
+    titleEdit:'Edit Riwayat Pangkat &amp; Golongan',
+    columns: [
+      { key:'no',      label:'No',      cls:'col-no' },
+      { key:'pegawai', label:'Pegawai', render: r => renderPegawaiCell(r) },
+      { key:'pgg',     label:'Pangkat / Golongan', sortable:true, sortKey:'golongan',
+        render: r => `<span class="pgg-badge">${esc(r.pangkat || '-')} <span style="opacity:.7">/</span> ${esc(r.golongan || '-')}</span>` },
+      { key:'tmt',     label:'TMT', sortable:true, sortKey:'tmt', cls:'cell-tmt',
+        render: r => fmtTgl(r.tmt) },
+      { key:'tmt_pak', label:'TMT Ikut PAK', sortable:true, sortKey:'tmt_ikut_pak', cls:'cell-tmt',
+        render: r => r.tmt_ikut_pak ? fmtTgl(r.tmt_ikut_pak) : '<span class="cell-empty">—</span>' },
+      { key:'aksi',    label:'Aksi', cls:'col-aksi' },
+    ],
+    fields: [
+      { name:'pegawai_nip', label:'Pegawai',      type:'pegawai', required:true },
+      { name:'pgg',         label:'Pangkat / Golongan', type:'pgg', required:true },
+      { name:'tmt',         label:'TMT',          type:'date', required:true },
+      { name:'tmt_ikut_pak',label:'TMT Ikut PAK', type:'date', required:false,
+        help:'Opsional. Dapat dikosongkan jika belum diketahui.' },
+    ],
+    buildPayload(form) {
+      // form.pgg = "Penata Tk. I|IIId" (encoded) → split
+      const [pangkat, golongan] = (form.pgg || '').split('|');
+      return {
+        pegawai_nip:  form.pegawai_nip,
+        pangkat:      pangkat || '',
+        golongan:     golongan || '',
+        tmt:          form.tmt,
+        tmt_ikut_pak: form.tmt_ikut_pak || null,
+      };
+    },
+    rowToForm: r => ({
+      pegawai_nip:  r.pegawai_nip || '',
+      pgg:          r.pangkat && r.golongan ? `${r.pangkat}|${r.golongan}` : '',
+      tmt:          r.tmt || '',
+      tmt_ikut_pak: r.tmt_ikut_pak || '',
+    }),
+    summarize: r => `<strong>${esc(r.pangkat || '-')} / ${esc(r.golongan || '-')}</strong><br>${esc(pegawaiByNIP[r.pegawai_nip]?.NAMA || r.pegawai_nip)} · TMT ${fmtTgl(r.tmt)}`,
+    matchSearch: (r, q) => {
+      const t = q.toLowerCase();
+      return (r.pangkat || '').toLowerCase().includes(t)
+          || (r.golongan || '').toLowerCase().includes(t)
+          || (pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
+    },
+    defaultSort: { key:'tmt', dir:'desc' },
+  },
+
+  gelar: {
+    table:    'riwayat_gelar',
+    label:    'Gelar',
+    icon:     '🎓',
+    titleAdd: 'Tambah Riwayat Gelar',
+    titleEdit:'Edit Riwayat Gelar',
+    columns: [
+      { key:'no',      label:'No',      cls:'col-no' },
+      { key:'pegawai', label:'Pegawai (lookup)', render: r => renderPegawaiCell(r) },
+      { key:'gelar',   label:'Gelar (Nama Lengkap dengan Gelar)', sortable:true, sortKey:'gelar',
+        render: r => `<strong>${esc(r.gelar || '-')}</strong>` },
+      { key:'tmt',     label:'TMT', sortable:true, sortKey:'tmt', cls:'cell-tmt',
+        render: r => fmtTgl(r.tmt) },
+      { key:'aksi',    label:'Aksi', cls:'col-aksi' },
+    ],
+    fields: [
+      { name:'pegawai_nip', label:'Pegawai',      type:'pegawai', required:true,
+        help:'Pilih pegawai yang gelarnya berubah.' },
+      { name:'gelar',       label:'Nama Lengkap dengan Gelar', type:'text', required:true,
+        placeholder:'mis. Maulana Tahir SST, M.AP', maxLength:200,
+        help:'Tulis nama LENGKAP dengan gelar baru, sesuai cara penulisan di dokumen resmi.' },
+      { name:'tmt',         label:'TMT', type:'date', required:true },
+    ],
+    buildPayload: form => ({
+      pegawai_nip: form.pegawai_nip,
+      gelar:       form.gelar.trim(),
+      tmt:         form.tmt,
+    }),
+    rowToForm: r => ({
+      pegawai_nip: r.pegawai_nip || '',
+      gelar:       r.gelar || '',
+      tmt:         r.tmt || '',
+    }),
+    summarize: r => `<strong>${esc(r.gelar || '-')}</strong><br>${esc(pegawaiByNIP[r.pegawai_nip]?.NAMA || r.pegawai_nip)} · TMT ${fmtTgl(r.tmt)}`,
+    matchSearch: (r, q) => {
+      const t = q.toLowerCase();
+      return (r.gelar || '').toLowerCase().includes(t)
+          || (pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
+    },
+    defaultSort: { key:'tmt', dir:'desc' },
+  },
+
+  ak: {
+    table:    'riwayat_angka_kredit',
+    label:    'Angka Kredit',
+    icon:     '⭐',
+    titleAdd: 'Tambah Riwayat Angka Kredit',
+    titleEdit:'Edit Riwayat Angka Kredit',
+    columns: [
+      { key:'no',      label:'No',      cls:'col-no' },
+      { key:'pegawai', label:'Pegawai', render: r => renderPegawaiCell(r) },
+      { key:'ak',      label:'Angka Kredit', sortable:true, sortKey:'angka_kredit', cls:'cell-ak',
+        render: r => fmtAK(r.angka_kredit) },
+      { key:'tmt',     label:'TMT', sortable:true, sortKey:'tmt', cls:'cell-tmt',
+        render: r => fmtTgl(r.tmt) },
+      { key:'aksi',    label:'Aksi', cls:'col-aksi' },
+    ],
+    fields: [
+      { name:'pegawai_nip',  label:'Pegawai',      type:'pegawai', required:true },
+      { name:'angka_kredit', label:'Angka Kredit', type:'number',  required:true,
+        step:'0.001', min:'0', placeholder:'mis. 22.792',
+        help:'Tulis dengan titik sebagai pemisah desimal (mis. 22.792, bukan 22,792).' },
+      { name:'tmt',          label:'TMT',          type:'date',    required:true,
+        help:'Tanggal periode AK. Biasanya 31 Desember atau 30 Juni.' },
+    ],
+    buildPayload: form => ({
+      pegawai_nip:  form.pegawai_nip,
+      angka_kredit: parseFloat(form.angka_kredit),
+      tmt:          form.tmt,
+    }),
+    rowToForm: r => ({
+      pegawai_nip:  r.pegawai_nip || '',
+      angka_kredit: r.angka_kredit ?? '',
+      tmt:          r.tmt || '',
+    }),
+    summarize: r => `<strong>${fmtAK(r.angka_kredit)}</strong><br>${esc(pegawaiByNIP[r.pegawai_nip]?.NAMA || r.pegawai_nip)} · Per ${fmtTgl(r.tmt)}`,
+    matchSearch: (r, q) => {
+      const t = q.toLowerCase();
+      return String(r.angka_kredit ?? '').includes(t)
+          || (pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
+    },
+    defaultSort: { key:'tmt', dir:'desc' },
+  },
+};
+
+// ────────────────────────────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────────────────────────────
+let SESSION = null;
+let pegawaiList = [];                             // dari data_pegawai
+let pegawaiByNIP = {};                            // index NIP → object
+let allData = { jabatan:[], pangkat:[], gelar:[], ak:[] };
+let currentTab = 'jabatan';
+let filterNip = null;                             // null = semua
+let searchQuery = '';                             // per-tab search
+let sortStateByTab = {};                          // { tabKey: { key, dir } }
+let editingRow = null;                            // null = mode tambah
+let pendingDelete = null;                         // { tab, row }
+
+// ────────────────────────────────────────────────────────────────
+// SESSION & TOPBAR
+// ────────────────────────────────────────────────────────────────
+function checkSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
+    if (!s) { window.location.replace('login.html'); return null; }
+    if (s.expires_at && Date.now() > s.expires_at) {
+      localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
+    }
+    if (s.must_change_password) { window.location.replace('ganti-password.html'); return null; }
+    const roles = getUserRoles(s);
+    if (!s.active_role) {
+      s.active_role = roles.includes('admin') ? 'admin' : 'user';
+      localStorage.setItem('nova_user', JSON.stringify(s));
+    }
+    if (!roles.includes('admin') || s.active_role !== 'admin') {
+      window.location.replace('index.html'); return null;
+    }
+    return s;
+  } catch(e) {
+    localStorage.removeItem('nova_user'); window.location.replace('login.html'); return null;
+  }
+}
+function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
+function setTopbarUser(s) {
+  const name = s.full_name || s.username || 'Pengguna';
+  const i = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  document.getElementById('topbar-avatar').textContent = i;
+  document.getElementById('topbar-username').textContent = name;
+}
+function updateClock() {
+  document.getElementById('topbar-time').textContent =
+    new Date().toLocaleString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+updateClock(); setInterval(updateClock, 1000);
+
+// ────────────────────────────────────────────────────────────────
+// HELPERS — escape, format
+// ────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+function fmtTgl(iso) {
+  if (!iso) return '—';
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return iso;
+  const [, y, mm, d] = m;
+  return `${parseInt(d,10)} ${BULAN[parseInt(mm,10)-1]} ${y}`;
+}
+function fmtAK(v) {
+  if (v == null || v === '') return '—';
+  const n = Number(v);
+  if (isNaN(n)) return String(v);
+  // Format: integer kalau bulat, else 3 desimal max
+  return Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/\.?0+$/, '');
+}
+function renderPegawaiCell(r) {
+  const peg = pegawaiByNIP[r.pegawai_nip];
+  const nama = r.nama || (peg && peg.NAMA) || '—';
+  return `<div class="cell-pegawai-name">${esc(nama)}</div><div class="cell-pegawai-nip">${esc(r.pegawai_nip || '—')}</div>`;
+}
+
+// ────────────────────────────────────────────────────────────────
+// LOAD DATA
+// ────────────────────────────────────────────────────────────────
+async function loadPegawai() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=id,NAMA,NIP&order=NAMA.asc`, { headers: H });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    pegawaiList = await res.json();
+    pegawaiByNIP = {};
+    pegawaiList.forEach(p => { if (p.NIP) pegawaiByNIP[p.NIP] = p; });
+  } catch(e) {
+    console.error('Gagal load data_pegawai:', e);
+    showToast('Gagal memuat daftar pegawai', 'error');
+  }
+}
+
+async function loadTab(tabKey) {
+  const cfg = TAB_CONFIG[tabKey];
+  if (!cfg) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${cfg.table}?select=*&order=tmt.desc`, { headers: H });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    allData[tabKey] = await res.json();
+  } catch(e) {
+    console.error(`Gagal load ${cfg.table}:`, e);
+    allData[tabKey] = [];
+    showToast(`Gagal memuat data ${cfg.label}`, 'error');
+  }
+}
+
+async function loadAllRiwayat() {
+  await Promise.all(Object.keys(TAB_CONFIG).map(loadTab));
+  Object.keys(TAB_CONFIG).forEach(t => updateTabCount(t));
+}
+
+function updateTabCount(tabKey) {
+  const filtered = applyFilters(tabKey);
+  const el = document.getElementById('count-' + tabKey);
+  if (el) el.textContent = filtered.length;
+}
+
+function applyFilters(tabKey) {
+  let data = allData[tabKey] || [];
+  if (filterNip) data = data.filter(r => r.pegawai_nip === filterNip);
+  if (searchQuery) {
+    const q = searchQuery.trim();
+    if (q) data = data.filter(r => TAB_CONFIG[tabKey].matchSearch(r, q));
+  }
+  // Sort
+  const sortS = sortStateByTab[tabKey] || TAB_CONFIG[tabKey].defaultSort;
+  if (sortS && sortS.key) {
+    data = [...data].sort((a, b) => {
+      const va = a[sortS.key]; const vb = b[sortS.key];
+      // NULL handling: nulls last
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      const cmp = (typeof va === 'number' && typeof vb === 'number')
+        ? va - vb
+        : String(va).localeCompare(String(vb));
+      return sortS.dir === 'desc' ? -cmp : cmp;
+    });
+  }
+  return data;
+}
+
+// ────────────────────────────────────────────────────────────────
+// FILTER PEGAWAI (combobox)
+// ────────────────────────────────────────────────────────────────
+function toggleFilterDropdown() {
+  const trigger = document.getElementById('filter-trigger');
+  const dd = document.getElementById('filter-dropdown');
+  const isOpen = dd.classList.contains('open');
+  if (isOpen) {
+    dd.classList.remove('open');
+    trigger.classList.remove('open');
+  } else {
+    dd.classList.add('open');
+    trigger.classList.add('open');
+    document.getElementById('filter-search').value = '';
+    renderFilterOptions();
+    setTimeout(() => document.getElementById('filter-search').focus(), 30);
+  }
+}
+
+function renderFilterOptions() {
+  const q = document.getElementById('filter-search').value.toLowerCase().trim();
+  const matched = q
+    ? pegawaiList.filter(p => (p.NAMA || '').toLowerCase().includes(q) || String(p.NIP || '').includes(q))
+    : pegawaiList;
+  const el = document.getElementById('filter-options');
+  let html = `<div class="cb-option cb-option-all${filterNip === null ? ' active' : ''}" onclick="setFilterPegawai(null)">— Semua Pegawai —</div>`;
+  if (matched.length === 0) {
+    html += '<div class="cb-empty">Tidak ada pegawai yang cocok</div>';
+  } else {
+    html += matched.map(p => `
+      <div class="cb-option${filterNip === p.NIP ? ' active' : ''}" onclick="setFilterPegawai(${JSON.stringify(p.NIP)})">
+        <span class="cb-option-name">${esc(p.NAMA || '')}</span>
+        <span class="cb-option-nip">${esc(p.NIP || '')}</span>
+      </div>
+    `).join('');
+  }
+  el.innerHTML = html;
+}
+
+function setFilterPegawai(nip) {
+  filterNip = nip;
+  const trigger = document.getElementById('filter-trigger');
+  const txt = document.getElementById('filter-text');
+  if (nip) {
+    const peg = pegawaiByNIP[nip];
+    txt.textContent = peg ? peg.NAMA : nip;
+    txt.classList.remove('placeholder');
+    trigger.classList.add('has-value');
+  } else {
+    txt.textContent = 'Semua Pegawai';
+    txt.classList.add('placeholder');
+    trigger.classList.remove('has-value');
+  }
+  toggleFilterDropdown();
+  // Re-render & update counts
+  Object.keys(TAB_CONFIG).forEach(updateTabCount);
+  renderTab();
+}
+
+function clearFilterPegawai() { setFilterPegawai(null); }
+
+// Click outside → close
+document.addEventListener('click', (e) => {
+  const cb = document.getElementById('filter-trigger').parentElement;
+  if (!cb.contains(e.target)) {
+    document.getElementById('filter-dropdown').classList.remove('open');
+    document.getElementById('filter-trigger').classList.remove('open');
+  }
+});
+
+// ────────────────────────────────────────────────────────────────
+// TAB SWITCHING & RENDER
+// ────────────────────────────────────────────────────────────────
+function switchTab(tabKey) {
+  if (!TAB_CONFIG[tabKey]) return;
+  currentTab = tabKey;
+  searchQuery = '';
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabKey);
+  });
+  renderTab();
+}
+
+function renderTab() {
+  const cfg = TAB_CONFIG[currentTab];
+  const data = applyFilters(currentTab);
+  const el = document.getElementById('tab-pane');
+
+  // Hitung stats
+  const total = data.length;
+  const totalAll = (allData[currentTab] || []).length;
+  const uniqPegawai = new Set(data.map(r => r.pegawai_nip)).size;
+  const tmtTerbaru = data.length ? data.reduce((max, r) => (r.tmt && (!max || r.tmt > max) ? r.tmt : max), null) : null;
+
+  el.innerHTML = `
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" placeholder="Cari di tab ${esc(cfg.label)}..."
+               value="${esc(searchQuery)}" oninput="onSearchInput(event)">
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Tambah ${esc(cfg.label)}</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-pill">
+        <div class="stat-pill-icon">${cfg.icon}</div>
+        <div><div class="stat-pill-num">${total}</div>
+        <div class="stat-pill-label">${searchQuery || filterNip ? 'Hasil tampilan' : 'Total entri'}</div></div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-pill-icon">👥</div>
+        <div><div class="stat-pill-num">${uniqPegawai}</div>
+        <div class="stat-pill-label">Pegawai tercakup</div></div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-pill-icon">📅</div>
+        <div><div class="stat-pill-num" style="font-size:13px">${tmtTerbaru ? fmtTgl(tmtTerbaru) : '—'}</div>
+        <div class="stat-pill-label">TMT terbaru</div></div>
+      </div>
+      ${searchQuery || filterNip ? `
+        <div class="stat-pill">
+          <div class="stat-pill-icon">🗂</div>
+          <div><div class="stat-pill-num">${totalAll}</div>
+          <div class="stat-pill-label">Total tanpa filter</div></div>
+        </div>
+      ` : ''}
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="table-head-title">Daftar ${esc(cfg.label)}</span>
+        <span class="table-head-meta">${total} entri</span>
+      </div>
+      ${data.length === 0 ? renderEmptyState(cfg) : renderTable(cfg, data)}
+    </div>
+  `;
+}
+
+function renderTable(cfg, data) {
+  const sortS = sortStateByTab[currentTab] || cfg.defaultSort;
+  const headHTML = cfg.columns.map(col => {
+    const isSorted = col.sortable && sortS && col.sortKey === sortS.key;
+    const cls = (col.cls || '') + (col.sortable ? ' sortable' : '') + (isSorted ? ' active' : '');
+    const onClick = col.sortable ? `onclick="onSortClick('${col.sortKey}')"` : '';
+    const sortIcon = col.sortable
+      ? `<span class="sort-icon">${isSorted ? (sortS.dir === 'desc' ? '▼' : '▲') : '↕'}</span>`
+      : '';
+    return `<th class="${cls}" ${onClick}>${esc(col.label)}${sortIcon}</th>`;
+  }).join('');
+
+  const bodyHTML = data.map((r, i) => {
+    const cellsHTML = cfg.columns.map(col => {
+      const cls = col.cls || '';
+      if (col.key === 'no') {
+        return `<td class="${cls}">${i + 1}</td>`;
+      }
+      if (col.key === 'aksi') {
+        return `<td class="${cls}">
+          <button class="btn btn-outline btn-sm btn-icon" onclick="openEditModal(${r.id})" title="Edit" type="button">✎</button>
+          <button class="btn btn-danger  btn-sm btn-icon" onclick="openDeleteModal(${r.id})" title="Hapus" type="button">🗑</button>
+        </td>`;
+      }
+      const html = col.render ? col.render(r) : esc(r[col.key] ?? '—');
+      return `<td class="${cls}">${html}</td>`;
+    }).join('');
+    return `<tr>${cellsHTML}</tr>`;
+  }).join('');
+
+  return `
+    <div class="table-scroll">
+      <table class="list">
+        <thead><tr>${headHTML}</tr></thead>
+        <tbody>${bodyHTML}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderEmptyState(cfg) {
+  let title, desc;
+  if (filterNip || searchQuery) {
+    title = 'Tidak Ada Hasil';
+    desc = 'Tidak ada entri yang cocok dengan filter atau pencarian. Coba ubah kata kunci atau hapus filter.';
+  } else {
+    title = `Belum Ada Riwayat ${cfg.label}`;
+    desc = `Klik tombol "+ Tambah ${cfg.label}" di atas untuk menambah entri pertama.`;
+  }
+  return `<div class="empty-state">
+    <div class="empty-icon">${cfg.icon}</div>
+    <div class="empty-title">${esc(title)}</div>
+    <div class="empty-desc">${esc(desc)}</div>
+  </div>`;
+}
+
+function onSearchInput(e) {
+  searchQuery = e.target.value;
+  // Re-render hanya pane (preserve focus)
+  const cfg = TAB_CONFIG[currentTab];
+  const data = applyFilters(currentTab);
+  const tableWrap = document.querySelector('.table-wrap');
+  if (tableWrap) {
+    tableWrap.innerHTML = `
+      <div class="table-head">
+        <span class="table-head-title">Daftar ${esc(cfg.label)}</span>
+        <span class="table-head-meta">${data.length} entri</span>
+      </div>
+      ${data.length === 0 ? renderEmptyState(cfg) : renderTable(cfg, data)}
+    `;
+  }
+  Object.keys(TAB_CONFIG).forEach(updateTabCount);
+}
+
+function onSortClick(sortKey) {
+  const cur = sortStateByTab[currentTab] || TAB_CONFIG[currentTab].defaultSort;
+  if (cur.key === sortKey) {
+    sortStateByTab[currentTab] = { key: sortKey, dir: cur.dir === 'asc' ? 'desc' : 'asc' };
+  } else {
+    sortStateByTab[currentTab] = { key: sortKey, dir: 'asc' };
+  }
+  renderTab();
+}
+
+// ────────────────────────────────────────────────────────────────
+// MODAL ADD/EDIT
+// ────────────────────────────────────────────────────────────────
+function openAddModal() {
+  editingRow = null;
+  const cfg = TAB_CONFIG[currentTab];
+  document.getElementById('modal-form-title').innerHTML = cfg.titleAdd;
+  // Pre-fill: kalau filter pegawai aktif, prefill pegawai_nip
+  const initial = {};
+  if (filterNip) initial.pegawai_nip = filterNip;
+  buildFormFields(cfg.fields, initial);
+  document.getElementById('form-alert').classList.remove('show');
+  document.getElementById('modal-form').classList.add('show');
+}
+
+function openEditModal(id) {
+  const cfg = TAB_CONFIG[currentTab];
+  const row = (allData[currentTab] || []).find(r => r.id === id);
+  if (!row) { showToast('Data tidak ditemukan', 'error'); return; }
+  editingRow = row;
+  document.getElementById('modal-form-title').innerHTML = cfg.titleEdit;
+  buildFormFields(cfg.fields, cfg.rowToForm(row));
+  document.getElementById('form-alert').classList.remove('show');
+  document.getElementById('modal-form').classList.add('show');
+}
+
+function closeFormModal() {
+  document.getElementById('modal-form').classList.remove('show');
+  editingRow = null;
+}
+
+function buildFormFields(fields, initial) {
+  const wrap = document.getElementById('form-fields');
+  let html = '';
+
+  fields.forEach(f => {
+    const val = initial[f.name] ?? '';
+    const reqMark = f.required ? '<span class="req">*</span>' : ' <span class="opt">(opsional)</span>';
+    const helpHTML = f.help ? `<div class="form-help">${esc(f.help)}</div>` : '';
+    const errHTML  = `<div class="form-error" id="err-${f.name}"></div>`;
+
+    if (f.type === 'pegawai') {
+      // Combobox khusus untuk pegawai
+      const pegName = pegawaiByNIP[val] ? pegawaiByNIP[val].NAMA : '';
+      html += `
+        <div class="form-group">
+          <label class="form-label">${esc(f.label)}${reqMark}</label>
+          <div class="filter-pegawai">
+            <button class="cb-trigger${val ? ' has-value' : ''}" id="form-peg-trigger" type="button"
+                    onclick="toggleFormPegawaiDropdown()">
+              <span class="cb-trigger-icon">👤</span>
+              <span class="cb-trigger-text${val ? '' : ' placeholder'}" id="form-peg-text">
+                ${val ? esc(pegName) : 'Pilih pegawai...'}
+              </span>
+              <span class="cb-trigger-caret">▼</span>
+            </button>
+            <input type="hidden" id="form-${f.name}" name="${f.name}" value="${esc(val)}">
+            <div class="cb-dropdown" id="form-peg-dropdown">
+              <div class="cb-search-wrap">
+                <input class="cb-search" id="form-peg-search" type="text" placeholder="Cari nama..."
+                       oninput="renderFormPegawaiOptions()">
+              </div>
+              <div class="cb-options" id="form-peg-options"></div>
+            </div>
+          </div>
+          ${helpHTML}${errHTML}
+        </div>
+      `;
+    } else if (f.type === 'pgg') {
+      // Pangkat/Golongan dropdown
+      const opts = PANGKAT_GOLONGAN_OPTIONS.map(o => {
+        const v = `${o.pangkat}|${o.gol}`;
+        return `<option value="${esc(v)}"${v === val ? ' selected' : ''}>${esc(o.pangkat)} / ${esc(o.gol)}</option>`;
+      }).join('');
+      html += `
+        <div class="form-group">
+          <label class="form-label">${esc(f.label)}${reqMark}</label>
+          <select class="form-select" name="${f.name}" id="form-${f.name}">
+            <option value="">— Pilih Pangkat / Golongan —</option>
+            ${opts}
+          </select>
+          ${helpHTML}${errHTML}
+        </div>
+      `;
+    } else if (f.type === 'date') {
+      html += `
+        <div class="form-group">
+          <label class="form-label">${esc(f.label)}${reqMark}</label>
+          <input type="date" class="form-input" name="${f.name}" id="form-${f.name}" value="${esc(val)}">
+          ${helpHTML}${errHTML}
+        </div>
+      `;
+    } else if (f.type === 'number') {
+      html += `
+        <div class="form-group">
+          <label class="form-label">${esc(f.label)}${reqMark}</label>
+          <input type="number" class="form-input" name="${f.name}" id="form-${f.name}"
+                 value="${esc(val)}"
+                 ${f.step ? `step="${esc(f.step)}"` : ''}
+                 ${f.min  ? `min="${esc(f.min)}"`   : ''}
+                 placeholder="${esc(f.placeholder || '')}">
+          ${helpHTML}${errHTML}
+        </div>
+      `;
+    } else { // text default
+      html += `
+        <div class="form-group">
+          <label class="form-label">${esc(f.label)}${reqMark}</label>
+          <input type="text" class="form-input" name="${f.name}" id="form-${f.name}"
+                 value="${esc(val)}"
+                 ${f.maxLength ? `maxlength="${esc(f.maxLength)}"` : ''}
+                 placeholder="${esc(f.placeholder || '')}">
+          ${helpHTML}${errHTML}
+        </div>
+      `;
+    }
+  });
+
+  wrap.innerHTML = html;
+}
+
+// ─── Pegawai picker di modal form ────────────────────────────
+function toggleFormPegawaiDropdown() {
+  const trigger = document.getElementById('form-peg-trigger');
+  const dd = document.getElementById('form-peg-dropdown');
+  const isOpen = dd.classList.contains('open');
+  if (isOpen) {
+    dd.classList.remove('open');
+    trigger.classList.remove('open');
+  } else {
+    dd.classList.add('open');
+    trigger.classList.add('open');
+    document.getElementById('form-peg-search').value = '';
+    renderFormPegawaiOptions();
+    setTimeout(() => document.getElementById('form-peg-search').focus(), 30);
+  }
+}
+
+function renderFormPegawaiOptions() {
+  const q = document.getElementById('form-peg-search').value.toLowerCase().trim();
+  const cur = document.getElementById('form-pegawai_nip').value;
+  const matched = q
+    ? pegawaiList.filter(p => (p.NAMA || '').toLowerCase().includes(q) || String(p.NIP || '').includes(q))
+    : pegawaiList;
+  const el = document.getElementById('form-peg-options');
+  if (matched.length === 0) {
+    el.innerHTML = '<div class="cb-empty">Tidak ada pegawai yang cocok</div>';
+  } else {
+    el.innerHTML = matched.map(p => `
+      <div class="cb-option${cur === p.NIP ? ' active' : ''}" onclick="pickFormPegawai(${JSON.stringify(p.NIP)})">
+        <span class="cb-option-name">${esc(p.NAMA || '')}</span>
+        <span class="cb-option-nip">${esc(p.NIP || '')}</span>
+      </div>
+    `).join('');
+  }
+}
+
+function pickFormPegawai(nip) {
+  document.getElementById('form-pegawai_nip').value = nip;
+  const peg = pegawaiByNIP[nip];
+  const trigger = document.getElementById('form-peg-trigger');
+  const txt = document.getElementById('form-peg-text');
+  txt.textContent = peg ? peg.NAMA : nip;
+  txt.classList.remove('placeholder');
+  trigger.classList.add('has-value');
+  toggleFormPegawaiDropdown();
+  // Clear error
+  const err = document.getElementById('err-pegawai_nip');
+  if (err) { err.textContent = ''; err.classList.remove('show'); }
+}
+
+// Close form pegawai dropdown saat klik di luar
+document.addEventListener('click', (e) => {
+  const trigger = document.getElementById('form-peg-trigger');
+  if (!trigger) return;
+  const cb = trigger.parentElement;
+  if (cb && !cb.contains(e.target)) {
+    document.getElementById('form-peg-dropdown')?.classList.remove('open');
+    trigger.classList.remove('open');
+  }
+});
+
+// ────────────────────────────────────────────────────────────────
+// FORM SUBMIT (insert / update)
+// ────────────────────────────────────────────────────────────────
+function readForm(fields) {
+  const out = {};
+  fields.forEach(f => {
+    const el = document.getElementById('form-' + f.name);
+    out[f.name] = el ? el.value : '';
+  });
+  return out;
+}
+
+function validateForm(fields, form) {
+  const errors = [];
+  fields.forEach(f => {
+    document.getElementById('err-' + f.name)?.classList.remove('show');
+    const val = form[f.name];
+    if (f.required && (val == null || String(val).trim() === '')) {
+      errors.push({ name: f.name, msg: `${f.label} wajib diisi.` });
+      return;
+    }
+    if (f.type === 'number' && val !== '') {
+      const n = Number(val);
+      if (isNaN(n)) errors.push({ name: f.name, msg: `${f.label} harus berupa angka.` });
+      else if (f.min !== undefined && n < Number(f.min)) errors.push({ name: f.name, msg: `${f.label} minimal ${f.min}.` });
+    }
+  });
+  return errors;
+}
+
+function showFormErrors(errors) {
+  errors.forEach(e => {
+    const el = document.getElementById('err-' + e.name);
+    if (el) { el.textContent = e.msg; el.classList.add('show'); }
+  });
+}
+
+function showFormAlert(msg, type='error') {
+  const a = document.getElementById('form-alert');
+  document.getElementById('form-alert-text').textContent = msg;
+  a.className = 'alert ' + type + ' show';
+}
+
+async function submitForm() {
+  const cfg = TAB_CONFIG[currentTab];
+  const form = readForm(cfg.fields);
+  const errors = validateForm(cfg.fields, form);
+  if (errors.length) { showFormErrors(errors); return; }
+
+  const btn = document.getElementById('btn-form-submit');
+  btn.classList.add('loading');
+  document.getElementById('form-alert').classList.remove('show');
+
+  const payload = cfg.buildPayload(form);
+  const isEdit = !!editingRow;
+  const url = isEdit
+    ? `${SUPABASE_URL}/rest/v1/${cfg.table}?id=eq.${editingRow.id}`
+    : `${SUPABASE_URL}/rest/v1/${cfg.table}`;
+  const method = isEdit ? 'PATCH' : 'POST';
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { ...H, 'Prefer': 'return=representation' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      let errMsg = `HTTP ${res.status}`;
+      try {
+        const err = await res.json();
+        errMsg = err.message || err.hint || err.details || errMsg;
+        // Handle UNIQUE violation friendlier
+        if (err.code === '23505' || /duplicate key/.test(errMsg)) {
+          errMsg = 'Sudah ada entri dengan TMT yang sama untuk pegawai ini. TMT harus unik per pegawai.';
+        }
+      } catch(_) {}
+      showFormAlert(errMsg, 'error');
+      btn.classList.remove('loading');
+      return;
+    }
+
+    // Reload tab data + close
+    await loadTab(currentTab);
+    Object.keys(TAB_CONFIG).forEach(updateTabCount);
+    renderTab();
+    closeFormModal();
+    showToast(isEdit ? `${cfg.label} berhasil diperbarui` : `${cfg.label} berhasil ditambahkan`, 'success');
+  } catch(e) {
+    console.error(e);
+    showFormAlert('Terjadi kesalahan jaringan. Coba lagi.', 'error');
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
+// ────────────────────────────────────────────────────────────────
+// DELETE
+// ────────────────────────────────────────────────────────────────
+function openDeleteModal(id) {
+  const cfg = TAB_CONFIG[currentTab];
+  const row = (allData[currentTab] || []).find(r => r.id === id);
+  if (!row) return;
+  pendingDelete = { tab: currentTab, row };
+  document.getElementById('delete-detail').innerHTML = cfg.summarize(row);
+  document.getElementById('modal-delete').classList.add('show');
+}
+
+function closeDeleteModal() {
+  document.getElementById('modal-delete').classList.remove('show');
+  pendingDelete = null;
+}
+
+async function submitDelete() {
+  if (!pendingDelete) return;
+  const cfg = TAB_CONFIG[pendingDelete.tab];
+  const id = pendingDelete.row.id;
+  const btn = document.getElementById('btn-delete-submit');
+  btn.classList.add('loading');
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${cfg.table}?id=eq.${id}`, {
+      method: 'DELETE', headers: H,
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    await loadTab(pendingDelete.tab);
+    Object.keys(TAB_CONFIG).forEach(updateTabCount);
+    renderTab();
+    closeDeleteModal();
+    showToast(`${cfg.label} berhasil dihapus`, 'success');
+  } catch(e) {
+    console.error(e);
+    showToast('Gagal menghapus data', 'error');
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
+// ────────────────────────────────────────────────────────────────
+// TOAST
+// ────────────────────────────────────────────────────────────────
+function showToast(msg, type='success', durationMs=3500) {
+  const stack = document.getElementById('toast-stack');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  const icon = type === 'success' ? '✓' : type === 'error' ? '⚠️' : 'ℹ️';
+  toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${esc(msg)}</span>`;
+  stack.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('exit');
+    setTimeout(() => toast.remove(), 200);
+  }, durationMs);
+}
+
+// ────────────────────────────────────────────────────────────────
+// KEYBOARD SHORTCUTS
+// ────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('modal-form').classList.contains('show')) closeFormModal();
+    else if (document.getElementById('modal-delete').classList.contains('show')) closeDeleteModal();
+  }
+});
+
+// ────────────────────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────────────────────
+async function init() {
+  SESSION = checkSession();
+  if (!SESSION) return;
+  setTopbarUser(SESSION);
+  initRoleSwitcher(SESSION, true);  // halaman admin
+
+  // Loading state awal: render skeleton
+  document.getElementById('tab-pane').innerHTML = `
+    <div class="table-wrap" style="padding:20px;display:flex;flex-direction:column;gap:8px">
+      <div class="skel" style="height:38px"></div>
+      <div class="skel" style="height:48px"></div>
+      <div class="skel" style="height:48px"></div>
+      <div class="skel" style="height:48px"></div>
+    </div>
+  `;
+
+  await loadPegawai();
+  await loadAllRiwayat();
+  renderTab();
+}
+init();
+</script>
+</body>
+</html>
