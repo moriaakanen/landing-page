@@ -279,44 +279,7 @@
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="topbar-brand">
-    <div class="brand-emblem">&#127963;</div>
-    <div><div class="brand-name">PORTAL NOVA</div><div class="brand-tag">Sistem Informasi Terpadu</div></div>
-  </div>
-  <div class="topbar-right">
-    <span class="topbar-time" id="topbar-time"></span>
-    <!-- ROLE SWITCHER -->
-    <div class="user-switcher" id="user-switcher">
-      <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false" type="button">
-        <div class="topbar-avatar" id="topbar-avatar">&mdash;</div>
-        <span class="topbar-username" id="topbar-username">Pengguna</span>
-        <span class="active-role-badge admin" id="active-role-badge">Admin</span>
-        <span class="user-switcher-caret">&#9660;</span>
-      </button>
-      <div class="user-switcher-dropdown" id="user-switcher-dropdown">
-        <div class="usd-header">
-          <div class="usd-header-name" id="usd-header-name">Pengguna</div>
-          <div class="usd-header-label">Akun aktif &middot; Ganti tampilan role</div>
-        </div>
-        <div class="usd-section-label">Tampilkan sebagai</div>
-        <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')" type="button">
-          <div class="usd-role-icon admin">&#128081;</div>
-          <div><div class="usd-role-name">Administrator</div><div class="usd-role-desc">Akses penuh semua menu</div></div>
-          <span class="usd-check">&#10003;</span>
-        </button>
-        <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')" type="button">
-          <div class="usd-role-icon user">&#128100;</div>
-          <div><div class="usd-role-name">User</div><div class="usd-role-desc">Akses standar pegawai</div></div>
-          <span class="usd-check">&#10003;</span>
-        </button>
-        <div class="usd-divider"></div>
-        <button class="usd-logout" onclick="logout()" type="button"><span>&#128682;</span> Keluar dari Portal</button>
-      </div>
-    </div>
-    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
-  </div>
-</div>
+<div id="topbar-mount"></div>
 <div class="layout">
   <aside class="sidebar" id="sidebar" data-active="surat-tugas"></aside>
   <main class="main">
@@ -463,6 +426,7 @@
 </div>
 
 <script src="config.js"></script>
+<script src="nova-topbar.js"></script>
 <script src="nova-sidebar.js"></script>
 <script src="nova-role-switcher.js"></script>
 <script>
@@ -471,9 +435,6 @@ const H={'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}
 let SESSION=null;let allPegawai=[];let allSurat=[];const suratMap={};
 function checkSession(){try{const s=JSON.parse(localStorage.getItem('nova_user')||'null');if(!s){window.location.replace('login.html');return null;}if(s.expires_at&&Date.now()>s.expires_at){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}if(s.must_change_password){window.location.replace('ganti-password.html');return null;}if(!s.active_role){const roles = getUserRoles(s);s.active_role=ADMIN_USERS.includes(s.username)?'admin':'user';localStorage.setItem('nova_user',JSON.stringify(s));}return s;}catch(e){localStorage.removeItem('nova_user');window.location.replace('login.html');return null;}}
 function logout(){localStorage.removeItem('nova_user');window.location.replace('login.html');}
-function updateClock(){document.getElementById('topbar-time').textContent=new Date().toLocaleString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});}
-updateClock();setInterval(updateClock,1000);
-function setTopbarUser(s){const name=s.full_name||s.username||'Pengguna';const i=name.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);document.getElementById('topbar-avatar').textContent=i;document.getElementById('topbar-username').textContent=name;}
 function switchTab(tab){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['list','bulk'][i]===tab));document.getElementById('panel-list').classList.toggle('active',tab==='list');document.getElementById('panel-bulk').classList.toggle('active',tab==='bulk');}
 const BULAN_ID=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 function fmtWaktu(mulai,selesai){if(!mulai)return'\u2014';const a=new Date(mulai+'T00:00:00');if(!selesai||selesai===mulai){return`${a.getDate()} ${BULAN_ID[a.getMonth()]} ${a.getFullYear()}`;}const b=new Date(selesai+'T00:00:00');if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()){return`${a.getDate()} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;}if(a.getFullYear()===b.getFullYear()){return`${a.getDate()} ${BULAN_ID[a.getMonth()]} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;}return`${a.getDate()} ${BULAN_ID[a.getMonth()]} ${a.getFullYear()} s.d. ${b.getDate()} ${BULAN_ID[b.getMonth()]} ${b.getFullYear()}`;}
@@ -1442,7 +1403,7 @@ function showBulkAlert(msg,type='error'){
 async function init(){
   SESSION=checkSession();
   if(!SESSION)return;
-  setTopbarUser(SESSION);
+  NovaTopbar.setUser(SESSION);
   initRoleSwitcher(SESSION,false);
   await Promise.all([loadSurat(),loadPegawai()]);
   addRows(1);
