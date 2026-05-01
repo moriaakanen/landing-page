@@ -170,4 +170,62 @@
     'Juli','Agustus','September','Oktober','November','Desember'
   ];
 
+  // ─── novaEnsureFullName ────────────────────────────────────────
+  /**
+   * Pastikan session.full_name terisi. Kalau kosong/null, fetch dari
+   * tabel `data_pegawai` (kolom NAMA) berdasarkan session.id.
+   *
+   * Side effect:
+   *   - Update session.full_name di-place
+   *   - Persist ke localStorage('nova_user')
+   *   - Update visual: #topbar-username, #topbar-avatar, #usd-header-name
+   *
+   * Idempotent: kalau session.full_name sudah ada, return langsung.
+   * Anti-retry: kalau fetch gagal/data tidak ada, set fallback = username
+   *             supaya tidak retry tiap render.
+   *
+   * @param {object} session - session object dari novaCheckSession
+   * @returns {Promise<object>} session yang sudah di-update
+   */
+  async function novaEnsureFullName(session) {
+    if (!session) return session;
+    if (session.full_name) return session; // sudah terisi
+
+    const fallback = session.username || '';
+
+    if (!session.id) {
+      session.full_name = fallback;
+      try { localStorage.setItem('nova_user', JSON.stringify(session)); } catch(_) {}
+      return session;
+    }
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/data_pegawai?id=eq.${encodeURIComponent(session.id)}&select=NAMA&limit=1`,
+        { headers: window.SUPABASE_HEADERS }
+      );
+      let nama = '';
+      if (res.ok) {
+        const rows = await res.json();
+        nama = (rows && rows[0] && rows[0].NAMA) || '';
+      }
+      session.full_name = nama || fallback;
+    } catch (e) {
+      console.warn('[novaEnsureFullName] fetch gagal:', e);
+      session.full_name = fallback;
+    }
+
+    try { localStorage.setItem('nova_user', JSON.stringify(session)); } catch(_) {}
+
+    // Update visual immediately (kalau topbar/role-switcher sudah ter-render)
+    if (window.NovaTopbar && typeof NovaTopbar.setUser === 'function') {
+      NovaTopbar.setUser(session);
+    }
+    const usdName = document.getElementById('usd-header-name');
+    if (usdName && session.full_name) usdName.textContent = session.full_name;
+
+    return session;
+  }
+  window.novaEnsureFullName = novaEnsureFullName;
+
 })();
