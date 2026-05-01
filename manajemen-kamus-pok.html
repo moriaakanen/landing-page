@@ -18,7 +18,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{height:100%}
-body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;line-height:1.5;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
 em{font-family:'Fraunces',serif;font-style:italic;font-weight:500;color:var(--gold)}
 
 /* topbar */
@@ -164,43 +164,7 @@ textarea.form-input{font-family:inherit;resize:vertical;min-height:64px}
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-brand">
-    <div class="brand-emblem">🏛</div>
-    <div><div class="brand-name">PORTAL NOVA</div><div class="brand-tag">Sistem Informasi Terpadu</div></div>
-  </div>
-  <div class="topbar-right">
-    <span class="topbar-time" id="topbar-time"></span>
-    <div class="user-switcher" id="user-switcher">
-      <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false" type="button">
-        <div class="topbar-avatar" id="topbar-avatar">—</div>
-        <span class="topbar-username" id="topbar-username">Pengguna</span>
-        <span class="active-role-badge admin" id="active-role-badge">Admin</span>
-        <span class="user-switcher-caret">▼</span>
-      </button>
-      <div class="user-switcher-dropdown" id="user-switcher-dropdown">
-        <div class="usd-header">
-          <div class="usd-header-name" id="usd-header-name">Pengguna</div>
-          <div class="usd-header-label">Akun aktif · Ganti tampilan role</div>
-        </div>
-        <div class="usd-section-label">Tampilkan sebagai</div>
-        <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')" type="button">
-          <div class="usd-role-icon admin">👑</div>
-          <div><div class="usd-role-name">Administrator</div><div class="usd-role-desc">Akses penuh semua menu</div></div>
-          <span class="usd-check">✓</span>
-        </button>
-        <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')" type="button">
-          <div class="usd-role-icon user">👤</div>
-          <div><div class="usd-role-name">User</div><div class="usd-role-desc">Akses standar pegawai</div></div>
-          <span class="usd-check">✓</span>
-        </button>
-        <div class="usd-divider"></div>
-        <button class="usd-logout" onclick="logout()" type="button"><span>🚪</span> Keluar dari Portal</button>
-      </div>
-    </div>
-    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-  </div>
-</div>
+<div id="topbar-mount"></div>
 
 <div class="layout">
   <aside class="sidebar" id="sidebar" data-active="kamus-pok"></aside>
@@ -371,6 +335,7 @@ textarea.form-input{font-family:inherit;resize:vertical;min-height:64px}
 </div>
 
 <script src="config.js"></script>
+<script src="nova-topbar.js"></script>
 <script src="nova-sidebar.js"></script>
 <script src="nova-role-switcher.js"></script>
 <script>
@@ -441,19 +406,6 @@ function checkSession() {
   }
 }
 function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
-function setTopbarUser(s) {
-  const name = s.full_name || s.username || 'Pengguna';
-  const i = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  document.getElementById('topbar-avatar').textContent = i;
-  document.getElementById('topbar-username').textContent = name;
-  document.getElementById('usd-header-name').textContent = name;
-}
-function updateClock() {
-  const el = document.getElementById('topbar-time');
-  if (!el) return;
-  el.textContent = new Date().toLocaleString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
-}
-updateClock(); setInterval(updateClock, 1000);
 
 /* ── Alert ────────────────────────────────────────────────────────── */
 let _alertTimer = null;
@@ -848,7 +800,7 @@ function invalidateAdminCache() {
 function init() {
   SESSION = checkSession();
   if (!SESSION) return;
-  setTopbarUser(SESSION);
+  NovaTopbar.setUser(SESSION);
   initRoleSwitcher(SESSION, true); // halaman admin
   loadData();
 }
