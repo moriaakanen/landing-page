@@ -19,17 +19,7 @@
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
 
-  /* ════════ TOPBAR + SIDEBAR (sama seperti admin-surat-tugas.html) ════════ */
-  .topbar{height:52px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 0;flex-shrink:0;position:sticky;top:0;z-index:200}
-  .topbar-brand{width:var(--sidebar-w);display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,.07);height:100%;flex-shrink:0}
-  .brand-emblem{width:30px;height:30px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-  .brand-name{font-size:14px;font-weight:700;color:white;letter-spacing:.5px;line-height:1}
-  .brand-tag{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
-  .topbar-right{display:flex;align-items:center;gap:14px}
-  .topbar-time{font-size:11px;color:rgba(255,255,255,.35)}
-  .topbar-avatar{width:30px;height:30px;background:var(--navy2);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
-  .topbar-username{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
-
+  /* ════════ SIDEBAR ════════ */
   .layout{display:flex;flex:1;min-height:0}
   .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
   .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
@@ -157,11 +147,20 @@
   .empty-state{padding:56px 28px;text-align:center;background:var(--white)}
   .empty-icon{font-size:36px;margin-bottom:14px;opacity:.4}
   .empty-title{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px}
-  .empty-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:380px;margin:0 auto 18px}
+  .empty-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:380px;margin:0 auto 18px;white-space:pre-wrap}
 
   /* Skeleton */
   .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
   @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+  /* RLS warning banner */
+  .rls-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:flex-start;gap:12px;color:var(--warn);font-size:12.5px;line-height:1.55}
+  .rls-banner-icon{font-size:18px;flex-shrink:0;line-height:1}
+  .rls-banner-body{flex:1;min-width:0}
+  .rls-banner-title{font-weight:700;font-size:13px;margin-bottom:3px;color:#78350f}
+  .rls-banner-detail{font-family:ui-monospace,monospace;background:rgba(0,0,0,.04);padding:6px 8px;border-radius:5px;margin-top:7px;font-size:11px;color:#78350f;word-break:break-word;white-space:pre-wrap}
+  .rls-banner-close{background:transparent;border:none;color:var(--warn);font-size:14px;cursor:pointer;padding:0;margin-left:6px;opacity:.6;transition:opacity .15s}
+  .rls-banner-close:hover{opacity:1}
 
   /* ════════ MODAL ════════ */
   .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,.4);z-index:400;display:none;align-items:flex-start;justify-content:center;padding:60px 20px 20px;overflow-y:auto}
@@ -190,7 +189,6 @@
   .form-error{font-size:11px;color:var(--red);margin-top:4px;display:none}
   .form-error.show{display:block}
 
-  /* Inline pegawai picker — pakai combobox sama seperti filter */
   .modal .filter-pegawai{min-width:0;max-width:none}
 
   /* Alert in modal */
@@ -226,17 +224,13 @@
   .btn-outline.loading::after{border-color:rgba(13,35,64,.2);border-top-color:var(--navy)}
   @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 
-  /* User-switcher (di-style oleh nova-role-switcher.js, sebagian) */
-  .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:5px;cursor:pointer;color:white;font-size:16px;margin-left:12px}
-
   /* ════════ RESPONSIVE ════════ */
   @media(max-width:980px){.main{padding:24px 24px 60px}.page-header{flex-direction:column}.filter-pegawai{max-width:none;width:100%}}
-  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:20px 16px 60px}.topbar-time{display:none}.form-row{grid-template-columns:1fr}}
+  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:20px 16px 60px}.form-row{grid-template-columns:1fr}}
   @media(max-width:600px){
     .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
     .sidebar.open{left:0}
     .layout{display:block}
-    .menu-toggle{display:flex!important}
     .main{padding:18px 14px 60px}
     .stats-row{grid-template-columns:1fr 1fr}
     .modal-overlay{padding:20px 12px}
@@ -247,46 +241,9 @@
 </head>
 <body>
 
-<!-- ═══════════════════════ TOPBAR ═══════════════════════ -->
-<div class="topbar">
-  <div class="topbar-brand">
-    <div class="brand-emblem">🏛</div>
-    <div><div class="brand-name">PORTAL NOVA</div><div class="brand-tag">Sistem Informasi Terpadu</div></div>
-  </div>
-  <div class="topbar-right">
-    <span class="topbar-time" id="topbar-time"></span>
-    <div class="user-switcher" id="user-switcher">
-      <button class="user-switcher-btn" id="user-switcher-btn" onclick="toggleUserDropdown()" aria-expanded="false" type="button">
-        <div class="topbar-avatar" id="topbar-avatar">—</div>
-        <span class="topbar-username" id="topbar-username">Pengguna</span>
-        <span class="active-role-badge admin" id="active-role-badge">Admin</span>
-        <span class="user-switcher-caret">▼</span>
-      </button>
-      <div class="user-switcher-dropdown" id="user-switcher-dropdown">
-        <div class="usd-header">
-          <div class="usd-header-name" id="usd-header-name">Pengguna</div>
-          <div class="usd-header-label">Akun aktif · Ganti tampilan role</div>
-        </div>
-        <div class="usd-section-label">Tampilkan sebagai</div>
-        <button class="usd-role-option" id="usd-opt-admin" onclick="switchViewRole('admin')" type="button">
-          <div class="usd-role-icon admin">👑</div>
-          <div><div class="usd-role-name">Administrator</div><div class="usd-role-desc">Akses penuh semua menu</div></div>
-          <span class="usd-check">✓</span>
-        </button>
-        <button class="usd-role-option" id="usd-opt-user" onclick="switchViewRole('user')" type="button">
-          <div class="usd-role-icon user">👤</div>
-          <div><div class="usd-role-name">User</div><div class="usd-role-desc">Akses standar pegawai</div></div>
-          <span class="usd-check">✓</span>
-        </button>
-        <div class="usd-divider"></div>
-        <button class="usd-logout" onclick="logout()" type="button"><span>🚪</span> Keluar dari Portal</button>
-      </div>
-    </div>
-    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-  </div>
-</div>
+<!-- Topbar di-render oleh nova-topbar.js -->
+<div id="topbar-mount"></div>
 
-<!-- ═══════════════════════ LAYOUT ═══════════════════════ -->
 <div class="layout">
   <aside class="sidebar" id="sidebar" data-active="riwayat"></aside>
 
@@ -297,7 +254,7 @@
       <div class="page-header-left">
         <div class="page-eyebrow">Administrasi</div>
         <h1 class="page-title">Riwayat <em>Kepegawaian</em></h1>
-        <p class="page-desc">Kelola riwayat jabatan, pangkat &amp; golongan, perubahan gelar, dan angka kredit pegawai. Pilih pegawai di samping untuk filter, atau kosongkan untuk lihat semua data.</p>
+        <p class="page-desc">Kelola riwayat angka kredit, pangkat &amp; golongan, jabatan, dan perubahan gelar pegawai. Pilih pegawai di samping untuk filter, atau kosongkan untuk lihat semua data.</p>
       </div>
       <div class="filter-pegawai">
         <span class="filter-pegawai-label">Filter Pegawai</span>
@@ -316,19 +273,22 @@
       </div>
     </div>
 
-    <!-- TABS NAV -->
+    <!-- RLS / load-error banner (hidden by default) -->
+    <div id="load-banner-mount"></div>
+
+    <!-- TABS NAV — URUTAN BARU: AK → Pangkat → Jabatan → Gelar -->
     <nav class="tabs-nav fade-in" style="animation-delay:.05s" role="tablist">
-      <button class="tab-btn active" role="tab" data-tab="jabatan"  onclick="switchTab('jabatan')">
-        <span class="tab-btn-icon">💼</span> Jabatan <span class="tab-btn-count" id="count-jabatan">0</span>
+      <button class="tab-btn active" role="tab" data-tab="ak" onclick="switchTab('ak')">
+        <span class="tab-btn-icon">⭐</span> Angka Kredit <span class="tab-btn-count" id="count-ak">0</span>
       </button>
       <button class="tab-btn" role="tab" data-tab="pangkat" onclick="switchTab('pangkat')">
         <span class="tab-btn-icon">📈</span> Pangkat &amp; Golongan <span class="tab-btn-count" id="count-pangkat">0</span>
       </button>
-      <button class="tab-btn" role="tab" data-tab="gelar"   onclick="switchTab('gelar')">
-        <span class="tab-btn-icon">🎓</span> Gelar <span class="tab-btn-count" id="count-gelar">0</span>
+      <button class="tab-btn" role="tab" data-tab="jabatan" onclick="switchTab('jabatan')">
+        <span class="tab-btn-icon">💼</span> Jabatan <span class="tab-btn-count" id="count-jabatan">0</span>
       </button>
-      <button class="tab-btn" role="tab" data-tab="ak"      onclick="switchTab('ak')">
-        <span class="tab-btn-icon">⭐</span> Angka Kredit <span class="tab-btn-count" id="count-ak">0</span>
+      <button class="tab-btn" role="tab" data-tab="gelar" onclick="switchTab('gelar')">
+        <span class="tab-btn-icon">🎓</span> Gelar <span class="tab-btn-count" id="count-gelar">0</span>
       </button>
     </nav>
 
@@ -376,14 +336,15 @@
 <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="true"></div>
 
 <script src="config.js"></script>
+<script src="nova-topbar.js"></script>
 <script src="nova-sidebar.js"></script>
 <script src="nova-role-switcher.js"></script>
 
 <script>
 // ════════════════════════════════════════════════════════════════════
 // PORTAL NOVA — Riwayat Kepegawaian (Admin)
-// 4 tab: Jabatan, Pangkat & Golongan, Gelar, Angka Kredit
-// Pattern: filter pegawai global, tabel + modal form CRUD per tab
+// 4 tab — URUTAN BARU: Angka Kredit → Pangkat & Golongan → Jabatan → Gelar
+// Pattern: filter pegawai global, tabel + modal form CRUD per tab.
 // ════════════════════════════════════════════════════════════════════
 
 const H = {
@@ -393,7 +354,6 @@ const H = {
 };
 
 // ─── Pangkat/Golongan PNS standar ────────────────────────────────
-// Dipakai untuk dropdown di tab Pangkat & Golongan.
 const PANGKAT_GOLONGAN_OPTIONS = [
   { gol: 'Ia',   pangkat: 'Juru Muda' },
   { gol: 'Ib',   pangkat: 'Juru Muda Tk. I' },
@@ -414,160 +374,10 @@ const PANGKAT_GOLONGAN_OPTIONS = [
   { gol: 'IVe',  pangkat: 'Pembina Utama' },
 ];
 
-// ─── TAB CONFIG — sumber kebenaran semua per-tab behavior ────────
-// Tiap tab punya: nama tabel di DB, label, kolom tabel, field form.
-// Function `render` di kolom: terima row object, return HTML string
-// untuk cell. Function `getValue` di field: terima form payload,
-// return value untuk validation/submission.
+// ─── TAB CONFIG — URUTAN BARU ────────────────────────────────────
+// Object key order menentukan urutan tab. JavaScript modern menjaga
+// urutan property string dalam object, jadi kita bisa pakai cara ini.
 const TAB_CONFIG = {
-  jabatan: {
-    table:    'riwayat_jabatan',
-    label:    'Jabatan',
-    icon:     '💼',
-    titleAdd: 'Tambah Riwayat Jabatan',
-    titleEdit:'Edit Riwayat Jabatan',
-    columns: [
-      { key:'no',       label:'No',       cls:'col-no' },
-      { key:'pegawai',  label:'Pegawai',  cls:'col-pegawai',
-        render: r => renderPegawaiCell(r) },
-      { key:'jabatan',  label:'Jabatan',  sortable:true, sortKey:'jabatan',
-        render: r => esc(r.jabatan || '-') },
-      { key:'tmt',      label:'TMT',      sortable:true, sortKey:'tmt', cls:'cell-tmt',
-        render: r => fmtTgl(r.tmt) },
-      { key:'tmt_pak',  label:'TMT Ikut PAK', sortable:true, sortKey:'tmt_ikut_pak', cls:'cell-tmt',
-        render: r => r.tmt_ikut_pak ? fmtTgl(r.tmt_ikut_pak) : '<span class="cell-empty">—</span>' },
-      { key:'aksi',     label:'Aksi',     cls:'col-aksi' },
-    ],
-    fields: [
-      { name:'pegawai_nip', label:'Pegawai',      type:'pegawai',  required:true },
-      { name:'jabatan',     label:'Jabatan',      type:'text',     required:true,
-        placeholder:'mis. Statistisi Pelaksana', maxLength:200 },
-      { name:'tmt',         label:'TMT',          type:'date',     required:true },
-      { name:'tmt_ikut_pak',label:'TMT Ikut PAK', type:'date',     required:false,
-        help:'Opsional. Dapat dikosongkan jika belum diketahui.' },
-    ],
-    // Build payload untuk insert/update.
-    buildPayload(form) {
-      const peg = pegawaiByNIP[form.pegawai_nip];
-      return {
-        pegawai_nip:  form.pegawai_nip,
-        nama:         peg ? (peg.NAMA || '') : '',  // denormalized di tabel ini
-        jabatan:      form.jabatan.trim(),
-        tmt:          form.tmt,
-        tmt_ikut_pak: form.tmt_ikut_pak || null,
-      };
-    },
-    // Untuk modal edit: pre-fill form dari row.
-    rowToForm: r => ({
-      pegawai_nip:  r.pegawai_nip || '',
-      jabatan:      r.jabatan || '',
-      tmt:          r.tmt || '',
-      tmt_ikut_pak: r.tmt_ikut_pak || '',
-    }),
-    // Untuk confirm delete dialog: tampilan ringkas.
-    summarize: r => `<strong>${esc(r.jabatan || '-')}</strong><br>${esc(r.nama || pegawaiByNIP[r.pegawai_nip]?.NAMA || r.pegawai_nip)} · TMT ${fmtTgl(r.tmt)}`,
-    // Fungsi search: cocokkan query ke field text.
-    matchSearch: (r, q) => {
-      const t = q.toLowerCase();
-      return (r.jabatan || '').toLowerCase().includes(t)
-          || (r.nama || pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
-    },
-    defaultSort: { key:'tmt', dir:'desc' },
-  },
-
-  pangkat: {
-    table:    'riwayat_pangkat_golongan',
-    label:    'Pangkat & Golongan',
-    icon:     '📈',
-    titleAdd: 'Tambah Riwayat Pangkat &amp; Golongan',
-    titleEdit:'Edit Riwayat Pangkat &amp; Golongan',
-    columns: [
-      { key:'no',      label:'No',      cls:'col-no' },
-      { key:'pegawai', label:'Pegawai', render: r => renderPegawaiCell(r) },
-      { key:'pgg',     label:'Pangkat / Golongan', sortable:true, sortKey:'golongan',
-        render: r => `<span class="pgg-badge">${esc(r.pangkat || '-')} <span style="opacity:.7">/</span> ${esc(r.golongan || '-')}</span>` },
-      { key:'tmt',     label:'TMT', sortable:true, sortKey:'tmt', cls:'cell-tmt',
-        render: r => fmtTgl(r.tmt) },
-      { key:'tmt_pak', label:'TMT Ikut PAK', sortable:true, sortKey:'tmt_ikut_pak', cls:'cell-tmt',
-        render: r => r.tmt_ikut_pak ? fmtTgl(r.tmt_ikut_pak) : '<span class="cell-empty">—</span>' },
-      { key:'aksi',    label:'Aksi', cls:'col-aksi' },
-    ],
-    fields: [
-      { name:'pegawai_nip', label:'Pegawai',      type:'pegawai', required:true },
-      { name:'pgg',         label:'Pangkat / Golongan', type:'pgg', required:true },
-      { name:'tmt',         label:'TMT',          type:'date', required:true },
-      { name:'tmt_ikut_pak',label:'TMT Ikut PAK', type:'date', required:false,
-        help:'Opsional. Dapat dikosongkan jika belum diketahui.' },
-    ],
-    buildPayload(form) {
-      // form.pgg = "Penata Tk. I|IIId" (encoded) → split
-      const [pangkat, golongan] = (form.pgg || '').split('|');
-      return {
-        pegawai_nip:  form.pegawai_nip,
-        pangkat:      pangkat || '',
-        golongan:     golongan || '',
-        tmt:          form.tmt,
-        tmt_ikut_pak: form.tmt_ikut_pak || null,
-      };
-    },
-    rowToForm: r => ({
-      pegawai_nip:  r.pegawai_nip || '',
-      pgg:          r.pangkat && r.golongan ? `${r.pangkat}|${r.golongan}` : '',
-      tmt:          r.tmt || '',
-      tmt_ikut_pak: r.tmt_ikut_pak || '',
-    }),
-    summarize: r => `<strong>${esc(r.pangkat || '-')} / ${esc(r.golongan || '-')}</strong><br>${esc(pegawaiByNIP[r.pegawai_nip]?.NAMA || r.pegawai_nip)} · TMT ${fmtTgl(r.tmt)}`,
-    matchSearch: (r, q) => {
-      const t = q.toLowerCase();
-      return (r.pangkat || '').toLowerCase().includes(t)
-          || (r.golongan || '').toLowerCase().includes(t)
-          || (pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
-    },
-    defaultSort: { key:'tmt', dir:'desc' },
-  },
-
-  gelar: {
-    table:    'riwayat_gelar',
-    label:    'Gelar',
-    icon:     '🎓',
-    titleAdd: 'Tambah Riwayat Gelar',
-    titleEdit:'Edit Riwayat Gelar',
-    columns: [
-      { key:'no',      label:'No',      cls:'col-no' },
-      { key:'pegawai', label:'Pegawai (lookup)', render: r => renderPegawaiCell(r) },
-      { key:'gelar',   label:'Gelar (Nama Lengkap dengan Gelar)', sortable:true, sortKey:'gelar',
-        render: r => `<strong>${esc(r.gelar || '-')}</strong>` },
-      { key:'tmt',     label:'TMT', sortable:true, sortKey:'tmt', cls:'cell-tmt',
-        render: r => fmtTgl(r.tmt) },
-      { key:'aksi',    label:'Aksi', cls:'col-aksi' },
-    ],
-    fields: [
-      { name:'pegawai_nip', label:'Pegawai',      type:'pegawai', required:true,
-        help:'Pilih pegawai yang gelarnya berubah.' },
-      { name:'gelar',       label:'Nama Lengkap dengan Gelar', type:'text', required:true,
-        placeholder:'mis. Maulana Tahir SST, M.AP', maxLength:200,
-        help:'Tulis nama LENGKAP dengan gelar baru, sesuai cara penulisan di dokumen resmi.' },
-      { name:'tmt',         label:'TMT', type:'date', required:true },
-    ],
-    buildPayload: form => ({
-      pegawai_nip: form.pegawai_nip,
-      gelar:       form.gelar.trim(),
-      tmt:         form.tmt,
-    }),
-    rowToForm: r => ({
-      pegawai_nip: r.pegawai_nip || '',
-      gelar:       r.gelar || '',
-      tmt:         r.tmt || '',
-    }),
-    summarize: r => `<strong>${esc(r.gelar || '-')}</strong><br>${esc(pegawaiByNIP[r.pegawai_nip]?.NAMA || r.pegawai_nip)} · TMT ${fmtTgl(r.tmt)}`,
-    matchSearch: (r, q) => {
-      const t = q.toLowerCase();
-      return (r.gelar || '').toLowerCase().includes(t)
-          || (pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
-    },
-    defaultSort: { key:'tmt', dir:'desc' },
-  },
-
   ak: {
     table:    'riwayat_angka_kredit',
     label:    'Angka Kredit',
@@ -609,24 +419,168 @@ const TAB_CONFIG = {
     },
     defaultSort: { key:'tmt', dir:'desc' },
   },
+
+  pangkat: {
+    table:    'riwayat_pangkat_golongan',
+    label:    'Pangkat & Golongan',
+    icon:     '📈',
+    titleAdd: 'Tambah Riwayat Pangkat &amp; Golongan',
+    titleEdit:'Edit Riwayat Pangkat &amp; Golongan',
+    columns: [
+      { key:'no',      label:'No',      cls:'col-no' },
+      { key:'pegawai', label:'Pegawai', render: r => renderPegawaiCell(r) },
+      { key:'pgg',     label:'Pangkat / Golongan', sortable:true, sortKey:'golongan',
+        render: r => `<span class="pgg-badge">${esc(r.pangkat || '-')} <span style="opacity:.7">/</span> ${esc(r.golongan || '-')}</span>` },
+      { key:'tmt',     label:'TMT', sortable:true, sortKey:'tmt', cls:'cell-tmt',
+        render: r => fmtTgl(r.tmt) },
+      { key:'tmt_pak', label:'TMT Ikut PAK', sortable:true, sortKey:'tmt_ikut_pak', cls:'cell-tmt',
+        render: r => r.tmt_ikut_pak ? fmtTgl(r.tmt_ikut_pak) : '<span class="cell-empty">—</span>' },
+      { key:'aksi',    label:'Aksi', cls:'col-aksi' },
+    ],
+    fields: [
+      { name:'pegawai_nip', label:'Pegawai',      type:'pegawai', required:true },
+      { name:'pgg',         label:'Pangkat / Golongan', type:'pgg', required:true },
+      { name:'tmt',         label:'TMT',          type:'date', required:true },
+      { name:'tmt_ikut_pak',label:'TMT Ikut PAK', type:'date', required:false,
+        help:'Opsional. Dapat dikosongkan jika belum diketahui.' },
+    ],
+    buildPayload(form) {
+      const [pangkat, golongan] = (form.pgg || '').split('|');
+      return {
+        pegawai_nip:  form.pegawai_nip,
+        pangkat:      pangkat || '',
+        golongan:     golongan || '',
+        tmt:          form.tmt,
+        tmt_ikut_pak: form.tmt_ikut_pak || null,
+      };
+    },
+    rowToForm: r => ({
+      pegawai_nip:  r.pegawai_nip || '',
+      pgg:          r.pangkat && r.golongan ? `${r.pangkat}|${r.golongan}` : '',
+      tmt:          r.tmt || '',
+      tmt_ikut_pak: r.tmt_ikut_pak || '',
+    }),
+    summarize: r => `<strong>${esc(r.pangkat || '-')} / ${esc(r.golongan || '-')}</strong><br>${esc(pegawaiByNIP[r.pegawai_nip]?.NAMA || r.pegawai_nip)} · TMT ${fmtTgl(r.tmt)}`,
+    matchSearch: (r, q) => {
+      const t = q.toLowerCase();
+      return (r.pangkat || '').toLowerCase().includes(t)
+          || (r.golongan || '').toLowerCase().includes(t)
+          || (pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
+    },
+    defaultSort: { key:'tmt', dir:'desc' },
+  },
+
+  jabatan: {
+    table:    'riwayat_jabatan',
+    label:    'Jabatan',
+    icon:     '💼',
+    titleAdd: 'Tambah Riwayat Jabatan',
+    titleEdit:'Edit Riwayat Jabatan',
+    columns: [
+      { key:'no',       label:'No',       cls:'col-no' },
+      { key:'pegawai',  label:'Pegawai',  cls:'col-pegawai',
+        render: r => renderPegawaiCell(r) },
+      { key:'jabatan',  label:'Jabatan',  sortable:true, sortKey:'jabatan',
+        render: r => esc(r.jabatan || '-') },
+      { key:'tmt',      label:'TMT',      sortable:true, sortKey:'tmt', cls:'cell-tmt',
+        render: r => fmtTgl(r.tmt) },
+      { key:'tmt_pak',  label:'TMT Ikut PAK', sortable:true, sortKey:'tmt_ikut_pak', cls:'cell-tmt',
+        render: r => r.tmt_ikut_pak ? fmtTgl(r.tmt_ikut_pak) : '<span class="cell-empty">—</span>' },
+      { key:'aksi',     label:'Aksi',     cls:'col-aksi' },
+    ],
+    fields: [
+      { name:'pegawai_nip', label:'Pegawai',      type:'pegawai',  required:true },
+      { name:'jabatan',     label:'Jabatan',      type:'text',     required:true,
+        placeholder:'mis. Statistisi Pelaksana', maxLength:200 },
+      { name:'tmt',         label:'TMT',          type:'date',     required:true },
+      { name:'tmt_ikut_pak',label:'TMT Ikut PAK', type:'date',     required:false,
+        help:'Opsional. Dapat dikosongkan jika belum diketahui.' },
+    ],
+    buildPayload(form) {
+      const peg = pegawaiByNIP[form.pegawai_nip];
+      return {
+        pegawai_nip:  form.pegawai_nip,
+        nama:         peg ? (peg.NAMA || '') : '',
+        jabatan:      form.jabatan.trim(),
+        tmt:          form.tmt,
+        tmt_ikut_pak: form.tmt_ikut_pak || null,
+      };
+    },
+    rowToForm: r => ({
+      pegawai_nip:  r.pegawai_nip || '',
+      jabatan:      r.jabatan || '',
+      tmt:          r.tmt || '',
+      tmt_ikut_pak: r.tmt_ikut_pak || '',
+    }),
+    summarize: r => `<strong>${esc(r.jabatan || '-')}</strong><br>${esc(r.nama || pegawaiByNIP[r.pegawai_nip]?.NAMA || r.pegawai_nip)} · TMT ${fmtTgl(r.tmt)}`,
+    matchSearch: (r, q) => {
+      const t = q.toLowerCase();
+      return (r.jabatan || '').toLowerCase().includes(t)
+          || (r.nama || pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
+    },
+    defaultSort: { key:'tmt', dir:'desc' },
+  },
+
+  gelar: {
+    table:    'riwayat_gelar',
+    label:    'Gelar',
+    icon:     '🎓',
+    titleAdd: 'Tambah Riwayat Gelar',
+    titleEdit:'Edit Riwayat Gelar',
+    columns: [
+      { key:'no',      label:'No',      cls:'col-no' },
+      { key:'pegawai', label:'Pegawai', render: r => renderPegawaiCell(r) },
+      { key:'gelar',   label:'Gelar (Nama Lengkap dengan Gelar)', sortable:true, sortKey:'gelar',
+        render: r => `<strong>${esc(r.gelar || '-')}</strong>` },
+      { key:'tmt',     label:'TMT', sortable:true, sortKey:'tmt', cls:'cell-tmt',
+        render: r => fmtTgl(r.tmt) },
+      { key:'aksi',    label:'Aksi', cls:'col-aksi' },
+    ],
+    fields: [
+      { name:'pegawai_nip', label:'Pegawai',      type:'pegawai', required:true,
+        help:'Pilih pegawai yang gelarnya berubah.' },
+      { name:'gelar',       label:'Nama Lengkap dengan Gelar', type:'text', required:true,
+        placeholder:'mis. Maulana Tahir SST, M.AP', maxLength:200,
+        help:'Tulis nama LENGKAP dengan gelar baru, sesuai cara penulisan di dokumen resmi.' },
+      { name:'tmt',         label:'TMT', type:'date', required:true },
+    ],
+    buildPayload: form => ({
+      pegawai_nip: form.pegawai_nip,
+      gelar:       form.gelar.trim(),
+      tmt:         form.tmt,
+    }),
+    rowToForm: r => ({
+      pegawai_nip: r.pegawai_nip || '',
+      gelar:       r.gelar || '',
+      tmt:         r.tmt || '',
+    }),
+    summarize: r => `<strong>${esc(r.gelar || '-')}</strong><br>${esc(pegawaiByNIP[r.pegawai_nip]?.NAMA || r.pegawai_nip)} · TMT ${fmtTgl(r.tmt)}`,
+    matchSearch: (r, q) => {
+      const t = q.toLowerCase();
+      return (r.gelar || '').toLowerCase().includes(t)
+          || (pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
+    },
+    defaultSort: { key:'tmt', dir:'desc' },
+  },
 };
 
 // ────────────────────────────────────────────────────────────────
 // STATE
 // ────────────────────────────────────────────────────────────────
 let SESSION = null;
-let pegawaiList = [];                             // dari data_pegawai
-let pegawaiByNIP = {};                            // index NIP → object
-let allData = { jabatan:[], pangkat:[], gelar:[], ak:[] };
-let currentTab = 'jabatan';
-let filterNip = null;                             // null = semua
-let searchQuery = '';                             // per-tab search
-let sortStateByTab = {};                          // { tabKey: { key, dir } }
-let editingRow = null;                            // null = mode tambah
-let pendingDelete = null;                         // { tab, row }
+let pegawaiList = [];
+let pegawaiByNIP = {};
+let allData = { ak:[], pangkat:[], jabatan:[], gelar:[] };  // NB: urutan baru
+let loadErrors = {};                              // { tabKey: errorMessage }
+let currentTab = 'ak';                            // default tab pertama = AK
+let filterNip = null;
+let searchQuery = '';
+let sortStateByTab = {};
+let editingRow = null;
+let pendingDelete = null;
 
 // ────────────────────────────────────────────────────────────────
-// SESSION & TOPBAR
+// SESSION
 // ────────────────────────────────────────────────────────────────
 function checkSession() {
   try {
@@ -650,20 +604,9 @@ function checkSession() {
   }
 }
 function logout() { localStorage.removeItem('nova_user'); window.location.replace('login.html'); }
-function setTopbarUser(s) {
-  const name = s.full_name || s.username || 'Pengguna';
-  const i = name.split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  document.getElementById('topbar-avatar').textContent = i;
-  document.getElementById('topbar-username').textContent = name;
-}
-function updateClock() {
-  document.getElementById('topbar-time').textContent =
-    new Date().toLocaleString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
-}
-updateClock(); setInterval(updateClock, 1000);
 
 // ────────────────────────────────────────────────────────────────
-// HELPERS — escape, format
+// HELPERS
 // ────────────────────────────────────────────────────────────────
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -680,7 +623,6 @@ function fmtAK(v) {
   if (v == null || v === '') return '—';
   const n = Number(v);
   if (isNaN(n)) return String(v);
-  // Format: integer kalau bulat, else 3 desimal max
   return Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/\.?0+$/, '');
 }
 function renderPegawaiCell(r) {
@@ -690,12 +632,16 @@ function renderPegawaiCell(r) {
 }
 
 // ────────────────────────────────────────────────────────────────
-// LOAD DATA
+// LOAD DATA — sekarang menangkap error per-tabel sehingga RLS issue
+// bisa ditampilkan ke admin alih-alih senyap jadi array kosong.
 // ────────────────────────────────────────────────────────────────
 async function loadPegawai() {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=id,NAMA,NIP&order=NAMA.asc`, { headers: H });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!res.ok) {
+      const errText = await res.text().catch(()=>'');
+      throw new Error(`HTTP ${res.status} — ${errText.slice(0,200)}`);
+    }
     pegawaiList = await res.json();
     pegawaiByNIP = {};
     pegawaiList.forEach(p => { if (p.NIP) pegawaiByNIP[p.NIP] = p; });
@@ -708,20 +654,56 @@ async function loadPegawai() {
 async function loadTab(tabKey) {
   const cfg = TAB_CONFIG[tabKey];
   if (!cfg) return;
+  delete loadErrors[tabKey];
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${cfg.table}?select=*&order=tmt.desc`, { headers: H });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!res.ok) {
+      // Coba parse JSON error dari PostgREST (biasanya { message, code, hint, details })
+      let errMsg = `HTTP ${res.status}`;
+      try {
+        const errJson = await res.json();
+        const parts = [];
+        if (errJson.message) parts.push(errJson.message);
+        if (errJson.code)    parts.push('code=' + errJson.code);
+        if (errJson.hint)    parts.push('hint: ' + errJson.hint);
+        if (errJson.details) parts.push('details: ' + errJson.details);
+        if (parts.length) errMsg = parts.join(' · ');
+      } catch(_) {
+        try { errMsg += ' — ' + (await res.text()).slice(0,200); } catch(_) {}
+      }
+      throw new Error(errMsg);
+    }
     allData[tabKey] = await res.json();
   } catch(e) {
-    console.error(`Gagal load ${cfg.table}:`, e);
+    console.error(`[NOVA] Gagal load ${cfg.table}:`, e);
     allData[tabKey] = [];
-    showToast(`Gagal memuat data ${cfg.label}`, 'error');
+    loadErrors[tabKey] = e.message || String(e);
   }
 }
 
 async function loadAllRiwayat() {
   await Promise.all(Object.keys(TAB_CONFIG).map(loadTab));
   Object.keys(TAB_CONFIG).forEach(t => updateTabCount(t));
+  renderLoadBanner();
+}
+
+function renderLoadBanner() {
+  const mount = document.getElementById('load-banner-mount');
+  const errKeys = Object.keys(loadErrors);
+  if (!errKeys.length) { mount.innerHTML = ''; return; }
+  const tabLabels = errKeys.map(k => TAB_CONFIG[k].label).join(', ');
+  const sampleErr = loadErrors[errKeys[0]];
+  mount.innerHTML = `
+    <div class="rls-banner fade-in">
+      <span class="rls-banner-icon">⚠️</span>
+      <div class="rls-banner-body">
+        <div class="rls-banner-title">Gagal memuat data: ${esc(tabLabels)}</div>
+        <div>Kemungkinan besar tabel tersebut belum punya <strong>RLS policy</strong> untuk anon role di Supabase, atau tabel/kolom belum dibuat. Buka tab terkait untuk melihat detail error, atau cek pesan ini:</div>
+        <div class="rls-banner-detail">${esc(sampleErr)}</div>
+      </div>
+      <button class="rls-banner-close" onclick="this.parentElement.remove()" title="Tutup">✕</button>
+    </div>
+  `;
 }
 
 function updateTabCount(tabKey) {
@@ -737,12 +719,10 @@ function applyFilters(tabKey) {
     const q = searchQuery.trim();
     if (q) data = data.filter(r => TAB_CONFIG[tabKey].matchSearch(r, q));
   }
-  // Sort
   const sortS = sortStateByTab[tabKey] || TAB_CONFIG[tabKey].defaultSort;
   if (sortS && sortS.key) {
     data = [...data].sort((a, b) => {
       const va = a[sortS.key]; const vb = b[sortS.key];
-      // NULL handling: nulls last
       if (va == null && vb == null) return 0;
       if (va == null) return 1;
       if (vb == null) return -1;
@@ -809,19 +789,18 @@ function setFilterPegawai(nip) {
     trigger.classList.remove('has-value');
   }
   toggleFilterDropdown();
-  // Re-render & update counts
   Object.keys(TAB_CONFIG).forEach(updateTabCount);
   renderTab();
 }
-
 function clearFilterPegawai() { setFilterPegawai(null); }
 
-// Click outside → close
 document.addEventListener('click', (e) => {
-  const cb = document.getElementById('filter-trigger').parentElement;
+  const trigger = document.getElementById('filter-trigger');
+  if (!trigger) return;
+  const cb = trigger.parentElement;
   if (!cb.contains(e.target)) {
     document.getElementById('filter-dropdown').classList.remove('open');
-    document.getElementById('filter-trigger').classList.remove('open');
+    trigger.classList.remove('open');
   }
 });
 
@@ -842,8 +821,6 @@ function renderTab() {
   const cfg = TAB_CONFIG[currentTab];
   const data = applyFilters(currentTab);
   const el = document.getElementById('tab-pane');
-
-  // Hitung stats
   const total = data.length;
   const totalAll = (allData[currentTab] || []).length;
   const uniqPegawai = new Set(data.map(r => r.pegawai_nip)).size;
@@ -909,15 +886,11 @@ function renderTable(cfg, data) {
   const bodyHTML = data.map((r, i) => {
     const cellsHTML = cfg.columns.map(col => {
       const cls = col.cls || '';
-      if (col.key === 'no') {
-        return `<td class="${cls}">${i + 1}</td>`;
-      }
-      if (col.key === 'aksi') {
-        return `<td class="${cls}">
+      if (col.key === 'no')   return `<td class="${cls}">${i + 1}</td>`;
+      if (col.key === 'aksi') return `<td class="${cls}">
           <button class="btn btn-outline btn-sm btn-icon" onclick="openEditModal(${r.id})" title="Edit" type="button">✎</button>
           <button class="btn btn-danger  btn-sm btn-icon" onclick="openDeleteModal(${r.id})" title="Hapus" type="button">🗑</button>
         </td>`;
-      }
       const html = col.render ? col.render(r) : esc(r[col.key] ?? '—');
       return `<td class="${cls}">${html}</td>`;
     }).join('');
@@ -935,6 +908,20 @@ function renderTable(cfg, data) {
 }
 
 function renderEmptyState(cfg) {
+  // Kalau ada error load untuk tab ini, tampilkan error info — bukan empty state.
+  if (loadErrors[currentTab]) {
+    return `<div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <div class="empty-title">Gagal Memuat Data</div>
+      <div class="empty-desc">Tabel <code>${esc(cfg.table)}</code> tidak dapat diakses.
+
+Pesan error:
+${esc(loadErrors[currentTab])}
+
+Kemungkinan besar tabel ini belum punya RLS policy untuk anon role. Tambahkan policy yang sama seperti di tabel <code>riwayat_jabatan</code> melalui Supabase SQL Editor.</div>
+    </div>`;
+  }
+
   let title, desc;
   if (filterNip || searchQuery) {
     title = 'Tidak Ada Hasil';
@@ -952,7 +939,6 @@ function renderEmptyState(cfg) {
 
 function onSearchInput(e) {
   searchQuery = e.target.value;
-  // Re-render hanya pane (preserve focus)
   const cfg = TAB_CONFIG[currentTab];
   const data = applyFilters(currentTab);
   const tableWrap = document.querySelector('.table-wrap');
@@ -985,7 +971,6 @@ function openAddModal() {
   editingRow = null;
   const cfg = TAB_CONFIG[currentTab];
   document.getElementById('modal-form-title').innerHTML = cfg.titleAdd;
-  // Pre-fill: kalau filter pegawai aktif, prefill pegawai_nip
   const initial = {};
   if (filterNip) initial.pegawai_nip = filterNip;
   buildFormFields(cfg.fields, initial);
@@ -1020,7 +1005,6 @@ function buildFormFields(fields, initial) {
     const errHTML  = `<div class="form-error" id="err-${f.name}"></div>`;
 
     if (f.type === 'pegawai') {
-      // Combobox khusus untuk pegawai
       const pegName = pegawaiByNIP[val] ? pegawaiByNIP[val].NAMA : '';
       html += `
         <div class="form-group">
@@ -1047,7 +1031,6 @@ function buildFormFields(fields, initial) {
         </div>
       `;
     } else if (f.type === 'pgg') {
-      // Pangkat/Golongan dropdown
       const opts = PANGKAT_GOLONGAN_OPTIONS.map(o => {
         const v = `${o.pangkat}|${o.gol}`;
         return `<option value="${esc(v)}"${v === val ? ' selected' : ''}>${esc(o.pangkat)} / ${esc(o.gol)}</option>`;
@@ -1082,7 +1065,7 @@ function buildFormFields(fields, initial) {
           ${helpHTML}${errHTML}
         </div>
       `;
-    } else { // text default
+    } else {
       html += `
         <div class="form-group">
           <label class="form-label">${esc(f.label)}${reqMark}</label>
@@ -1144,12 +1127,10 @@ function pickFormPegawai(nip) {
   txt.classList.remove('placeholder');
   trigger.classList.add('has-value');
   toggleFormPegawaiDropdown();
-  // Clear error
   const err = document.getElementById('err-pegawai_nip');
   if (err) { err.textContent = ''; err.classList.remove('show'); }
 }
 
-// Close form pegawai dropdown saat klik di luar
 document.addEventListener('click', (e) => {
   const trigger = document.getElementById('form-peg-trigger');
   if (!trigger) return;
@@ -1161,7 +1142,7 @@ document.addEventListener('click', (e) => {
 });
 
 // ────────────────────────────────────────────────────────────────
-// FORM SUBMIT (insert / update)
+// FORM SUBMIT
 // ────────────────────────────────────────────────────────────────
 function readForm(fields) {
   const out = {};
@@ -1232,7 +1213,6 @@ async function submitForm() {
       try {
         const err = await res.json();
         errMsg = err.message || err.hint || err.details || errMsg;
-        // Handle UNIQUE violation friendlier
         if (err.code === '23505' || /duplicate key/.test(errMsg)) {
           errMsg = 'Sudah ada entri dengan TMT yang sama untuk pegawai ini. TMT harus unik per pegawai.';
         }
@@ -1242,9 +1222,9 @@ async function submitForm() {
       return;
     }
 
-    // Reload tab data + close
     await loadTab(currentTab);
     Object.keys(TAB_CONFIG).forEach(updateTabCount);
+    renderLoadBanner();
     renderTab();
     closeFormModal();
     showToast(isEdit ? `${cfg.label} berhasil diperbarui` : `${cfg.label} berhasil ditambahkan`, 'success');
@@ -1286,6 +1266,7 @@ async function submitDelete() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     await loadTab(pendingDelete.tab);
     Object.keys(TAB_CONFIG).forEach(updateTabCount);
+    renderLoadBanner();
     renderTab();
     closeDeleteModal();
     showToast(`${cfg.label} berhasil dihapus`, 'success');
@@ -1329,10 +1310,10 @@ document.addEventListener('keydown', (e) => {
 async function init() {
   SESSION = checkSession();
   if (!SESSION) return;
-  setTopbarUser(SESSION);
-  initRoleSwitcher(SESSION, true);  // halaman admin
+  NovaTopbar.setUser(SESSION);
+  initRoleSwitcher(SESSION, true);
 
-  // Loading state awal: render skeleton
+  // Skeleton awal
   document.getElementById('tab-pane').innerHTML = `
     <div class="table-wrap" style="padding:20px;display:flex;flex-direction:column;gap:8px">
       <div class="skel" style="height:38px"></div>
