@@ -40,27 +40,13 @@
   document.head.appendChild(style);
 })();
 
-/**
- * Ambil daftar role yang dimiliki user dari session.
- * Delegasi ke getUserRoles() dari config.js.
- */
-function _getSessionRoles(session) {
-  if (typeof getUserRoles === 'function') return getUserRoles(session);
-  // Fallback inline jika config.js belum diload
-  if (!session) return ['user'];
-  if (Array.isArray(session.roles) && session.roles.length) return session.roles;
-  if (session.role) return session.role === 'admin' ? ['admin', 'user'] : [session.role];
-  return ['user'];
-}
-
-function getActiveRole() {
-  try {
-    const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
-    if (!s) return 'user';
-    if (s.active_role) return s.active_role;
-    return _getSessionRoles(s).includes('admin') ? 'admin' : 'user';
-  } catch(e) { return 'user'; }
-}
+// Catatan: nova-role-switcher.js ALWAYS di-load setelah config.js, jadi
+// getUserRoles() pasti tersedia. Dulu ada fallback inline di sini, tapi
+// itu dead path — sudah dihapus.
+//
+// `getActiveRole()` juga dihapus karena tidak pernah dipanggil dari mana
+// pun (termasuk file ini). active_role dibaca langsung dari session di
+// fungsi-fungsi terkait.
 
 /**
  * Ganti role tampilan — dipanggil dari tombol dropdown topbar.
@@ -70,7 +56,7 @@ function switchViewRole(role) {
   try {
     const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
     if (!s) return;
-    const allowedRoles = _getSessionRoles(s);
+    const allowedRoles = getUserRoles(s);
     if (!allowedRoles.includes(role)) return;
     s.active_role = role;
     localStorage.setItem('nova_user', JSON.stringify(s));
@@ -117,7 +103,7 @@ function applyRoleBadge(role) {
 function initRoleSwitcher(session, isAdminPage = false) {
   if (!session) return;
 
-  const allowedRoles = _getSessionRoles(session);
+  const allowedRoles = getUserRoles(session);
 
   // Set default active_role jika belum ada
   if (!session.active_role) {
@@ -171,7 +157,7 @@ function toggleUserDropdown() {
   // Jangan buka jika user hanya punya 1 role
   try {
     const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
-    const roles = _getSessionRoles(s);
+    const roles = getUserRoles(s);
     if (roles.length < 2) return;
   } catch(e) {}
 
