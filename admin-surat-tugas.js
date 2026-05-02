@@ -20,25 +20,27 @@ const H = SUPABASE_HEADERS;
    String value sengaja sama dengan check-constraint surat_tugas_tipe_enum
    di DB (lihat surat_tugas_add_tipe.sql).
 
-   Ada 5 file template di Supabase Storage:
-     T1:  template-surat-tugas-spd-kendaraan-menginap.docx
-          — punya {#has_spd}, {#kendaraan}, {#menginap}
+   Hanya 3 file template di Supabase Storage (per keputusan user — pakai
+   T1V & T3V sebagai superset untuk semua tipe non-visum):
      T2:  template-surat-tugas-lampiran.docx
-          — punya {#ul} (tabel lampiran)
-     T3:  template-surat-tugas-lampiran-spd-kendaraan-menginap.docx
-          — punya {#ul} (lampiran), {#kendaraan}, {#menginap}; SPD selalu
-            render (tidak ada {#has_spd} wrapper)
+          — punya {#ul} (tabel lampiran). Dipakai HANYA untuk tipe
+            surat_tugas_lampiran (tanpa SPD).
      T1V: template-surat-tugas-spd-visum-kendaraan-menginap.docx
-          — superset dari T1 + {#visum}{#r}{/r}{/visum} (lembar visum)
+          — punya {#has_spd}, {#kendaraan}, {#menginap},
+            {#visum}{#r}{/r}{/visum}. Dipakai untuk SEMUA tipe
+            non-lampiran (visum maupun non-visum). Untuk non-visum:
+            flags.has_visum=false → visum:[] → section visum hilang.
      T3V: template-surat-tugas-lampiran-spd-visum-kendaraan-menginap.docx
-          — superset dari T3 + {#visum}{#r}{/r}{/visum} (lembar visum)
+          — punya {#ul} (lampiran), {#kendaraan}, {#menginap}, dan
+            {#visum}{#r}{/r}{/visum}. SPD selalu render (tidak ada
+            {#has_spd} wrapper). Dipakai untuk SEMUA tipe lampiran-with-SPD.
 
    Catatan tag yg perlu Anda pastikan ADA di template:
-     - T1 & T3: blok kendaraan dibungkus {#kendaraan}...{/kendaraan}
-                blok menginap   dibungkus {#menginap}...{/menginap}
-                (sebelumnya pakai {#ul} dua kali — perlu di-rename)
-     - T1V & T3V: blok visum dibungkus {#visum}...{/visum} dan baris loop
-                  responden di-bungkus {#r}...{/r} di baris terakhir tabel.
+     - T1V & T3V: blok kendaraan dibungkus {#kendaraan}...{/kendaraan}
+                  blok menginap   dibungkus {#menginap}...{/menginap}
+                  blok visum      dibungkus {#visum}...{/visum}
+                  baris loop responden di-bungkus {#r}...{/r}
+                  di baris terakhir tabel visum.
 ═══════════════════════════════════════════════════════════════════════ */
 
 // 10 pilihan tipe (urutan = urutan tampil di dropdown UI).
@@ -58,24 +60,39 @@ const TIPE_OPTIONS = [
 
 // URL template di Supabase Storage. Pastikan nama file yang Anda upload
 // di bucket `template/` sama persis dengan path di sini.
-const TEMPLATE_URL_T1  = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-spd-kendaraan-menginap.docx';
+//
+// KONSOLIDASI TEMPLATE (per keputusan user):
+//   - T1V dipakai untuk SEMUA tipe non-lampiran (bukan hanya visum)
+//     karena T1V adalah superset T1: identik dengan T1 + tambahan
+//     section {#visum}{/visum} di akhir. Untuk tipe non-visum,
+//     `flags.has_visum=false` → array `visum:[]` → seluruh section
+//     visum hilang dari output (engine docxtemplater rule untuk
+//     section dengan array kosong).
+//   - T3V dipakai untuk SEMUA tipe lampiran (bukan hanya visum) dengan
+//     alasan yang sama.
+//   - T2 tetap dipakai untuk tipe surat_tugas_lampiran (tanpa SPD).
+//
+// Hanya 3 file yang perlu di-upload ke Storage:
+//   - template-surat-tugas-lampiran.docx                              (T2)
+//   - template-surat-tugas-spd-visum-kendaraan-menginap.docx          (T1V)
+//   - template-surat-tugas-lampiran-spd-visum-kendaraan-menginap.docx (T3V)
 const TEMPLATE_URL_T2  = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-lampiran.docx';
-const TEMPLATE_URL_T3  = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-lampiran-spd-kendaraan-menginap.docx';
 const TEMPLATE_URL_T1V = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-spd-visum-kendaraan-menginap.docx';
 const TEMPLATE_URL_T3V = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-lampiran-spd-visum-kendaraan-menginap.docx';
 
 // Mapping tipe → template URL.
-// Variant visum pakai T1V/T3V (template superset yg punya {#visum}).
+// Semua tipe non-lampiran → T1V (superset). Tipe lampiran-with-SPD → T3V.
+// Hanya tipe surat_tugas_lampiran (tanpa SPD) yang masih pakai T2.
 const TIPE_TO_TEMPLATE = {
-  'surat_tugas':                                       TEMPLATE_URL_T1,
-  'surat_tugas_kendaraan':                             TEMPLATE_URL_T1,
+  'surat_tugas':                                       TEMPLATE_URL_T1V,
+  'surat_tugas_kendaraan':                             TEMPLATE_URL_T1V,
   'surat_tugas_visum_kendaraan':                       TEMPLATE_URL_T1V,
   'surat_tugas_lampiran':                              TEMPLATE_URL_T2,
-  'surat_tugas_spd_kendaraan':                         TEMPLATE_URL_T1,
-  'surat_tugas_spd_kendaraan_menginap':                TEMPLATE_URL_T1,
+  'surat_tugas_spd_kendaraan':                         TEMPLATE_URL_T1V,
+  'surat_tugas_spd_kendaraan_menginap':                TEMPLATE_URL_T1V,
   'surat_tugas_spd_visum_kendaraan_menginap':          TEMPLATE_URL_T1V,
-  'surat_tugas_lampiran_spd_kendaraan':                TEMPLATE_URL_T3,
-  'surat_tugas_lampiran_spd_kendaraan_menginap':       TEMPLATE_URL_T3,
+  'surat_tugas_lampiran_spd_kendaraan':                TEMPLATE_URL_T3V,
+  'surat_tugas_lampiran_spd_kendaraan_menginap':       TEMPLATE_URL_T3V,
   'surat_tugas_lampiran_spd_visum_kendaraan_menginap': TEMPLATE_URL_T3V,
 };
 
