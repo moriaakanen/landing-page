@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════
-// config.js — Portal NOVA
+// config.js — Portal 9201
 // Konfigurasi terpusat. Ubah nilai di bawah ini
 // sesuai project Supabase Anda.
 // ═══════════════════════════════════════════════
