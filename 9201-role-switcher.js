@@ -1,6 +1,6 @@
 /**
  * ROLE SWITCHER — 9201-role-switcher.js
- * Portal NOVA · versi multi-role (DB-first)
+ * Portal 9201 · versi multi-role (DB-first)
  * Diload SETELAH config.js
  */
 
