@@ -1,10 +1,10 @@
 /**
- * NOVA TOPBAR — komponen shared
- * Diload SETELAH config.js, SEBELUM nova-sidebar.js dan nova-role-switcher.js.
+ * 9201 TOPBAR — komponen shared
+ * Diload SETELAH config.js, SEBELUM 9201-sidebar.js dan 9201-role-switcher.js.
  *
  * Cara pakai di setiap halaman:
  *   1. Pasang   <div id="topbar-mount"></div>   di awal <body>
- *   2. Sertakan <script src="nova-topbar.js"></script>
+ *   2. Sertakan <script src="9201-topbar.js"></script>
  *   3. Setelah session valid, panggil  NovaTopbar.setUser(session)
  *
  * Komponen ini meng-inject:
@@ -39,16 +39,16 @@
   @media(max-width:768px){:where(.topbar-time){display:none}}
   @media(max-width:600px){:where(.menu-toggle){display:flex!important}}
   `;
-  if (!document.getElementById('nova-topbar-css')) {
+  if (!document.getElementById('9201-topbar-css')) {
     var style = document.createElement('style');
-    style.id = 'nova-topbar-css';
+    style.id = '9201-topbar-css';
     style.textContent = CSS;
     document.head.appendChild(style);
   }
 
   // ─── HTML template ───────────────────────────────────────────────
   // NB: role switcher CSS (.user-switcher-*, .usd-*, dst.) di-inject
-  // oleh nova-role-switcher.js. Jadi script itu tetap perlu dimuat.
+  // oleh 9201-role-switcher.js. Jadi script itu tetap perlu dimuat.
   var TOPBAR_HTML = `
   <div class="topbar">
     <div class="topbar-brand">
