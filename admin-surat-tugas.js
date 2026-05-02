@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   PORTAL NOVA — Admin Surat Tugas (Excel-like, multi-kolom)
+   PORTAL 9201 — Admin Surat Tugas (Excel-like, multi-kolom)
    ─────────────────────────────────────────────────────────────────────
    Ketergantungan global:
      - SUPABASE_URL, SUPABASE_ANON_KEY (config.js)
@@ -143,7 +143,7 @@ function saveApproveDefaults(d) {
 // Halaman ini admin-only — pakai novaCheckSession({ requireAdmin: true })
 // di init().
 // Topbar (clock + user info) di-handle oleh 9201-topbar.js.
-// Panggil NovaTopbar.setUser(SESSION) saat init untuk set avatar+username.
+// Panggil Topbar9201.setUser(SESSION) saat init untuk set avatar+username.
 
 /* ════════════════════════════════════════════════════════════════════
    HELPERS — escape, format tanggal, badge
@@ -1492,7 +1492,7 @@ async function loadMAKSuggestions() {
     const url = `${SUPABASE_URL}/rest/v1/surat_tugas?select=pembebanan&pembebanan=not.is.null`;
     const res = await fetch(url, { headers: H });
     if (!res.ok) {
-      console.warn(`[NOVA] loadMAKSuggestions HTTP ${res.status}`);
+      console.warn(`[9201] loadMAKSuggestions HTTP ${res.status}`);
       return;
     }
     const rows = await res.json();
@@ -1507,9 +1507,9 @@ async function loadMAKSuggestions() {
       .sort((a, b) => b.count - a.count);
     // Bangun ringkasan (deskripsi gabungan) — load kamus_pok kalau ada
     await enrichMakSuggestionsWithDeskripsi();
-    console.log(`[NOVA] loadMAKSuggestions: ${makSuggestions.length} unique MAK`);
+    console.log(`[9201] loadMAKSuggestions: ${makSuggestions.length} unique MAK`);
   } catch (e) {
-    console.warn('[NOVA] loadMAKSuggestions error:', e);
+    console.warn('[9201] loadMAKSuggestions error:', e);
   }
 }
 
@@ -2599,7 +2599,7 @@ async function deletePreviewFile(filename) {
       method: 'DELETE',
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
     });
-  } catch (e) { console.warn('[NOVA] Cleanup preview file gagal:', e); }
+  } catch (e) { console.warn('[9201] Cleanup preview file gagal:', e); }
 }
 
 /* Defensive cleanup: hapus file preview lama (>1 jam) yang mungkin
@@ -2806,7 +2806,7 @@ async function bulkDownloadSelected() {
         await new Promise(r => setTimeout(r, 400));
       }
     } catch(e) {
-      console.error(`[NOVA] bulk download gagal id=${id}:`, e);
+      console.error(`[9201] bulk download gagal id=${id}:`, e);
       failures.push(`${surat.perihal || 'surat #' + id}: ${e.message}`);
     }
   }
@@ -2915,7 +2915,7 @@ async function openInWordForPrint() {
     setTimeout(() => closeModal('modal-preview'), 1000);
 
   } catch (e) {
-    console.error('[NOVA] openInWordForPrint error:', e);
+    console.error('[9201] openInWordForPrint error:', e);
     showPageAlert(`Gagal menyiapkan dokumen untuk Word: ${e.message}`, 'error');
   } finally {
     if (btn) {
@@ -3028,7 +3028,7 @@ async function loadKamusPok(tahun) {
 
   const res = await fetch(url, { headers: { ...H } });
   if (!res.ok) {
-    console.warn(`[NOVA] Gagal load kamus_pok (HTTP ${res.status}). Deskripsi POK akan kosong.`);
+    console.warn(`[9201] Gagal load kamus_pok (HTTP ${res.status}). Deskripsi POK akan kosong.`);
     _kamusPokCache = {};
     _kamusPokYear  = tahun;
     return _kamusPokCache;
@@ -3050,7 +3050,7 @@ async function loadKamusPok(tahun) {
 
   _kamusPokCache = map;
   _kamusPokYear  = tahun;
-  console.log(`[NOVA] Kamus POK loaded: ${rows.length} rows untuk tahun ${tahun}`);
+  console.log(`[9201] Kamus POK loaded: ${rows.length} rows untuk tahun ${tahun}`);
   return map;
 }
 
@@ -3164,7 +3164,7 @@ function loadScript(src) {
     const s = document.createElement('script');
     s.src = src;
     s.async = false;
-    s.onload = () => { console.log('[NOVA] Loaded:', src); resolve(); };
+    s.onload = () => { console.log('[9201] Loaded:', src); resolve(); };
     s.onerror = () => reject(new Error(`Gagal load ${src}`));
     document.head.appendChild(s);
   });
@@ -3192,7 +3192,7 @@ async function ensureDocxtemplaterLoaded() {
         return true;
       }
     } catch(e) {
-      console.warn('[NOVA] CDN gagal, coba berikutnya:', e.message);
+      console.warn('[9201] CDN gagal, coba berikutnya:', e.message);
     }
   }
   return false;
@@ -3224,7 +3224,7 @@ async function loadTemplateBuffer(tipe) {
   }
   if (_templateBufferCache[url]) return _templateBufferCache[url];
 
-  console.log('[NOVA] Memuat template (tipe=' + tipe + ') dari:', url);
+  console.log('[9201] Memuat template (tipe=' + tipe + ') dari:', url);
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(
@@ -3234,7 +3234,7 @@ async function loadTemplateBuffer(tipe) {
   }
   const buf = await res.arrayBuffer();
   _templateBufferCache[url] = buf;
-  console.log('[NOVA] Template loaded:', buf.byteLength, 'bytes');
+  console.log('[9201] Template loaded:', buf.byteLength, 'bytes');
   return buf;
 }
 
@@ -3515,7 +3515,7 @@ function dropTrailingEmptyParagraphs(doc) {
   const xmlPath = 'word/document.xml';
   const file = zip.file(xmlPath);
   if (!file) {
-    console.warn('[NOVA] dropTrailingEmpty: word/document.xml not found');
+    console.warn('[9201] dropTrailingEmpty: word/document.xml not found');
     return;
   }
 
@@ -3533,20 +3533,20 @@ function dropTrailingEmptyParagraphs(doc) {
   try {
     xmlDoc = new DOMParser().parseFromString(xml, 'application/xml');
   } catch(e) {
-    console.warn('[NOVA] dropTrailingEmpty: parse failed', e);
+    console.warn('[9201] dropTrailingEmpty: parse failed', e);
     return;
   }
 
   // Cek error parse (browser inject <parsererror>)
   if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
-    console.warn('[NOVA] dropTrailingEmpty: parsererror found, skip');
+    console.warn('[9201] dropTrailingEmpty: parsererror found, skip');
     return;
   }
 
   // Cari <w:body> (namespace-agnostic via localName)
   const body = xmlDoc.getElementsByTagNameNS('*', 'body')[0];
   if (!body) {
-    console.warn('[NOVA] dropTrailingEmpty: <w:body> not found');
+    console.warn('[9201] dropTrailingEmpty: <w:body> not found');
     return;
   }
 
@@ -3595,7 +3595,7 @@ function dropTrailingEmptyParagraphs(doc) {
   try {
     newXml = new XMLSerializer().serializeToString(xmlDoc);
   } catch(e) {
-    console.warn('[NOVA] dropTrailingEmpty: serialize failed', e);
+    console.warn('[9201] dropTrailingEmpty: serialize failed', e);
     return;
   }
 
@@ -3607,14 +3607,14 @@ function dropTrailingEmptyParagraphs(doc) {
   // Write back ke zip
   try {
     zip.file(xmlPath, newXml);
-    console.log(`[NOVA] dropTrailingEmpty: removed ${removed} empty trailing paragraph(s)`);
+    console.log(`[9201] dropTrailingEmpty: removed ${removed} empty trailing paragraph(s)`);
   } catch(e) {
-    console.warn('[NOVA] dropTrailingEmpty: zip update failed', e);
+    console.warn('[9201] dropTrailingEmpty: zip update failed', e);
   }
 }
 
 async function buildSuratTugasDoc(data) {
-  console.log('[NOVA] buildSuratTugasDoc() dipanggil', { suratId: data.id });
+  console.log('[9201] buildSuratTugasDoc() dipanggil', { suratId: data.id });
 
   // Pastikan docxtemplater sudah ter-load (dengan fallback dynamic loading)
   await ensureDocxtemplaterLoaded();
@@ -3629,7 +3629,7 @@ async function buildSuratTugasDoc(data) {
    || (window.pizzip  && (window.pizzip.default  || window.pizzip));
 
   if (!DocxtemplaterCtor || !PizZipCtor) {
-    console.error('[NOVA] Docxtemplater / PizZip belum dimuat.',
+    console.error('[9201] Docxtemplater / PizZip belum dimuat.',
       'window.docxtemplater =', typeof window.docxtemplater,
       'window.Docxtemplater =', typeof window.Docxtemplater,
       'window.PizZip =', typeof window.PizZip,
@@ -3639,7 +3639,7 @@ async function buildSuratTugasDoc(data) {
       'Periksa koneksi internet/firewall, lalu refresh halaman.'
     );
   }
-  console.log('[NOVA] Docxtemplater OK — akan pakai template-based rendering');
+  console.log('[9201] Docxtemplater OK — akan pakai template-based rendering');
 
   // Tentukan template berdasarkan `data.tipe`. Validasi sudah dilakukan
   // di sisi UI (admin wajib pilih tipe sebelum approve), tapi defensive
@@ -3675,7 +3675,7 @@ async function buildSuratTugasDoc(data) {
   try {
     dropTrailingEmptyParagraphs(doc);
   } catch (e) {
-    console.warn('[NOVA] dropTrailingEmptyParagraphs error (non-fatal):', e);
+    console.warn('[9201] dropTrailingEmptyParagraphs error (non-fatal):', e);
   }
 
   const out = doc.getZip().generate({
@@ -3692,7 +3692,7 @@ async function buildSuratTugasDoc(data) {
 function init() {
   SESSION = novaCheckSession({ requireAdmin: true });
   if (!SESSION) return;
-  NovaTopbar.setUser(SESSION);
+  Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION, true);
   Promise.all([loadPegawai(), loadRiwayatJabatan(), loadUsers(), loadSurat()]);
 
