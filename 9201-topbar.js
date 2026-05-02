@@ -5,7 +5,7 @@
  * Cara pakai di setiap halaman:
  *   1. Pasang   <div id="topbar-mount"></div>   di awal <body>
  *   2. Sertakan <script src="9201-topbar.js"></script>
- *   3. Setelah session valid, panggil  NovaTopbar.setUser(session)
+ *   3. Setelah session valid, panggil  Topbar9201.setUser(session)
  *
  * Komponen ini meng-inject:
  *   - CSS topbar (struktur, brand, time, role switcher button, menu-toggle)
@@ -119,7 +119,7 @@
     // biarkan saja (jangan ditimpa) supaya tidak merusak. Hanya log warning.
     var existing = document.querySelector('.topbar');
     if (existing) {
-      console.info('[NovaTopbar] Detected legacy .topbar markup. Topbar JS template not applied.');
+      console.info('[Topbar9201] Detected legacy .topbar markup. Topbar JS template not applied.');
       return false;
     }
     // Tidak ada mount point sama sekali — diam saja (mis. login.html).
@@ -138,11 +138,18 @@
 
   // ─── Set user info di topbar ─────────────────────────────────────
   // Update visual berdasarkan apa yg ada di session SAAT ITU (sync, instant).
-  // Kalau session.full_name kosong, trigger novaEnsureFullName() async untuk
-  // resolve dari data_pegawai. Setelah resolve, setUser dipanggil ulang
-  // (dari dalam novaEnsureFullName) dengan session yang sudah lengkap.
-  function setUser(session) {
+  //
+  // Auto-resolve dari tabel `users.full_name`:
+  //   - Kalau session.full_name kosong/null → trigger fetch
+  //   - Kalau session.full_name === session.username (hasil fallback saat
+  //     login lama waktu RPC return null) → trigger fetch juga
+  //
+  // opts.skipEnsure = true mencegah infinite loop saat dipanggil dari
+  // dalam novaEnsureFullName.
+  function setUser(session, opts) {
     if (!session) return;
+    var skipEnsure = !!(opts && opts.skipEnsure);
+
     var name = session.full_name || session.username || '';
     var initials = name
       ? name.split(' ').filter(Boolean)
@@ -156,14 +163,23 @@
     if (avatarEl) avatarEl.textContent = initials;
     if (unameEl)  unameEl.textContent  = name || 'Pengguna';
 
-    // Auto-resolve full_name dari data_pegawai kalau session belum punya.
-    // Guarded by session.full_name check di novaEnsureFullName supaya tidak
-    // infinite loop — setelah berhasil/gagal, full_name selalu ter-set
-    // (minimal ke username sebagai fallback).
-    if (!session.full_name && typeof novaEnsureFullName === 'function') {
-      novaEnsureFullName(session);
-      // Tidak perlu .then() — novaEnsureFullName akan call setUser ulang
-      // sendiri setelah resolve.
+    if (skipEnsure) return;
+
+    if (typeof novaEnsureFullName === 'function') {
+      // Kondisi yang memerlukan fetch fresh dari users:
+      //   - full_name belum ada sama sekali, ATAU
+      //   - full_name kebetulan sama dengan username (hasil fallback)
+      //
+      // Kasus ke-2 muncul ketika user pernah login dengan RPC verify_login
+      // yang return user.full_name = null, sehingga login.html menyimpan
+      // session.full_name = session.username sebagai fallback. Tanpa
+      // deteksi ini, topbar akan permanen menampilkan username walau
+      // tabel users sebenarnya punya full_name yang valid.
+      var needsFetch = !session.full_name
+                    || (session.username && session.full_name === session.username);
+      if (needsFetch) {
+        novaEnsureFullName(session, { force: true });
+      }
     }
   }
 
@@ -183,7 +199,7 @@
   }
 
   // ─── Public API ──────────────────────────────────────────────────
-  window.NovaTopbar = {
+  window.Topbar9201 = {
     setUser: setUser,
     render:  render,
     updateClock: updateClock
