@@ -21,7 +21,7 @@ html{height:100%}
 body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
 em{font-family:'Fraunces',serif;font-style:italic;font-weight:500;color:var(--gold)}
 
-/* topbar — di-handle nova-topbar.js (tidak dideklarasi di sini) */
+/* topbar — di-handle 9201-topbar.js (tidak dideklarasi di sini) */
 
 /* layout */
 .layout{display:flex;flex:1;min-height:0}
@@ -322,15 +322,15 @@ textarea.form-input{font-family:inherit;resize:vertical;min-height:64px}
 </div>
 
 <script src="config.js"></script>
-<script src="nova-shared.js"></script>
-<script src="nova-topbar.js"></script>
-<script src="nova-sidebar.js"></script>
-<script src="nova-role-switcher.js"></script>
+<script src="9201-shared.js"></script>
+<script src="9201-topbar.js"></script>
+<script src="9201-sidebar.js"></script>
+<script src="9201-role-switcher.js"></script>
 <script>
 'use strict';
 
 // `checkSession`, `logout`, `esc`, `BULAN`, `novaRpc`, dan `SUPABASE_HEADERS`
-// di-load dari nova-shared.js. Halaman ini admin-only — pakai
+// di-load dari 9201-shared.js. Halaman ini admin-only — pakai
 // novaCheckSession({ requireAdmin: true }) di init().
 const H = SUPABASE_HEADERS;
 
