@@ -685,6 +685,40 @@
   </div>
 </div>
 
+<!-- MODAL INPUT JUMLAH RESPONDEN (untuk preview/download tipe visum)
+     ────────────────────────────────────────────────────────────────
+     Muncul hanya kalau user klik Preview / Download / Open-in-Word
+     pada surat dengan tipe yang punya visum. Karena jumlah_responden
+     tidak disimpan ke DB, user input ulang setiap kali generate.
+-->
+<div class="modal-overlay" id="modal-visum-prompt" style="display:none" onclick="if(event.target===this)closeModal('modal-visum-prompt')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header detail">
+      <span class="modal-title">📋 Jumlah <em>Responden Visum</em></span>
+      <button class="modal-close" onclick="closeModal('modal-visum-prompt')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px">
+        Surat ini menggunakan tipe dengan lembar visum. Masukkan jumlah responden yang ingin ditampilkan di tabel visum (opsional).
+      </p>
+      <div class="form-group">
+        <label class="form-label" for="inp-jumlah-responden-prompt">Jumlah Responden</label>
+        <input type="number" min="0" step="1" class="form-input" id="inp-jumlah-responden-prompt"
+               placeholder="Kosongkan atau ≤6 untuk default 7 baris"
+               style="width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none">
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5">
+          Kosong / ≤6 → tabel visum tampil 7 baris kosong (default).<br>
+          Lebih dari 6 → tabel mengikuti jumlah yang diinput (mis. 10 → 10 baris).
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-visum-prompt')">Batal</button>
+      <button class="btn-primary" id="btn-visum-prompt-confirm" onclick="confirmVisumPrompt()">Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
 <script src="config.js"></script>
 <script src="9201-shared.js"></script>
 <script src="9201-topbar.js"></script>
