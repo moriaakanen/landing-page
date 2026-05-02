@@ -607,7 +607,7 @@ function renderRowHTML(s) {
       ${cellDateHTML(s.id, 'tanggal_surat', tanggalSurat, editable, 'tgl/bln/thn')}
       ${cellDateRangeHTML(s.id, 'waktu', waktuMulai, waktuSelesai, editable)}
       ${cellTextareaHTML(s.id, 'perihal', perihal, editable, 'Perihal surat')}
-      ${cellTextHTML(s.id, 'tujuan', tujuan, editable, 'Kota/instansi')}
+      ${cellTextareaHTML(s.id, 'tujuan', tujuan, editable, 'Kota/instansi')}
       ${cellPegawaiMultiHTML(s.id, pegNips, pegNames, editable)}
       ${cellTextareaHTML(s.id, 'menimbang_custom', menimbang, editable, 'cth: pelaksanaan Survei...')}
       ${cellTextareaHTML(s.id, 'alat_angkutan', alat, editable, 'cth: Kendaraan Darat')}
@@ -791,28 +791,31 @@ function cellTipeHTML(id, val, editable) {
     const label = tipeLabel(val);
     return `<td class="col-tipe">
       <div class="ro-text${val ? '' : ' muted'}"
-           tabindex="0" data-col-field="tipe">${val ? esc(label) : '—'}</div>
+           tabindex="0" data-col-field="tipe" data-value="${escAttr(val || '')}">${val ? esc(label) : '—'}</div>
     </td>`;
   }
-  const isEmpty = !val;
-  const opts = TIPE_OPTIONS.map(o =>
-    `<option value="${escAttr(o.value)}"${o.value === val ? ' selected' : ''}>${esc(o.label)}</option>`
-  ).join('');
+  const tag = val ? buildTipeTag(val) : '';
+  const placeholder = val ? '' : 'Pilih tipe...';
   return `<td class="col-tipe">
-    <select class="xls-cell${isEmpty ? ' tipe-empty' : ''}"
-            data-field="tipe" data-id="${id}" data-col-field="tipe"
-            onchange="onTipeCellChange(this)">
-      <option value=""${isEmpty ? ' selected' : ''}>— Pilih tipe —</option>
-      ${opts}
-    </select>
+    <div class="tp-cell" data-field="tipe" data-col-field="tipe" data-id="${id}"
+      data-value="${escAttr(val || '')}"
+      onclick="onTpCellClick(event, this)">
+      ${tag}
+      <input type="text" class="tp-input" placeholder="${placeholder}"
+        oninput="onTpInput(event, this)"
+        onkeydown="onTpKeydown(event, this)"
+        onfocus="onTpInputFocus(this)"
+        onblur="onTpInputBlur(this)">
+    </div>
   </td>`;
 }
 
-// Toggle class 'tipe-empty' (placeholder italic) saat user pilih/clear opsi.
-function onTipeCellChange(sel) {
-  if (sel.value) sel.classList.remove('tipe-empty');
-  else           sel.classList.add('tipe-empty');
-  sel.classList.remove('err');
+function buildTipeTag(val) {
+  const label = tipeLabel(val);
+  return `<span class="tp-tag" data-value="${escAttr(val)}" title="${escAttr(label)}">
+    <span class="tp-tag-text">${esc(label)}</span>
+    <button type="button" class="tp-tag-x" onclick="onTpTagRemove(event, this)">×</button>
+  </span>`;
 }
 
 function cellDateHTML(id, field, isoVal, editable, placeholder) {
@@ -1543,15 +1546,14 @@ function cellMAKHTML(id, val, editable) {
     </td>`;
   }
   return `<td class="col-mak">
-    <input type="text" class="xls-cell mak-input" data-field="pembebanan" data-id="${id}"
+    <textarea class="xls-cell mak-input" rows="1" data-field="pembebanan" data-id="${id}"
       data-col-field="pembebanan"
-      value="${escAttr(val || '')}"
       placeholder="cth: 054.01.GG.2910.BMA.006.054.A.524119"
       oninput="onMAKInput(this)"
       onfocus="onMAKFocus(this)"
       onblur="onMAKBlur(this)"
       onkeydown="onMAKKeydown(event, this)"
-      autocomplete="off">
+      autocomplete="off">${esc(val || '')}</textarea>
   </td>`;
 }
 
@@ -1591,6 +1593,11 @@ function onMAKKeydown(e, inp) {
       e.preventDefault();
       openMakAc(inp);
       makAcFilter(inp.value);
+    } else if (e.key === 'Enter') {
+      // Cegah newline — POK secara semantik adalah satu kode, bukan
+      // multi-line. Wrap visual hanya supaya teks panjang terlihat,
+      // bukan untuk menampung baris baru.
+      e.preventDefault();
     }
     return;
   }
@@ -1605,13 +1612,13 @@ function onMAKKeydown(e, inp) {
     makAcRenderFocus();
   } else if (e.key === 'Enter') {
     // Enter HANYA untuk pilih item dari dropdown — TIDAK pindah cell.
-    // (Konsisten dengan permintaan: Enter tidak navigasi cell.)
+    // Selalu preventDefault supaya textarea tidak menyisipkan newline,
+    // baik ada item terpilih maupun tidak.
+    e.preventDefault();
     if (makACState.focusIdx >= 0 && makACState.filtered[makACState.focusIdx]) {
-      e.preventDefault();
       pickMAK(makACState.filtered[makACState.focusIdx].mak);
     }
-    // Kalau tidak ada item terpilih → Enter no-op (default browser),
-    // input single-line jadi tidak melakukan apa-apa.
+    // Kalau tidak ada item terpilih → no-op (sesuai single-line behavior).
   } else if (e.key === 'Tab') {
     closeMakAc(); // biar handler Tab global yang pindah cell
   }
@@ -1688,6 +1695,232 @@ function pickMAK(mak) {
 }
 
 /* ════════════════════════════════════════════════════════════════════
+   AUTOCOMPLETE TIPE — single-select dari TIPE_OPTIONS
+   Pola: mirror dari pegawai (pg-cell), tapi infrastructure terpisah
+   karena source data statis & value berbeda type.
+
+   Flow:
+   1. User klik cell (.tp-cell) → fokus ke .tp-input → openTpAc()
+   2. User mengetik → tpAcFilter(query) menyaring TIPE_OPTIONS
+   3. ↑↓ Enter atau klik item → pickTipe(value)
+   4. Tag terpasang, input kosong, dropdown tutup
+   5. Klik × pada tag → clearTipe()
+═══════════════════════════════════════════════════════════════════════ */
+let tpState = {
+  cellEl: null,
+  inputEl: null,
+  filtered: [],
+  focusIdx: -1,
+};
+
+function onTpCellClick(e, cellEl) {
+  // Klik di dalam tag-x: biarkan handler tag yg jalan, jangan re-fokus.
+  if (e.target.closest('.tp-tag-x')) return;
+  const inp = cellEl.querySelector('.tp-input');
+  if (inp) inp.focus();
+}
+
+function onTpInputFocus(inp) {
+  const cellEl = inp.closest('.tp-cell');
+  if (cellEl) cellEl.classList.add('focused');
+  openTpAc(cellEl, inp);
+  tpAcFilter(inp.value);
+}
+
+function onTpInputBlur(inp) {
+  const cellEl = inp.closest('.tp-cell');
+  if (cellEl) cellEl.classList.remove('focused');
+  // Delay close supaya klik item dropdown tidak kabur duluan.
+  setTimeout(() => {
+    if (!document.activeElement || !document.activeElement.closest('#tp-ac-popup')) {
+      closeTpAc();
+    }
+  }, 120);
+}
+
+function onTpInput(e, inp) {
+  const cellEl = inp.closest('.tp-cell');
+  if (cellEl) cellEl.classList.remove('err');
+  tpState.cellEl  = cellEl;
+  tpState.inputEl = inp;
+  if (!document.getElementById('tp-ac-popup').classList.contains('open')) {
+    openTpAc(cellEl, inp);
+  }
+  tpAcFilter(inp.value);
+}
+
+function onTpKeydown(e, inp) {
+  const popup = document.getElementById('tp-ac-popup');
+  const isOpen = popup.classList.contains('open');
+  const cellEl = inp.closest('.tp-cell');
+
+  // Backspace di input kosong + ada tag → hapus tag (mimik pg-cell behavior)
+  if (e.key === 'Backspace' && inp.value === '') {
+    const tag = cellEl && cellEl.querySelector('.tp-tag');
+    if (tag) {
+      e.preventDefault();
+      clearTipe(cellEl);
+    }
+    return;
+  }
+
+  if (e.key === 'Escape') {
+    if (isOpen) { e.preventDefault(); closeTpAc(); }
+    return;
+  }
+
+  if (!isOpen) {
+    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+      e.preventDefault();
+      openTpAc(cellEl, inp);
+      tpAcFilter(inp.value);
+    }
+    return;
+  }
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (tpState.filtered.length) {
+      tpState.focusIdx = Math.min(tpState.focusIdx + 1, tpState.filtered.length - 1);
+      tpAcRenderFocus();
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    tpState.focusIdx = Math.max(tpState.focusIdx - 1, 0);
+    tpAcRenderFocus();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (tpState.focusIdx >= 0 && tpState.filtered[tpState.focusIdx]) {
+      pickTipe(tpState.filtered[tpState.focusIdx].value);
+    }
+  } else if (e.key === 'Tab') {
+    closeTpAc();
+  }
+}
+
+function onTpTagRemove(e, btn) {
+  e.stopPropagation();
+  const cellEl = btn.closest('.tp-cell');
+  if (cellEl) clearTipe(cellEl);
+}
+
+function openTpAc(cellEl, inp) {
+  if (!cellEl || !inp) return;
+  tpState.cellEl  = cellEl;
+  tpState.inputEl = inp;
+  tpState.focusIdx = -1;
+  const popup = document.getElementById('tp-ac-popup');
+  popup.classList.add('open');
+  positionTpAcPopup(inp);
+}
+
+function closeTpAc() {
+  const popup = document.getElementById('tp-ac-popup');
+  if (popup) popup.classList.remove('open');
+  tpState.cellEl = null;
+  tpState.inputEl = null;
+  tpState.filtered = [];
+  tpState.focusIdx = -1;
+}
+
+function positionTpAcPopup(inp) {
+  const popup = document.getElementById('tp-ac-popup');
+  const cell  = inp.closest('.tp-cell') || inp;
+  const rect  = cell.getBoundingClientRect();
+  // Posisikan popup tepat di bawah cell, alignment kiri
+  const popH  = 280; // estimasi tinggi maksimal popup
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const above = spaceBelow < popH && rect.top > popH;
+  popup.style.left = `${Math.max(8, rect.left)}px`;
+  popup.style.minWidth = `${Math.max(rect.width, 260)}px`;
+  if (above) {
+    popup.style.top = '';
+    popup.style.bottom = `${window.innerHeight - rect.top + 4}px`;
+  } else {
+    popup.style.bottom = '';
+    popup.style.top = `${rect.bottom + 4}px`;
+  }
+}
+
+function tpAcFilter(query) {
+  const q = (query || '').toLowerCase().trim();
+  // Filter: cocok di label ATAU di value (untuk cari "lampiran", "spd", "menginap", dll.)
+  tpState.filtered = TIPE_OPTIONS.filter(o =>
+    !q ||
+    o.label.toLowerCase().includes(q) ||
+    o.value.toLowerCase().includes(q)
+  );
+  // Default: focus item pertama (kalau ada). Kalau current tipe sudah dipilih,
+  // sorot item itu sebagai posisi awal.
+  const currentVal = tpState.cellEl ? (tpState.cellEl.dataset.value || '') : '';
+  let idx = -1;
+  if (currentVal) {
+    idx = tpState.filtered.findIndex(o => o.value === currentVal);
+  }
+  if (idx < 0 && tpState.filtered.length) idx = 0;
+  tpState.focusIdx = idx;
+  tpAcRender();
+}
+
+function tpAcRender() {
+  const list = document.getElementById('tp-ac-list');
+  if (!list) return;
+  if (!tpState.filtered.length) {
+    list.innerHTML = `<div class="tp-ac-empty">Tidak ada opsi cocok</div>`;
+    return;
+  }
+  const currentVal = tpState.cellEl ? (tpState.cellEl.dataset.value || '') : '';
+  list.innerHTML = tpState.filtered.map((o, i) => {
+    const cls = [
+      'tp-ac-item',
+      o.value === currentVal ? 'selected' : '',
+      i === tpState.focusIdx ? 'focused' : '',
+    ].filter(Boolean).join(' ');
+    return `<div class="${cls}" data-idx="${i}" onmousedown="event.preventDefault()" onclick="pickTipe('${escAttr(o.value)}')">${esc(o.label)}</div>`;
+  }).join('');
+}
+
+function tpAcRenderFocus() {
+  const items = document.querySelectorAll('#tp-ac-list .tp-ac-item');
+  items.forEach((el, i) => el.classList.toggle('focused', i === tpState.focusIdx));
+  // Auto-scroll item ter-focus ke dalam viewport popup
+  if (tpState.focusIdx >= 0 && items[tpState.focusIdx]) {
+    items[tpState.focusIdx].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function pickTipe(value) {
+  const cellEl = tpState.cellEl;
+  if (!cellEl) { closeTpAc(); return; }
+  cellEl.dataset.value = value || '';
+  cellEl.classList.remove('err');
+  // Re-render: hapus tag lama, tambahkan tag baru, kosongkan input, hilangkan placeholder
+  const existing = cellEl.querySelector('.tp-tag');
+  if (existing) existing.remove();
+  const inp = cellEl.querySelector('.tp-input');
+  if (value) {
+    cellEl.insertAdjacentHTML('afterbegin', buildTipeTag(value));
+  }
+  if (inp) {
+    inp.value = '';
+    inp.placeholder = value ? '' : 'Pilih tipe...';
+  }
+  closeTpAc();
+}
+
+function clearTipe(cellEl) {
+  if (!cellEl) return;
+  cellEl.dataset.value = '';
+  const tag = cellEl.querySelector('.tp-tag');
+  if (tag) tag.remove();
+  const inp = cellEl.querySelector('.tp-input');
+  if (inp) {
+    inp.placeholder = 'Pilih tipe...';
+    inp.focus();
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
    ARROW NAVIGATION GRID — navigasi Excel-like antar sel
    Mendukung: editable (input/textarea/pg-input) + readonly (ro-text/ro-ttd)
 ═══════════════════════════════════════════════════════════════════════ */
@@ -1704,6 +1937,7 @@ const NAV_FIELDS = [
   'alat_angkutan',
   'pembebanan',
   'penandatangan',
+  'tipe',
 ];
 
 /**
@@ -1728,7 +1962,13 @@ function buildNavGrid() {
         return pgCell.querySelector('.pg-input') || pgCell;
       }
 
-      // 3) Readonly div (ro-text atau ro-ttd)
+      // 3) Editable tp-cell (tipe) → kembalikan tp-input di dalamnya
+      const tpCell = row.querySelector(`.tp-cell[data-col-field="${field}"]`);
+      if (tpCell) {
+        return tpCell.querySelector('.tp-input') || tpCell;
+      }
+
+      // 4) Readonly div (ro-text atau ro-ttd)
       el = row.querySelector(`[data-col-field="${field}"]`);
       return el || null;
     });
@@ -1737,7 +1977,7 @@ function buildNavGrid() {
 
 /**
  * Cari posisi elemen dalam grid.
- * Jika elemen adalah pg-input, cari parent pg-cell-nya di grid.
+ * Jika elemen adalah pg-input/tp-input, cari parent pg-cell/tp-cell-nya di grid.
  */
 function findInGrid(grid, target) {
   for (let r = 0; r < grid.length; r++) {
@@ -1749,6 +1989,11 @@ function findInGrid(grid, target) {
       if (target.classList && target.classList.contains('pg-input')) {
         const parentPg = target.closest('.pg-cell');
         if (parentPg && el === parentPg) return { r, c };
+      }
+      // tp-input → cek apakah parent tp-cell ada di grid
+      if (target.classList && target.classList.contains('tp-input')) {
+        const parentTp = target.closest('.tp-cell');
+        if (parentTp && el === parentTp) return { r, c };
       }
     }
   }
@@ -1825,10 +2070,11 @@ document.addEventListener('keydown', (e) => {
   // Tentukan tipe elemen yang sedang difokus
   const isXlsCell  = target.classList && target.classList.contains('xls-cell');
   const isPgInput  = target.classList && target.classList.contains('pg-input');
+  const isTpInput  = target.classList && target.classList.contains('tp-input');
   const isRoText   = target.classList && (
     target.classList.contains('ro-text') || target.classList.contains('ro-ttd')
   );
-  const isNavTarget = isXlsCell || isPgInput || isRoText;
+  const isNavTarget = isXlsCell || isPgInput || isTpInput || isRoText;
 
   if (!isNavTarget) return;
 
@@ -1849,6 +2095,11 @@ document.addEventListener('keydown', (e) => {
     // ArrowUp/Down di MAK typeahead = biarkan onMAKKeydown handle navigate item
     if (target.classList && target.classList.contains('mak-input') &&
         document.getElementById('mak-ac-popup').classList.contains('open')) {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') return;
+    }
+
+    // ArrowUp/Down di Tipe autocomplete = biarkan handler onTpKeydown handle navigate item
+    if (isTpInput && document.getElementById('tp-ac-popup').classList.contains('open')) {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') return;
     }
 
@@ -1882,10 +2133,18 @@ document.addEventListener('keydown', (e) => {
       const cursorAtStart = isReadonly || (
         target.selectionStart === 0 && target.selectionEnd === 0
       );
-      if (cursorAtStart && c > 0) {
-        e.preventDefault();
-        closeAllPopups();
-        navFocusCell(grid, r, c - 1);
+      if (cursorAtStart) {
+        if (c > 0) {
+          // Pindah kiri dalam baris yang sama
+          e.preventDefault();
+          closeAllPopups();
+          navFocusCell(grid, r, c - 1);
+        } else if (r > 0) {
+          // Sudah di kolom pertama → wrap ke kolom terakhir baris sebelumnya
+          e.preventDefault();
+          closeAllPopups();
+          navFocusCell(grid, r - 1, NAV_FIELDS.length - 1);
+        }
       }
       return;
     }
@@ -1897,10 +2156,18 @@ document.addEventListener('keydown', (e) => {
       const cursorAtEnd = isReadonly || (
         target.selectionStart === valLen && target.selectionEnd === valLen
       );
-      if (cursorAtEnd && c < NAV_FIELDS.length - 1) {
-        e.preventDefault();
-        closeAllPopups();
-        navFocusCell(grid, r, c + 1);
+      if (cursorAtEnd) {
+        if (c < NAV_FIELDS.length - 1) {
+          // Pindah kanan dalam baris yang sama
+          e.preventDefault();
+          closeAllPopups();
+          navFocusCell(grid, r, c + 1);
+        } else if (r < grid.length - 1) {
+          // Sudah di kolom terakhir → wrap ke kolom pertama baris berikutnya
+          e.preventDefault();
+          closeAllPopups();
+          navFocusCell(grid, r + 1, 0);
+        }
       }
       return;
     }
@@ -1926,7 +2193,7 @@ document.addEventListener('keydown', (e) => {
  */
 function moveCellFocus(currentEl, direction) {
   const allCells = Array.from(document.querySelectorAll(
-    'tr[data-status="menunggu"] .xls-cell, tr[data-status="menunggu"] .pg-input'
+    'tr[data-status="menunggu"] .xls-cell, tr[data-status="menunggu"] .pg-input, tr[data-status="menunggu"] .tp-input'
   ));
   const idx  = allCells.indexOf(currentEl);
   if (idx < 0) return;
@@ -1959,6 +2226,11 @@ document.addEventListener('click', (e) => {
     const inMakInput = e.target.closest && e.target.closest('.mak-input');
     if (!inMakInput) closeMakAc();
   }
+  const tpAc = document.getElementById('tp-ac-popup');
+  if (tpAc && tpAc.classList.contains('open') && !tpAc.contains(e.target)) {
+    const inAnyTpCell = e.target.closest && e.target.closest('.tp-cell');
+    if (!inAnyTpCell) closeTpAc();
+  }
   // Hapus highlight baris jika klik di luar tabel
   if (!e.target.closest('tr[data-surat-id]')) {
     document.querySelectorAll('tr.row-focused').forEach(tr => tr.classList.remove('row-focused'));
@@ -1987,6 +2259,7 @@ function closeAllPopups() {
   closeCal();
   closeAc();
   closeMakAc();
+  closeTpAc();
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -2022,6 +2295,15 @@ function collectRowFields(suratId) {
     if (!el) return { nip: '', nama: '' };
     return { nip: el.dataset.nip || '', nama: el.dataset.nama || '' };
   };
+  // Tipe disimpan di dataset.value pada .tp-cell (bukan value/value attribute)
+  // karena cell custom autocomplete, bukan <select> native.
+  const getTipe = () => {
+    const el = row.querySelector('.tp-cell[data-field="tipe"]');
+    if (el) return el.dataset.value || '';
+    // Fallback: kalau row sudah selesai (read-only ro-text), baca data-col-field
+    const ro = row.querySelector('[data-col-field="tipe"]');
+    return ro ? (ro.dataset.value || '') : '';
+  };
 
   const waktu = getRange('waktu');
   const peg   = getMulti('pegawai_multi');
@@ -2042,7 +2324,7 @@ function collectRowFields(suratId) {
     penandatangan_nip:    ttd.nip,
     penandatangan_nama:   ttd.nama,
     tempat_terbit:        'Waisai',
-    tipe:                 get('tipe') || null,
+    tipe:                 getTipe() || null,
   };
 }
 
@@ -2081,7 +2363,7 @@ function validateApproveFields(values) {
 function highlightRowFieldErrors(suratId, fields) {
   const row = document.querySelector(`tr[data-surat-id="${suratId}"]`);
   if (!row) return;
-  row.querySelectorAll('.xls-cell.err, .pg-cell.err').forEach(el => el.classList.remove('err'));
+  row.querySelectorAll('.xls-cell.err, .pg-cell.err, .tp-cell.err').forEach(el => el.classList.remove('err'));
 
   const FIELD_DOM_MAP = {
     tanggal_berangkat: 'waktu',
@@ -2098,13 +2380,13 @@ function highlightRowFieldErrors(suratId, fields) {
   });
 
   if (fields.length) {
-    const first = row.querySelector('.xls-cell.err, .pg-cell.err');
+    const first = row.querySelector('.xls-cell.err, .pg-cell.err, .tp-cell.err');
     if (first) {
       first.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
       setTimeout(() => {
         if (first.tagName === 'INPUT' || first.tagName === 'TEXTAREA') first.focus();
         else {
-          const inp = first.querySelector('input, textarea, .pg-input');
+          const inp = first.querySelector('input, textarea, .pg-input, .tp-input');
           if (inp) inp.focus();
         }
       }, 300);
@@ -2233,6 +2515,10 @@ function captureMenungguDirty(excludeId = null) {
       } catch(_) { entry.pegawai = { nips: [], names: [] }; }
     }
 
+    // Capture tp-cell (tipe single-select)
+    const tp = tr.querySelector('.tp-cell');
+    if (tp) entry.tipe = tp.dataset.value || '';
+
     out[id] = entry;
   });
 
@@ -2259,11 +2545,24 @@ function reapplyMenungguDirty(snapshot) {
       if (cell.iso        !== undefined) el.dataset.iso        = cell.iso;
       if (cell.isoMulai   !== undefined) el.dataset.isoMulai   = cell.isoMulai;
       if (cell.isoSelesai !== undefined) el.dataset.isoSelesai = cell.isoSelesai;
-      // Untuk select tipe: sinkronkan class tipe-empty (placeholder italic)
-      if (el.tagName === 'SELECT' && cell.field === 'tipe') {
-        el.classList.toggle('tipe-empty', !cell.value);
-      }
     });
+
+    // Re-apply tp-cell (tipe): re-render tag + sync data-value
+    if (entry.tipe !== undefined) {
+      const tp = tr.querySelector('.tp-cell');
+      if (tp) {
+        tp.dataset.value = entry.tipe || '';
+        tp.querySelectorAll('.tp-tag').forEach(t => t.remove());
+        const inp = tp.querySelector('.tp-input');
+        if (entry.tipe) {
+          tp.insertAdjacentHTML('afterbegin', buildTipeTag(entry.tipe));
+        }
+        if (inp) {
+          inp.value = '';
+          inp.placeholder = entry.tipe ? '' : 'Pilih tipe...';
+        }
+      }
+    }
 
     // Re-apply pegawai (re-render visual tag-tag)
     if (entry.pegawai) {
