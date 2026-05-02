@@ -107,5 +107,5 @@
   }
 
   // Expose untuk debugging / re-render manual kalau dibutuhkan
-  window.NovaSidebar = { render: render };
+  window.Sidebar9201 = { render: render };
 })();
