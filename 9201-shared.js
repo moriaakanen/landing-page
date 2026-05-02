@@ -209,46 +209,32 @@
 
     const fallback = session.username || '';
 
-    // DEBUG: log state awal supaya bisa diagnose dari console
-    console.log('[9201:ensureFullName] start', {
-      sessionId: session.id,
-      sessionUsername: session.username,
-      sessionFullName: session.full_name,
-      force: force
-    });
-
     if (!session.id) {
       if (!session.full_name) session.full_name = fallback;
       try { localStorage.setItem('nova_user', JSON.stringify(session)); } catch(_) {}
-      console.warn('[9201:ensureFullName] session.id kosong — tidak bisa fetch');
       return session;
     }
 
     try {
-      const url = `${SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(session.id)}&select=full_name&limit=1`;
-      console.log('[9201:ensureFullName] fetching:', url);
-      const res = await fetch(url, { headers: window.SUPABASE_HEADERS });
-      console.log('[9201:ensureFullName] response status:', res.status);
-
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(session.id)}&select=full_name&limit=1`,
+        { headers: window.SUPABASE_HEADERS }
+      );
       let nama = '';
       if (res.ok) {
         const rows = await res.json();
-        console.log('[9201:ensureFullName] response rows:', rows);
         nama = (rows && rows[0] && rows[0].full_name) || '';
-      } else {
-        const errBody = await res.text().catch(() => '');
-        console.warn('[9201:ensureFullName] response not ok:', res.status, errBody);
       }
-
+      // Kalau nama dari DB ada, pakai itu. Kalau tidak, jangan timpa
+      // session.full_name yang mungkin sudah valid — tapi kalau session
+      // juga kosong, fallback ke username.
       if (nama) {
         session.full_name = nama;
-        console.log('[9201:ensureFullName] ✓ full_name resolved:', nama);
       } else if (!session.full_name) {
         session.full_name = fallback;
-        console.warn('[9201:ensureFullName] DB tidak return nama, fallback ke username:', fallback);
       }
     } catch (e) {
-      console.warn('[9201:ensureFullName] fetch gagal:', e);
+      console.warn('[novaEnsureFullName] fetch gagal:', e);
       if (!session.full_name) session.full_name = fallback;
     }
 
