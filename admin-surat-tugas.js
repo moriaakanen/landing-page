@@ -16,71 +16,112 @@ const H = SUPABASE_HEADERS;
 /* ═════════════════════════════════════════════════════════════════════
    TIPE SURAT — fitur multi-template
    ─────────────────────────────────────────────────────────────────────
-   7 pilihan tipe yg menentukan template .docx yg dipakai saat generate.
+   10 pilihan tipe yg menentukan template .docx yg dipakai saat generate.
    String value sengaja sama dengan check-constraint surat_tugas_tipe_enum
    di DB (lihat surat_tugas_add_tipe.sql).
 
-   Ada 3 file template di Supabase Storage:
-     T1: template-surat-tugas-spd-kendaraan-menginap.docx
-         — punya {#has_spd}, {#kendaraan}, {#menginap}
-     T2: template-surat-tugas-lampiran.docx
-         — punya {#ul} (tabel lampiran)
-     T3: template-surat-tugas-lampiran-spd-kendaraan-menginap.docx
-         — punya {#ul} (lampiran), {#kendaraan}, {#menginap}; SPD selalu
-           render (tidak ada {#has_spd} wrapper)
+   Ada 5 file template di Supabase Storage:
+     T1:  template-surat-tugas-spd-kendaraan-menginap.docx
+          — punya {#has_spd}, {#kendaraan}, {#menginap}
+     T2:  template-surat-tugas-lampiran.docx
+          — punya {#ul} (tabel lampiran)
+     T3:  template-surat-tugas-lampiran-spd-kendaraan-menginap.docx
+          — punya {#ul} (lampiran), {#kendaraan}, {#menginap}; SPD selalu
+            render (tidak ada {#has_spd} wrapper)
+     T1V: template-surat-tugas-spd-visum-kendaraan-menginap.docx
+          — superset dari T1 + {#visum}{#r}{/r}{/visum} (lembar visum)
+     T3V: template-surat-tugas-lampiran-spd-visum-kendaraan-menginap.docx
+          — superset dari T3 + {#visum}{#r}{/r}{/visum} (lembar visum)
 
    Catatan tag yg perlu Anda pastikan ADA di template:
      - T1 & T3: blok kendaraan dibungkus {#kendaraan}...{/kendaraan}
                 blok menginap   dibungkus {#menginap}...{/menginap}
                 (sebelumnya pakai {#ul} dua kali — perlu di-rename)
+     - T1V & T3V: blok visum dibungkus {#visum}...{/visum} dan baris loop
+                  responden di-bungkus {#r}...{/r} di baris terakhir tabel.
 ═══════════════════════════════════════════════════════════════════════ */
 
-// 7 pilihan tipe (urutan = urutan tampil di dropdown UI).
+// 10 pilihan tipe (urutan = urutan tampil di dropdown UI).
+// Variant Visum diletakkan setelah variant non-visum yang setara.
 const TIPE_OPTIONS = [
-  { value: 'surat_tugas',                                   label: 'Surat Tugas' },
-  { value: 'surat_tugas_kendaraan',                         label: 'Surat Tugas + Kendaraan' },
-  { value: 'surat_tugas_lampiran',                          label: 'Surat Tugas + Lampiran' },
-  { value: 'surat_tugas_spd_kendaraan',                     label: 'Surat Tugas + SPD + Kendaraan' },
-  { value: 'surat_tugas_spd_kendaraan_menginap',            label: 'Surat Tugas + SPD + Kendaraan + Menginap' },
-  { value: 'surat_tugas_lampiran_spd_kendaraan',            label: 'Surat Tugas + Lampiran + SPD + Kendaraan' },
-  { value: 'surat_tugas_lampiran_spd_kendaraan_menginap',   label: 'Surat Tugas + Lampiran + SPD + Kendaraan + Menginap' },
+  { value: 'surat_tugas',                                       label: 'Surat Tugas' },
+  { value: 'surat_tugas_kendaraan',                             label: 'Surat Tugas + Kendaraan' },
+  { value: 'surat_tugas_visum_kendaraan',                       label: 'Surat Tugas + Visum + Kendaraan' },
+  { value: 'surat_tugas_lampiran',                              label: 'Surat Tugas + Lampiran' },
+  { value: 'surat_tugas_spd_kendaraan',                         label: 'Surat Tugas + SPD + Kendaraan' },
+  { value: 'surat_tugas_spd_kendaraan_menginap',                label: 'Surat Tugas + SPD + Kendaraan + Menginap' },
+  { value: 'surat_tugas_spd_visum_kendaraan_menginap',          label: 'Surat Tugas + SPD + Visum + Kendaraan + Menginap' },
+  { value: 'surat_tugas_lampiran_spd_kendaraan',                label: 'Surat Tugas + Lampiran + SPD + Kendaraan' },
+  { value: 'surat_tugas_lampiran_spd_kendaraan_menginap',       label: 'Surat Tugas + Lampiran + SPD + Kendaraan + Menginap' },
+  { value: 'surat_tugas_lampiran_spd_visum_kendaraan_menginap', label: 'Surat Tugas + Lampiran + SPD + Visum + Kendaraan + Menginap' },
 ];
 
 // URL template di Supabase Storage. Pastikan nama file yang Anda upload
 // di bucket `template/` sama persis dengan path di sini.
-const TEMPLATE_URL_T1 = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-spd-kendaraan-menginap.docx';
-const TEMPLATE_URL_T2 = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-lampiran.docx';
-const TEMPLATE_URL_T3 = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-lampiran-spd-kendaraan-menginap.docx';
+const TEMPLATE_URL_T1  = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-spd-kendaraan-menginap.docx';
+const TEMPLATE_URL_T2  = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-lampiran.docx';
+const TEMPLATE_URL_T3  = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-lampiran-spd-kendaraan-menginap.docx';
+const TEMPLATE_URL_T1V = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-spd-visum-kendaraan-menginap.docx';
+const TEMPLATE_URL_T3V = 'https://jsmmtqeoukkgugorrvmg.supabase.co/storage/v1/object/public/template/template-surat-tugas-lampiran-spd-visum-kendaraan-menginap.docx';
 
 // Mapping tipe → template URL.
+// Variant visum pakai T1V/T3V (template superset yg punya {#visum}).
 const TIPE_TO_TEMPLATE = {
-  'surat_tugas':                                  TEMPLATE_URL_T1,
-  'surat_tugas_kendaraan':                        TEMPLATE_URL_T1,
-  'surat_tugas_lampiran':                         TEMPLATE_URL_T2,
-  'surat_tugas_spd_kendaraan':                    TEMPLATE_URL_T1,
-  'surat_tugas_spd_kendaraan_menginap':           TEMPLATE_URL_T1,
-  'surat_tugas_lampiran_spd_kendaraan':           TEMPLATE_URL_T3,
-  'surat_tugas_lampiran_spd_kendaraan_menginap':  TEMPLATE_URL_T3,
+  'surat_tugas':                                       TEMPLATE_URL_T1,
+  'surat_tugas_kendaraan':                             TEMPLATE_URL_T1,
+  'surat_tugas_visum_kendaraan':                       TEMPLATE_URL_T1V,
+  'surat_tugas_lampiran':                              TEMPLATE_URL_T2,
+  'surat_tugas_spd_kendaraan':                         TEMPLATE_URL_T1,
+  'surat_tugas_spd_kendaraan_menginap':                TEMPLATE_URL_T1,
+  'surat_tugas_spd_visum_kendaraan_menginap':          TEMPLATE_URL_T1V,
+  'surat_tugas_lampiran_spd_kendaraan':                TEMPLATE_URL_T3,
+  'surat_tugas_lampiran_spd_kendaraan_menginap':       TEMPLATE_URL_T3,
+  'surat_tugas_lampiran_spd_visum_kendaraan_menginap': TEMPLATE_URL_T3V,
 };
 
 // Mapping tipe → flags untuk kontrol section di template.
-//   has_spd       → toggle {#has_spd}...{/has_spd}  (hanya berpengaruh di T1)
-//   has_kendaraan → kalau true, kirim array `kendaraan` (T1 + T3)
-//   has_menginap  → kalau true, kirim array `menginap`  (T1 + T3)
-//   has_lampiran  → kalau true, kirim array `ul` utk tabel lampiran (T2 + T3)
+//   has_spd       → toggle {#has_spd}...{/has_spd}  (hanya berpengaruh di T1/T1V)
+//   has_kendaraan → kalau true, kirim array `kendaraan` (T1/T1V/T3/T3V)
+//   has_menginap  → kalau true, kirim array `menginap`  (T1/T1V/T3/T3V)
+//   has_lampiran  → kalau true, kirim array `ul` utk tabel lampiran (T2/T3/T3V)
+//   has_visum     → kalau true, kirim section `visum` & array `r` (T1V/T3V)
 //
-// Catatan: untuk T3, has_spd dikirim true walau template T3 tidak punya
+// Catatan: untuk T3/T3V, has_spd dikirim true walau template tidak punya
 // {#has_spd} wrapper — engine docxtemplater akan ignore tag yg tidak ada
 // di template, jadi aman.
 const TIPE_TO_FLAGS = {
-  'surat_tugas':                                  { has_spd:false, has_kendaraan:false, has_menginap:false, has_lampiran:false },
-  'surat_tugas_kendaraan':                        { has_spd:false, has_kendaraan:true,  has_menginap:false, has_lampiran:false },
-  'surat_tugas_lampiran':                         { has_spd:false, has_kendaraan:false, has_menginap:false, has_lampiran:true  },
-  'surat_tugas_spd_kendaraan':                    { has_spd:true,  has_kendaraan:true,  has_menginap:false, has_lampiran:false },
-  'surat_tugas_spd_kendaraan_menginap':           { has_spd:true,  has_kendaraan:true,  has_menginap:true,  has_lampiran:false },
-  'surat_tugas_lampiran_spd_kendaraan':           { has_spd:true,  has_kendaraan:true,  has_menginap:false, has_lampiran:true  },
-  'surat_tugas_lampiran_spd_kendaraan_menginap':  { has_spd:true,  has_kendaraan:true,  has_menginap:true,  has_lampiran:true  },
+  'surat_tugas':                                       { has_spd:false, has_kendaraan:false, has_menginap:false, has_lampiran:false, has_visum:false },
+  'surat_tugas_kendaraan':                             { has_spd:false, has_kendaraan:true,  has_menginap:false, has_lampiran:false, has_visum:false },
+  'surat_tugas_visum_kendaraan':                       { has_spd:false, has_kendaraan:true,  has_menginap:false, has_lampiran:false, has_visum:true  },
+  'surat_tugas_lampiran':                              { has_spd:false, has_kendaraan:false, has_menginap:false, has_lampiran:true,  has_visum:false },
+  'surat_tugas_spd_kendaraan':                         { has_spd:true,  has_kendaraan:true,  has_menginap:false, has_lampiran:false, has_visum:false },
+  'surat_tugas_spd_kendaraan_menginap':                { has_spd:true,  has_kendaraan:true,  has_menginap:true,  has_lampiran:false, has_visum:false },
+  'surat_tugas_spd_visum_kendaraan_menginap':          { has_spd:true,  has_kendaraan:true,  has_menginap:true,  has_lampiran:false, has_visum:true  },
+  'surat_tugas_lampiran_spd_kendaraan':                { has_spd:true,  has_kendaraan:true,  has_menginap:false, has_lampiran:true,  has_visum:false },
+  'surat_tugas_lampiran_spd_kendaraan_menginap':       { has_spd:true,  has_kendaraan:true,  has_menginap:true,  has_lampiran:true,  has_visum:false },
+  'surat_tugas_lampiran_spd_visum_kendaraan_menginap': { has_spd:true,  has_kendaraan:true,  has_menginap:true,  has_lampiran:true,  has_visum:true  },
 };
+
+// Konstanta layout tabel visum (sinkron dengan template T1V/T3V).
+// Tabel visum punya 6 baris kosong default; baris terakhir adalah baris loop
+// dengan tag {#r}...{/r}. Kalau user input jumlah responden ≤ VISUM_DEFAULT_ROWS,
+// loop tetap render minimal 1x → minimal 7 baris terlihat.
+// Kalau input > VISUM_DEFAULT_ROWS, loop render (input - VISUM_DEFAULT_ROWS) baris.
+const VISUM_DEFAULT_ROWS = 6;
+
+// Hitung jumlah baris yang harus di-loop (`r` array length) berdasarkan
+// jumlah responden yang user input. Defensive: input apapun (null/string/
+// negatif/desimal) di-coerce ke integer. Lihat juga buildTemplateData().
+function calcVisumLoopCount(jumlahResponden) {
+  const n = parseInt(jumlahResponden, 10);
+  if (!isFinite(n) || n <= VISUM_DEFAULT_ROWS) return 1; // minimal 1 → total 7 baris
+  return n - VISUM_DEFAULT_ROWS;
+}
+
+// Helper: apakah tipe surat ini butuh input "Jumlah Responden" untuk visum?
+function tipeHasVisum(tipe) {
+  return tipeFlags(tipe).has_visum === true;
+}
 
 // Helper: ubah enum value ke label readable. Kalau value tidak dikenal,
 // kembalikan apa adanya (untuk debug).
@@ -93,7 +134,7 @@ function tipeLabel(tipe) {
 // Helper: dapatkan flags dari tipe. Return objek dgn semua flag = false
 // kalau tipe NULL/invalid (defensive — caller bisa langsung pakai).
 function tipeFlags(tipe) {
-  return TIPE_TO_FLAGS[tipe] || { has_spd:false, has_kendaraan:false, has_menginap:false, has_lampiran:false };
+  return TIPE_TO_FLAGS[tipe] || { has_spd:false, has_kendaraan:false, has_menginap:false, has_lampiran:false, has_visum:false };
 }
 
 // Helper: dapatkan URL template dari tipe. Return null kalau tipe
@@ -2409,6 +2450,18 @@ function closeModal(id) {
     _previewUploadedPath = null;
     setTimeout(() => deletePreviewFile(path), 60_000);
   }
+  // Reset state khusus modal preview
+  if (id === 'modal-preview') {
+    _previewVisumOpts = null;
+  }
+  // Kalau modal-visum-prompt ditutup tanpa klik "Lanjutkan" (X / Batal /
+  // klik backdrop), resolve Promise yang lagi menunggu dengan null
+  // supaya caller (withVisumOpts) tahu user cancel — tidak menggantung.
+  if (id === 'modal-visum-prompt' && _visumPromptResolver) {
+    const fn = _visumPromptResolver;
+    _visumPromptResolver = null;
+    fn(null);
+  }
 }
 
 function showPageAlert(msg, type='error') {
@@ -2441,6 +2494,12 @@ function openApprove(id) {
   const ttdJabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
   const nomorFull  = buildNomorSuratFull(values.nomor_surat, values.tanggal_surat);
 
+  // Info badge tipe — kalau tipe ada visum, tampilkan reminder agar admin
+  // tahu nanti perlu input jumlah responden saat preview/download.
+  const tipeBadge = tipeHasVisum(values.tipe)
+    ? `${esc(tipeLabel(values.tipe))} <span style="display:inline-block;margin-left:6px;background:rgba(200,168,75,.18);color:#7a5c10;border:1px solid rgba(200,168,75,.4);border-radius:100px;padding:1px 7px;font-size:10px;font-weight:600;letter-spacing:.3px">📋 VISUM</span>`
+    : esc(tipeLabel(values.tipe));
+
   document.getElementById('approve-preview').innerHTML = `
     <div class="approve-preview-row"><strong>Nomor</strong><span style="font-family:ui-monospace,monospace;font-size:11px">${esc(nomorFull)}</span></div>
     <div class="approve-preview-row"><strong>Tgl Surat</strong><span>${esc(fmtTgl(values.tanggal_surat))}</span></div>
@@ -2456,7 +2515,7 @@ function openApprove(id) {
       <em style="color:var(--muted);font-style:italic;font-size:11px">${ttdJabatan ? esc(ttdJabatan) : '<span style="color:var(--red)">⚠ Jabatan tidak ditemukan di riwayat (akan ditampilkan "-" di docx)</span>'}</em><br>
       <span style="color:var(--muted);font-size:11px">NIP. ${esc(values.penandatangan_nip)}</span>
     </span></div>
-    <div class="approve-preview-row"><strong>Tipe Surat</strong><span>${esc(tipeLabel(values.tipe))}</span></div>
+    <div class="approve-preview-row"><strong>Tipe Surat</strong><span>${tipeBadge}</span></div>
   `;
   document.getElementById('inp-catatan-approve').value = s.catatan_admin || '';
   document.getElementById('approve-alert').className = 'alert';
@@ -2852,6 +2911,78 @@ let currentPreviewSurat = null;
 ─────────────────────────────────────────────────────────────────── */
 const PREVIEW_BUCKET = 'surat-tugas-preview';
 let _previewUploadedPath = null;
+// Opts visum yg sedang aktif untuk modal preview saat ini. Dipakai oleh
+// downloadFromPreview() dan openInWordForPrint() agar tombol-tombol di
+// modal preview pakai jumlah responden yang sama dengan preview yg sedang
+// ditampilkan, tanpa tanya ulang ke user. Reset saat modal preview ditutup.
+let _previewVisumOpts = null;
+
+/* ── Visum prompt state ──────────────────────────────────────────────
+   Karena jumlah_responden tidak disimpan ke DB, kita pakai modal
+   prompt (#modal-visum-prompt) yang muncul on-demand sebelum
+   preview/download untuk tipe yang punya visum.
+
+   Cache opsional `_visumLastInput[suratId]` menyimpan input user
+   sebelumnya per-session — jadi kalau user buka Preview lalu
+   Download untuk surat yg sama, value sebelumnya jadi default
+   (tetap bisa diubah). Hilang saat reload halaman.
+─────────────────────────────────────────────────────────────────── */
+const _visumLastInput = {};
+let _visumPromptResolver = null;  // resolver untuk Promise yg lagi pending
+
+/**
+ * Tampilkan modal input "Jumlah Responden Visum" dan return Promise
+ * yang resolve dengan value input (string atau null kalau di-cancel).
+ *
+ * @param {object} surat - object surat (untuk default value & info)
+ * @returns {Promise<string|null>}  string angka atau '' (kosong) kalau OK
+ *                                  null kalau user cancel
+ */
+function promptVisumResponden(surat) {
+  return new Promise(resolve => {
+    _visumPromptResolver = resolve;
+    const inp = document.getElementById('inp-jumlah-responden-prompt');
+    if (inp) {
+      // Set default dari last input (kalau ada) untuk surat yang sama
+      const cached = _visumLastInput[surat.id];
+      inp.value = cached != null ? cached : '';
+      // Auto-focus setelah modal terlihat
+      setTimeout(() => { try { inp.focus(); inp.select(); } catch(_) {} }, 50);
+    }
+    openModal('modal-visum-prompt');
+  });
+}
+
+/** Handler tombol "Lanjutkan" di modal visum prompt. */
+function confirmVisumPrompt() {
+  const inp = document.getElementById('inp-jumlah-responden-prompt');
+  const val = inp ? inp.value.trim() : '';
+  closeModal('modal-visum-prompt');
+  if (_visumPromptResolver) {
+    const fn = _visumPromptResolver;
+    _visumPromptResolver = null;
+    fn(val);  // string ('' kalau kosong, '10' kalau diisi)
+  }
+}
+
+/**
+ * Wrapper: jalankan callback dengan opts yang sudah di-resolve dari
+ * visum prompt (kalau perlu). Kalau tipe surat tidak butuh visum,
+ * langsung jalankan callback dengan opts kosong.
+ *
+ * @param {object}   surat    - object surat
+ * @param {Function} callback - async (opts) => any
+ * @returns {Promise<any>}    - return value callback, atau null kalau dibatalkan
+ */
+async function withVisumOpts(surat, callback) {
+  if (!tipeHasVisum(surat && surat.tipe)) {
+    return callback({});  // tipe non-visum → opts kosong
+  }
+  const val = await promptVisumResponden(surat);
+  if (val === null) return null;  // user cancel
+  _visumLastInput[surat.id] = val; // cache untuk next call
+  return callback({ jumlahResponden: val === '' ? null : val });
+}
 
 async function uploadPreviewDocx(blob, suratId) {
   const filename = `${suratId}_${Date.now()}.docx`;
@@ -2944,7 +3075,27 @@ async function openPreview(suratId) {
     showPageAlert('Surat hanya bisa di-preview jika sudah selesai.', 'error');
     return;
   }
+
+  // Untuk tipe visum: minta jumlah responden DULU sebelum buka modal
+  // preview. Kalau user cancel di prompt, jangan buka modal preview.
+  // Untuk tipe non-visum: opts={} langsung lanjut.
+  let visumOpts;
+  if (tipeHasVisum(surat.tipe)) {
+    const val = await promptVisumResponden(surat);
+    if (val === null) return;  // user cancel — abort tanpa buka preview
+    _visumLastInput[surat.id] = val;
+    visumOpts = { jumlahResponden: val === '' ? null : val };
+  } else {
+    visumOpts = {};
+  }
+
   currentPreviewSurat = surat;
+  // Simpan opts visum agar tombol "Download .docx" dan "Buka di Word"
+  // di modal preview ini bisa pakai jumlah responden yang sama tanpa
+  // tanya ulang. _previewVisumOpts hanya hidup selama modal preview
+  // terbuka — di-reset saat modal ditutup.
+  _previewVisumOpts = visumOpts;
+
   openModal('modal-preview');
 
   // Bersihkan file preview sebelumnya kalau user buka ulang dengan cepat
@@ -2964,7 +3115,7 @@ async function openPreview(suratId) {
 
   try {
     ensureLibrariesLoaded();
-    const blob = await buildSuratTugasDoc(surat);
+    const blob = await buildSuratTugasDoc(surat, visumOpts);
     const filename = await uploadPreviewDocx(blob, surat.id);
     _previewUploadedPath = filename;
     const fileUrl = await getPreviewSignedUrl(filename, 3600);
@@ -2991,15 +3142,21 @@ async function downloadSuratTugas(suratId) {
   if (surat.status !== 'selesai') {
     showPageAlert('Surat hanya bisa di-download jika sudah selesai.', 'error'); return;
   }
-  try {
-    ensureLibrariesLoaded();
-    const blob = await buildSuratTugasDoc(surat);
-    saveAs(blob, buildFileName(surat));
-    showPageAlert(`📥 Berhasil di-download: ${buildFileName(surat)}`, 'success');
-  } catch(e) {
-    console.error(e);
-    showPageAlert(`Gagal download: ${e.message}`, 'error');
-  }
+  // Untuk tipe visum: minta jumlah responden dulu. User cancel → abort.
+  const result = await withVisumOpts(surat, async (opts) => {
+    try {
+      ensureLibrariesLoaded();
+      const blob = await buildSuratTugasDoc(surat, opts);
+      saveAs(blob, buildFileName(surat));
+      showPageAlert(`📥 Berhasil di-download: ${buildFileName(surat)}`, 'success');
+      return true;
+    } catch(e) {
+      console.error(e);
+      showPageAlert(`Gagal download: ${e.message}`, 'error');
+      return false;
+    }
+  });
+  // result === null artinya user cancel di prompt visum — tidak perlu alert.
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -3083,6 +3240,31 @@ async function bulkDownloadSelected() {
   // Pre-warm library sekali saja (bukan per-iteration)
   try { ensureLibrariesLoaded(); } catch(_) {}
 
+  // Pre-collect: untuk setiap surat dengan tipe visum, prompt jumlah
+  // responden DULU (sebelum mulai loop download). Ini supaya admin tidak
+  // perlu nunggu di tengah-tengah loop. Kalau admin cancel salah satu
+  // prompt, surat tsb di-skip (failures); sisanya tetap lanjut.
+  const visumOptsById = {};
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+    const surat = suratMap[id];
+    if (!surat || surat.status !== 'selesai') continue;
+    if (!tipeHasVisum(surat.tipe)) {
+      visumOptsById[id] = {};
+      continue;
+    }
+    // Tipe visum — prompt sequentially
+    if (btn) btn.textContent = `📋 Visum ${i + 1}/${ids.length}…`;
+    const val = await promptVisumResponden(surat);
+    if (val === null) {
+      // Cancel → tandai null supaya loop di-skip dengan pesan informatif
+      visumOptsById[id] = null;
+    } else {
+      _visumLastInput[surat.id] = val;
+      visumOptsById[id] = { jumlahResponden: val === '' ? null : val };
+    }
+  }
+
   for (let i = 0; i < ids.length; i++) {
     const id    = ids[i];
     const surat = suratMap[id];
@@ -3095,8 +3277,14 @@ async function bulkDownloadSelected() {
       continue;
     }
 
+    // Surat visum yang prompt-nya di-cancel → skip
+    if (visumOptsById[id] === null) {
+      failures.push(`${surat.perihal || 'surat #' + id}: dibatalkan saat input visum`);
+      continue;
+    }
+
     try {
-      const blob = await buildSuratTugasDoc(surat);
+      const blob = await buildSuratTugasDoc(surat, visumOptsById[id] || {});
       saveAs(blob, buildFileName(surat));
       success++;
       // Jeda antar download supaya browser tidak block multi-trigger.
@@ -3127,9 +3315,13 @@ async function bulkDownloadSelected() {
 
 async function downloadFromPreview() {
   if (!currentPreviewSurat) return;
+  // Pakai opts visum yg SAMA dengan yg dipakai untuk preview saat ini —
+  // jangan tanya ulang. Kalau modal preview di-buka ulang, opts akan
+  // di-set ulang lewat openPreview().
+  const opts = _previewVisumOpts || {};
   try {
     ensureLibrariesLoaded();
-    const blob = await buildSuratTugasDoc(currentPreviewSurat);
+    const blob = await buildSuratTugasDoc(currentPreviewSurat, opts);
     saveAs(blob, buildFileName(currentPreviewSurat));
     showPageAlert(`📥 Berhasil di-download: ${buildFileName(currentPreviewSurat)}`, 'success');
     closeModal('modal-preview');
@@ -3178,12 +3370,13 @@ async function openInWordForPrint() {
     let signedUrl;
 
     // Re-use file yang sudah di-upload untuk preview kalau masih ada.
-    // Kalau tidak ada (mis. user direct call atau preview gagal), upload ulang.
+    // Kalau tidak ada (mis. user direct call atau preview gagal), upload ulang
+    // pakai opts visum yg SAMA dengan yg dipakai di preview saat ini.
     if (_previewUploadedPath) {
       signedUrl = await getPreviewSignedUrl(_previewUploadedPath, 3600);
     } else {
       ensureLibrariesLoaded();
-      const blob = await buildSuratTugasDoc(currentPreviewSurat);
+      const blob = await buildSuratTugasDoc(currentPreviewSurat, _previewVisumOpts || {});
       const filename = await uploadPreviewDocx(blob, currentPreviewSurat.id);
       _previewUploadedPath = filename;
       signedUrl = await getPreviewSignedUrl(filename, 3600);
@@ -3591,7 +3784,10 @@ function fmtTglId(isoStr) {
    GANTI fungsi buildTemplateData yang ada di admin-surat-tugas.js
    (sekitar baris 3146-3253) DENGAN versi di bawah ini.
 ═══════════════════════════════════════════════════════════════════════ */
-async function buildTemplateData(data) {
+async function buildTemplateData(data, opts) {
+  // opts: { jumlahResponden?: number|string|null }
+  // Hanya dipakai untuk tipe yang punya visum. Diabaikan untuk tipe lain.
+  const jumlahResponden = (opts && opts.jumlahResponden != null) ? opts.jumlahResponden : null;
   // ── Flags dari tipe ──────────────────────────────────────────────────
   // Sumber kebenaran sekarang adalah `data.tipe`, bukan jumlah pegawai.
   // Kalau tipe NULL/invalid, tipeFlags() return all-false (defensive).
@@ -3783,6 +3979,37 @@ async function buildTemplateData(data) {
     has_lampiran_st:       flags.has_lampiran,
     awalan:                '',
     ul:                    flags.has_lampiran ? pegawaiLampiran : [],
+
+    // ─────────────────────────────────────────────────────────────────
+    // LEMBAR VISUM — toggle {#visum}...{/visum} (T1V & T3V)
+    //
+    // Struktur tabel di template:
+    //   - 1 baris header (No, Tanggal, Nama, Instansi, TTD, Ket)
+    //   - 1 baris angka (1)(2)(3)(4)(5)(6)
+    //   - 6 baris kosong default (untuk diisi manual setelah cetak)
+    //   - 1 baris loop {#r}...{/r} di akhir
+    //
+    // Untuk loop {#r}{/r}: kalau jumlah_responden user input ≤ 6 atau
+    // kosong → array `r` punya 1 elemen (baris loop tetap render 1x →
+    // total 7 baris kosong terlihat). Kalau input > 6 → array `r` punya
+    // (input - 6) elemen → total = input baris.
+    //
+    // Setiap elemen `r` adalah object kosong {} karena tabel ini
+    // dirancang untuk dicetak & diisi manual — tidak ada placeholder
+    // data di kolom-kolomnya.
+    //
+    // visum: array dengan 1 elemen kalau has_visum, supaya seluruh
+    // section visum render 1x. Kalau false → array kosong → section
+    // hilang dari output.
+    //
+    // Kenapa visum dibungkus array (bukan boolean)?
+    //   docxtemplater: {#visum}...{/visum} dengan array berisi N elemen
+    //   akan render N kali. Dengan boolean true → render 1x (sama).
+    //   Pakai array supaya scope `r` di dalamnya bisa di-reference.
+    // ─────────────────────────────────────────────────────────────────
+    visum:                 flags.has_visum
+                             ? [{ r: Array(calcVisumLoopCount(jumlahResponden)).fill({}) }]
+                             : [],
   };
 }
 
@@ -3796,6 +4023,26 @@ async function buildTemplateData(data) {
    manual: ambil `word/document.xml` dari zip, parse via DOMParser, hapus
    paragraf kosong yang ada DI AKHIR body (tepat sebelum final <w:sectPr>),
    lalu write back ke zip.
+
+   Struktur OOXML body biasanya berakhir salah satu dari pola ini:
+     Pola A:  ...<w:p>konten</w:p><w:p>kosong</w:p><w:sectPr>...</w:sectPr></w:body>
+                                                    ^^^^^^^^^^
+                                                    sectPr SEBAGAI CHILD body
+     Pola B:  ...<w:p>konten</w:p><w:p><w:pPr><w:sectPr>...</w:sectPr></w:pPr>...</w:p></w:body>
+                                                ^^^^^^^^^^
+                                                sectPr DI DALAM pPr paragraf terakhir
+
+   Implementasi lama: cek `body.lastElementChild` — kalau ketemu <w:sectPr>
+   (Pola A) langsung break tanpa cleaning. Itu BUG: paragraf-paragraf
+   kosong sebelum sectPr tetap ada → blank page.
+
+   Fix: skip <w:sectPr> di posisi paling akhir, lalu walk ke belakang dari
+   sibling sebelumnya. Untuk Pola B, paragraf carrier sectPr-nya tetap
+   tidak boleh dihapus (sudah di-handle dgn cek nested sectPr).
+
+   Tambahan: paragraf yang isinya hanya page break (<w:br w:type="page"/>)
+   tanpa text/media juga di-hapus — ini sumber blank page lain yang
+   sebelumnya tidak ter-handle.
 
    Defensive:
      - SEMUA error dibungkus try/catch — kalau apapun gagal, document
@@ -3849,42 +4096,60 @@ function dropTrailingEmptyParagraphs(doc) {
     return;
   }
 
-  // Walk children dari belakang. Hapus paragraf kosong sampai ketemu
-  // konten meaningful atau sectPr.
+  // Helper: cek apakah suatu <w:p> dianggap "kosong" — boleh dihapus?
+  // Kosong = tidak punya text content, drawing, pict, atau object.
+  // Paragraf yang isinya HANYA page break / line break / properties juga
+  // dianggap kosong.
+  function isEmptyParagraph(p) {
+    // Ada text dengan konten?
+    const texts = p.getElementsByTagNameNS('*', 't');
+    for (let i = 0; i < texts.length; i++) {
+      if ((texts[i].textContent || '').length > 0) return false;
+    }
+    // Ada media?
+    if (p.getElementsByTagNameNS('*', 'drawing').length > 0)  return false;
+    if (p.getElementsByTagNameNS('*', 'pict').length > 0)     return false;
+    if (p.getElementsByTagNameNS('*', 'object').length > 0)   return false;
+    // Konten lain (mis. SmartArt, math, dll) — kalau ragu, jangan hapus.
+    // Cek tag-tag content lain yang mungkin penting.
+    if (p.getElementsByTagNameNS('*', 'oMath').length > 0)    return false;
+    return true;
+  }
+
+  // Helper: cek apakah <w:p> ini carrier untuk final <w:sectPr> (Pola B).
+  // Kalau iya, JANGAN dihapus — dokumen butuh section properties.
+  function carriesSectPr(p) {
+    return p.getElementsByTagNameNS('*', 'sectPr').length > 0;
+  }
+
+  // ── STEP 1: identifikasi posisi awal walk ──────────────────────────
+  // Kalau child terakhir body adalah <w:sectPr> (Pola A), skip dia —
+  // mulai walk dari sibling sebelumnya.
+  let cursor = body.lastElementChild;
+  if (cursor && cursor.localName === 'sectPr') {
+    cursor = cursor.previousElementSibling;
+  }
+
+  // ── STEP 2: walk ke belakang, hapus paragraf kosong ────────────────
   let removed = 0;
   const MAX_REMOVE = 30;
 
-  while (removed < MAX_REMOVE) {
-    const last = body.lastElementChild;
-    if (!last) break;
-    const tag = last.localName;
+  while (cursor && removed < MAX_REMOVE) {
+    // Hanya proses <w:p>. Selain itu (mis. <w:tbl>, <w:sectPr> tak
+    // terduga) → STOP.
+    if (cursor.localName !== 'p') break;
 
-    // Final sectPr (di luar paragraf) — STOP, jangan disentuh.
-    if (tag === 'sectPr') break;
+    // Carrier sectPr (Pola B) → STOP, jangan disentuh.
+    if (carriesSectPr(cursor)) break;
 
-    // Hanya proses elemen <w:p>
-    if (tag !== 'p') break;
+    // Punya konten meaningful → STOP.
+    if (!isEmptyParagraph(cursor)) break;
 
-    // Kalau paragraf ini carry sectPr di pPr (final section properties
-    // dipindah ke last paragraph), JANGAN hapus — dokumen butuh sectPr.
-    if (last.getElementsByTagNameNS('*', 'sectPr').length > 0) break;
-
-    // Cek text run dengan content (whitespace-only juga dianggap kosong)
-    const texts = last.getElementsByTagNameNS('*', 't');
-    let hasText = false;
-    for (let i = 0; i < texts.length; i++) {
-      if ((texts[i].textContent || '').length > 0) { hasText = true; break; }
-    }
-    if (hasText) break;
-
-    // Cek konten media (drawing, picture, OLE object)
-    if (last.getElementsByTagNameNS('*', 'drawing').length > 0)  break;
-    if (last.getElementsByTagNameNS('*', 'pict').length > 0)     break;
-    if (last.getElementsByTagNameNS('*', 'object').length > 0)   break;
-
-    // Paragraf kosong (atau cuma berisi page break / properties) — hapus
-    body.removeChild(last);
+    // Hapus paragraf kosong, geser cursor ke sibling sebelumnya.
+    const prev = cursor.previousElementSibling;
+    cursor.parentNode.removeChild(cursor);
     removed++;
+    cursor = prev;
   }
 
   if (removed === 0) return;
@@ -3912,8 +4177,11 @@ function dropTrailingEmptyParagraphs(doc) {
   }
 }
 
-async function buildSuratTugasDoc(data) {
-  console.log('[9201] buildSuratTugasDoc() dipanggil', { suratId: data.id });
+async function buildSuratTugasDoc(data, opts) {
+  // opts: { jumlahResponden?: number|string|null }
+  // jumlahResponden tidak disimpan ke DB — di-pass per-call dari UI
+  // (modal Approve / dialog input saat preview/download).
+  console.log('[9201] buildSuratTugasDoc() dipanggil', { suratId: data.id, opts });
 
   // Pastikan docxtemplater sudah ter-load (dengan fallback dynamic loading)
   await ensureDocxtemplaterLoaded();
@@ -3959,7 +4227,7 @@ async function buildSuratTugasDoc(data) {
     delimiters: { start: '{', end: '}' },
   });
 
-  const templateData = await buildTemplateData(data);
+  const templateData = await buildTemplateData(data, opts);
   try {
     doc.render(templateData);
   } catch (err) {
