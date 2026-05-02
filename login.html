@@ -718,7 +718,11 @@
       const session = {
         id:                   user.id,
         username:             user.username,
-        full_name:            user.full_name || user.username, // fallback ke username kalau kosong
+        // Simpan apa adanya — kalau RPC return null, biarkan null. Topbar
+        // akan otomatis fetch dari users.full_name lewat novaEnsureFullName.
+        // (Dulu di-fallback ke username, tapi itu menyembunyikan masalah:
+        // session jadi terlihat "lengkap" padahal full_name asli belum diisi.)
+        full_name:            user.full_name || null,
         must_change_password: user.must_change_password,
         expires_at:           Date.now() + 8 * 60 * 60 * 1000,
         role:                 user.role  || null,
