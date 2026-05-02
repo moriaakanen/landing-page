@@ -343,7 +343,7 @@
 
 <script>
 // ════════════════════════════════════════════════════════════════════
-// PORTAL NOVA — Riwayat Kepegawaian (Admin)
+// PORTAL 9201 — Riwayat Kepegawaian (Admin)
 // 4 tab — URUTAN BARU: Angka Kredit → Pangkat & Golongan → Jabatan → Gelar
 // Pattern: filter pegawai global, tabel + modal form CRUD per tab.
 // ════════════════════════════════════════════════════════════════════
@@ -649,7 +649,7 @@ async function loadTab(tabKey) {
     }
     allData[tabKey] = await res.json();
   } catch(e) {
-    console.error(`[NOVA] Gagal load ${cfg.table}:`, e);
+    console.error(`[9201] Gagal load ${cfg.table}:`, e);
     allData[tabKey] = [];
     loadErrors[tabKey] = e.message || String(e);
   }
@@ -1284,7 +1284,7 @@ document.addEventListener('keydown', (e) => {
 async function init() {
   SESSION = novaCheckSession({ requireAdmin: true });
   if (!SESSION) return;
-  NovaTopbar.setUser(SESSION);
+  Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION, true);
 
   // Skeleton awal
