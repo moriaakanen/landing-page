@@ -172,29 +172,36 @@
 
   // ─── novaEnsureFullName ────────────────────────────────────────
   /**
-   * Pastikan session.full_name terisi. Kalau kosong/null, fetch dari
-   * tabel `users` (kolom full_name) berdasarkan session.id.
+   * Pastikan session.full_name terisi dengan nilai resmi dari tabel `users`.
+   * Kalau kosong/null, fetch dari `users.full_name` berdasarkan session.id.
    *
    * Side effect:
    *   - Update session.full_name di-place
    *   - Persist ke localStorage('nova_user')
    *   - Update visual: #topbar-username, #topbar-avatar, #usd-header-name
+   *   - Update visual: avoid recursive call ke setUser (passing { skipEnsure:true })
    *
-   * Idempotent: kalau session.full_name sudah ada, return langsung.
+   * Idempotent untuk panggilan biasa: kalau session.full_name sudah ada,
+   * return langsung TANPA fetch. Untuk paksa refresh dari DB (mis. saat
+   * user login lama yang full_name-nya pernah di-fallback ke username),
+   * panggil dengan { force: true }.
+   *
    * Anti-retry: kalau fetch gagal/data tidak ada, set fallback = username
    *             supaya tidak retry tiap render.
    *
    * @param {object} session - session object dari novaCheckSession
+   * @param {object} [opts]  - { force?: boolean }
    * @returns {Promise<object>} session yang sudah di-update
    */
-  async function novaEnsureFullName(session) {
+  async function novaEnsureFullName(session, opts) {
     if (!session) return session;
-    if (session.full_name) return session; // sudah terisi
+    const force = !!(opts && opts.force);
+    if (!force && session.full_name) return session; // sudah terisi
 
     const fallback = session.username || '';
 
     if (!session.id) {
-      session.full_name = fallback;
+      if (!session.full_name) session.full_name = fallback;
       try { localStorage.setItem('nova_user', JSON.stringify(session)); } catch(_) {}
       return session;
     }
@@ -209,17 +216,26 @@
         const rows = await res.json();
         nama = (rows && rows[0] && rows[0].full_name) || '';
       }
-      session.full_name = nama || fallback;
+      // Kalau nama dari DB ada, pakai itu. Kalau tidak, jangan timpa
+      // session.full_name yang mungkin sudah valid — tapi kalau session
+      // juga kosong, fallback ke username.
+      if (nama) {
+        session.full_name = nama;
+      } else if (!session.full_name) {
+        session.full_name = fallback;
+      }
     } catch (e) {
       console.warn('[novaEnsureFullName] fetch gagal:', e);
-      session.full_name = fallback;
+      if (!session.full_name) session.full_name = fallback;
     }
 
     try { localStorage.setItem('nova_user', JSON.stringify(session)); } catch(_) {}
 
-    // Update visual immediately (kalau topbar/role-switcher sudah ter-render)
-    if (window.NovaTopbar && typeof NovaTopbar.setUser === 'function') {
-      NovaTopbar.setUser(session);
+    // Update visual immediately (kalau topbar/role-switcher sudah ter-render).
+    // Pass skipEnsure:true ke setUser supaya tidak rekursif memanggil
+    // novaEnsureFullName lagi (mencegah infinite loop).
+    if (window.Topbar9201 && typeof Topbar9201.setUser === 'function') {
+      Topbar9201.setUser(session, { skipEnsure: true });
     }
     const usdName = document.getElementById('usd-header-name');
     if (usdName && session.full_name) usdName.textContent = session.full_name;
