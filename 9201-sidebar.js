@@ -1,10 +1,10 @@
 /**
- * NOVA SIDEBAR — komponen shared
- * Diload SETELAH config.js, SEBELUM nova-role-switcher.js dan script init() halaman.
+ * 9201 SIDEBAR — komponen shared
+ * Diload SETELAH config.js, SEBELUM 9201-role-switcher.js dan script init() halaman.
  *
  * Cara pakai di setiap halaman:
  *   1. Pasang   <aside class="sidebar" id="sidebar" data-active="KEY"></aside>
- *   2. Sertakan <script src="nova-sidebar.js"></script> sebelum init()
+ *   2. Sertakan <script src="9201-sidebar.js"></script> sebelum init()
  *
  * data-active KEY yang valid:
  *   - "profil"            → Profil Saya (index.html)
@@ -26,7 +26,7 @@
     { key: 'surat-tugas',   href: 'surat-tugas.html',  icon: '📄', label: 'Minta Surat Tugas',  group: 'Persuratan' },
   ];
 
-  // Daftar menu untuk ADMIN (di-show/hide oleh nova-role-switcher.js
+  // Daftar menu untuk ADMIN (di-show/hide oleh 9201-role-switcher.js
   // berdasarkan active_role)
   var NAV_ADMIN_ITEMS = [
     { key: 'admin-surat',         href: 'admin-surat-tugas.html',    icon: '✅', label: 'Surat Tugas' },
@@ -64,7 +64,7 @@
       html += buildItem(item, activeKey);
     });
 
-    // Admin section — defaultnya HIDDEN. nova-role-switcher.js akan
+    // Admin section — defaultnya HIDDEN. 9201-role-switcher.js akan
     // unhide via applyRoleSidebar() kalau active_role === 'admin'.
     html += '<div id="admin-nav" style="display:none">';
     html += '<div class="nav-group-label">Administrasi</div>';
