@@ -556,7 +556,7 @@ async function fetchProfil(userId) {
 
     renderProfil(pegawai, ak, jab, pgg);
   } catch(e) {
-    console.error('[NOVA] Gagal load profil:', e);
+    console.error('[9201] Gagal load profil:', e);
     renderProfilError();
   }
 }
@@ -598,7 +598,7 @@ async function reloadEvents() {
   try {
     const rows = await rpcListEvents(calCurrentUserId, calCurrentUserId);
     calCachedEvents = Array.isArray(rows) ? rows : [];
-  } catch(e) { console.error('[NOVA] Gagal load kalender:', e); calCachedEvents = []; }
+  } catch(e) { console.error('[9201] Gagal load kalender:', e); calCachedEvents = []; }
 }
 
 function getMonthData(year, month) {
@@ -802,7 +802,7 @@ async function initCalendar(userId) {
 async function init() {
   const s = novaCheckSession({ requireAdmin: false });
   if (!s) return;
-  NovaTopbar.setUser(s);
+  Topbar9201.setUser(s);
   fetchProfil(s.id);
   initRoleSwitcher(s, false);
   await initCalendar(s.id);
