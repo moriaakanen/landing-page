@@ -741,7 +741,7 @@ function invalidateAdminCache() {
 function init() {
   SESSION = novaCheckSession({ requireAdmin: true });
   if (!SESSION) return;
-  NovaTopbar.setUser(SESSION);
+  Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION, true); // halaman admin
   loadData();
 }
