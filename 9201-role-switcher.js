@@ -1,5 +1,5 @@
 /**
- * ROLE SWITCHER — nova-role-switcher.js
+ * ROLE SWITCHER — 9201-role-switcher.js
  * Portal NOVA · versi multi-role (DB-first)
  * Diload SETELAH config.js
  */
@@ -40,7 +40,7 @@
   document.head.appendChild(style);
 })();
 
-// Catatan: nova-role-switcher.js ALWAYS di-load setelah config.js, jadi
+// Catatan: 9201-role-switcher.js ALWAYS di-load setelah config.js, jadi
 // getUserRoles() pasti tersedia. Dulu ada fallback inline di sini, tapi
 // itu dead path — sudah dihapus.
 //
