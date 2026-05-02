@@ -1,8 +1,8 @@
 /**
- * NOVA SHARED — utilitas umum yang dipakai semua halaman
+ * 9201 SHARED — utilitas umum yang dipakai semua halaman
  * ─────────────────────────────────────────────────────────
- * Diload SETELAH config.js, SEBELUM nova-topbar.js / nova-sidebar.js /
- * nova-role-switcher.js dan script init() halaman.
+ * Diload SETELAH config.js, SEBELUM 9201-topbar.js / 9201-sidebar.js /
+ * 9201-role-switcher.js dan script init() halaman.
  *
  * Mengexpose ke global scope:
  *   - SUPABASE_HEADERS              header siap-pakai untuk fetch ke Supabase
@@ -15,7 +15,7 @@
  *
  * Catatan:
  * - Fungsi `logout` SENGAJA di-expose sebagai global karena dipanggil dari
- *   onclick="logout()" di template topbar (nova-topbar.js).
+ *   onclick="logout()" di template topbar (9201-topbar.js).
  * - Date utilities (parseISODate, fmtTgl, fmtWaktu, dst.) TIDAK ada di sini
  *   karena beberapa halaman punya behavior berbeda halus (mis. em-dash vs
  *   empty string untuk input null). Tetap didefinisikan per-file.
@@ -25,8 +25,8 @@
 
   // ─── Sanity check: config.js wajib sudah di-load duluan ────────
   if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
-    console.error('[NovaShared] config.js belum di-load. Pastikan urutan script: '
-                + 'config.js → nova-shared.js → ...');
+    console.error('[9201Shared] config.js belum di-load. Pastikan urutan script: '
+                + 'config.js → 9201-shared.js → ...');
   }
 
   // ─── Headers Supabase ──────────────────────────────────────────
@@ -173,7 +173,7 @@
   // ─── novaEnsureFullName ────────────────────────────────────────
   /**
    * Pastikan session.full_name terisi. Kalau kosong/null, fetch dari
-   * tabel `data_pegawai` (kolom NAMA) berdasarkan session.id.
+   * tabel `users` (kolom full_name) berdasarkan session.id.
    *
    * Side effect:
    *   - Update session.full_name di-place
@@ -201,13 +201,13 @@
 
     try {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/data_pegawai?id=eq.${encodeURIComponent(session.id)}&select=NAMA&limit=1`,
+        `${SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(session.id)}&select=full_name&limit=1`,
         { headers: window.SUPABASE_HEADERS }
       );
       let nama = '';
       if (res.ok) {
         const rows = await res.json();
-        nama = (rows && rows[0] && rows[0].NAMA) || '';
+        nama = (rows && rows[0] && rows[0].full_name) || '';
       }
       session.full_name = nama || fallback;
     } catch (e) {
