@@ -1392,7 +1392,7 @@ function showBulkAlert(msg,type='error'){
 async function init(){
   SESSION = novaCheckSession({ requireAdmin: false });
   if(!SESSION)return;
-  NovaTopbar.setUser(SESSION);
+  Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION,false);
   await Promise.all([loadSurat(),loadPegawai()]);
   addRows(1);
