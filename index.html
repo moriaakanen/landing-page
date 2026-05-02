@@ -63,9 +63,9 @@
 
   /* Quick stats di hero card */
   .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);background:var(--bg)}
-  .hero-stat{padding:14px 8px;text-align:center;border-right:1px solid var(--border);position:relative}
+  .hero-stat{padding:14px 8px;text-align:center;border-right:1px solid var(--border);position:relative;min-width:0}
   .hero-stat:last-child{border-right:none}
-  .hero-stat-value{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--navy);line-height:1.2;margin-bottom:3px;word-break:break-word}
+  .hero-stat-value{font-family:'Fraunces',serif;font-size:14px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:4px;word-break:break-word;hyphens:auto}
   .hero-stat-label{font-size:9.5px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;font-weight:600}
 
   /* ════════ INFO SECTIONS ════════ */
@@ -81,6 +81,15 @@
   .info-value{font-size:13px;color:var(--navy);font-weight:600;word-break:break-word}
   .info-value.empty{color:var(--muted);font-weight:400;font-style:italic}
   .info-value.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12.5px;letter-spacing:.3px}
+
+  /* ──── Riwayat rows: nilai utama di kiri, TMT di kanan ──── */
+  .riwayat-row{display:grid;grid-template-columns:1fr auto;gap:14px;padding:11px 18px;align-items:center;border-bottom:1px solid #f4f1e9;line-height:1.4}
+  .riwayat-row:last-child{border-bottom:none}
+  .riwayat-main{font-size:13px;color:var(--navy);font-weight:600;word-break:break-word}
+  .riwayat-main .sub{display:block;font-size:11.5px;color:var(--muted);font-weight:500;margin-top:2px}
+  .riwayat-tmt{font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .riwayat-tmt-label{font-size:9px;color:var(--border2);letter-spacing:.6px;text-transform:uppercase;font-weight:600;display:block;margin-bottom:1px;text-align:right}
+  .riwayat-empty{padding:18px;text-align:center;font-size:12px;color:var(--muted);font-style:italic}
 
   /* Skeleton states */
   .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
@@ -183,7 +192,7 @@
 </head>
 <body>
 
-<!-- Topbar di-render oleh nova-topbar.js -->
+<!-- Topbar di-render oleh 9201-topbar.js -->
 <div id="topbar-mount"></div>
 
 <div class="layout">
@@ -309,10 +318,10 @@
 </div>
 
 <script src="config.js"></script>
-<script src="nova-shared.js"></script>
-<script src="nova-topbar.js"></script>
-<script src="nova-sidebar.js"></script>
-<script src="nova-role-switcher.js"></script>
+<script src="9201-shared.js"></script>
+<script src="9201-topbar.js"></script>
+<script src="9201-sidebar.js"></script>
+<script src="9201-role-switcher.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
 // PROFIL SAYA — versi modern. Logika fetch profil dirombak menjadi
@@ -320,11 +329,11 @@
 // (DB-backed via 3 RPC: kalender_list / kalender_upsert / kalender_delete)
 //
 // Helpers umum (esc, logout, novaRpc, novaCheckSession, SUPABASE_HEADERS)
-// di-load dari nova-shared.js — tidak lagi dideklarasi ulang di sini.
+// di-load dari 9201-shared.js — tidak lagi dideklarasi ulang di sini.
 // ═══════════════════════════════════════════════════════════════
 
 // ─── HELPERS LOKAL ──────────────────────────────────────────────
-// `esc` & `logout` di-handle nova-shared.js. Di sini hanya helper
+// `esc` & `logout` di-handle 9201-shared.js. Di sini hanya helper
 // spesifik halaman profil.
 function clean(v) {
   if (v == null) return null;
@@ -334,6 +343,53 @@ function clean(v) {
 function initialsOf(name) {
   return (name || 'Pengguna').split(' ').filter(Boolean)
     .map(w => w[0]).join('').toUpperCase().slice(0,2) || '—';
+}
+
+// Format tanggal ISO (yyyy-mm-dd) ke "5 Mei 2026". Aman untuk null.
+function fmtTglRiwayat(iso) {
+  if (!iso) return '—';
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return iso;
+  const d = parseInt(m[3], 10);
+  const mo = parseInt(m[2], 10) - 1;
+  return `${d} ${BULAN[mo]} ${m[1]}`;
+}
+
+// Format angka kredit: 22.792 → "22,792" (Indonesian-style decimal).
+// Kalau nilai bilangan bulat, tampilkan tanpa pemisah desimal.
+function fmtAK(v) {
+  if (v == null || v === '') return '—';
+  const n = Number(v);
+  if (!isFinite(n)) return String(v);
+  // Tampilkan apa adanya tanpa pemaksaan decimal places — biarkan DB yang menentukan.
+  return n.toString().replace('.', ',');
+}
+
+// Hitung masa kerja dari NIP (digit 9–14 = yyyymm CPNS).
+// Contoh: NIP 199003302019121001 → 2019-12 → "6 tahun 5 bulan" (per Mei 2026).
+// Return string siap-tampil, atau '—' kalau NIP invalid.
+function hitungMasaKerjaDariNIP(nip) {
+  if (!nip) return '—';
+  const s = String(nip).replace(/\D/g, '');
+  if (s.length < 14) return '—';
+  const yyyy = parseInt(s.substring(8, 12), 10);  // digit 9–12 (0-indexed: 8–11)
+  const mm   = parseInt(s.substring(12, 14), 10); // digit 13–14 (0-indexed: 12–13)
+  if (!yyyy || !mm || mm < 1 || mm > 12) return '—';
+
+  const now = new Date();
+  const cy = now.getFullYear();
+  const cm = now.getMonth() + 1; // 1–12
+
+  let years = cy - yyyy;
+  let months = cm - mm;
+  if (months < 0) { years -= 1; months += 12; }
+  if (years < 0) return '—'; // tanggal CPNS di masa depan? data invalid
+
+  if (years === 0 && months === 0) return '< 1 bulan';
+  const parts = [];
+  if (years  > 0) parts.push(`${years} tahun`);
+  if (months > 0) parts.push(`${months} bulan`);
+  return parts.join(' ');
 }
 
 // ─── RENDER PROFIL ──────────────────────────────────────────────
@@ -357,107 +413,148 @@ function renderProfilError() {
   document.getElementById('info-mount').innerHTML = '';
 }
 
-function renderInfoRow(label, value) {
-  const v = clean(value);
-  return `<div class="info-row">
-    <div class="info-label">${esc(label)}</div>
-    <div class="info-value${v ? '' : ' empty'}">${v ? esc(v) : 'Tidak tersedia'}</div>
-  </div>`;
-}
-function renderInfoRowMono(label, value) {
-  const v = clean(value);
-  return `<div class="info-row">
-    <div class="info-label">${esc(label)}</div>
-    <div class="info-value${v ? ' mono' : ' empty'}">${v ? esc(v) : 'Tidak tersedia'}</div>
+// Render satu baris di card riwayat. `mainHtml` boleh berisi <span class="sub">.
+function riwayatRow(mainHtml, tmtIso) {
+  return `<div class="riwayat-row">
+    <div class="riwayat-main">${mainHtml}</div>
+    <div>
+      <span class="riwayat-tmt-label">TMT</span>
+      <span class="riwayat-tmt">${esc(fmtTglRiwayat(tmtIso))}</span>
+    </div>
   </div>`;
 }
 
-function renderProfil(p) {
-  const nama = clean(p['NAMA']) || 'Pegawai';
-  const nip = clean(p['NIP']) || '-';
-  const jabatan = clean(p['JABATAN']) || 'Belum ada jabatan';
+function riwayatEmpty() {
+  return `<div class="riwayat-empty">Belum ada riwayat</div>`;
+}
 
-  // Gabungkan golongan/ruang dari beberapa kemungkinan kolom
-  const golRuang = clean(p['GOLONGAN/RUANG']) || clean(p['GOLONGAN']) || clean(p['GOL/RUANG']) || '-';
-  const masaKerja = clean(p['MASA KERJA']) || '-';
-  const pendidikan = clean(p['PENDIDIKAN TERAKHIR']) || '-';
+/**
+ * Render seluruh halaman profil.
+ * @param {object} pegawai      - row dari data_pegawai (untuk NAMA, NIP)
+ * @param {array}  ak           - rows riwayat_angka_kredit (sudah desc by tmt)
+ * @param {array}  jabatan      - rows riwayat_jabatan (sudah desc by tmt)
+ * @param {array}  pangkat      - rows riwayat_pangkat_golongan (sudah desc by tmt)
+ */
+function renderProfil(pegawai, ak, jabatan, pangkat) {
+  const nama = clean(pegawai['NAMA']) || 'Pegawai';
+  const nip  = clean(pegawai['NIP'])  || '-';
 
-  // Hero card
+  // Ambil entri terbaru dari masing-masing tabel riwayat (index 0 karena sudah desc).
+  const latestJabatan = (jabatan && jabatan[0]) || null;
+  const latestPangkat = (pangkat && pangkat[0]) || null;
+  const latestAK      = (ak      && ak[0])      || null;
+
+  const jabatanText = (latestJabatan && clean(latestJabatan.jabatan)) || 'Belum ada jabatan';
+
+  const pangkatGol = latestPangkat
+    ? `${clean(latestPangkat.pangkat) || '—'} / ${clean(latestPangkat.golongan) || '—'}`
+    : '—';
+
+  const akText = latestAK ? fmtAK(latestAK.angka_kredit) : '—';
+
+  const masaKerja = hitungMasaKerjaDariNIP(nip);
+
+  // ─── HERO CARD ───
   document.getElementById('hero-mount').innerHTML = `
     <div class="hero-card">
       <div class="hero-banner"></div>
       <div class="hero-identity">
         <div class="hero-avatar">${esc(initialsOf(nama))}</div>
         <div class="hero-name">${esc(nama)}</div>
-        <div class="hero-jabatan">${esc(jabatan)}</div>
+        <div class="hero-jabatan">${esc(jabatanText)}</div>
         <div class="hero-nip">NIP <strong>${esc(nip)}</strong></div>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
-          <div class="hero-stat-value">${esc(golRuang)}</div>
-          <div class="hero-stat-label">Gol / Ruang</div>
+          <div class="hero-stat-value">${esc(pangkatGol)}</div>
+          <div class="hero-stat-label">Pangkat / Golongan</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">${esc(akText)}</div>
+          <div class="hero-stat-label">PAK</div>
         </div>
         <div class="hero-stat">
           <div class="hero-stat-value">${esc(masaKerja)}</div>
           <div class="hero-stat-label">Masa Kerja</div>
         </div>
-        <div class="hero-stat">
-          <div class="hero-stat-value">${esc(pendidikan)}</div>
-          <div class="hero-stat-label">Pendidikan</div>
-        </div>
       </div>
     </div>`;
 
-  // Info cards berkategori
-  const infoHTML = `
+  // ─── INFO CARDS: 3 card riwayat (PAK, Jabatan, Pangkat & Golongan) ───
+  // Gelar di-skip dulu (datanya masih kurang).
+  const cardPAK = `
     <div class="info-card">
-      <div class="info-card-head"><div class="info-card-icon">🪪</div><div class="info-card-title">Identitas</div></div>
+      <div class="info-card-head"><div class="info-card-icon">⭐</div><div class="info-card-title">Riwayat PAK</div></div>
       <div class="info-card-body">
-        ${renderInfoRow('Nama Lengkap', p['NAMA'])}
-        ${renderInfoRow('Tempat / Tanggal Lahir', p['TEMPAT/TANGGAL LAHIR'])}
-        ${renderInfoRow('Jenis Kelamin', p['JENIS KELAMIN'])}
-        ${renderInfoRow('Agama', p['AGAMA'])}
+        ${(ak && ak.length)
+          ? ak.map(r => riwayatRow(`<strong>${esc(fmtAK(r.angka_kredit))}</strong>`, r.tmt)).join('')
+          : riwayatEmpty()}
       </div>
-    </div>
+    </div>`;
 
+  const cardJabatan = `
     <div class="info-card">
-      <div class="info-card-head"><div class="info-card-icon">💼</div><div class="info-card-title">Kepegawaian</div></div>
+      <div class="info-card-head"><div class="info-card-icon">💼</div><div class="info-card-title">Riwayat Jabatan</div></div>
       <div class="info-card-body">
-        ${renderInfoRowMono('NIP', p['NIP'])}
-        ${renderInfoRowMono('Nomor Seri Karpeg', p['NOMOR SERI KARPEG'])}
-        ${renderInfoRow('Pangkat / Golongan / Ruang', p['GOLONGAN/RUANG'] || p['GOLONGAN'] || p['GOL/RUANG'])}
-        ${renderInfoRow('TMT Golongan', p['TMT GOLONGAN'] || p['TMT GOL'])}
-        ${renderInfoRow('Masa Kerja', p['MASA KERJA'])}
+        ${(jabatan && jabatan.length)
+          ? jabatan.map(r => riwayatRow(esc(clean(r.jabatan) || '—'), r.tmt)).join('')
+          : riwayatEmpty()}
       </div>
-    </div>
+    </div>`;
 
+  const cardPangkat = `
     <div class="info-card">
-      <div class="info-card-head"><div class="info-card-icon">🎓</div><div class="info-card-title">Pendidikan</div></div>
+      <div class="info-card-head"><div class="info-card-icon">📈</div><div class="info-card-title">Riwayat Pangkat &amp; Golongan</div></div>
       <div class="info-card-body">
-        ${renderInfoRow('Pendidikan Terakhir', p['PENDIDIKAN TERAKHIR'])}
+        ${(pangkat && pangkat.length)
+          ? pangkat.map(r => riwayatRow(
+              `${esc(clean(r.pangkat) || '—')} <span class="sub">Golongan ${esc(clean(r.golongan) || '—')}</span>`,
+              r.tmt
+            )).join('')
+          : riwayatEmpty()}
       </div>
-    </div>
+    </div>`;
 
-    <div class="info-card">
-      <div class="info-card-head"><div class="info-card-icon">🏛</div><div class="info-card-title">Penempatan</div></div>
-      <div class="info-card-body">
-        ${renderInfoRow('Unit Kerja', p['UNIT KERJA'])}
-        ${renderInfoRow('Jabatan', p['JABATAN'])}
-      </div>
-    </div>
-  `;
-  document.getElementById('info-mount').innerHTML = infoHTML;
+  document.getElementById('info-mount').innerHTML = cardPAK + cardJabatan + cardPangkat;
 }
 
+/**
+ * Fetch profil + 3 tabel riwayat secara paralel.
+ * Alur:
+ *   1. data_pegawai by id → ambil NIP & NAMA
+ *   2. Pakai NIP untuk query 3 tabel riwayat (order tmt desc)
+ *   3. Render setelah semua selesai
+ */
 async function fetchProfil(userId) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?id=eq.${encodeURIComponent(userId)}&select=*&limit=1`, {
-      headers: SUPABASE_HEADERS
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (!data || !data.length) { renderProfilNotFound(); return; }
-    renderProfil(data[0]);
+    const resPeg = await fetch(
+      `${SUPABASE_URL}/rest/v1/data_pegawai?id=eq.${encodeURIComponent(userId)}&select=NAMA,NIP&limit=1`,
+      { headers: SUPABASE_HEADERS }
+    );
+    if (!resPeg.ok) throw new Error('HTTP ' + resPeg.status);
+    const pegRows = await resPeg.json();
+    if (!pegRows || !pegRows.length) { renderProfilNotFound(); return; }
+    const pegawai = pegRows[0];
+    const nip = pegawai.NIP;
+
+    // Tanpa NIP, query riwayat tidak mungkin — render dengan card kosong saja.
+    if (!nip) {
+      renderProfil(pegawai, [], [], []);
+      return;
+    }
+
+    const nipParam = encodeURIComponent(nip);
+    const [resAK, resJab, resPgg] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/riwayat_angka_kredit?pegawai_nip=eq.${nipParam}&select=angka_kredit,tmt&order=tmt.desc`, { headers: SUPABASE_HEADERS }),
+      fetch(`${SUPABASE_URL}/rest/v1/riwayat_jabatan?pegawai_nip=eq.${nipParam}&select=jabatan,tmt&order=tmt.desc`,            { headers: SUPABASE_HEADERS }),
+      fetch(`${SUPABASE_URL}/rest/v1/riwayat_pangkat_golongan?pegawai_nip=eq.${nipParam}&select=pangkat,golongan,tmt&order=tmt.desc`, { headers: SUPABASE_HEADERS }),
+    ]);
+
+    const ak  = resAK.ok  ? await resAK.json()  : [];
+    const jab = resJab.ok ? await resJab.json() : [];
+    const pgg = resPgg.ok ? await resPgg.json() : [];
+
+    renderProfil(pegawai, ak, jab, pgg);
   } catch(e) {
     console.error('[NOVA] Gagal load profil:', e);
     renderProfilError();
@@ -484,7 +581,7 @@ var EVENT_COLORS = {
   '#6b7280': {bg:'rgba(107,114,128,.12)', text:'#374151'},
 };
 
-// Helper RPC kalender — pakai novaRpc dari nova-shared.js
+// Helper RPC kalender — pakai novaRpc dari 9201-shared.js
 const rpcListEvents   = (uid, cid) => novaRpc('kalender_list',   { p_user_id: uid, p_caller_id: cid });
 const rpcUpsertEvent  = (ev,  cid) => novaRpc('kalender_upsert', {
   p_caller_id:cid, p_id:ev.id||null, p_tanggal:ev.tanggal,
@@ -502,29 +599,6 @@ async function reloadEvents() {
     const rows = await rpcListEvents(calCurrentUserId, calCurrentUserId);
     calCachedEvents = Array.isArray(rows) ? rows : [];
   } catch(e) { console.error('[NOVA] Gagal load kalender:', e); calCachedEvents = []; }
-}
-
-async function migrateLegacyEvents(userId) {
-  var key = 'nova_calendar_' + userId;
-  var raw = localStorage.getItem(key);
-  if (!raw) return;
-  var legacy;
-  try { legacy = JSON.parse(raw); } catch(e) { console.warn('[NOVA] Legacy kalender corrupt:', e); return; }
-  if (!Array.isArray(legacy) || !legacy.length) { localStorage.removeItem(key); return; }
-  console.log('[NOVA] Migrasi', legacy.length, 'event kalender lama ke DB...');
-  var pending = legacy.slice(); var i = 0;
-  while (i < pending.length) {
-    var ev = pending[i];
-    try {
-      await rpcUpsertEvent({
-        id:null, tanggal:ev.date, judul:ev.title||'(tanpa judul)',
-        waktu:ev.time||null, keterangan:ev.desc||null, warna:ev.color||'#c8a84b'
-      }, userId);
-      pending.splice(i,1);
-      if (pending.length) localStorage.setItem(key, JSON.stringify(pending));
-      else localStorage.removeItem(key);
-    } catch(err) { console.error('[NOVA] Gagal migrasi 1 event:', ev, err); i++; }
-  }
 }
 
 function getMonthData(year, month) {
@@ -720,7 +794,6 @@ async function deleteEventById(id) {
 async function initCalendar(userId) {
   calCurrentUserId = userId;
   renderCalendar();
-  try { await migrateLegacyEvents(userId); } catch(e) { console.warn('[NOVA] Migrasi legacy kalender error:', e); }
   await reloadEvents();
   renderCalendar();
 }
