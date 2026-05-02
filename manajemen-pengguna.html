@@ -18,7 +18,7 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
-  /* CSS topbar (.topbar, .topbar-brand, .brand-emblem, .topbar-time, .topbar-avatar, .topbar-username, .menu-toggle, dst.) di-handle oleh nova-topbar.js */
+  /* CSS topbar (.topbar, .topbar-brand, .brand-emblem, .topbar-time, .topbar-avatar, .topbar-username, .menu-toggle, dst.) di-handle oleh 9201-topbar.js */
   .layout{display:flex;flex:1;min-height:0}
   .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
   .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
@@ -422,13 +422,13 @@
 </div>
 
 <script src="config.js"></script>
-<script src="nova-shared.js"></script>
-<script src="nova-topbar.js"></script>
-<script src="nova-sidebar.js"></script>
-<script src="nova-role-switcher.js"></script>
+<script src="9201-shared.js"></script>
+<script src="9201-topbar.js"></script>
+<script src="9201-sidebar.js"></script>
+<script src="9201-role-switcher.js"></script>
 <script>
   // `checkSession`, `logout`, `esc`, dan `SUPABASE_HEADERS` di-load dari
-  // nova-shared.js. Halaman ini admin-only — pakai
+  // 9201-shared.js. Halaman ini admin-only — pakai
   // novaCheckSession({ requireAdmin: true }) di init().
   const TABLE_PENGGUNA = 'users';
   const H = SUPABASE_HEADERS;
