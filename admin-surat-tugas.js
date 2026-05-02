@@ -2482,14 +2482,16 @@ function closeModal(id) {
 }
 
 function showPageAlert(msg, type='error') {
+  // Cache element references — dipanggil 4x di fungsi ini, hindari
+  // re-query DOM. Plus auto-clear timer setelah 5.5 detik.
+  const alert = document.getElementById('page-alert');
   document.getElementById('page-alert-icon').textContent = type === 'success' ? '✅' : '⚠️';
   document.getElementById('page-alert-text').textContent = msg;
-  document.getElementById('page-alert').className = `alert ${type} show`;
-  document.getElementById('page-alert').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  setTimeout(() => { document.getElementById('page-alert').className = 'alert'; }, 5500);
+  alert.className = `alert ${type} show`;
+  alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  setTimeout(() => { alert.className = 'alert'; }, 5500);
 }
 
-/* ════════════════════════════════════════════════════════════════════
 /* ════════════════════════════════════════════════════════════════════
    APPROVE
 ═══════════════════════════════════════════════════════════════════════ */
@@ -3348,13 +3350,6 @@ async function downloadFromPreview() {
   }
 }
 
-function printFromPreview() {
-  // DEPRECATED: tombol "🖨 Print" sudah diganti dengan "📄 Buka di Word & Print".
-  // Fungsi ini di-keep untuk backward compatibility kalau masih ada caller lain.
-  // Forward ke implementasi baru.
-  openInWordForPrint();
-}
-
 /* ════════════════════════════════════════════════════════════════════
    OPEN IN MICROSOFT WORD (untuk print yang reliable)
 
@@ -3439,13 +3434,6 @@ async function openInWordForPrint() {
 /* ════════════════════════════════════════════════════════════════════
    GENERATOR DOCX
 ═══════════════════════════════════════════════════════════════════════ */
-const MENGINGAT_ITEMS = [
-  'Undang-Undang Nomor 16 Tahun 1997 tentang Statistik;',
-  'Peraturan Pemerintah Nomor 51 Tahun 1999 tentang Penyelenggaraan Statistik;',
-  'Peraturan Presiden Nomor 1 Tahun 2025 tentang Perubahan atas Peraturan Presiden Nomor 86 Tahun 2007 tentang Badan Pusat Statistik;',
-  'Peraturan Badan Pusat Statistik Nomor 5 Tahun 2019 tentang Tata Naskah Dinas di Lingkungan Badan Pusat Statistik;',
-  'Peraturan Badan Pusat Statistik Nomor 3 Tahun 2025 tentang Perubahan atas Peraturan Badan Pusat Statistik Nomor 5 Tahun 2023 tentang Organisasi dan Tata Kerja Badan Pusat Statistik Provinsi dan Badan Pusat Statistik Kabupaten/Kota;',
-];
 
 /* ════════════════════════════════════════════════════════════════════
    HELPERS UNTUK TEMPLATE BARU — MAK Pembebanan, Hari Inclusive, PPK Lookup
