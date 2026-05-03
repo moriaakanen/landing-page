@@ -653,6 +653,40 @@
         <input type="checkbox" id="inp-save-default" checked>
         <label for="inp-save-default">💾 Simpan Alat Angkutan, POK & Penandatangan sebagai default</label>
       </div>
+
+      <!-- BERTUGAS SEBAGAI (role per pegawai) — hanya muncul untuk tipe
+           dengan lampiran (T2/T3V) DAN ≥ 2 pegawai. Dikontrol dari
+           openApprove() via toggle .style.display. List item dirender
+           dinamis ke #approve-bertugas-list. -->
+      <div class="form-group" id="approve-bertugas-row" style="display:none">
+        <label class="form-label">
+          📋 Bertugas Sebagai
+          <span style="font-style:italic;color:var(--muted);font-weight:400">(opsional per pegawai, untuk halaman lampiran)</span>
+        </label>
+
+        <!-- Quick-fill: isi semua role sekaligus dengan nilai sama -->
+        <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;background:rgba(0,0,0,.025);padding:8px 10px;border-radius:7px">
+          <input type="text" id="inp-bertugas-quick" class="form-input"
+                 placeholder="Contoh: Tim Pelaksana"
+                 style="flex:1;padding:7px 10px;border:1.5px solid var(--border2);border-radius:6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;outline:none">
+          <button type="button" class="btn-outline" onclick="bertugasApplyAll()"
+                  style="padding:7px 12px;font-size:12px;white-space:nowrap"
+                  title="Isi semua pegawai dengan nilai di atas">↓ Isi Semua</button>
+          <button type="button" class="btn-outline" onclick="bertugasClearAll()"
+                  style="padding:7px 12px;font-size:12px;white-space:nowrap"
+                  title="Kosongkan semua field bertugas">✕ Kosongkan</button>
+        </div>
+
+        <!-- List per pegawai — dirender di JS oleh renderBertugasList() -->
+        <div id="approve-bertugas-list" style="display:flex;flex-direction:column;gap:7px"></div>
+
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">
+          Format kolom <em>Jabatan/Bertugas Sebagai</em> di lampiran:<br>
+          • Kosong → <code style="font-size:10px">{jabatan_p}</code> saja<br>
+          • Terisi → <code style="font-size:10px">{jabatan_p} / {bertugas_p}</code>
+        </div>
+      </div>
+
       <div class="form-group">
         <label class="form-label">Catatan Admin <span style="font-style:italic;color:var(--muted);font-weight:400">(opsional, tidak tampil di surat)</span></label>
         <textarea class="form-textarea" id="inp-catatan-approve" placeholder="Catatan internal..." style="min-height:60px"></textarea>
@@ -661,6 +695,45 @@
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-approve')">Batal</button>
       <button class="btn-primary" id="btn-approve-submit" onclick="submitApprove()" style="background:#1a7a4a">✅ Setujui Surat</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT BERTUGAS — untuk edit role pegawai pada surat yang sudah
+     selesai (status=selesai). Diakses lewat tombol "✏ Edit Role" di
+     tabel. Saat submit, hanya kolom pegawai_bertugas yang di-PATCH —
+     surat lainnya tidak disentuh. -->
+<div class="modal-overlay" id="modal-edit-bertugas" style="display:none" onclick="if(event.target===this)closeModal('modal-edit-bertugas')">
+  <div class="modal modal-wide">
+    <div class="modal-header detail">
+      <span class="modal-title">✏ Edit <em>Bertugas Sebagai</em></span>
+      <button class="modal-close" onclick="closeModal('modal-edit-bertugas')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px">
+        Edit role per pegawai untuk surat: <strong id="edit-bertugas-perihal" style="color:var(--navy)"></strong>.<br>
+        Perubahan langsung disimpan ke database. Kolom lain di surat tidak akan disentuh.
+      </p>
+
+      <!-- Quick-fill: isi semua role sekaligus -->
+      <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;background:rgba(0,0,0,.025);padding:8px 10px;border-radius:7px">
+        <input type="text" id="inp-edit-bertugas-quick" class="form-input"
+               placeholder="Contoh: Tim Pelaksana"
+               style="flex:1;padding:7px 10px;border:1.5px solid var(--border2);border-radius:6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;outline:none">
+        <button type="button" class="btn-outline" onclick="editBertugasApplyAll()"
+                style="padding:7px 12px;font-size:12px;white-space:nowrap"
+                title="Isi semua pegawai dengan nilai di atas">↓ Isi Semua</button>
+        <button type="button" class="btn-outline" onclick="editBertugasClearAll()"
+                style="padding:7px 12px;font-size:12px;white-space:nowrap"
+                title="Kosongkan semua field bertugas">✕ Kosongkan</button>
+      </div>
+
+      <!-- List per pegawai — dirender di JS oleh renderEditBertugasList() -->
+      <div id="edit-bertugas-list" style="display:flex;flex-direction:column;gap:7px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-edit-bertugas')">Batal</button>
+      <button class="btn-primary" id="btn-edit-bertugas-submit" onclick="submitEditBertugas()">💾 Simpan Perubahan</button>
     </div>
   </div>
 </div>
