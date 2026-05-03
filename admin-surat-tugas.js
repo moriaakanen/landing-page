@@ -174,6 +174,10 @@ let suratMap = {};                // id → object
 let suratOrderMap = {};           // id → urutan global ascending (1-based)
 let pegawaiList = [];             // dari "data_pegawai"
 let pegawaiByNIP = {};            // index NIP → object
+let mitraList   = [];             // dari tabel "mitra" (semua tahun)
+let mitraByNip  = {};             // index NIP placeholder → object mitra
+                                  //   format NIP placeholder: MITRA-{tahun}-{id3digit}
+                                  //   contoh: MITRA-2026-042
 let riwayatJabatan = [];          // dari "riwayat_jabatan"
 let userMap = {};                 // id → { full_name, username } — untuk tampilkan nama pengaju surat
 let selectedId = null;
@@ -354,6 +358,56 @@ async function loadPegawai() {
       if (nip) pegawaiByNIP[nip] = p;
     });
   } catch(e) { console.warn('Gagal load pegawai:', e); }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MITRA — load + helpers untuk integrasi ke picker pegawai
+   ─────────────────────────────────────────────────────────────────────
+   Mitra direkrut tahunan, di-load semua tahun supaya:
+   - Picker form bisa filter ke mitra tahun aktif (tahun saat ini)
+   - Surat lama yang sudah me-reference mitra tahun sebelumnya tetap bisa
+     resolve nama-nya saat preview/regenerate (audit trail terjaga).
+
+   NIP placeholder format: MITRA-{tahun}-{id_3digit}
+     contoh: MITRA-2026-042 → mitra id=42 tahun 2026
+   ─────────────────────────────────────────────────────────────────
+   Kenapa pakai NIP placeholder?
+   - Tabel surat_tugas.pegawai_nip[] paralel index dengan pegawai_list[].
+     Mitra HARUS punya entry di pegawai_nip[] supaya tidak rusak indexing.
+   - Format readable & deterministik — admin bisa langsung tahu ini mitra
+     ID berapa, tahun apa, kalau debug DB.
+═══════════════════════════════════════════════════════════════════════ */
+
+// Format ID mitra → NIP placeholder. Pad id ke 3 digit untuk konsistensi
+// visual (mis. ID 5 → "MITRA-2026-005").
+function formatMitraNip(tahun, id) {
+  return `MITRA-${tahun}-${String(id).padStart(3, '0')}`;
+}
+
+// Cek apakah NIP adalah placeholder mitra (bukan NIP pegawai asli).
+// Pegawai asli NIP-nya numerik 18 digit, mitra prefixed "MITRA-".
+function isMitraNip(nip) {
+  return typeof nip === 'string' && nip.startsWith('MITRA-');
+}
+
+async function loadMitra() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/mitra?select=id,tahun,nama,no_hp,jabatan,instansi&order=tahun.desc,nama.asc`, { headers: H });
+    if (!res.ok) {
+      // Tabel mitra mungkin belum dibuat — fallback ke array kosong, jangan
+      // hard-fail. Picker tetap berfungsi untuk pegawai biasa.
+      console.warn('[9201] loadMitra: HTTP', res.status, '— skip (tabel mungkin belum ada)');
+      return;
+    }
+    mitraList = await res.json();
+    mitraByNip = {};
+    mitraList.forEach(m => {
+      const nip = formatMitraNip(m.tahun, m.id);
+      mitraByNip[nip] = m;
+    });
+  } catch(e) {
+    console.warn('Gagal load mitra:', e);
+  }
 }
 
 async function loadRiwayatJabatan() {
@@ -735,7 +789,7 @@ function renderTable(data) {
         ${sortHeader('waktu',         'Waktu Pelaksanaan', 'col-waktu')}
         ${sortHeader('perihal',       'Perihal',           'col-perihal')}
         ${sortHeader('tujuan',        'Tempat Tujuan',     'col-tujuan')}
-        <th class="col-nama">Nama Pegawai</th>
+        <th class="col-nama">Nama</th>
         <th class="col-menimbang">Menimbang</th>
         <th class="col-alat">Alat Angkutan</th>
         <th class="col-mak">POK</th>
@@ -1425,10 +1479,29 @@ function acFilter(q) {
       try { selectedNips = JSON.parse(cellEl.dataset.nips || '[]'); } catch(_) {}
     }
   }
-  acState.filtered = pegawaiList.filter(p => {
+
+  // Build combined pool: pegawai (existing) + mitra (filtered ke tahun aktif).
+  // Mitra ditandai _isMitra=true supaya picker bisa render badge "Mitra".
+  // NIP placeholder MITRA-{tahun}-{id} di-generate via formatMitraNip().
+  //
+  // Mitra hanya dari "tahun aktif" (= tahun saat ini) supaya picker bersih.
+  // Mitra tahun lama tetap di mitraList & mitraByNip untuk lookup record
+  // surat lama, tapi tidak muncul di dropdown form baru.
+  const tahunAktif = new Date().getFullYear();
+  const mitraPool = mitraList
+    .filter(m => m.tahun === tahunAktif)
+    .map(m => ({
+      NIP: formatMitraNip(m.tahun, m.id),
+      NAMA: m.nama,
+      _isMitra: true,
+      _mitraTahun: m.tahun,
+    }));
+  const combinedPool = pegawaiList.concat(mitraPool);
+
+  acState.filtered = combinedPool.filter(p => {
     if (!q) return true;
     const nama = (p.NAMA || '').toLowerCase();
-    const nip = String(p.NIP || '').toLowerCase();
+    const nip  = String(p.NIP || '').toLowerCase();
     return nama.includes(q) || nip.includes(q);
   }).slice(0, 50);
   acRenderList(selectedNips);
@@ -1437,8 +1510,9 @@ function acFilter(q) {
 
 function acRenderList(selectedNips) {
   const list = document.getElementById('ac-list');
-  if (!pegawaiList.length) {
-    list.innerHTML = `<div class="ac-empty">Data pegawai belum dimuat.</div>`;
+  // Cek apakah pool kosong: pegawai DAN mitra dua-duanya kosong
+  if (!pegawaiList.length && !mitraList.length) {
+    list.innerHTML = `<div class="ac-empty">Data pegawai/mitra belum dimuat.</div>`;
     return;
   }
   if (!acState.filtered.length) {
@@ -1446,16 +1520,27 @@ function acRenderList(selectedNips) {
     return;
   }
   list.innerHTML = acState.filtered.map((p, i) => {
-    const nip = String(p.NIP || '').trim();
-    const nama = p.NAMA || '-';
+    const nip   = String(p.NIP || '').trim();
+    const nama  = p.NAMA || '-';
     const isSel = selectedNips.includes(nip);
+    // Badge "Mitra" di samping nama untuk membedakan dari pegawai biasa.
+    // Untuk pegawai biasa, tampilkan badge "Pegawai" supaya konsisten —
+    // user-side tidak perlu nebak mana mitra mana bukan.
+    const badge = p._isMitra
+      ? `<span style="display:inline-block;margin-left:6px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:100px;padding:1px 7px;font-size:9.5px;font-weight:600;letter-spacing:.3px;vertical-align:middle">MITRA</span>`
+      : `<span style="display:inline-block;margin-left:6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:100px;padding:1px 7px;font-size:9.5px;font-weight:600;letter-spacing:.3px;vertical-align:middle">PEGAWAI</span>`;
+    // Untuk mitra: tampilkan "Mitra Tahun YYYY" di tempat NIP (NIP placeholder
+    // tidak menarik untuk admin — tahunnya lebih informatif).
+    const subLine = p._isMitra
+      ? `Mitra Tahun ${p._mitraTahun}`
+      : `NIP ${nip || '—'}`;
     return `<div class="ac-item${isSel ? ' selected' : ''}${i === acState.focusIdx ? ' focused' : ''}"
       data-nip="${escAttr(nip)}" data-idx="${i}"
       onmousedown="event.preventDefault();acPick(${i})">
       <div class="ac-check">${isSel ? '✓' : ''}</div>
       <div style="flex:1">
-        <div class="ac-name">${esc(nama)}</div>
-        <div class="ac-nip">NIP ${esc(nip || '—')}</div>
+        <div class="ac-name">${esc(nama)}${badge}</div>
+        <div class="ac-nip">${esc(subLine)}</div>
       </div>
     </div>`;
   }).join('');
@@ -2422,7 +2507,7 @@ function validateApproveFields(values) {
     if (!v || (Array.isArray(v) && !v.length)) { errors.push(label); errFields.push(k); }
   });
   if (!values.pegawai_nip.length && !values.pegawai_list.length) {
-    errors.push('Nama Pegawai');
+    errors.push('Nama');
     errFields.push('pegawai_multi');
   }
   // Validasi format MAK Pembebanan — hanya jika field-nya terisi.
@@ -3137,6 +3222,10 @@ async function saveRowEdit(id) {
 ═══════════════════════════════════════════════════════════════════════ */
 function lookupJabatan(nip, tglSuratIso) {
   if (!nip || !tglSuratIso) return '';
+  // Early exit untuk mitra — mitra tidak punya riwayat_jabatan (selalu "Mitra").
+  // Caller (buildPegawaiRow) akan handle jabatan mitra dari record mitra
+  // sendiri. Skip filter array supaya hemat compute.
+  if (isMitraNip(nip)) return '';
   const candidates = riwayatJabatan
     .filter(r => String(r.pegawai_nip || '').trim() === String(nip).trim())
     .filter(r => r.tmt && r.tmt <= tglSuratIso)
@@ -4054,13 +4143,26 @@ async function buildTemplateData(data, opts) {
   // Pegawai pertama — dipakai untuk halaman 1 (kalau cuma 1 orang) dan SPD
   const firstNip = String(nipList[0] || '').trim();
   const firstNm  = nameList[0] || '';
-  const peg              = pegawaiByNIP[firstNip];
-  const namaPegawai      = (peg && peg.NAMA) || firstNm || '';
-  const jabatanPegawai   = lookupJabatan(firstNip, data.tanggal_surat) || '';
-  // Kolom pangkat/golongan belum ada di riwayat_jabatan — kosongkan dulu.
-  const pangkatPegawai   = '';
-  // Satuan kerja: kolom UNIT KERJA dari tabel "data_pegawai".
-  const skerjaPegawai    = (peg && (peg['UNIT KERJA'] || peg.UNIT_KERJA)) || '';
+  // Lookup pegawai DAN mitra. Mitra punya NIP placeholder MITRA-{tahun}-{id};
+  // untuk pegawai asli, lookup pegawaiByNIP[nip]. Lihat helper isMitraNip()
+  // untuk deteksi.
+  const peg              = isMitraNip(firstNip) ? null : pegawaiByNIP[firstNip];
+  const mitr             = isMitraNip(firstNip) ? mitraByNip[firstNip]      : null;
+  const namaPegawai      = (peg && peg.NAMA)
+                             || (mitr && mitr.nama)
+                             || firstNm
+                             || '';
+  // Untuk mitra: jabatan = "Mitra" (dari record mitra), pangkat = "-"
+  // Untuk pegawai: jabatan = lookup riwayat_jabatan, pangkat = '' (belum ada di skema)
+  const jabatanPegawai   = mitr
+                             ? (mitr.jabatan || 'Mitra')
+                             : (lookupJabatan(firstNip, data.tanggal_surat) || '');
+  // Pangkat: pegawai = '' (belum di skema), mitra = '-' (memang tidak ada)
+  const pangkatPegawai   = mitr ? '-' : '';
+  // Satuan kerja: pegawai dari kolom UNIT KERJA, mitra dari kolom instansi
+  const skerjaPegawai    = mitr
+                             ? (mitr.instansi || '')
+                             : ((peg && (peg['UNIT KERJA'] || peg.UNIT_KERJA)) || '');
 
   // ── Halaman 1: nama, jabatan, pangkat → "Terlampir" kalau ≥2 pegawai
   // Sesuai konfirmasi user: untuk pegawai >1 nama, jabatan, pangkat &
@@ -4090,23 +4192,43 @@ async function buildTemplateData(data, opts) {
   // tinggal pakai 1 placeholder saja (tidak perlu {#bertugas_p}{/bertugas_p}
   // conditional di template, lebih simple di-maintain).
   function buildPegawaiRow(nm, i) {
-    const nip = String(nipList[i] || '').trim();
-    const p   = pegawaiByNIP[nip];
-    const jabatan_p  = lookupJabatan(nip, data.tanggal_surat) || '';
+    const nip  = String(nipList[i] || '').trim();
+    // Branch: pegawai biasa vs mitra. Lookup ke pegawaiByNIP atau mitraByNip
+    // sesuai prefix NIP. Lihat isMitraNip() helper.
+    const isMitra = isMitraNip(nip);
+    const p    = isMitra ? null : pegawaiByNIP[nip];
+    const m    = isMitra ? mitraByNip[nip] : null;
+
+    // Field-field dasar (nama, jabatan, pangkat, golongan, skerja, nip_p)
+    // di-resolve sesuai sumber data:
+    //   - Pegawai biasa: lookup pegawaiByNIP + riwayat_jabatan
+    //   - Mitra: dari record mitra (jabatan='Mitra', pangkat='-', nip='-')
+    const nama_p     = (p && p.NAMA) || (m && m.nama) || nm || '';
+    const nip_p      = isMitra ? '-' : (nip || '-');
+    const jabatan_p  = isMitra
+                         ? (m ? (m.jabatan || 'Mitra') : 'Mitra')
+                         : (lookupJabatan(nip, data.tanggal_surat) || '');
+    const pangkat_p  = isMitra ? '-' : '';
+    const golongan_p = isMitra ? '-' : '';
+    const skerja_p   = isMitra
+                         ? (m ? (m.instansi || '') : '')
+                         : ((p && (p['UNIT KERJA'] || p.UNIT_KERJA)) || '');
+
     const bertugas_p = String(bertugasList[i] || '').trim();
     const jabatan_bertugas_p = bertugas_p
       ? `${jabatan_p} / ${bertugas_p}`
       : jabatan_p;
+
     return {
-      no:                 String(i + 1),
-      nama_p:             (p && p.NAMA) || nm || '',
-      nip_p:              nip || '-',
-      pangkat_p:          '',
-      golongan_p:         '',
+      no:         String(i + 1),
+      nama_p,
+      nip_p,
+      pangkat_p,
+      golongan_p,
       jabatan_p,
       bertugas_p,
       jabatan_bertugas_p,
-      skerja_p:           (p && (p['UNIT KERJA'] || p.UNIT_KERJA)) || '',
+      skerja_p,
     };
   }
 
@@ -4527,7 +4649,7 @@ function init() {
   if (!SESSION) return;
   Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION, true);
-  Promise.all([loadPegawai(), loadRiwayatJabatan(), loadUsers(), loadSurat()]);
+  Promise.all([loadPegawai(), loadMitra(), loadRiwayatJabatan(), loadUsers(), loadSurat()]);
 
   // Pre-warm: load library docxtemplater + 3 template di background
   // supaya klik Preview pertama tidak terhambat fetch template.
