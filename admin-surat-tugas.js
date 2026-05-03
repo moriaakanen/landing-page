@@ -179,6 +179,7 @@ let mitraByNip  = {};             // index NIP placeholder → object mitra
                                   //   format NIP placeholder: MITRA-{tahun}-{id3digit}
                                   //   contoh: MITRA-2026-042
 let riwayatJabatan = [];          // dari "riwayat_jabatan"
+let riwayatPangkatGolongan = [];  // dari "riwayat_pangkat_golongan"
 let userMap = {};                 // id → { full_name, username } — untuk tampilkan nama pengaju surat
 let selectedId = null;
 
@@ -416,6 +417,17 @@ async function loadRiwayatJabatan() {
     if (!res.ok) return;
     riwayatJabatan = await res.json();
   } catch(e) { console.warn('Gagal load riwayat_jabatan:', e); }
+}
+
+// Load riwayat pangkat/golongan — dipakai untuk lookup {pangkat_golongan_p}
+// per pegawai di buildPegawaiRow. Pattern sama dengan loadRiwayatJabatan:
+// load semua sekali, lookup in-memory.
+async function loadRiwayatPangkatGolongan() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/riwayat_pangkat_golongan?select=*&order=tmt.desc`, { headers: H });
+    if (!res.ok) return;
+    riwayatPangkatGolongan = await res.json();
+  } catch(e) { console.warn('Gagal load riwayat_pangkat_golongan:', e); }
 }
 
 // Load daftar user → dipakai untuk tampilkan nama pengaju di kolom "Diajukan oleh"
@@ -2643,6 +2655,11 @@ function openApprove(id) {
     <div class="approve-preview-row"><strong>Tipe Surat</strong><span>${tipeBadge}</span></div>
   `;
   document.getElementById('inp-catatan-approve').value = s.catatan_admin || '';
+  // Pre-fill waktu_pelaksanaan_text kalau surat ini sebelumnya pernah
+  // disetujui & sudah punya value. Default kosong (auto-fallback ke
+  // format dari tanggal_berangkat & tanggal_kembali).
+  const inpWaktuText = document.getElementById('inp-waktu-pelaksanaan-text');
+  if (inpWaktuText) inpWaktuText.value = s.waktu_pelaksanaan_text || '';
 
   // ─── Toggle & render section "Bertugas Sebagai" ──────────────────
   // Section muncul HANYA kalau:
@@ -2655,9 +2672,9 @@ function openApprove(id) {
   if (bertugasRow) bertugasRow.style.display = showBertugas ? '' : 'none';
   if (showBertugas) {
     // Pre-fill dari nilai yg sudah ada di DB (kalau surat ini sebelumnya
-    // pernah disetujui & sudah punya pegawai_bertugas), atau dari draft
+    // pernah disetujui & sudah punya bertugas_sebagai), atau dari draft
     // sebelumnya kalau admin batal lalu buka modal lagi. Default: array kosong.
-    const existing = Array.isArray(s.pegawai_bertugas) ? s.pegawai_bertugas : [];
+    const existing = Array.isArray(s.bertugas_sebagai) ? s.bertugas_sebagai : [];
     renderBertugasList(
       'approve-bertugas-list',
       values.pegawai_list,
@@ -2760,7 +2777,7 @@ function editBertugasClearAll() {
    EDIT BERTUGAS — open modal & submit handler
    ─────────────────────────────────────────────────────────────────────
    Modal khusus untuk admin mengedit role pegawai pada surat yang sudah
-   selesai (status=selesai). Hanya field pegawai_bertugas yang di-PATCH;
+   selesai (status=selesai). Hanya field bertugas_sebagai yang di-PATCH;
    surat lainnya tidak disentuh.
 
    Diakses dari tombol "✏ Edit Role" di tabel (kolom Aksi). Tombol
@@ -2791,7 +2808,7 @@ function openEditBertugas(suratId) {
   if (quick) quick.value = '';
 
   // Render list pakai existing data
-  const existing = Array.isArray(s.pegawai_bertugas) ? s.pegawai_bertugas : [];
+  const existing = Array.isArray(s.bertugas_sebagai) ? s.bertugas_sebagai : [];
   renderBertugasList(
     'edit-bertugas-list',
     pegawai,
@@ -2802,7 +2819,7 @@ function openEditBertugas(suratId) {
   openModal('modal-edit-bertugas');
 }
 
-/** Submit perubahan ke DB via PATCH. Hanya kolom pegawai_bertugas. */
+/** Submit perubahan ke DB via PATCH. Hanya kolom bertugas_sebagai. */
 async function submitEditBertugas() {
   const id = _editBertugasSuratId;
   if (!id) return;
@@ -2815,7 +2832,7 @@ async function submitEditBertugas() {
   // Sama logic dengan submitApprove: kalau semua kosong, kirim NULL
   // (tidak ngotorin DB dengan array empty-strings).
   const payload = {
-    pegawai_bertugas: arr.some(v => v.length > 0) ? arr : null,
+    bertugas_sebagai: arr.some(v => v.length > 0) ? arr : null,
   };
 
   const btn = document.getElementById('btn-edit-bertugas-submit');
@@ -2834,7 +2851,7 @@ async function submitEditBertugas() {
     }
 
     // Update suratMap in-memory supaya tidak perlu reload semua data
-    s.pegawai_bertugas = payload.pegawai_bertugas;
+    s.bertugas_sebagai = payload.bertugas_sebagai;
 
     closeModal('modal-edit-bertugas');
     _editBertugasSuratId = null;
@@ -2988,12 +3005,22 @@ async function submitApprove() {
 
   const jabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
 
+  // Baca field opsional waktu_pelaksanaan_text dari modal Approve.
+  // Trim — kalau kosong setelah trim, kirim NULL (fallback ke auto format
+  // dari tanggal_berangkat & tanggal_kembali saat render docx).
+  const waktuPelaksanaanText = (() => {
+    const el = document.getElementById('inp-waktu-pelaksanaan-text');
+    const v = el ? el.value.trim() : '';
+    return v.length ? v : null;
+  })();
+
   const payload = {
     status: 'selesai',
     nomor_surat:           values.nomor_surat,
     tanggal_surat:         values.tanggal_surat,
     tanggal_berangkat:     values.tanggal_berangkat,
     tanggal_kembali:       values.tanggal_kembali || null,
+    waktu_pelaksanaan_text: waktuPelaksanaanText,
     perihal:               values.perihal,
     tujuan:                values.tujuan,
     pegawai_nip:           values.pegawai_nip,
@@ -3007,13 +3034,13 @@ async function submitApprove() {
     penandatangan_jabatan: jabatan || '',
     catatan_admin:         document.getElementById('inp-catatan-approve').value.trim() || null,
     tipe:                  values.tipe,
-    // pegawai_bertugas: hanya disertakan kalau tipe ada lampiran & ≥2 pegawai
+    // bertugas_sebagai: hanya disertakan kalau tipe ada lampiran & ≥2 pegawai
     // (kondisi yang sama dengan show-condition di openApprove). Untuk tipe
     // lain, NULL — biarkan engine docxtemplater lookup → string kosong.
     // collectBertugasValues() return string[] — element kosong = '' (string).
     // Kalau SEMUA element kosong, kita kirim NULL juga supaya tidak nyampah
     // di DB. Cek: ada minimal 1 element non-empty?
-    pegawai_bertugas:      (tipeHasLampiran(values.tipe) && values.pegawai_list.length >= 2)
+    bertugas_sebagai:      (tipeHasLampiran(values.tipe) && values.pegawai_list.length >= 2)
                              ? (() => {
                                  const arr = collectBertugasValues(values.pegawai_list.length, 'inp-bertugas-row');
                                  return arr.some(v => v.length > 0) ? arr : null;
@@ -3145,12 +3172,20 @@ async function saveRowEdit(id) {
   // berubah) — sama seperti di submitApprove.
   const jabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
 
+  // Pertahankan waktu_pelaksanaan_text dari existing record. Field ini
+  // hanya bisa di-set lewat modal Approve (ada input opsional di sana).
+  // Edit inline di tabel tidak menyentuh field ini. Kalau admin mau ubah,
+  // alurnya: reset surat ke "menunggu" → approve ulang dengan nilai baru.
+  const sBeforeForWaktu = suratMap[id];
+  const existingWaktuText = sBeforeForWaktu ? (sBeforeForWaktu.waktu_pelaksanaan_text || null) : null;
+
   // Payload TANPA field 'status' — status tetap 'selesai'.
   const payload = {
     nomor_surat:           values.nomor_surat,
     tanggal_surat:         values.tanggal_surat,
     tanggal_berangkat:     values.tanggal_berangkat,
     tanggal_kembali:       values.tanggal_kembali || null,
+    waktu_pelaksanaan_text: existingWaktuText,
     perihal:               values.perihal,
     tujuan:                values.tujuan,
     pegawai_nip:           values.pegawai_nip,
@@ -3166,18 +3201,18 @@ async function saveRowEdit(id) {
   };
 
   // Edge case: kalau admin edit pegawai_list (tambah/hapus/ubah urutan),
-  // index di pegawai_bertugas tidak lagi valid — reset ke NULL agar admin
+  // index di bertugas_sebagai tidak lagi valid — reset ke NULL agar admin
   // ulangi via tombol "Edit Role". Kita compare urutan NIP lama vs baru.
   // Kalau sama persis → biarkan (tidak ikutkan di payload). Kalau beda →
-  // include pegawai_bertugas: null di payload.
+  // include bertugas_sebagai: null di payload.
   const sBefore = suratMap[id];
   const oldNips = Array.isArray(sBefore && sBefore.pegawai_nip) ? sBefore.pegawai_nip : [];
   const newNips = values.pegawai_nip;
   const nipsChanged = oldNips.length !== newNips.length
                       || oldNips.some((n, i) => String(n).trim() !== String(newNips[i] || '').trim());
-  if (nipsChanged && Array.isArray(sBefore && sBefore.pegawai_bertugas) && sBefore.pegawai_bertugas.length) {
-    payload.pegawai_bertugas = null;
-    console.log('[9201] saveRowEdit: pegawai_list berubah → pegawai_bertugas di-reset ke NULL');
+  if (nipsChanged && Array.isArray(sBefore && sBefore.bertugas_sebagai) && sBefore.bertugas_sebagai.length) {
+    payload.bertugas_sebagai = null;
+    console.log('[9201] saveRowEdit: pegawai_list berubah → bertugas_sebagai di-reset ke NULL');
   }
 
   const row = document.querySelector(`tr[data-surat-id="${id}"]`);
@@ -3226,8 +3261,13 @@ function lookupJabatan(nip, tglSuratIso) {
   // Caller (buildPegawaiRow) akan handle jabatan mitra dari record mitra
   // sendiri. Skip filter array supaya hemat compute.
   if (isMitraNip(nip)) return '';
+  // Filter jenis='utama' — jabatan struktural sehari-hari pegawai. Jabatan
+  // jenis='lainnya' (Plt., PPK, dll) di-lookup terpisah via lookupJabatanLainnya.
+  // Defensive: kalau row tidak punya kolom jenis (kompatibel data lama),
+  // anggap 'utama' (cocokkan dengan default DB).
   const candidates = riwayatJabatan
     .filter(r => String(r.pegawai_nip || '').trim() === String(nip).trim())
+    .filter(r => (r.jenis || 'utama') === 'utama')
     .filter(r => r.tmt && r.tmt <= tglSuratIso)
     .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
   if (candidates.length) return candidates[0].jabatan || '';
@@ -3235,11 +3275,85 @@ function lookupJabatan(nip, tglSuratIso) {
   if (peg && peg.NAMA) {
     const candByName = riwayatJabatan
       .filter(r => (r.nama || '').trim().toLowerCase() === (peg.NAMA || '').trim().toLowerCase())
+      .filter(r => (r.jenis || 'utama') === 'utama')
       .filter(r => r.tmt && r.tmt <= tglSuratIso)
       .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
     if (candByName.length) return candByName[0].jabatan || '';
   }
   return '';
+}
+
+/**
+ * Lookup jabatan_lainnya (Plt., PPK, dll) by nama jabatan & tanggal surat.
+ * Return record terbaru yang TMT-nya <= tanggal_surat.
+ *
+ * Pattern paralel dengan lookupJabatan tapi:
+ *   - Filter jenis='lainnya'
+ *   - Filter jabatan = nama yang dicari (mis. 'Pejabat Pembuat Komitmen')
+ *
+ * Dipakai untuk:
+ *   - {nama_ppk} & {nip_ppk} → cari "Pejabat Pembuat Komitmen"
+ *   - Detect apakah pegawai sedang Plt. (untuk transformJabatanPenandatangan)
+ *
+ * @param {string} jabatanLainnya  Nama jabatan persis (case-sensitive)
+ * @param {string} tglSuratIso     Tanggal surat (YYYY-MM-DD)
+ * @returns {object|null} record riwayat_jabatan, atau null kalau tidak ketemu
+ */
+function lookupJabatanLainnya(jabatanLainnya, tglSuratIso) {
+  if (!jabatanLainnya || !tglSuratIso) return null;
+  const candidates = riwayatJabatan
+    .filter(r => (r.jenis || '') === 'lainnya')
+    .filter(r => (r.jabatan || '') === jabatanLainnya)
+    .filter(r => r.tmt && r.tmt <= tglSuratIso)
+    .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
+  return candidates[0] || null;
+}
+
+/**
+ * Lookup pangkat & golongan terbaru per pegawai by NIP & tanggal surat.
+ * Return record dari riwayat_pangkat_golongan, atau null.
+ *
+ * @param {string} nip          NIP pegawai (skip kalau mitra)
+ * @param {string} tglSuratIso  Tanggal surat (YYYY-MM-DD)
+ * @returns {object|null} {pangkat, golongan, tmt, ...} atau null
+ */
+function lookupPangkatGolongan(nip, tglSuratIso) {
+  if (!nip || !tglSuratIso || isMitraNip(nip)) return null;
+  const candidates = riwayatPangkatGolongan
+    .filter(r => String(r.pegawai_nip || '').trim() === String(nip).trim())
+    .filter(r => r.tmt && r.tmt <= tglSuratIso)
+    .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
+  return candidates[0] || null;
+}
+
+/**
+ * Transform jabatan_penandatangan sesuai rule bisnis.
+ * Input value WAJIB salah satu dari 3 nilai canonical (di-validate di UI/DB):
+ *   - "Kepala BPS Kabupaten Raja Ampat"      → tampilkan apa adanya
+ *   - "Plt. Kepala Badan Pusat Statistik"    → "Plt. Kepala BPS Kabupaten Raja Ampat"
+ *   - lainnya                                 → "Plh. Kepala BPS Kabupaten Raja Ampat"
+ *
+ * Logic ini di-compute saat render, BUKAN saat approve. Konsekuensinya:
+ * kalau di masa depan rule diubah (mis. "Plh." jadi sesuatu yang lain),
+ * surat lama yang di-regenerate akan ikut rule baru. Untuk audit trail,
+ * teks asli yang user pilih tetap tersimpan di kolom penandatangan_jabatan.
+ */
+function transformJabatanPenandatangan(jab) {
+  const j = String(jab || '').trim();
+  if (j === 'Kepala BPS Kabupaten Raja Ampat')      return j;
+  if (j === 'Plt. Kepala Badan Pusat Statistik')    return 'Plt. Kepala BPS Kabupaten Raja Ampat';
+  return 'Plh. Kepala BPS Kabupaten Raja Ampat';
+}
+
+/**
+ * Compute {awalan} dari perihal surat tugas.
+ * Rule: kalau perihal mengandung kata "pelatihan" (case-insensitive,
+ *       partial match) → "Daftar Peserta", lainnya → "Daftar Petugas".
+ */
+function computeAwalan(perihal) {
+  return /pelatihan/i.test(String(perihal || ''))
+    ? 'Daftar Peserta'
+    : 'Daftar Petugas';
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -4105,27 +4219,21 @@ function fmtTglId(isoStr) {
      {#has_lampiran_st}...{/has_lampiran_st}  ← bungkus seluruh halaman
      {#ul}...{/ul}                            ← bungkus baris tabel
        Field per-iterasi: {no}, {nama_p}, {nip_p},
-                          {pangkat_p}, {golongan_p},
+                          {pangkat_p}, {golongan_p}, {pangkat_golongan_p},
                           {jabatan_p}, {bertugas_p}, {jabatan_bertugas_p}
        Catatan: {jabatan_bertugas_p} adalah field gabungan untuk kolom
        "Jabatan/Bertugas Sebagai" — sudah di-format jadi
        "{jabatan_p} / {bertugas_p}" kalau bertugas_p terisi, atau
        "{jabatan_p}" saja kalau kosong. Pakai {jabatan_bertugas_p}
        di template (single placeholder), bukan dua tag terpisah.
+       Sama untuk {pangkat_golongan_p}: gabungan "pangkat / golongan"
+       (atau "-" untuk mitra). Tag {pangkat_p} & {golongan_p} masih
+       di-populate untuk backward-compat dengan template lama, tapi
+       template baru cukup pakai {pangkat_golongan_p}.
      Header lampiran ikut pakai: {nomor_surat}, {tgl_surat}, {awalan},
                                  {menimbang},
                                  {jabatan_penandatangan}, {penandatangan},
                                  {nip_penandatangan}
-
-   Catatan tentang kolom yang BELUM ada di Supabase:
-     - {pangkat}     → kolom pangkat/golongan belum ada di riwayat_jabatan → ''
-     - {pangkat_p}, {golongan_p} → di-kosongkan dulu di lampiran, akan
-                     diisi setelah skema DB dilengkapi.
-                     {jabatan_p} sudah di-lookup dari riwayat_jabatan.
-                     {bertugas_p} sudah dari kolom pegawai_bertugas[] di DB.
-     - {des_*}       → tabel kamus_pok belum dibuat → semua ''
-   Field-field di atas akan otomatis terisi setelah skema DB dilengkapi —
-   tinggal lookup di buildTemplateData() ini.
 */
 async function buildTemplateData(data, opts) {
   // opts: { jumlahResponden?: number|string|null }
@@ -4178,7 +4286,7 @@ async function buildTemplateData(data, opts) {
   // Format DB: TEXT[] — element kosong/NULL artinya pegawai tsb tanpa role
   // tambahan. Hanya relevan untuk tipe lampiran (T2/T3V); tipe non-lampiran
   // tidak akan punya field ini di DB → array kosong → semua bertugas_p = ''.
-  const bertugasList = Array.isArray(data.pegawai_bertugas) ? data.pegawai_bertugas : [];
+  const bertugasList = Array.isArray(data.bertugas_sebagai) ? data.bertugas_sebagai : [];
 
   // Helper kecil — bangun row pegawai standar yang dipakai di lampiran
   // maupun di array kendaraan/menginap. DRY: kedua array isi pegawai-nya
@@ -4201,15 +4309,33 @@ async function buildTemplateData(data, opts) {
 
     // Field-field dasar (nama, jabatan, pangkat, golongan, skerja, nip_p)
     // di-resolve sesuai sumber data:
-    //   - Pegawai biasa: lookup pegawaiByNIP + riwayat_jabatan
+    //   - Pegawai biasa: lookup pegawaiByNIP + riwayat_jabatan + riwayat_pangkat_golongan
     //   - Mitra: dari record mitra (jabatan='Mitra', pangkat='-', nip='-')
     const nama_p     = (p && p.NAMA) || (m && m.nama) || nm || '';
     const nip_p      = isMitra ? '-' : (nip || '-');
     const jabatan_p  = isMitra
                          ? (m ? (m.jabatan || 'Mitra') : 'Mitra')
                          : (lookupJabatan(nip, data.tanggal_surat) || '');
-    const pangkat_p  = isMitra ? '-' : '';
-    const golongan_p = isMitra ? '-' : '';
+    // Pangkat & golongan — lookup dari riwayat_pangkat_golongan (TMT-aware).
+    // Mitra: keduanya "-" (mitra tidak punya pangkat resmi).
+    const pgRecord = isMitra ? null : lookupPangkatGolongan(nip, data.tanggal_surat);
+    const pangkat_p  = isMitra ? '-' : (pgRecord ? (pgRecord.pangkat  || '') : '');
+    const golongan_p = isMitra ? '-' : (pgRecord ? (pgRecord.golongan || '') : '');
+    // Field gabungan untuk template (rule: "pangkat / golongan" untuk pegawai,
+    // "-" untuk mitra). Ini yang dipakai di template (single placeholder).
+    let pangkat_golongan_p;
+    if (isMitra) {
+      pangkat_golongan_p = '-';
+    } else if (pangkat_p && golongan_p) {
+      pangkat_golongan_p = `${pangkat_p} / ${golongan_p}`;
+    } else if (pangkat_p) {
+      pangkat_golongan_p = pangkat_p;
+    } else if (golongan_p) {
+      pangkat_golongan_p = golongan_p;
+    } else {
+      pangkat_golongan_p = '';
+    }
+
     const skerja_p   = isMitra
                          ? (m ? (m.instansi || '') : '')
                          : ((p && (p['UNIT KERJA'] || p.UNIT_KERJA)) || '');
@@ -4220,11 +4346,12 @@ async function buildTemplateData(data, opts) {
       : jabatan_p;
 
     return {
-      no:         String(i + 1),
+      no:                 String(i + 1),
       nama_p,
       nip_p,
       pangkat_p,
       golongan_p,
+      pangkat_golongan_p,
       jabatan_p,
       bertugas_p,
       jabatan_bertugas_p,
@@ -4233,10 +4360,11 @@ async function buildTemplateData(data, opts) {
   }
 
   // Bangun array pegawai untuk loop tabel di halaman lampiran (T2/T3V).
-  // Setiap item: { no, nama_p, nip_p, pangkat_p, golongan_p, jabatan_p,
-  //                bertugas_p, jabatan_bertugas_p, skerja_p }
-  // pangkat_p / golongan_p sengaja dikosongkan dulu — user akan update
-  // belakangan setelah skema DB dilengkapi.
+  // Setiap item: { no, nama_p, nip_p, pangkat_p, golongan_p,
+  //                pangkat_golongan_p, jabatan_p, bertugas_p,
+  //                jabatan_bertugas_p, skerja_p }
+  // pangkat_p, golongan_p, pangkat_golongan_p di-lookup dari
+  // riwayat_pangkat_golongan (TMT-aware). Mitra → semua "-".
   const pegawaiLampiran = nameList.map(buildPegawaiRow);
 
   // Array kendaraan & menginap — sama isinya per pegawai. Saat ini cuma
@@ -4245,14 +4373,43 @@ async function buildTemplateData(data, opts) {
   const pegawaiBaris = nameList.map(buildPegawaiRow);
 
   // ── Penandatangan ────────────────────────────────────────────────────
-  const ttdNama    = data.penandatangan_nama || '';
-  const ttdNip     = data.penandatangan_nip  || '';
-  const ttdJabatan = data.penandatangan_jabatan
-                  || lookupJabatan(ttdNip, data.tanggal_surat) || '';
+  // Rule transform jabatan_penandatangan (lihat transformJabatanPenandatangan):
+  //   Input dari kolom penandatangan_jabatan adalah salah satu dari:
+  //     - "Kepala BPS Kabupaten Raja Ampat"
+  //     - "Plt. Kepala Badan Pusat Statistik"
+  //     - lainnya
+  //   Output di template:
+  //     - "Kepala BPS Kabupaten Raja Ampat"   (apa adanya)
+  //     - "Plt. Kepala BPS Kabupaten Raja Ampat"
+  //     - "Plh. Kepala BPS Kabupaten Raja Ampat"
+  // Fallback: kalau penandatangan_jabatan kosong, lookup via lookupJabatan
+  // (jenis='utama') untuk konsistensi dengan behavior lama.
+  const ttdNama       = data.penandatangan_nama || '';
+  const ttdNip        = data.penandatangan_nip  || '';
+  const ttdJabRaw     = data.penandatangan_jabatan
+                     || lookupJabatan(ttdNip, data.tanggal_surat)
+                     || '';
+  const ttdJabatan    = transformJabatanPenandatangan(ttdJabRaw);
 
   // ── PPK (Pejabat Pembuat Komitmen) ───────────────────────────────────
-  const namaPPK = PPK_NAMA_DEFAULT;
-  const nipPPK  = findNipByNama(namaPPK);
+  // Lookup dari riwayat_jabatan jenis='lainnya' untuk row dengan
+  // jabatan='Pejabat Pembuat Komitmen' dan tmt <= tanggal_surat.
+  // Ambil yang TMT-nya paling baru.
+  const ppkRecord = lookupJabatanLainnya('Pejabat Pembuat Komitmen', data.tanggal_surat);
+  const nipPPK    = ppkRecord ? String(ppkRecord.pegawai_nip || '').trim() : '';
+  // Resolve nama PPK: pertama dari data_pegawai (NAMA), fallback ke
+  // riwayat_jabatan.nama (denormalized), lalu fallback ke default.
+  let namaPPK = '';
+  if (nipPPK) {
+    const pegPPK = pegawaiByNIP[nipPPK];
+    namaPPK = (pegPPK && pegPPK.NAMA)
+            || (ppkRecord && ppkRecord.nama)
+            || '';
+  }
+  // Fallback terakhir: kalau lookup tidak return (data belum di-seed),
+  // pakai PPK_NAMA_DEFAULT supaya surat tetap render dengan placeholder
+  // yang masuk akal — bukan string kosong.
+  if (!namaPPK) namaPPK = PPK_NAMA_DEFAULT;
 
   // ── MAK Pembebanan ───────────────────────────────────────────────────
   const mak        = parseMAK(data.pembebanan);
@@ -4269,8 +4426,17 @@ async function buildTemplateData(data, opts) {
   // ── Lama hari (inclusive) ────────────────────────────────────────────
   const hari = hitungHariInclusive(data.tanggal_berangkat, data.tanggal_kembali);
 
-  // ── Waktu pelaksanaan dalam format Indonesia (range-aware) ───────────
-  const waktuPelaksanaan = fmtWaktu(data.tanggal_berangkat, data.tanggal_kembali) || '';
+  // ── Waktu pelaksanaan ─────────────────────────────────────────────────
+  // Prioritas: kolom waktu_pelaksanaan_text (admin override untuk kasus
+  // multi-range, mis. "25 s.d. 27 Maret & 30 Maret s.d. 1 April 2026").
+  // Kalau kosong, fallback ke format auto dari range tanggal.
+  const waktuPelaksanaan = (data.waktu_pelaksanaan_text && data.waktu_pelaksanaan_text.trim())
+                        || fmtWaktu(data.tanggal_berangkat, data.tanggal_kembali)
+                        || '';
+
+  // ── Awalan untuk header tabel lampiran ───────────────────────────────
+  // "Daftar Peserta" untuk surat pelatihan, "Daftar Petugas" untuk lainnya.
+  const awalan = computeAwalan(data.perihal);
 
   // ── Load kamus POK untuk tahun anggaran surat ────────────────────────
   const tahunAnggaran = tglSuratDate ? tglSuratDate.getFullYear() : new Date().getFullYear();
@@ -4286,6 +4452,14 @@ async function buildTemplateData(data, opts) {
     jabatan:               jabatanHal1,     // ← "Terlampir" jika ≥2 pegawai
     perihal:               data.perihal || '',
     tempat_tujuan:         data.tujuan  || '',
+    // {untuk_text} — field gabungan untuk baris "Untuk" di surat tugas:
+    //   - Kalau tempat_tujuan terisi → pakai tempat_tujuan
+    //   - Kalau tempat_tujuan kosong → "{perihal} pada tanggal {waktu_pelaksanaan}"
+    // Pakai tag {untuk_text} di template (single placeholder), bukan
+    // docxtemplater conditional yang sulit dengan format multi-paragraf.
+    untuk_text:            (data.tujuan && data.tujuan.trim())
+                             ? data.tujuan
+                             : `${data.perihal || ''} pada tanggal ${waktuPelaksanaan}`,
     waktu_pelaksanaan:     waktuPelaksanaan,
     tahun:                 tahun,
     mak_pembebanan:        makLengkap,
@@ -4362,10 +4536,10 @@ async function buildTemplateData(data, opts) {
     // - has_lampiran_st: legacy field (backward-compat dgn template lama
     //   yg pakai {#has_lampiran_st}, kalau masih ada di production).
     // - awalan: pembuka kalimat sebelum {menimbang} di header lampiran.
-    //   Saat ini dikosongkan — akan diisi belakangan.
+    //   "Daftar Peserta" untuk surat pelatihan, "Daftar Petugas" lainnya.
     // ─────────────────────────────────────────────────────────────────
     has_lampiran_st:       flags.has_lampiran,
-    awalan:                '',
+    awalan:                awalan,
     ul:                    flags.has_lampiran ? pegawaiLampiran : [],
 
     // ─────────────────────────────────────────────────────────────────
@@ -4649,7 +4823,7 @@ function init() {
   if (!SESSION) return;
   Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION, true);
-  Promise.all([loadPegawai(), loadMitra(), loadRiwayatJabatan(), loadUsers(), loadSurat()]);
+  Promise.all([loadPegawai(), loadMitra(), loadRiwayatJabatan(), loadRiwayatPangkatGolongan(), loadUsers(), loadSurat()]);
 
   // Pre-warm: load library docxtemplater + 3 template di background
   // supaya klik Preview pertama tidak terhambat fetch template.
