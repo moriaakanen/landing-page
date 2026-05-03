@@ -2847,14 +2847,6 @@ function closeModal(id) {
   if (id === 'modal-preview') {
     _previewVisumOpts = null;
   }
-  // Kalau modal-visum-prompt ditutup tanpa klik "Lanjutkan" (X / Batal /
-  // klik backdrop), resolve Promise yang lagi menunggu dengan null
-  // supaya caller (withVisumOpts) tahu user cancel — tidak menggantung.
-  if (id === 'modal-visum-prompt' && _visumPromptResolver) {
-    const fn = _visumPromptResolver;
-    _visumPromptResolver = null;
-    fn(null);
-  }
   // Reset state edit-bertugas saat modal ditutup
   if (id === 'modal-edit-bertugas') {
     _editBertugasSuratId = null;
@@ -2951,6 +2943,17 @@ function openApprove(id) {
     // Reset quick-fill input setiap kali modal dibuka
     const quick = document.getElementById('inp-bertugas-quick');
     if (quick) quick.value = '';
+  }
+
+  // #2: Toggle section "Jumlah Responden" — hanya muncul untuk tipe visum.
+  // Pre-fill dari kolom DB surat_tugas.jumlah_responden (kalau sebelumnya
+  // pernah di-set). Kosong = pakai default 7 baris saat render.
+  const showResponden = tipeHasVisum(values.tipe);
+  const respondenRow  = document.getElementById('approve-responden-row');
+  if (respondenRow) respondenRow.style.display = showResponden ? '' : 'none';
+  const respondenInp = document.getElementById('inp-jumlah-responden');
+  if (respondenInp) {
+    respondenInp.value = (s.jumlah_responden != null) ? String(s.jumlah_responden) : '';
   }
 
   document.getElementById('approve-alert').className = 'alert';
@@ -3311,6 +3314,17 @@ async function submitApprove() {
                                  return arr.some(v => v.length > 0) ? arr : null;
                                })()
                              : null,
+    // #2: jumlah_responden — hanya disertakan kalau tipe surat ada visum.
+    // Untuk non-visum, kirim NULL (kolom unused). Empty string → NULL juga.
+    jumlah_responden:      (tipeHasVisum(values.tipe))
+                             ? (() => {
+                                 const el = document.getElementById('inp-jumlah-responden');
+                                 const v = el ? el.value.trim() : '';
+                                 if (!v) return null;
+                                 const n = parseInt(v, 10);
+                                 return (isFinite(n) && n >= 0) ? n : null;
+                               })()
+                             : null,
   };
 
   const btn = document.getElementById('btn-approve-submit');
@@ -3664,70 +3678,33 @@ let _previewUploadedPath = null;
 let _previewVisumOpts = null;
 
 /* ── Visum prompt state ──────────────────────────────────────────────
-   Karena jumlah_responden tidak disimpan ke DB, kita pakai modal
-   prompt (#modal-visum-prompt) yang muncul on-demand sebelum
-   preview/download untuk tipe yang punya visum.
-
-   Cache opsional `_visumLastInput[suratId]` menyimpan input user
-   sebelumnya per-session — jadi kalau user buka Preview lalu
-   Download untuk surat yg sama, value sebelumnya jadi default
-   (tetap bisa diubah). Hilang saat reload halaman.
+   #2 refactor: jumlah_responden sekarang persistent di DB (kolom
+   surat_tugas.jumlah_responden — di-input admin saat approve). Tidak ada
+   lagi modal prompt on-demand di preview/download. Code lama dihapus:
+     - promptVisumResponden() / confirmVisumPrompt() helpers
+     - _visumLastInput[] / _visumPromptResolver state
+     - modal-visum-prompt HTML
 ─────────────────────────────────────────────────────────────────── */
-const _visumLastInput = {};
-let _visumPromptResolver = null;  // resolver untuk Promise yg lagi pending
 
 /**
- * Tampilkan modal input "Jumlah Responden Visum" dan return Promise
- * yang resolve dengan value input (string atau null kalau di-cancel).
+ * Wrapper: jalankan callback dengan opts yang sudah di-resolve.
  *
- * @param {object} surat - object surat (untuk default value & info)
- * @returns {Promise<string|null>}  string angka atau '' (kosong) kalau OK
- *                                  null kalau user cancel
- */
-function promptVisumResponden(surat) {
-  return new Promise(resolve => {
-    _visumPromptResolver = resolve;
-    const inp = document.getElementById('inp-jumlah-responden-prompt');
-    if (inp) {
-      // Set default dari last input (kalau ada) untuk surat yang sama
-      const cached = _visumLastInput[surat.id];
-      inp.value = cached != null ? cached : '';
-      // Auto-focus setelah modal terlihat
-      setTimeout(() => { try { inp.focus(); inp.select(); } catch(_) {} }, 50);
-    }
-    openModal('modal-visum-prompt');
-  });
-}
-
-/** Handler tombol "Lanjutkan" di modal visum prompt. */
-function confirmVisumPrompt() {
-  const inp = document.getElementById('inp-jumlah-responden-prompt');
-  const val = inp ? inp.value.trim() : '';
-  closeModal('modal-visum-prompt');
-  if (_visumPromptResolver) {
-    const fn = _visumPromptResolver;
-    _visumPromptResolver = null;
-    fn(val);  // string ('' kalau kosong, '10' kalau diisi)
-  }
-}
-
-/**
- * Wrapper: jalankan callback dengan opts yang sudah di-resolve dari
- * visum prompt (kalau perlu). Kalau tipe surat tidak butuh visum,
- * langsung jalankan callback dengan opts kosong.
+ * #2 (refactor): jumlah_responden sekarang persistent di DB (kolom
+ * surat_tugas.jumlah_responden — di-input admin saat approve). Tidak ada
+ * lagi prompt modal di preview/download. Function ini sekarang sekedar
+ * pull value dari record surat & pass ke callback.
  *
- * @param {object}   surat    - object surat
+ * @param {object}   surat    - object surat (harus include jumlah_responden field)
  * @param {Function} callback - async (opts) => any
- * @returns {Promise<any>}    - return value callback, atau null kalau dibatalkan
+ * @returns {Promise<any>}    - return value callback
  */
 async function withVisumOpts(surat, callback) {
   if (!tipeHasVisum(surat && surat.tipe)) {
     return callback({});  // tipe non-visum → opts kosong
   }
-  const val = await promptVisumResponden(surat);
-  if (val === null) return null;  // user cancel
-  _visumLastInput[surat.id] = val; // cache untuk next call
-  return callback({ jumlahResponden: val === '' ? null : val });
+  // Baca jumlah_responden dari record DB. NULL = pakai default (7 baris).
+  const jr = (surat && surat.jumlah_responden != null) ? surat.jumlah_responden : null;
+  return callback({ jumlahResponden: jr });
 }
 
 async function uploadPreviewDocx(blob, suratId) {
@@ -3822,18 +3799,12 @@ async function openPreview(suratId) {
     return;
   }
 
-  // Untuk tipe visum: minta jumlah responden DULU sebelum buka modal
-  // preview. Kalau user cancel di prompt, jangan buka modal preview.
-  // Untuk tipe non-visum: opts={} langsung lanjut.
-  let visumOpts;
-  if (tipeHasVisum(surat.tipe)) {
-    const val = await promptVisumResponden(surat);
-    if (val === null) return;  // user cancel — abort tanpa buka preview
-    _visumLastInput[surat.id] = val;
-    visumOpts = { jumlahResponden: val === '' ? null : val };
-  } else {
-    visumOpts = {};
-  }
+  // #2 (refactor): jumlah_responden sekarang dari DB (persistent), tidak
+  // perlu prompt modal lagi. Untuk tipe visum, baca dari surat.jumlah_responden.
+  // Untuk non-visum, opts={}.
+  const visumOpts = tipeHasVisum(surat.tipe)
+    ? { jumlahResponden: (surat.jumlah_responden != null) ? surat.jumlah_responden : null }
+    : {};
 
   currentPreviewSurat = surat;
   // Simpan opts visum agar tombol "Download .docx" dan "Buka di Word"
@@ -3986,10 +3957,9 @@ async function bulkDownloadSelected() {
   // Pre-warm library sekali saja (bukan per-iteration)
   try { ensureLibrariesLoaded(); } catch(_) {}
 
-  // Pre-collect: untuk setiap surat dengan tipe visum, prompt jumlah
-  // responden DULU (sebelum mulai loop download). Ini supaya admin tidak
-  // perlu nunggu di tengah-tengah loop. Kalau admin cancel salah satu
-  // prompt, surat tsb di-skip (failures); sisanya tetap lanjut.
+  // #2 (refactor): jumlah_responden sekarang persistent di DB. Tidak
+  // perlu prompt sequentially — langsung ambil dari surat.jumlah_responden.
+  // Surat yang tidak punya value (NULL) → render pakai 7 baris default.
   const visumOptsById = {};
   for (let i = 0; i < ids.length; i++) {
     const id = ids[i];
@@ -3997,17 +3967,10 @@ async function bulkDownloadSelected() {
     if (!surat || surat.status !== 'selesai') continue;
     if (!tipeHasVisum(surat.tipe)) {
       visumOptsById[id] = {};
-      continue;
-    }
-    // Tipe visum — prompt sequentially
-    if (btn) btn.textContent = `📋 Visum ${i + 1}/${ids.length}…`;
-    const val = await promptVisumResponden(surat);
-    if (val === null) {
-      // Cancel → tandai null supaya loop di-skip dengan pesan informatif
-      visumOptsById[id] = null;
     } else {
-      _visumLastInput[surat.id] = val;
-      visumOptsById[id] = { jumlahResponden: val === '' ? null : val };
+      visumOptsById[id] = {
+        jumlahResponden: (surat.jumlah_responden != null) ? surat.jumlah_responden : null
+      };
     }
   }
 
@@ -4023,11 +3986,9 @@ async function bulkDownloadSelected() {
       continue;
     }
 
-    // Surat visum yang prompt-nya di-cancel → skip
-    if (visumOptsById[id] === null) {
-      failures.push(`${surat.perihal || 'surat #' + id}: dibatalkan saat input visum`);
-      continue;
-    }
+    // (#2 refactor) — visumOptsById[id] tidak pernah null lagi setelah
+    // jumlah_responden disimpan di DB. Tidak ada lagi skip path "dibatalkan
+    // saat input visum" karena tidak ada prompt yang bisa di-cancel.
 
     try {
       const blob = await buildSuratTugasDoc(surat, visumOptsById[id] || {});
