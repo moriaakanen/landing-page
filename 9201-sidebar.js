@@ -10,7 +10,9 @@
  *   - "profil"            → Profil Saya (index.html)
  *   - "surat-tugas"       → Surat Tugas user (surat-tugas.html)
  *   - "admin-surat"       → Persetujuan Surat (admin-surat-tugas.html)
+ *   - "riwayat"           → Riwayat Kepegawaian (admin-riwayat.html)
  *   - "kamus-pok"         → Kamus POK (manajemen-kamus-pok.html)
+ *   - "manajemen-mitra"   → Manajemen Mitra (manajemen-mitra.html)
  *   - "manajemen-pengguna"→ Manajemen Pengguna (manajemen-pengguna.html)
  *
  * Kalau ada menu admin baru di masa depan, cukup tambah row di NAV_ADMIN_ITEMS
@@ -32,6 +34,7 @@
     { key: 'admin-surat',         href: 'admin-surat-tugas.html',    icon: '✅', label: 'Surat Tugas' },
     { key: 'riwayat',             href: 'admin-riwayat.html',        icon: '📜', label: 'Riwayat Kepegawaian' },
     { key: 'kamus-pok',           href: 'manajemen-kamus-pok.html',  icon: '📚', label: 'Kamus POK' },
+    { key: 'manajemen-mitra',     href: 'manajemen-mitra.html',      icon: '🤝', label: 'Manajemen Mitra' },
     { key: 'manajemen-pengguna',  href: 'manajemen-pengguna.html',   icon: '👥', label: 'Manajemen Pengguna' },
   ];
 
