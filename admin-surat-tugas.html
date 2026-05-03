@@ -344,19 +344,10 @@
   .badge.selesai{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
 
   /* ─── Compact display untuk kolom Tanggal Surat ───
-     - Status 'selesai' (ro-text DIV): word-spacing trick paksa wrap antar
-       kata, jadi "30 Desember 2026" → "30 Desember" / "2026" (2-baris).
-     - Status 'menunggu' (xls-cell INPUT): single-line, width 118px cukup
-       untuk muat "30 April 2026" tanpa terpotong. Kalau "30 Desember 2026"
-       dia akan scrollable horizontal di dalam input (intentional).
-     - Header: word-spacing trick supaya "Tanggal Surat" wrap "Tanggal" / "Surat". */
-  td.col-tgl-surat .ro-text{
-    font-size:12px;line-height:1.35;text-align:left;
-    word-spacing:9999px;  /* paksa wrap antar kata */
-  }
-  td.col-tgl-surat .xls-cell{
-    font-size:11.5px;line-height:1.4;
-  }
+     Sama seperti kolom Waktu Pelaksanaan: biarkan natural, wrap natural
+     kalau panjang. Width 118px cukup untuk muat "30 April 2026" 1-baris. */
+  td.col-tgl-surat .ro-text,
+  td.col-tgl-surat .xls-cell{font-size:11.5px;line-height:1.4}
   /* Sama untuk col-nomor-surat — "B-022/668870-92800/KP-650/05/2026" akan
      wrap natural pada "/" karena word-break:break-word di .xls-cell. */
   td.col-nomor-surat .ro-text,
@@ -364,7 +355,8 @@
 
   /* HEADER 2-baris untuk kolom kompak — pakai word-spacing trick supaya
      "Tanggal Surat" → "Tanggal" / "Surat" dan "Nomor Surat" → "Nomor"
-     / "Surat" otomatis wrap antar kata. */
+     / "Surat" otomatis wrap antar kata di header (header non-input,
+     trick aman). */
   th.col-tgl-surat,
   th.col-nomor-surat{
     word-spacing:9999px;line-height:1.35;
@@ -577,6 +569,13 @@
   .form-input-quick:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.06)}
   .btn-quick{padding:8px 13px;font-size:12px;white-space:nowrap;border-radius:7px}
   .bertugas-list{display:flex;flex-direction:column;gap:7px}
+  /* #2 redesign: container input Jumlah Responden — pattern sama dengan
+     .bertugas-quick-row supaya visual konsisten antar section di modal. */
+  .responden-row{
+    display:flex;gap:6px;align-items:center;
+    background:rgba(13,35,64,.03);padding:9px 11px;border-radius:8px;
+    border:1px dashed var(--border);
+  }
 
   .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .detail-field{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:12px 14px}
@@ -846,7 +845,8 @@
 
       <!-- #2: JUMLAH RESPONDEN — hanya muncul untuk tipe surat dengan visum.
            Toggle visibility via openApprove() berdasarkan tipeHasVisum().
-           Disimpan ke kolom DB surat_tugas.jumlah_responden saat submit. -->
+           Disimpan ke kolom DB surat_tugas.jumlah_responden saat submit.
+           Desain konsisten dengan section "Bertugas Sebagai" di atas. -->
       <div class="form-group" id="approve-responden-row" style="display:none">
         <label class="form-label">
           <span style="display:inline-flex;align-items:center;gap:6px">
@@ -855,12 +855,9 @@
           </span>
           <span style="font-style:italic;color:var(--muted);font-weight:400;margin-left:6px">(opsional, untuk lampiran visum)</span>
         </label>
-        <input type="number" min="0" step="1" class="form-input" id="inp-jumlah-responden"
-               placeholder="Kosongkan = 7 baris default (6 + 1 loop)"
-               style="max-width:240px">
-        <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5">
-          Aturan: <strong>kosong</strong> atau <strong>≤ 6</strong> = 7 baris default ·
-          <strong>&gt; 6</strong> = N baris (mis. 10 → 10 baris)
+        <div class="responden-row">
+          <input type="number" min="0" step="1" class="form-input form-input-quick" id="inp-jumlah-responden"
+                 placeholder="Masukkan jumlah responden">
         </div>
       </div>
     </div>
