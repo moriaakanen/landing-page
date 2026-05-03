@@ -159,10 +159,16 @@
 
   table.list-table{width:100%;border-collapse:separate;border-spacing:0;min-width:2288px;table-layout:fixed}
   table.list-table thead th{
-    background:#f9f8f5;padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;
+    background:#f9f8f5;padding:9px 10px;text-align:center;font-size:10.5px;font-weight:700;
     color:var(--navy);letter-spacing:.5px;text-transform:uppercase;
     border-bottom:2px solid var(--border);border-right:1px solid var(--border);
     white-space:nowrap;position:sticky;top:0;z-index:5;
+  }
+  /* Untuk kolom yang punya 2-baris header (Tanggal Surat, Nomor Surat),
+     non-uppercase supaya tetap rapih dengan word-spacing trick. */
+  table.list-table thead th.col-tgl-surat,
+  table.list-table thead th.col-nomor-surat{
+    white-space:normal;
   }
   table.list-table thead th:last-child{border-right:none}
 
@@ -191,19 +197,19 @@
   /* Lebar kolom — versi compact (UI/UX permintaan: kecilkan kolom) */
   .col-check         { width:38px;  text-align:center;padding:6px 0 }
   .col-no            { width:46px;  text-align:center }
-  .col-nomor-surat   { width:88px }   /* #4: kecil, wrap natural ke 2 baris */
-  .col-tgl-surat     { width:84px }   /* #5: "3 Mei" baris 1, "2026" baris 2 */
-  .col-waktu         { width:135px }  /* #6: kecil */
+  .col-nomor-surat   { width:78px }   /* #2 r2: ramping, "Nomor" / "Surat" header 2-baris */
+  .col-tgl-surat     { width:100px }  /* #1 r2: muat "30 Desember" + "2026" 2-baris */
+  .col-waktu         { width:175px }  /* #6 + #3: muat picker + toggle multi-range */
   .col-perihal       { width:185px }
   .col-tujuan        { width:130px }
   .col-nama          { width:175px }  /* #7: kecil */
   .col-menimbang     { width:185px }
   .col-alat          { width:115px }
-  .col-mak           { width:135px }  /* #8: kecil */
+  .col-mak           { width:155px }  /* #5 r2: lebih lebar untuk muat "KRO" full */
   .col-ttd           { width:160px }
   .col-tipe          { width:155px }  /* #10: kecil; tipe text wrap */
   .col-status        { width:105px }
-  .col-aksi          { width:140px;text-align:right } /* #11: kecil (logo only kecuali Setujui) */
+  .col-aksi          { width:140px;text-align:center } /* #6 r2: aksi center */
   .col-pengaju       { width:165px }
 
   /* Styling isi kolom pengaju — read-only, text-heavy */
@@ -235,6 +241,35 @@
 
   textarea.xls-cell{resize:none;overflow:hidden;min-height:42px;font-family:'Plus Jakarta Sans',sans-serif}
 
+  /* ════════════════════════════════════════════════════
+     #3: WAKTU CUSTOM (multi-range) — opsional di bawah picker.
+     Pattern sama dengan user-side (surat-tugas.html).
+  ════════════════════════════════════════════════════ */
+  .waktu-toggle{
+    display:inline-flex;align-items:center;gap:4px;
+    margin:2px 8px 0 8px;padding:2px 8px;
+    background:transparent;border:1px dashed var(--border2);border-radius:100px;
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;font-weight:500;
+    color:var(--muted);cursor:pointer;transition:all .15s;
+    white-space:nowrap;
+  }
+  .waktu-toggle:hover{border-color:var(--navy);color:var(--navy);background:rgba(13,35,64,.03)}
+  .waktu-toggle.active{
+    border-style:solid;border-color:var(--gold);
+    background:var(--gold-light);color:#7a5c10;
+  }
+  .waktu-toggle-icon{font-size:13px;font-weight:700;line-height:1}
+  .waktu-custom{
+    width:calc(100% - 16px);margin:5px 8px 4px 8px;padding:6px 9px;
+    border:1.5px solid var(--gold);border-radius:6px;background:#fffdf6;
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;color:var(--text);
+    outline:none;line-height:1.4;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .waktu-custom:focus{border-color:var(--navy);box-shadow:0 0 0 2px rgba(13,35,64,.08)}
+  .waktu-custom::placeholder{color:#c8c3ba;font-size:10.5px;font-style:italic}
+  .waktu-custom.hidden{display:none}
+
   /* Display readonly text (untuk row selesai) */
   .ro-text{padding:9px 10px;font-size:12.5px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word;min-height:42px}
   .ro-text.muted{color:var(--muted);font-style:italic;font-size:11.5px}
@@ -251,20 +286,21 @@
   td.col-check input[type="checkbox"]{width:14px;height:14px;accent-color:var(--navy);cursor:pointer;vertical-align:middle}
   td.col-check input[type="checkbox"]:disabled{cursor:not-allowed;opacity:.3}
   th.col-check input[type="checkbox"]{width:14px;height:14px;accent-color:var(--navy);cursor:pointer;vertical-align:middle}
-  td.col-status{padding:11px 9px}
+  /* #6: Status cell + Aksi cell content rata tengah supaya rapi */
+  td.col-status{padding:11px 9px;text-align:center}
+  td.col-aksi{padding:8px 10px;text-align:center}
+  /* Aksi-wrap juga di-center supaya tombol-tombol grouping di tengah */
+  .aksi-wrap{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
 
   .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap}
   .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
   .badge.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
   .badge.selesai{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
 
-  td.col-aksi{padding:8px 10px}
-  .aksi-wrap{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
-
   /* ─── Compact display untuk kolom Tanggal Surat ───
-     Tanggal di-render via fmtTgl() jadi format "3 Mei 2026". Dengan
-     col-tgl-surat = 84px, browser akan auto wrap "3 Mei 2026" jadi
-     2 baris ("3 Mei" / "2026") karena white-space normal. CSS di
+     Tanggal di-render via fmtTgl() jadi format "30 Desember 2026". Dengan
+     col-tgl-surat = 100px, browser akan auto wrap "30 Desember 2026" jadi
+     2 baris ("30 Desember" / "2026") karena white-space normal. CSS di
      bawah memperjelas line-height & alignment vertikal supaya rapih. */
   td.col-tgl-surat .ro-text,
   td.col-tgl-surat .xls-cell{
@@ -275,6 +311,14 @@
      wrap natural pada "/" karena word-break:break-word di .xls-cell. */
   td.col-nomor-surat .ro-text,
   td.col-nomor-surat .xls-cell{font-size:11.5px;line-height:1.4}
+
+  /* HEADER 2-baris untuk kolom kompak — pakai word-spacing trick supaya
+     "Tanggal Surat" → "Tanggal" / "Surat" dan "Nomor Surat" → "Nomor"
+     / "Surat" otomatis wrap antar kata. */
+  th.col-tgl-surat,
+  th.col-nomor-surat{
+    word-spacing:9999px;line-height:1.35;
+  }
 
   .table-empty{padding:48px 24px;text-align:center}
   .table-empty-icon{font-size:28px;opacity:.3;margin-bottom:10px}
@@ -287,6 +331,7 @@
   .alert.show{display:flex;animation:fadeUp .3s ease}
   .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
   .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+  .alert.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .fade-in{animation:fadeUp .5s ease both}
 
@@ -732,18 +777,6 @@
 
         <!-- List per pegawai — dirender di JS oleh renderBertugasList() -->
         <div id="approve-bertugas-list" class="bertugas-list"></div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          <span style="display:inline-flex;align-items:center;gap:6px">
-            <span style="font-size:14px">🗓</span>
-            <span>Waktu Pelaksanaan Kustom</span>
-          </span>
-          <span style="font-style:italic;color:var(--muted);font-weight:400;margin-left:6px">(opsional)</span>
-        </label>
-        <input type="text" class="form-input" id="inp-waktu-pelaksanaan-text"
-               placeholder="Misal: 25 s.d. 27 Maret &amp; 30 Maret s.d. 1 April 2026">
       </div>
     </div>
     <div class="modal-footer">
