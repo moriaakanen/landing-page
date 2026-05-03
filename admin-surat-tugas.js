@@ -2506,10 +2506,11 @@ function validateApproveFields(values) {
     ['tanggal_surat',      'Tgl Surat'],
     ['tanggal_berangkat',  'Waktu Pelaksanaan'],
     ['perihal',            'Perihal'],
-    ['tujuan',             'Tempat Tujuan'],
+    // 'tujuan' & 'pembebanan' DIHAPUS dari required list — keduanya opsional.
+    // Tujuan kosong → di-handle oleh {untuk_text} fallback (perihal + tanggal).
+    // Pembebanan kosong → kolom MAK di template render kosong (rule #2).
     ['menimbang_custom',   'Menimbang'],
     ['alat_angkutan',      'Alat Angkutan'],
-    ['pembebanan',         'POK'],
     ['penandatangan_nama', 'Penandatangan'],
     ['tipe',               'Tipe Surat'],
   ];
