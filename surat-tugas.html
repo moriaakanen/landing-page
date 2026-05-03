@@ -148,7 +148,7 @@
   .col-no       { width:44px;  text-align:center }
   .col-del      { width:38px;  text-align:center }
   .col-perihal  { width:auto;  min-width:220px }
-  .col-waktu    { width:180px }
+  .col-waktu    { width:200px }
   .col-tujuan   { width:170px }
   .col-nama     { width:260px }
   .col-pok      { width:150px }
@@ -177,6 +177,37 @@
   .xls-cell.err{border-color:var(--red)!important;background:#fef5f4!important;animation:shake .35s}
   @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
   textarea.xls-cell{resize:none;overflow:hidden;min-height:42px;font-family:'Plus Jakarta Sans',sans-serif}
+
+  /* ════════════════════════════════════════════════════
+     WAKTU CUSTOM (multi-range) — opsional di bawah picker
+  ════════════════════════════════════════════════════ */
+  /* Toggle button: kecil, subtle, di bawah picker tanggal */
+  .waktu-toggle{
+    display:inline-flex;align-items:center;gap:4px;
+    margin:2px 8px 0 8px;padding:2px 8px;
+    background:transparent;border:1px dashed var(--border2);border-radius:100px;
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;font-weight:500;
+    color:var(--muted);cursor:pointer;transition:all .15s;
+    white-space:nowrap;
+  }
+  .waktu-toggle:hover{border-color:var(--navy);color:var(--navy);background:rgba(13,35,64,.03)}
+  .waktu-toggle.active{
+    border-style:solid;border-color:var(--gold);
+    background:var(--gold-light);color:#7a5c10;
+  }
+  .waktu-toggle-icon{font-size:13px;font-weight:700;line-height:1}
+
+  /* Field text custom: muncul di bawah picker saat toggle active */
+  .waktu-custom{
+    width:calc(100% - 16px);margin:5px 8px 4px 8px;padding:6px 9px;
+    border:1.5px solid var(--gold);border-radius:6px;background:#fffdf6;
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;color:var(--text);
+    outline:none;line-height:1.4;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .waktu-custom:focus{border-color:var(--navy);box-shadow:0 0 0 2px rgba(13,35,64,.08)}
+  .waktu-custom::placeholder{color:#c8c3ba;font-size:10.5px;font-style:italic}
+  .waktu-custom.hidden{display:none}
 
   /* ════════════════════════════════════════════════════
      PEGAWAI MULTI-SELECT CELL (tag + input)
@@ -358,9 +389,9 @@
               <th class="col-no">No</th>
               <th class="col-del"></th>
               <th class="col-perihal">Perihal *</th>
-              <th class="col-waktu">Waktu Pelaksanaan *</th>
-              <th class="col-tujuan">Tempat Tujuan *</th>
-              <th class="col-nama">Nama *</th>
+              <th class="col-waktu">Waktu Pelaksanaan</th>
+              <th class="col-tujuan">Tempat Tujuan</th>
+              <th class="col-nama">Nama Pegawai *</th>
               <th class="col-pok">POK <span style="font-weight:400;color:var(--muted);font-size:10px">(opsional)</span></th>
             </tr></thead>
             <tbody id="bulk-tbody"></tbody>
@@ -426,21 +457,7 @@
 // `esc`, `logout`, `novaCheckSession`, `novaRpc`, `BULAN`, dan `SUPABASE_HEADERS`
 // di-load dari 9201-shared.js — tidak lagi dideklarasi ulang di sini.
 const H = SUPABASE_HEADERS; // alias singkat untuk dipakai di file ini
-let SESSION=null;let allPegawai=[];let allMitra=[];let mitraByNip={};let allSurat=[];const suratMap={};
-
-// ── Mitra helpers — paralel dengan admin-surat-tugas.js ─────────────
-// NIP placeholder format: MITRA-{tahun}-{id_3digit}
-function formatMitraNip(tahun, id) { return `MITRA-${tahun}-${String(id).padStart(3, '0')}`; }
-function isMitraNip(nip)            { return typeof nip === 'string' && nip.startsWith('MITRA-'); }
-async function loadMitra(){
-  try{
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/mitra?select=id,tahun,nama,no_hp,jabatan,instansi&order=tahun.desc,nama.asc`,{headers:H});
-    if(!res.ok){console.warn('[mitra] HTTP',res.status,'- skip');return;}
-    allMitra=await res.json();
-    mitraByNip={};
-    allMitra.forEach(m=>{mitraByNip[formatMitraNip(m.tahun,m.id)]=m;});
-  }catch(e){console.warn('Gagal load mitra:',e);}
-}
+let SESSION=null;let allPegawai=[];let allSurat=[];const suratMap={};
 function switchTab(tab){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['list','bulk'][i]===tab));document.getElementById('panel-list').classList.toggle('active',tab==='list');document.getElementById('panel-bulk').classList.toggle('active',tab==='bulk');}
 function fmtWaktu(mulai,selesai){if(!mulai)return'\u2014';const a=new Date(mulai+'T00:00:00');if(!selesai||selesai===mulai){return`${a.getDate()} ${BULAN[a.getMonth()]} ${a.getFullYear()}`;}const b=new Date(selesai+'T00:00:00');if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()){return`${a.getDate()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}if(a.getFullYear()===b.getFullYear()){return`${a.getDate()} ${BULAN[a.getMonth()]} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}return`${a.getDate()} ${BULAN[a.getMonth()]} ${a.getFullYear()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}
 async function loadPegawai(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=id,NAMA,NIP&order=NAMA.asc`,{headers:H});if(!res.ok)throw new Error();allPegawai=await res.json();}catch(e){console.error('Gagal load pegawai',e);}}
@@ -449,7 +466,7 @@ function updateStats(){document.getElementById('st-total').textContent=allSurat.
 function badgeHTML(status){const m={menunggu:['menunggu','Menunggu'],selesai:['selesai','Selesai']};const[cls,lbl]=m[status]||['draft',esc(status)||'Draft'];return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;}
 function renderTable(data){document.getElementById('table-count').textContent=`${data.length} surat`;if(!data.length){document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">\ud83d\udced</div><div class="table-empty-text">Belum ada surat tugas.</div></div>';return;}data.forEach(s=>{suratMap[s.id]=s;});const r=data.map(s=>`<tr><td style="max-width:220px;white-space:normal;word-break:break-word;line-height:1.5">${esc(s.perihal)||'\u2014'}</td><td style="white-space:nowrap;font-size:12px">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td><td>${esc(s.tujuan)||'\u2014'}</td><td><span style="font-size:11px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td><td>${badgeHTML(s.status)}</td><td><button class="btn-sm" onclick="showDetail(${JSON.stringify(s.id)})">Detail</button></td></tr>`).join('');document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu Pelaksanaan</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th></th></tr></thead><tbody>${r}</tbody></table>`;}
 function filterTable(){const q=document.getElementById('search-input').value.toLowerCase();const st=document.getElementById('filter-status').value;const f=allSurat.filter(s=>(!q||(s.perihal||'').toLowerCase().includes(q)||(s.tujuan||'').toLowerCase().includes(q))&&(!st||s.status===st));renderTable(f);document.getElementById('table-count').textContent=`${f.length} surat`;}
-function showDetail(id){const s=suratMap[id];if(!s)return;const field=(label,val)=>`<div><div class="modal-field-label">${label}</div><div class="modal-field-val">${val||'\u2014'}</div></div>`;document.getElementById('modal-body').innerHTML=`${field('Perihal',esc(s.perihal))}${field('Waktu Pelaksanaan',esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali)))}${field('Tujuan',esc(s.tujuan))}${field('Status',badgeHTML(s.status))}${field('Pegawai',(s.pegawai_list||[]).map(esc).join(', ')||'\u2014')}${s.pembebanan?field('POK',esc(s.pembebanan)):''}${s.nomor_surat?field('Nomor Surat',esc(s.nomor_surat)):''} ${s.tanggal_surat?field('Tanggal Surat',esc(s.tanggal_surat)):''} ${s.catatan_admin?field('Catatan Admin',esc(s.catatan_admin)):''}`;document.getElementById('detail-modal').style.display='flex';}
+function showDetail(id){const s=suratMap[id];if(!s)return;const field=(label,val)=>`<div><div class="modal-field-label">${label}</div><div class="modal-field-val">${val||'\u2014'}</div></div>`;document.getElementById('modal-body').innerHTML=`${field('Perihal',esc(s.perihal))}${field('Waktu Pelaksanaan',esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali)))}${field('Tujuan',esc(s.tujuan))}${field('Status',badgeHTML(s.status))}${field('Pegawai',(s.pegawai_list||[]).map(esc).join(', ')||'\u2014')}${s.pembebanan?field('POK',esc(s.pembebanan)):''}${s.nomor_surat?field('Nomor Surat',esc(s.nomor_surat)):''} ${s.tanggal_surat?field('Tanggal Surat',esc(s.tanggal_surat)):''}`;document.getElementById('detail-modal').style.display='flex';}
 function closeDetailModal(){document.getElementById('detail-modal').style.display='none';}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDetailModal();});
 /* ═══════════════════════════════════════════════════════════════════
@@ -542,8 +559,16 @@ function cellTextHTML(field,val,placeholder,colClass){
   </td>`;
 }
 
-function cellDateRangeHTML(field,isoMulai,isoSelesai){
+function cellDateRangeHTML(field,isoMulai,isoSelesai,waktuTextCustom){
+  // PATTERN: picker tanggal range tetap di atas (untuk struktur data
+  // tanggal_berangkat/tanggal_kembali). Di bawahnya ada toggle "+ multi-range"
+  // yang reveal text input opsional untuk kasus seperti
+  // "25 s.d. 27 Maret 2026 & 30 Maret s.d. 1 April 2026".
+  //
+  // Kalau text custom sudah pernah diisi, otomatis expanded.
+  // Kalau kosong, collapsed by default — UI tetap clean untuk pengguna umum.
   const display=isoMulai?fmtWaktu(isoMulai,isoSelesai):'';
+  const hasCustom=!!(waktuTextCustom&&waktuTextCustom.trim());
   return`<td class="col-waktu">
     <input type="text" class="xls-cell" data-field="${field}" data-col-field="${field}"
       data-iso-mulai="${escAttr(isoMulai||'')}"
@@ -554,7 +579,42 @@ function cellDateRangeHTML(field,isoMulai,isoSelesai){
       onfocus="onDateFocus(this)"
       ondblclick="openCal(this, true)"
       onkeydown="if(event.altKey&&event.key==='ArrowDown'){event.preventDefault();openCal(this,true);}">
+    <button type="button" class="waktu-toggle${hasCustom?' active':''}"
+      onclick="toggleWaktuCustom(this)"
+      title="Tambah teks waktu kustom untuk multi-range">
+      <span class="waktu-toggle-icon">${hasCustom?'\u2212':'+'}</span>
+      ${hasCustom?'kustom':'multi-range'}
+    </button>
+    <input type="text" class="waktu-custom${hasCustom?'':' hidden'}" data-field="waktu_text"
+      value="${escAttr(waktuTextCustom||'')}"
+      placeholder="Misal: 25 s.d. 27 Maret &amp; 30 Maret s.d. 1 April 2026">
   </td>`;
+}
+
+/* Toggle visibility text input "Waktu Custom" untuk multi-range.
+   Di-call dari onclick tombol .waktu-toggle. */
+function toggleWaktuCustom(btn){
+  const td=btn.closest('td.col-waktu');
+  if(!td)return;
+  const customInp=td.querySelector('.waktu-custom');
+  if(!customInp)return;
+  const willShow=customInp.classList.contains('hidden');
+  customInp.classList.toggle('hidden',!willShow);
+  btn.classList.toggle('active',willShow);
+  // Update icon & label tombol
+  const iconEl=btn.querySelector('.waktu-toggle-icon');
+  if(iconEl)iconEl.textContent=willShow?'\u2212':'+';
+  // Replace text node yang ada setelah icon
+  const textNode=Array.from(btn.childNodes).find(n=>n.nodeType===3&&n.textContent.trim());
+  if(textNode)textNode.textContent=willShow?'kustom':'multi-range';
+  if(willShow){
+    // Auto-focus text input saat expand
+    setTimeout(()=>customInp.focus(),50);
+  } else {
+    // Saat collapse, kosongkan field — admin pilih untuk pakai picker saja.
+    // Kalau admin mau preserve text, dia bisa biarkan toggle expanded.
+    customInp.value='';
+  }
 }
 
 function cellPegawaiMultiHTML(field,nips,names){
@@ -897,14 +957,7 @@ function acFilter(q){
   if(cellEl){
     try{selectedNips=JSON.parse(cellEl.dataset.nips||'[]');}catch(_){}
   }
-  // Build combined pool: pegawai + mitra tahun aktif (tahun saat ini).
-  // Mitra pakai NIP placeholder MITRA-{tahun}-{id} dan flag _isMitra.
-  const tahunAktif=new Date().getFullYear();
-  const mitraPool=allMitra.filter(m=>m.tahun===tahunAktif).map(m=>({
-    NIP:formatMitraNip(m.tahun,m.id),NAMA:m.nama,_isMitra:true,_mitraTahun:m.tahun,
-  }));
-  const combinedPool=allPegawai.concat(mitraPool);
-  acState.filtered=combinedPool.filter(p=>{
+  acState.filtered=allPegawai.filter(p=>{
     if(!q)return true;
     const nama=(p.NAMA||'').toLowerCase();
     const nip=String(p.NIP||'').toLowerCase();
@@ -915,8 +968,8 @@ function acFilter(q){
 }
 function acRenderList(selectedNips){
   const list=document.getElementById('ac-list');
-  if(!allPegawai.length&&!allMitra.length){
-    list.innerHTML=`<div class="ac-empty">Data pegawai/mitra belum dimuat.</div>`;
+  if(!allPegawai.length){
+    list.innerHTML=`<div class="ac-empty">Data pegawai belum dimuat.</div>`;
     return;
   }
   if(!acState.filtered.length){
@@ -927,17 +980,13 @@ function acRenderList(selectedNips){
     const nip=String(p.NIP||'').trim();
     const nama=p.NAMA||'-';
     const isSel=selectedNips.includes(nip);
-    const badge=p._isMitra
-      ?`<span style="display:inline-block;margin-left:6px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:100px;padding:1px 7px;font-size:9.5px;font-weight:600;letter-spacing:.3px;vertical-align:middle">MITRA</span>`
-      :`<span style="display:inline-block;margin-left:6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:100px;padding:1px 7px;font-size:9.5px;font-weight:600;letter-spacing:.3px;vertical-align:middle">PEGAWAI</span>`;
-    const subLine=p._isMitra?`Mitra Tahun ${p._mitraTahun}`:`NIP ${nip||'\u2014'}`;
     return`<div class="ac-item${isSel?' selected':''}${i===acState.focusIdx?' focused':''}"
       data-nip="${escAttr(nip)}" data-idx="${i}"
       onmousedown="event.preventDefault();acPick(${i})">
       <div class="ac-check">${isSel?'\u2713':''}</div>
       <div style="flex:1">
-        <div class="ac-name">${esc(nama)}${badge}</div>
-        <div class="ac-nip">${esc(subLine)}</div>
+        <div class="ac-name">${esc(nama)}</div>
+        <div class="ac-nip">NIP ${esc(nip||'\u2014')}</div>
       </div>
     </div>`;
   }).join('');
@@ -1306,8 +1355,26 @@ function handlePaste(e){
         waktuEl.value=fmtWaktu(r.mulai,r.selesai);
         waktuEl.classList.remove('err');
       } else if(t){
-        waktuEl.value=t;
-        waktuEl.classList.add('err');
+        // Tidak parse-able sebagai single range — kemungkinan multi-range
+        // (mis. "25 s.d. 27 Maret & 30 Maret s.d. 1 April 2026"). Kita
+        // taruh di field "Waktu Custom" dan auto-expand toggle. Picker
+        // tetap di-error supaya user input tanggal struktural.
+        const customInp=tr.querySelector('input.waktu-custom[data-field="waktu_text"]');
+        const toggleBtn=tr.querySelector('.waktu-toggle');
+        if(customInp&&toggleBtn){
+          customInp.value=t;
+          if(customInp.classList.contains('hidden')){
+            // Trigger expand via toggleWaktuCustom() supaya state konsisten
+            toggleWaktuCustom(toggleBtn);
+            customInp.value=t; // re-set karena toggle off-on bisa reset
+          }
+          waktuEl.value='';
+          waktuEl.classList.add('err');
+          waktuEl.title='Isi tanggal struktural di kolom atas (untuk filter)';
+        } else {
+          waktuEl.value=t;
+          waktuEl.classList.add('err');
+        }
       }
     }
     if(tujuanEl&&cells[2]!==undefined){
@@ -1329,6 +1396,10 @@ function collectRow(tr){
   const waktuEl=tr.querySelector('input.xls-cell[data-field="waktu"]');
   const pokEl=tr.querySelector('input.xls-cell[data-field="pembebanan"]');
   const pegCell=tr.querySelector('.pg-cell[data-field="pegawai_multi"]');
+  // Field "Waktu Custom" opsional di samping picker tanggal range.
+  // Kalau toggle .waktu-toggle ter-expand, field-nya .waktu-custom (data-field=waktu_text).
+  // Value kosong (toggle collapsed atau user belum isi) → kirim NULL ke DB.
+  const waktuTextEl=tr.querySelector('input.waktu-custom[data-field="waktu_text"]');
   let nips=[],names=[];
   try{nips=JSON.parse(pegCell?.dataset.nips||'[]');}catch(_){}
   try{names=JSON.parse(pegCell?.dataset.names||'[]');}catch(_){}
@@ -1339,6 +1410,7 @@ function collectRow(tr){
     pembebanan:(pokEl?.value||'').trim(),
     waktuMulai:waktuEl?.dataset.isoMulai||'',
     waktuSelesai:waktuEl?.dataset.isoSelesai||'',
+    waktuTextCustom:(waktuTextEl?.value||'').trim(),
     waktuEl,perihalEl,tujuanEl,pokEl,pegCell,
     nips,names
   };
@@ -1353,7 +1425,8 @@ function validateRow(data){
   if(data.waktuSelesai&&data.waktuMulai&&data.waktuSelesai<data.waktuMulai){
     errs.push('Tgl. selesai lebih awal dari mulai');data.waktuEl?.classList.add('err');
   }
-  if(!data.tujuan){errs.push('Tujuan wajib diisi');data.tujuanEl?.classList.add('err');}
+  // tujuan OPSIONAL — kalau kosong, di template fallback ke
+  // "{perihal} pada tanggal {waktu_pelaksanaan}" via {untuk_text}.
   if(!data.nips.length){errs.push('Pilih minimal satu pegawai');data.pegCell?.classList.add('err');}
   data.tr.classList.toggle('has-error',errs.length>0);
   return errs;
@@ -1382,6 +1455,7 @@ async function submitChecked(){
     pegawai_nip:d.nips,
     pegawai_list:d.names,
     pembebanan:d.pembebanan||null,
+    waktu_pelaksanaan_text:d.waktuTextCustom||null,
     status:'menunggu',
     created_at:new Date().toISOString()
   }));
@@ -1420,7 +1494,7 @@ async function init(){
   if(!SESSION)return;
   Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION,false);
-  await Promise.all([loadSurat(),loadPegawai(),loadMitra()]);
+  await Promise.all([loadSurat(),loadPegawai()]);
   addRows(1);
 }
 init();
