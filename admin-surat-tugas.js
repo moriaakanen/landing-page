@@ -3786,6 +3786,364 @@ function ensureLibrariesLoaded() {
   }
 }
 
+/* #5: Lazy-load SheetJS untuk export/import Excel.
+   SheetJS hanya di-load saat user klik tombol Export/Import — tidak
+   membebani initial page load. Pakai pattern Promise + caching. */
+let _sheetjsLoadPromise = null;
+function ensureSheetJSLoaded() {
+  if (typeof window.XLSX !== 'undefined' && window.XLSX.utils) {
+    return Promise.resolve();
+  }
+  if (_sheetjsLoadPromise) return _sheetjsLoadPromise;
+  _sheetjsLoadPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js';
+    s.async = true;
+    s.onload = () => {
+      if (typeof window.XLSX !== 'undefined') resolve();
+      else reject(new Error('SheetJS load tidak return XLSX object'));
+    };
+    s.onerror = () => {
+      _sheetjsLoadPromise = null;  // izinkan retry
+      reject(new Error('Gagal load library Excel. Periksa koneksi internet.'));
+    };
+    document.head.appendChild(s);
+  });
+  return _sheetjsLoadPromise;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   #5: EXPORT & IMPORT EXCEL
+   ─────────────────────────────────────────────────────────────────────
+   Format: XLSX (Excel native) via SheetJS.
+   Export: semua kolom utama (lengkap) dari semua surat user.
+   Import: parse → match pegawai by NAMA exact → INSERT ke DB sebagai
+           surat 'menunggu' (admin lalu approve via tabel).
+   ════════════════════════════════════════════════════════════════════ */
+
+// Definisi header kolom Excel — urutan, label, dan field DB-nya.
+// Single source of truth untuk export DAN import (consistency).
+const EXCEL_COLUMNS = [
+  // Field input-able (boleh diisi user di Excel, akan di-import balik)
+  { header: 'Nomor Surat',           field: 'nomor_surat',            importable: true },
+  { header: 'Tanggal Surat',         field: 'tanggal_surat',          importable: true,  isDate: true },
+  { header: 'Tanggal Berangkat',     field: 'tanggal_berangkat',      importable: true,  isDate: true },
+  { header: 'Tanggal Kembali',       field: 'tanggal_kembali',        importable: true,  isDate: true },
+  { header: 'Waktu Pelaksanaan Custom', field: 'waktu_pelaksanaan_text', importable: true },
+  { header: 'Perihal',               field: 'perihal',                importable: true },
+  { header: 'Tempat Tujuan',         field: 'tujuan',                 importable: true },
+  { header: 'Pegawai',               field: 'pegawai_list',           importable: true,  isList: true },
+  { header: 'Bertugas Sebagai',      field: 'bertugas_sebagai',       importable: true,  isList: true },
+  { header: 'Menimbang',             field: 'menimbang_custom',       importable: true },
+  { header: 'Alat Angkutan',         field: 'alat_angkutan',          importable: true },
+  { header: 'POK (Pembebanan)',      field: 'pembebanan',             importable: true },
+  { header: 'Penandatangan',         field: 'penandatangan_nama',     importable: true,
+    importMatchField: 'penandatangan_nip' /* match by nama, dapat NIP */ },
+  { header: 'Tipe Surat',            field: 'tipe',                   importable: true },
+  { header: 'Jumlah Responden',      field: 'jumlah_responden',       importable: true,  isNumber: true },
+  { header: 'Tempat Terbit',         field: 'tempat_terbit',          importable: true },
+  // Field NON-input-able (read-only — hanya tampil di export, di-skip saat import)
+  { header: 'Status',                field: 'status',                 importable: false },
+  { header: 'Diajukan Oleh',         field: '_pengaju_nama',          importable: false },
+  { header: 'Dibuat',                field: 'created_at',             importable: false, isDate: true },
+];
+
+/**
+ * EXPORT: Generate XLSX file dari semua surat (allSurat) yang sedang tampil
+ * di tabel admin (sudah di-filter & di-sort). Download via saveAs.
+ */
+async function exportSuratToExcel() {
+  if (!Array.isArray(allSurat) || !allSurat.length) {
+    showPageAlert('Belum ada data surat untuk di-export.', 'error');
+    return;
+  }
+  try {
+    showPageAlert('⏳ Memuat library Excel...', 'info');
+    await ensureSheetJSLoaded();
+
+    // Build data array — header row + data rows.
+    // SheetJS aoa_to_sheet expects 2D array.
+    const headers = EXCEL_COLUMNS.map(c => c.header);
+    const rows = allSurat.map(s => EXCEL_COLUMNS.map(c => extractFieldForExport(s, c)));
+    const aoa = [headers, ...rows];
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    // Auto-width per kolom — hitung max length tiap kolom (sederhana).
+    ws['!cols'] = headers.map((h, ci) => {
+      let maxLen = h.length;
+      for (let r = 1; r < aoa.length; r++) {
+        const cell = aoa[r][ci];
+        const len = cell != null ? String(cell).length : 0;
+        if (len > maxLen) maxLen = len;
+      }
+      // Cap width supaya tidak terlalu lebar (mis. kolom Pegawai bisa panjang)
+      return { wch: Math.min(Math.max(maxLen + 2, 10), 45) };
+    });
+
+    // Freeze header row supaya saat scroll, header tetap visible
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+    ws['!autofilter'] = { ref: XLSX.utils.encode_range({
+      s: { c: 0, r: 0 },
+      e: { c: headers.length - 1, r: aoa.length - 1 }
+    })};
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Surat Tugas');
+
+    // Filename pakai timestamp supaya unik
+    const now = new Date();
+    const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+    const filename = `Surat-Tugas_Export_${ts}.xlsx`;
+
+    XLSX.writeFile(wb, filename);
+    showPageAlert(`✅ Berhasil export ${allSurat.length} surat ke ${filename}.`, 'success');
+  } catch (e) {
+    console.error('[9201] export gagal:', e);
+    showPageAlert(`Gagal export: ${e.message}`, 'error');
+  }
+}
+
+/* Helper: ekstrak nilai dari surat object untuk kolom Excel tertentu.
+   Mengembalikan string/number yang siap masuk cell Excel. */
+function extractFieldForExport(s, col) {
+  if (col.field === '_pengaju_nama') {
+    return getPengajuNama(s) || '';
+  }
+  let v = s[col.field];
+  if (v == null) return '';
+  if (col.isList && Array.isArray(v)) {
+    // pegawai_list, bertugas_sebagai → joined dengan ", "
+    return v.filter(x => x != null && x !== '').join(', ');
+  }
+  if (col.isDate && typeof v === 'string') {
+    // ISO format → biarkan seperti itu (Excel akan deteksi sebagai date)
+    return v;
+  }
+  if (col.isNumber) {
+    const n = parseInt(v, 10);
+    return isFinite(n) ? n : '';
+  }
+  return String(v);
+}
+
+/**
+ * IMPORT: Read file Excel, parse, match pegawai by NAMA, INSERT ke DB
+ * sebagai surat 'menunggu'. Trigger dari onchange event input file.
+ */
+async function importSuratFromExcel(inputEl) {
+  const file = inputEl.files && inputEl.files[0];
+  // Reset value supaya kalau user pilih file yang sama lagi, onchange tetap fire
+  inputEl.value = '';
+  if (!file) return;
+
+  // Konfirmasi explicit — operasi ini akan INSERT banyak row ke DB
+  if (!confirm(`File "${file.name}" akan di-import sebagai surat tugas baru dengan status "menunggu". Lanjut?`)) {
+    return;
+  }
+
+  try {
+    showPageAlert('⏳ Memuat library Excel...', 'info');
+    await ensureSheetJSLoaded();
+
+    showPageAlert('⏳ Membaca file...', 'info');
+    const buf = await file.arrayBuffer();
+    const wb  = XLSX.read(buf, { type: 'array', cellDates: false });
+    if (!wb.SheetNames.length) {
+      throw new Error('File Excel tidak berisi sheet apapun.');
+    }
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    // raw:false → date di-coerce ke string ISO; defval:'' → cell kosong jadi ''
+    const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+    if (aoa.length < 2) {
+      throw new Error('File Excel kosong atau hanya berisi header.');
+    }
+
+    // Parse header → mapping ke kolom DB. Header tidak case-sensitive,
+    // di-trim, dan tidak harus punya semua kolom (cuma yang importable).
+    const headerRow = aoa[0].map(h => String(h || '').trim());
+    const headerToCol = {};  // headerLower → EXCEL_COLUMNS entry
+    EXCEL_COLUMNS.forEach(c => {
+      if (c.importable) headerToCol[c.header.toLowerCase()] = c;
+    });
+    const colIdxMap = {};  // field → column index di Excel
+    headerRow.forEach((h, i) => {
+      const norm = h.toLowerCase();
+      const col = headerToCol[norm];
+      if (col) colIdxMap[col.field] = i;
+    });
+
+    // Validasi: minimal "Perihal" harus ada (paling minimum required)
+    if (colIdxMap.perihal === undefined) {
+      throw new Error('Kolom "Perihal" tidak ditemukan di file Excel. Pastikan baris pertama berisi header.');
+    }
+
+    showPageAlert('⏳ Memvalidasi data...', 'info');
+
+    // Build lookup pegawai by NAMA (case-insensitive, trimmed) — untuk match
+    // kolom Pegawai dan Penandatangan.
+    const pegawaiByNama = {};
+    pegawaiList.forEach(p => {
+      const k = String(p.NAMA || '').trim().toLowerCase();
+      if (k) pegawaiByNama[k] = p;
+    });
+
+    const dataRows = aoa.slice(1);
+    const payloads = [];
+    const warnings = [];   // warning per row (pegawai tidak match, dll)
+
+    dataRows.forEach((row, idx) => {
+      const rowNum = idx + 2;  // baris di Excel (1-indexed, +1 untuk header)
+      // Helper: ambil cell value by field name
+      const cell = (field) => {
+        const ci = colIdxMap[field];
+        if (ci === undefined) return '';
+        const v = row[ci];
+        return v == null ? '' : String(v).trim();
+      };
+
+      const perihal = cell('perihal');
+      // Skip baris kosong total (mis. trailing empty row)
+      if (!perihal && !cell('tujuan') && !cell('pegawai_list') && !cell('nomor_surat')) {
+        return;
+      }
+
+      // Match pegawai by NAMA — input format: "Nama1, Nama2, Nama3"
+      const pegawaiRaw = cell('pegawai_list');
+      const namaList = pegawaiRaw ? pegawaiRaw.split(',').map(n => n.trim()).filter(Boolean) : [];
+      const matchedNips = [];
+      const matchedNames = [];
+      const unmatchedNames = [];
+      namaList.forEach(nama => {
+        const p = pegawaiByNama[nama.toLowerCase()];
+        if (p) {
+          matchedNips.push(String(p.NIP));
+          matchedNames.push(p.NAMA);
+        } else {
+          unmatchedNames.push(nama);
+        }
+      });
+      if (unmatchedNames.length) {
+        warnings.push(`Baris ${rowNum}: pegawai tidak match → ${unmatchedNames.join(', ')}`);
+      }
+
+      // Match penandatangan by NAMA → ambil NIP-nya
+      const ttdNamaRaw = cell('penandatangan_nama');
+      let ttdNip = '', ttdNama = '';
+      if (ttdNamaRaw) {
+        const p = pegawaiByNama[ttdNamaRaw.toLowerCase()];
+        if (p) {
+          ttdNip = String(p.NIP);
+          ttdNama = p.NAMA;
+        } else {
+          warnings.push(`Baris ${rowNum}: penandatangan "${ttdNamaRaw}" tidak match ke data pegawai → di-skip`);
+        }
+      }
+
+      // Bertugas Sebagai (joined string → array)
+      const bertugasRaw = cell('bertugas_sebagai');
+      const bertugasArr = bertugasRaw
+        ? bertugasRaw.split(',').map(s => s.trim())
+        : null;
+      // Hanya disertakan kalau matched pegawai ≥ 2 (sama logic dengan UI)
+      const bertugasFinal = (bertugasArr && matchedNames.length >= 2)
+        ? (bertugasArr.some(v => v.length > 0) ? bertugasArr : null)
+        : null;
+
+      // Jumlah responden (number)
+      const jrRaw = cell('jumlah_responden');
+      const jr = jrRaw ? parseInt(jrRaw, 10) : null;
+
+      // Build payload — status WAJIB 'menunggu' (sesuai permintaan user)
+      const payload = {
+        user_id:           SESSION.id,
+        status:            'menunggu',
+        nomor_surat:       cell('nomor_surat') || null,
+        tanggal_surat:     normalizeImportDate(cell('tanggal_surat')) || null,
+        tanggal_berangkat: normalizeImportDate(cell('tanggal_berangkat')) || null,
+        tanggal_kembali:   normalizeImportDate(cell('tanggal_kembali')) || null,
+        waktu_pelaksanaan_text: cell('waktu_pelaksanaan_text') || null,
+        perihal:           perihal,
+        tujuan:            cell('tujuan') || null,
+        pegawai_nip:       matchedNips,
+        pegawai_list:      matchedNames,
+        menimbang_custom:  cell('menimbang_custom') || null,
+        alat_angkutan:     cell('alat_angkutan') || null,
+        pembebanan:        cell('pembebanan') || null,
+        penandatangan_nip: ttdNip || null,
+        penandatangan_nama: ttdNama || null,
+        tempat_terbit:     cell('tempat_terbit') || 'Waisai',
+        tipe:              cell('tipe') || null,
+        jumlah_responden:  (isFinite(jr) && jr >= 0) ? jr : null,
+        bertugas_sebagai:  bertugasFinal,
+        created_at:        new Date().toISOString(),
+      };
+      payloads.push(payload);
+    });
+
+    if (!payloads.length) {
+      throw new Error('Tidak ada baris data valid yang bisa di-import. Pastikan minimal kolom Perihal terisi.');
+    }
+
+    // Pre-flight summary — kalau ada warning, tampilkan ke user untuk konfirmasi
+    if (warnings.length) {
+      const preview = warnings.slice(0, 8).join('\n');
+      const more = warnings.length > 8 ? `\n... +${warnings.length - 8} warning lain` : '';
+      const ok = confirm(
+        `⚠️ Ditemukan ${warnings.length} warning:\n\n${preview}${more}\n\n` +
+        `${payloads.length} baris akan tetap di-import (data warning tetap masuk dengan field kosong).\n\n` +
+        `Lanjut import?`
+      );
+      if (!ok) {
+        showPageAlert('Import dibatalkan.', 'info');
+        return;
+      }
+    }
+
+    showPageAlert(`⏳ Mengirim ${payloads.length} baris ke server...`, 'info');
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas`, {
+      method: 'POST',
+      headers: { ...H, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payloads)
+    });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const j = await res.json(); msg = j.message || msg; } catch(_) {}
+      throw new Error(msg);
+    }
+
+    showPageAlert(`✅ Berhasil import ${payloads.length} surat (status menunggu).${warnings.length ? ` ${warnings.length} warning di console.` : ''}`, 'success');
+    if (warnings.length) {
+      console.warn('[9201 Import] Warnings:\n' + warnings.join('\n'));
+    }
+    // Reload data untuk tampilkan row baru
+    await loadSurat();
+  } catch (e) {
+    console.error('[9201] import gagal:', e);
+    showPageAlert(`Gagal import: ${e.message}`, 'error');
+  }
+}
+
+/* Helper: normalisasi tanggal dari Excel ke ISO format (YYYY-MM-DD).
+   Excel sering kirim format yang inkonsisten (date object, string lokal,
+   dst). Kita coba beberapa parser & fallback ke parseFlexDate (existing
+   helper di file ini yang juga handle "2/1/26", "2 jan 2026", dst). */
+function normalizeImportDate(s) {
+  if (!s) return '';
+  s = String(s).trim();
+  if (!s) return '';
+  // Sudah ISO format (yyyy-mm-dd)?
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  // Excel serial number (kadang sheet_to_json raw:false tetap return number)
+  // — di-skip karena raw:false biasanya sudah ke-format. Pakai parseFlexDate.
+  if (typeof parseFlexDate === 'function') {
+    const iso = parseFlexDate(s);
+    if (iso) return iso;
+  }
+  return '';
+}
+
 function buildFileName(surat) {
   const base = (surat.nomor_surat || surat.id).toString().replace(/[^a-zA-Z0-9-_]/g, '-');
   return `Surat-Tugas_${base}.docx`;
