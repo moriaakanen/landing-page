@@ -748,7 +748,7 @@ function renderRowHTML(s) {
 
       ${cellTextHTML(s.id, 'nomor_surat', nomorSurat, editable, 'cth: 001 / 013A')}
       ${cellDateHTML(s.id, 'tanggal_surat', tanggalSurat, editable, 'tgl/bln/thn')}
-      ${cellDateRangeHTML(s.id, 'waktu', waktuMulai, waktuSelesai, editable)}
+      ${cellDateRangeHTML(s.id, 'waktu', waktuMulai, waktuSelesai, editable, s.waktu_pelaksanaan_text)}
       ${cellTextareaHTML(s.id, 'perihal', perihal, editable, 'Perihal surat')}
       ${cellTextareaHTML(s.id, 'tujuan', tujuan, editable, 'Kota/instansi')}
       ${cellPegawaiMultiHTML(s.id, pegNips, pegNames, editable)}
@@ -776,6 +776,203 @@ function attachEditableListeners(scope) {
   root.querySelectorAll('input.xls-cell').forEach(inp => {
     inp.addEventListener('input', () => inp.classList.remove('err'));
   });
+  // #8: Auto-save draft tiap blur untuk semua field editable.
+  // Wire ke semua textarea/input di scope (row atau full table).
+  root.querySelectorAll('textarea.xls-cell, input.xls-cell, input.waktu-custom').forEach(el => {
+    el.addEventListener('blur', () => {
+      const tr = el.closest('tr[data-surat-id]');
+      if (tr) snapshotAdminDraft(tr.dataset.suratId);
+    });
+  });
+  // Pegawai multi-tag dan penandatangan: trigger snapshot saat tag berubah
+  // via MutationObserver pada attribute data-nips / data-nip.
+  root.querySelectorAll('.pg-cell').forEach(pg => {
+    if (pg.dataset.draftWired) return;
+    pg.dataset.draftWired = '1';
+    const obs = new MutationObserver(() => {
+      const tr = pg.closest('tr[data-surat-id]');
+      if (tr) snapshotAdminDraft(tr.dataset.suratId);
+    });
+    obs.observe(pg, { attributes: true, attributeFilter: ['data-nips', 'data-nip'] });
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   #8: ADMIN DRAFT PERSIST
+   ─────────────────────────────────────────────────────────────────────
+   Strategi:
+     - Per-row: key = nova_st_admin_draft_{userId}_{suratId}
+     - Snapshot tiap blur field
+     - Restore dipanggil setelah loadSurat() selesai render
+     - Cleanup: setelah save row sukses (saveRowEdit / submitApprove) atau
+       saat user explicit cancel edit (cancelRowEdit)
+   ════════════════════════════════════════════════════════════════════ */
+function getAdminDraftKey(suratId) {
+  let uid = 'anon';
+  try {
+    const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
+    if (s && s.id) uid = String(s.id);
+  } catch (_) {}
+  return `nova_st_admin_draft_${uid}_${suratId}`;
+}
+function snapshotAdminDraft(suratId) {
+  const values = collectRow(suratId);
+  if (!values) return;
+  // Cek apakah ada perubahan substansial dari original. Kalau row kosong
+  // total (mungkin baru), tetap save supaya state baru di-preserve.
+  const sOrig = suratMap[suratId];
+  const isEmpty = !values.nomor_surat && !values.tanggal_surat
+                  && !values.tanggal_berangkat && !values.perihal
+                  && !values.tujuan && !values.menimbang_custom
+                  && !values.alat_angkutan && !values.pembebanan
+                  && !values.penandatangan_nip && !values.tipe
+                  && (!values.pegawai_nip || !values.pegawai_nip.length);
+  // Cek diff dengan original — kalau identik, tidak perlu save.
+  const isUnchanged = sOrig
+    && (values.nomor_surat   || '') === (sOrig.nomor_surat   || '')
+    && (values.tanggal_surat || '') === (sOrig.tanggal_surat || '')
+    && (values.tanggal_berangkat || '') === (sOrig.tanggal_berangkat || '')
+    && (values.tanggal_kembali   || '') === (sOrig.tanggal_kembali   || '')
+    && (values.waktu_pelaksanaan_text || '') === (sOrig.waktu_pelaksanaan_text || '')
+    && (values.perihal       || '') === (sOrig.perihal       || '')
+    && (values.tujuan        || '') === (sOrig.tujuan        || '')
+    && (values.menimbang_custom || '') === (sOrig.menimbang_custom || '')
+    && (values.alat_angkutan || '') === (sOrig.alat_angkutan || '')
+    && (values.pembebanan    || '') === (sOrig.pembebanan    || '')
+    && (values.penandatangan_nip  || '') === (sOrig.penandatangan_nip  || '')
+    && (values.penandatangan_nama || '') === (sOrig.penandatangan_nama || '')
+    && (values.tipe || '') === (sOrig.tipe || '')
+    && JSON.stringify(values.pegawai_nip || []) === JSON.stringify(sOrig.pegawai_nip || []);
+  try {
+    if (isEmpty || isUnchanged) {
+      localStorage.removeItem(getAdminDraftKey(suratId));
+    } else {
+      localStorage.setItem(getAdminDraftKey(suratId), JSON.stringify({
+        version: 1,
+        savedAt: Date.now(),
+        suratId: suratId,
+        values: values,
+      }));
+    }
+  } catch (e) {
+    console.warn('[Admin Draft] gagal save:', e);
+  }
+}
+function clearAdminDraft(suratId) {
+  try { localStorage.removeItem(getAdminDraftKey(suratId)); } catch(_) {}
+}
+function loadAdminDraft(suratId) {
+  try {
+    const raw = localStorage.getItem(getAdminDraftKey(suratId));
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.values) return null;
+    return obj;
+  } catch (_) { return null; }
+}
+/* Apply draft values ke row DOM. Dipanggil setelah renderTable() selesai. */
+function applyAdminDraftToRow(suratId) {
+  const draft = loadAdminDraft(suratId);
+  if (!draft) return false;
+  const row = document.querySelector(`tr[data-surat-id="${suratId}"]`);
+  if (!row) return false;
+  const v = draft.values;
+  // Helper update text field
+  const setVal = (field, val) => {
+    const el = row.querySelector(`[data-field="${field}"]`);
+    if (el && 'value' in el) el.value = val || '';
+  };
+  setVal('nomor_surat',      v.nomor_surat);
+  setVal('perihal',          v.perihal);
+  setVal('tujuan',           v.tujuan);
+  setVal('menimbang_custom', v.menimbang_custom);
+  setVal('alat_angkutan',    v.alat_angkutan);
+  setVal('pembebanan',       v.pembebanan);
+  // Tanggal
+  const tglSurat = row.querySelector('[data-field="tanggal_surat"]');
+  if (tglSurat && v.tanggal_surat) {
+    tglSurat.dataset.iso = v.tanggal_surat;
+    tglSurat.value = fmtTgl(v.tanggal_surat);
+  }
+  const waktu = row.querySelector('[data-field="waktu"]');
+  if (waktu) {
+    waktu.dataset.isoMulai = v.tanggal_berangkat || '';
+    waktu.dataset.isoSelesai = v.tanggal_kembali || '';
+    waktu.value = v.tanggal_berangkat ? fmtWaktu(v.tanggal_berangkat, v.tanggal_kembali) : '';
+  }
+  // Waktu custom
+  const waktuCustom = row.querySelector('input.waktu-custom[data-field="waktu_text"]');
+  const waktuToggle = row.querySelector('.waktu-toggle');
+  if (waktuCustom && v.waktu_pelaksanaan_text) {
+    waktuCustom.value = v.waktu_pelaksanaan_text;
+    if (waktuCustom.classList.contains('hidden') && waktuToggle) {
+      toggleWaktuCustom(waktuToggle);
+      waktuCustom.value = v.waktu_pelaksanaan_text;
+    }
+  }
+  // Pegawai multi
+  const pegCell = row.querySelector('[data-field="pegawai_multi"]');
+  if (pegCell && Array.isArray(v.pegawai_nip) && v.pegawai_nip.length) {
+    pegCell.dataset.nips = JSON.stringify(v.pegawai_nip);
+    pegCell.dataset.names = JSON.stringify(v.pegawai_list || []);
+    // Hapus tag lama, render ulang
+    pegCell.querySelectorAll('.pg-tag').forEach(t => t.remove());
+    const inp = pegCell.querySelector('.pg-input');
+    const tags = v.pegawai_nip.map((nip, j) => buildPegTag(nip, (v.pegawai_list || [])[j] || nip, false)).join('');
+    if (inp) {
+      pegCell.insertAdjacentHTML('afterbegin', tags);
+      inp.placeholder = '';
+    }
+  }
+  // Penandatangan single
+  const ttdCell = row.querySelector('[data-field="penandatangan"]');
+  if (ttdCell && v.penandatangan_nip) {
+    ttdCell.dataset.nip = v.penandatangan_nip;
+    ttdCell.dataset.nama = v.penandatangan_nama || '';
+    ttdCell.querySelectorAll('.pg-tag').forEach(t => t.remove());
+    const inp = ttdCell.querySelector('.pg-input');
+    const tag = buildPegTag(v.penandatangan_nip, v.penandatangan_nama || v.penandatangan_nip, true);
+    if (inp) {
+      ttdCell.insertAdjacentHTML('afterbegin', tag);
+      inp.placeholder = '';
+    }
+  }
+  // Tipe (custom dropdown — pakai data-value pada .tp-cell)
+  const tpCell = row.querySelector('.tp-cell[data-field="tipe"]');
+  if (tpCell && v.tipe) {
+    tpCell.dataset.value = v.tipe;
+    const tpDisplay = tpCell.querySelector('.tp-display');
+    if (tpDisplay && typeof tipeLabel === 'function') {
+      tpDisplay.textContent = tipeLabel(v.tipe);
+      tpDisplay.classList.remove('placeholder');
+    }
+  }
+  return true;
+}
+/* Restore semua draft yang ada untuk surat-surat yang lagi tampil. */
+function restoreAllAdminDrafts() {
+  let restoredCount = 0;
+  Array.from(document.querySelectorAll('tr[data-surat-id]')).forEach(tr => {
+    const id = tr.dataset.suratId;
+    if (loadAdminDraft(id)) {
+      // Untuk surat selesai, draft hanya boleh restore kalau editingRowId
+      // sama dengan id (= user sebelumnya sedang edit baris ini).
+      // Tapi karena editingRowId tidak persist (cuma in-memory state),
+      // kita cek: kalau status selesai dan tidak sedang di-edit, draft
+      // tidak applicable — skip.
+      const s = suratMap[id];
+      if (!s) return;
+      if (s.status === 'selesai' && editingRowId !== Number(id)) {
+        // Draft ada tapi user belum klik "Edit" — biarkan saja, akan
+        // restore otomatis kalau user enable edit.
+        return;
+      }
+      if (applyAdminDraftToRow(id)) restoredCount++;
+    }
+  });
+  if (restoredCount > 0) {
+    showPageAlert(`📝 ${restoredCount} draft dimuat dari sesi terakhir.`, 'info');
+  }
 }
 
 function renderTable(data) {
@@ -799,7 +996,7 @@ function renderTable(data) {
         <th class="col-check" title="Centang semua surat selesai untuk bulk download"><input type="checkbox" id="bulk-dl-master" onchange="toggleBulkDownloadAll(this.checked)"></th>
         ${sortHeader('no',            'No',                'col-no')}
         ${sortHeader('nomor_surat',   'Nomor Surat',       'col-nomor-surat')}
-        ${sortHeader('tanggal_surat', 'Tgl Surat',         'col-tgl-surat')}
+        ${sortHeader('tanggal_surat', 'Tanggal Surat',     'col-tgl-surat')}
         ${sortHeader('waktu',         'Waktu Pelaksanaan', 'col-waktu')}
         ${sortHeader('perihal',       'Perihal',           'col-perihal')}
         ${sortHeader('tujuan',        'Tempat Tujuan',     'col-tujuan')}
@@ -821,6 +1018,10 @@ function renderTable(data) {
     setupTopScrollbar();
     // Reset state bulk download (master + counter) setelah re-render
     updateBulkDownloadCounter();
+    // #8: Restore admin drafts (kalau ada) untuk row-row yang lagi tampil.
+    // Dipanggil setelah attachEditableListeners supaya MutationObserver-nya
+    // tidak trigger save saat applying draft (bisa kena race condition).
+    setTimeout(() => restoreAllAdminDrafts(), 50);
   });
 }
 
@@ -982,14 +1183,25 @@ function cellDateHTML(id, field, isoVal, editable, placeholder) {
   </td>`;
 }
 
-function cellDateRangeHTML(id, field, isoMulai, isoSelesai, editable) {
+function cellDateRangeHTML(id, field, isoMulai, isoSelesai, editable, waktuTextCustom) {
+  // Read-only display (status selesai, tidak dalam mode edit):
+  // Kalau ada waktu_pelaksanaan_text → tampilkan text-nya (override).
+  // Kalau tidak → format default dari range tanggal.
   if (!editable) {
+    const hasCustom = !!(waktuTextCustom && waktuTextCustom.trim());
+    const displayText = hasCustom ? waktuTextCustom : (isoMulai ? fmtWaktu(isoMulai, isoSelesai) : '');
+    const isEmpty = !displayText;
     return `<td class="col-waktu">
-      <div class="ro-text${isoMulai ? '' : ' muted'}"
-           tabindex="0" data-col-field="${field}">${isoMulai ? esc(fmtWaktu(isoMulai, isoSelesai)) : '—'}</div>
+      <div class="ro-text${isEmpty ? ' muted' : ''}"
+           tabindex="0" data-col-field="${field}">${isEmpty ? '—' : esc(displayText)}</div>
     </td>`;
   }
+  // Editable mode: picker tanggal range + toggle expand untuk multi-range.
+  // Pattern sama dengan user-side (surat-tugas.html) — toggle .waktu-toggle
+  // yang reveal field .waktu-custom (data-field=waktu_text). Picker tanggal
+  // tetap di atas untuk struktur DB (tanggal_berangkat / tanggal_kembali).
   const display = isoMulai ? fmtWaktu(isoMulai, isoSelesai) : '';
+  const hasCustom = !!(waktuTextCustom && waktuTextCustom.trim());
   return `<td class="col-waktu">
     <input type="text" class="xls-cell" data-field="${field}" data-id="${id}"
       data-col-field="${field}"
@@ -1001,7 +1213,39 @@ function cellDateRangeHTML(id, field, isoMulai, isoSelesai, editable) {
       onfocus="onDateFocus(this)"
       ondblclick="openCal(this, true)"
       onkeydown="if(event.altKey&&event.key==='ArrowDown'){event.preventDefault();openCal(this,true);}">
+    <button type="button" class="waktu-toggle${hasCustom ? ' active' : ''}"
+      onclick="toggleWaktuCustom(this)"
+      title="Tambah teks waktu kustom untuk multi-range">
+      <span class="waktu-toggle-icon">${hasCustom ? '\u2212' : '+'}</span>
+      ${hasCustom ? 'kustom' : 'multi-range'}
+    </button>
+    <input type="text" class="waktu-custom${hasCustom ? '' : ' hidden'}" data-field="waktu_text"
+      value="${escAttr(waktuTextCustom || '')}"
+      placeholder="Misal: 25 s.d. 27 Maret &amp; 30 Maret s.d. 1 April 2026">
   </td>`;
+}
+
+/* Toggle visibility text input "Waktu Custom" untuk multi-range.
+   Pattern sama dengan user-side (surat-tugas.html). Di-call dari
+   onclick tombol .waktu-toggle. */
+function toggleWaktuCustom(btn){
+  const td=btn.closest('td.col-waktu');
+  if(!td)return;
+  const customInp=td.querySelector('.waktu-custom');
+  if(!customInp)return;
+  const willShow=customInp.classList.contains('hidden');
+  customInp.classList.toggle('hidden',!willShow);
+  btn.classList.toggle('active',willShow);
+  // Update icon & label tombol
+  const iconEl=btn.querySelector('.waktu-toggle-icon');
+  if(iconEl)iconEl.textContent=willShow?'\u2212':'+';
+  const textNode=Array.from(btn.childNodes).find(n=>n.nodeType===3&&n.textContent.trim());
+  if(textNode)textNode.textContent=willShow?'kustom':'multi-range';
+  if(willShow){
+    setTimeout(()=>customInp.focus(),50);
+  } else {
+    customInp.value='';
+  }
 }
 
 function cellPegawaiMultiHTML(id, nips, names, editable) {
@@ -2491,12 +2735,18 @@ function collectRowFields(suratId) {
   const waktu = getRange('waktu');
   const peg   = getMulti('pegawai_multi');
   const ttd   = getSingle('penandatangan');
+  // #3: waktu_pelaksanaan_text dari toggle expand di kolom waktu.
+  // Field .waktu-custom muncul kalau toggle .waktu-toggle ter-expand.
+  // Kalau collapsed atau kosong → return string kosong → nanti jadi NULL di payload.
+  const waktuTextEl = row.querySelector('input.waktu-custom[data-field="waktu_text"]');
+  const waktuTextCustom = waktuTextEl ? (waktuTextEl.value || '').trim() : '';
 
   return {
     nomor_surat:       get('nomor_surat'),
     tanggal_surat:     getISO('tanggal_surat'),
     tanggal_berangkat: waktu.mulai,
     tanggal_kembali:   waktu.selesai,
+    waktu_pelaksanaan_text: waktuTextCustom,
     perihal:           get('perihal'),
     tujuan:            get('tujuan'),
     pegawai_nip:       peg.nips,
@@ -2612,10 +2862,10 @@ function closeModal(id) {
 }
 
 function showPageAlert(msg, type='error') {
-  // Cache element references — dipanggil 4x di fungsi ini, hindari
-  // re-query DOM. Plus auto-clear timer setelah 5.5 detik.
   const alert = document.getElementById('page-alert');
-  document.getElementById('page-alert-icon').textContent = type === 'success' ? '✅' : '⚠️';
+  // Map type ke icon. Default ke error icon.
+  const iconMap = { success: '✅', error: '⚠️', info: 'ℹ️' };
+  document.getElementById('page-alert-icon').textContent = iconMap[type] || iconMap.error;
   document.getElementById('page-alert-text').textContent = msg;
   alert.className = `alert ${type} show`;
   alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -2673,11 +2923,10 @@ function openApprove(id) {
     </span></div>
     ${row('Tipe Surat', tipeBadge, { html: true })}
   `;
-  // Pre-fill waktu_pelaksanaan_text kalau surat ini sebelumnya pernah
-  // disetujui & sudah punya value. Default kosong (auto-fallback ke
-  // format dari tanggal_berangkat & tanggal_kembali).
-  const inpWaktuText = document.getElementById('inp-waktu-pelaksanaan-text');
-  if (inpWaktuText) inpWaktuText.value = s.waktu_pelaksanaan_text || '';
+  // Catatan: input "Waktu Pelaksanaan Kustom" di modal Approve dihapus
+  // (#3). Sekarang admin set multi-range langsung di tabel via toggle
+  // "+ multi-range" di kolom Waktu Pelaksanaan. waktu_pelaksanaan_text
+  // sudah ter-collect di values via collectRow().
 
   // ─── Toggle & render section "Bertugas Sebagai" ──────────────────
   // Section muncul HANYA kalau:
@@ -3023,14 +3272,13 @@ async function submitApprove() {
 
   const jabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
 
-  // Baca field opsional waktu_pelaksanaan_text dari modal Approve.
-  // Trim — kalau kosong setelah trim, kirim NULL (fallback ke auto format
-  // dari tanggal_berangkat & tanggal_kembali saat render docx).
-  const waktuPelaksanaanText = (() => {
-    const el = document.getElementById('inp-waktu-pelaksanaan-text');
-    const v = el ? el.value.trim() : '';
-    return v.length ? v : null;
-  })();
+  // #3: waktu_pelaksanaan_text sudah ter-collect di values via collectRow()
+  // dari toggle expand di kolom waktu (bukan lagi dari modal).
+  // Kalau kosong setelah trim, kirim NULL (fallback ke auto format dari
+  // tanggal_berangkat & tanggal_kembali saat render docx).
+  const waktuPelaksanaanText = values.waktu_pelaksanaan_text && values.waktu_pelaksanaan_text.length
+    ? values.waktu_pelaksanaan_text
+    : null;
 
   const payload = {
     status: 'selesai',
@@ -3096,6 +3344,8 @@ async function submitApprove() {
 
     closeModal('modal-approve');
     showPageAlert('✅ Surat tugas berhasil ditandai selesai.', 'success');
+    // #8: cleanup draft surat ini setelah sukses approve.
+    clearAdminDraft(selectedId);
     // BUG FIX (#5): preserve edit di baris menunggu lain — capture sebelum
     // reload, re-apply sesudah render ulang.
     const dirtySnapshot = captureMenungguDirty(selectedId);
@@ -3166,6 +3416,8 @@ function cancelRowEdit(id) {
   if (!s) { editingRowId = null; return; }
 
   editingRowId = null;
+  // #8: cleanup draft saat user explicit cancel edit.
+  clearAdminDraft(id);
   const row = document.querySelector(`tr[data-surat-id="${id}"]`);
   if (!row) return;
 
@@ -3194,12 +3446,12 @@ async function saveRowEdit(id) {
   // berubah) — sama seperti di submitApprove.
   const jabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
 
-  // Pertahankan waktu_pelaksanaan_text dari existing record. Field ini
-  // hanya bisa di-set lewat modal Approve (ada input opsional di sana).
-  // Edit inline di tabel tidak menyentuh field ini. Kalau admin mau ubah,
-  // alurnya: reset surat ke "menunggu" → approve ulang dengan nilai baru.
-  const sBeforeForWaktu = suratMap[id];
-  const existingWaktuText = sBeforeForWaktu ? (sBeforeForWaktu.waktu_pelaksanaan_text || null) : null;
+  // #3: waktu_pelaksanaan_text sekarang bisa di-edit langsung di tabel
+  // via toggle expand di kolom waktu. Ambil dari values (collectRow).
+  // Kalau kosong → kirim NULL.
+  const waktuTextForEdit = values.waktu_pelaksanaan_text && values.waktu_pelaksanaan_text.length
+    ? values.waktu_pelaksanaan_text
+    : null;
 
   // Payload TANPA field 'status' — status tetap 'selesai'.
   const payload = {
@@ -3207,7 +3459,7 @@ async function saveRowEdit(id) {
     tanggal_surat:         values.tanggal_surat,
     tanggal_berangkat:     values.tanggal_berangkat,
     tanggal_kembali:       values.tanggal_kembali || null,
-    waktu_pelaksanaan_text: existingWaktuText,
+    waktu_pelaksanaan_text: waktuTextForEdit,
     perihal:               values.perihal,
     tujuan:                values.tujuan,
     pegawai_nip:           values.pegawai_nip,
@@ -3257,6 +3509,8 @@ async function saveRowEdit(id) {
     // suratMap ter-sinkron (termasuk updated_at, dll).
     editingRowId = null;
     showPageAlert('✅ Perubahan berhasil disimpan.', 'success');
+    // #8: cleanup draft surat ini setelah sukses save edit.
+    clearAdminDraft(id);
     // BUG FIX (#5): preserve edit di baris menunggu lain — capture sebelum
     // reload, re-apply sesudah render ulang. (Baris yg di-edit di sini
     // sendiri ber-status 'selesai', jadi tidak ter-include di dirty
