@@ -722,9 +722,13 @@
         <span class="table-head-title">Daftar Pengajuan Surat Tugas</span>
         <span class="table-head-count" id="table-count">Memuat...</span>
         <!-- #4: tombol-tombol aksi pindah ke sini supaya dekat tabel.
-             Pakai class .table-head-actions yang push ke kanan. -->
+             Pakai class .table-head-actions yang push ke kanan.
+             #5: tombol Export & Import Excel ditambah di sebelah Tambah. -->
         <div class="table-head-actions">
           <button class="btn-table-head" onclick="addNewSurat()" title="Tambah surat tugas baru sebagai admin">+ Tambah</button>
+          <button class="btn-table-head" onclick="exportSuratToExcel()" title="Export semua surat ke file Excel (.xlsx)">⬇ Export Excel</button>
+          <button class="btn-table-head" onclick="document.getElementById('inp-import-excel').click()" title="Import surat dari file Excel — langsung jadi surat 'menunggu'">⬆ Import Excel</button>
+          <input type="file" id="inp-import-excel" accept=".xlsx,.xls" style="display:none" onchange="importSuratFromExcel(this)">
           <button class="btn-table-head btn-table-head-gold" id="btn-bulk-download" onclick="bulkDownloadSelected()" disabled title="Pilih dulu surat yang ingin di-download">📥 Download Terpilih</button>
           <button class="btn-table-head" onclick="loadSurat()" title="Muat ulang data">↺ Muat Ulang</button>
         </div>
