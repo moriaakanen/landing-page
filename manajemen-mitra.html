@@ -314,13 +314,12 @@
      PostgREST endpoint /rest/v1/mitra).
   ═══════════════════════════════════════════════════════════════════════ */
 
+  // SUPABASE_URL, SUPABASE_HEADERS, esc, novaCheckSession di-load
+  // dari config.js & 9201-shared.js — pakai sebagai global, JANGAN
+  // akses lewat window.NOVA_CONFIG (variabel itu tidak ada di app ini).
+  const H = SUPABASE_HEADERS;
+
   let SESSION = null;
-  const SUPABASE_URL = window.NOVA_CONFIG.SUPABASE_URL;
-  const H = {
-    'apikey': window.NOVA_CONFIG.SUPABASE_ANON_KEY,
-    'Authorization': 'Bearer ' + window.NOVA_CONFIG.SUPABASE_ANON_KEY,
-    'Content-Type': 'application/json',
-  };
 
   // State
   let mitraAll = [];          // semua mitra (tanpa filter)
@@ -330,13 +329,9 @@
   let importParsed = [];      // hasil parse dari paste Excel
 
   /* ──────────────────────────────────────────────────────────────────
-     UTILS
+     UTILS — esc() di-load dari 9201-shared.js sebagai global, jadi
+     hanya alias escAttr() saja yang perlu.
   ────────────────────────────────────────────────────────────────── */
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
-    );
-  }
   function escAttr(s) { return esc(s); }
 
   /**
