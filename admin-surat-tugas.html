@@ -688,6 +688,16 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label">Waktu Pelaksanaan Kustom <span style="font-style:italic;color:var(--muted);font-weight:400">(opsional)</span></label>
+        <input type="text" class="form-input" id="inp-waktu-pelaksanaan-text"
+               placeholder="contoh: 25 s.d. 27 Maret &amp; 30 Maret s.d. 1 April 2026">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4">
+          Kosongkan untuk pakai format otomatis dari Tgl Berangkat — Tgl Kembali.<br>
+          Isi manual hanya kalau pelaksanaan punya beberapa rentang tanggal yang tidak berurutan.
+        </div>
+      </div>
+
+      <div class="form-group">
         <label class="form-label">Catatan Admin <span style="font-style:italic;color:var(--muted);font-weight:400">(opsional, tidak tampil di surat)</span></label>
         <textarea class="form-textarea" id="inp-catatan-approve" placeholder="Catatan internal..." style="min-height:60px"></textarea>
       </div>
@@ -701,7 +711,7 @@
 
 <!-- MODAL EDIT BERTUGAS — untuk edit role pegawai pada surat yang sudah
      selesai (status=selesai). Diakses lewat tombol "✏ Edit Role" di
-     tabel. Saat submit, hanya kolom pegawai_bertugas yang di-PATCH —
+     tabel. Saat submit, hanya kolom bertugas_sebagai yang di-PATCH —
      surat lainnya tidak disentuh. -->
 <div class="modal-overlay" id="modal-edit-bertugas" style="display:none" onclick="if(event.target===this)closeModal('modal-edit-bertugas')">
   <div class="modal modal-wide">
