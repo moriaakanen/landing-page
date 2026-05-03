@@ -360,7 +360,7 @@
               <th class="col-perihal">Perihal *</th>
               <th class="col-waktu">Waktu Pelaksanaan *</th>
               <th class="col-tujuan">Tempat Tujuan *</th>
-              <th class="col-nama">Nama Pegawai *</th>
+              <th class="col-nama">Nama *</th>
               <th class="col-pok">POK <span style="font-weight:400;color:var(--muted);font-size:10px">(opsional)</span></th>
             </tr></thead>
             <tbody id="bulk-tbody"></tbody>
@@ -426,7 +426,21 @@
 // `esc`, `logout`, `novaCheckSession`, `novaRpc`, `BULAN`, dan `SUPABASE_HEADERS`
 // di-load dari 9201-shared.js — tidak lagi dideklarasi ulang di sini.
 const H = SUPABASE_HEADERS; // alias singkat untuk dipakai di file ini
-let SESSION=null;let allPegawai=[];let allSurat=[];const suratMap={};
+let SESSION=null;let allPegawai=[];let allMitra=[];let mitraByNip={};let allSurat=[];const suratMap={};
+
+// ── Mitra helpers — paralel dengan admin-surat-tugas.js ─────────────
+// NIP placeholder format: MITRA-{tahun}-{id_3digit}
+function formatMitraNip(tahun, id) { return `MITRA-${tahun}-${String(id).padStart(3, '0')}`; }
+function isMitraNip(nip)            { return typeof nip === 'string' && nip.startsWith('MITRA-'); }
+async function loadMitra(){
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/mitra?select=id,tahun,nama,no_hp,jabatan,instansi&order=tahun.desc,nama.asc`,{headers:H});
+    if(!res.ok){console.warn('[mitra] HTTP',res.status,'- skip');return;}
+    allMitra=await res.json();
+    mitraByNip={};
+    allMitra.forEach(m=>{mitraByNip[formatMitraNip(m.tahun,m.id)]=m;});
+  }catch(e){console.warn('Gagal load mitra:',e);}
+}
 function switchTab(tab){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['list','bulk'][i]===tab));document.getElementById('panel-list').classList.toggle('active',tab==='list');document.getElementById('panel-bulk').classList.toggle('active',tab==='bulk');}
 function fmtWaktu(mulai,selesai){if(!mulai)return'\u2014';const a=new Date(mulai+'T00:00:00');if(!selesai||selesai===mulai){return`${a.getDate()} ${BULAN[a.getMonth()]} ${a.getFullYear()}`;}const b=new Date(selesai+'T00:00:00');if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()){return`${a.getDate()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}if(a.getFullYear()===b.getFullYear()){return`${a.getDate()} ${BULAN[a.getMonth()]} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}return`${a.getDate()} ${BULAN[a.getMonth()]} ${a.getFullYear()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}
 async function loadPegawai(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=id,NAMA,NIP&order=NAMA.asc`,{headers:H});if(!res.ok)throw new Error();allPegawai=await res.json();}catch(e){console.error('Gagal load pegawai',e);}}
@@ -883,7 +897,14 @@ function acFilter(q){
   if(cellEl){
     try{selectedNips=JSON.parse(cellEl.dataset.nips||'[]');}catch(_){}
   }
-  acState.filtered=allPegawai.filter(p=>{
+  // Build combined pool: pegawai + mitra tahun aktif (tahun saat ini).
+  // Mitra pakai NIP placeholder MITRA-{tahun}-{id} dan flag _isMitra.
+  const tahunAktif=new Date().getFullYear();
+  const mitraPool=allMitra.filter(m=>m.tahun===tahunAktif).map(m=>({
+    NIP:formatMitraNip(m.tahun,m.id),NAMA:m.nama,_isMitra:true,_mitraTahun:m.tahun,
+  }));
+  const combinedPool=allPegawai.concat(mitraPool);
+  acState.filtered=combinedPool.filter(p=>{
     if(!q)return true;
     const nama=(p.NAMA||'').toLowerCase();
     const nip=String(p.NIP||'').toLowerCase();
@@ -894,8 +915,8 @@ function acFilter(q){
 }
 function acRenderList(selectedNips){
   const list=document.getElementById('ac-list');
-  if(!allPegawai.length){
-    list.innerHTML=`<div class="ac-empty">Data pegawai belum dimuat.</div>`;
+  if(!allPegawai.length&&!allMitra.length){
+    list.innerHTML=`<div class="ac-empty">Data pegawai/mitra belum dimuat.</div>`;
     return;
   }
   if(!acState.filtered.length){
@@ -906,13 +927,17 @@ function acRenderList(selectedNips){
     const nip=String(p.NIP||'').trim();
     const nama=p.NAMA||'-';
     const isSel=selectedNips.includes(nip);
+    const badge=p._isMitra
+      ?`<span style="display:inline-block;margin-left:6px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:100px;padding:1px 7px;font-size:9.5px;font-weight:600;letter-spacing:.3px;vertical-align:middle">MITRA</span>`
+      :`<span style="display:inline-block;margin-left:6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:100px;padding:1px 7px;font-size:9.5px;font-weight:600;letter-spacing:.3px;vertical-align:middle">PEGAWAI</span>`;
+    const subLine=p._isMitra?`Mitra Tahun ${p._mitraTahun}`:`NIP ${nip||'\u2014'}`;
     return`<div class="ac-item${isSel?' selected':''}${i===acState.focusIdx?' focused':''}"
       data-nip="${escAttr(nip)}" data-idx="${i}"
       onmousedown="event.preventDefault();acPick(${i})">
       <div class="ac-check">${isSel?'\u2713':''}</div>
       <div style="flex:1">
-        <div class="ac-name">${esc(nama)}</div>
-        <div class="ac-nip">NIP ${esc(nip||'\u2014')}</div>
+        <div class="ac-name">${esc(nama)}${badge}</div>
+        <div class="ac-nip">${esc(subLine)}</div>
       </div>
     </div>`;
   }).join('');
@@ -1395,7 +1420,7 @@ async function init(){
   if(!SESSION)return;
   Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION,false);
-  await Promise.all([loadSurat(),loadPegawai()]);
+  await Promise.all([loadSurat(),loadPegawai(),loadMitra()]);
   addRows(1);
 }
 init();
