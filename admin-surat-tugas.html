@@ -103,6 +103,23 @@
   .btn-save-edit.loading::after{content:'';position:absolute;top:50%;left:50%;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;transform:translate(-50%,-50%);animation:spin .7s linear infinite}
   .btn-cancel-edit{background:transparent;color:var(--muted);border:1.5px solid var(--border2);border-radius:6px;padding:5px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
   .btn-cancel-edit:hover{background:#fef2f2;color:var(--red);border-color:#fecaca}
+
+  /* MODIFIER .btn-icon — bikin tombol jadi square compact (logo-only).
+     Diapply ke btn-edit-row, btn-preview, btn-download di kolom Aksi
+     supaya kolom lebih hemat ruang. Tooltip via attribute title. */
+  .btn-edit-row.btn-icon,
+  .btn-preview.btn-icon,
+  .btn-download.btn-icon,
+  .btn-cancel-edit.btn-icon{
+    width:30px;height:30px;padding:0;justify-content:center;
+    font-size:14px;gap:0;
+  }
+  /* Khusus btn-cancel-edit di kolom aksi — sudah tanpa ✕ Batal label,
+     cuma ✕. Pastikan square-nya juga compact. */
+  td.col-aksi .btn-cancel-edit{
+    width:30px;height:30px;padding:0;justify-content:center;
+    font-size:13px;gap:0;
+  }
   /* Visual highlight untuk baris yang sedang di-edit — border kiri kuning */
   tr[data-editing="1"] td{background:rgba(200,168,75,.05) !important}
   tr[data-editing="1"] td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
@@ -171,23 +188,23 @@
   table.list-table tbody td:last-child{border-right:none}
   table.list-table tbody tr:last-child td{border-bottom:none}
 
-  /* Lebar kolom — urutan baru */
+  /* Lebar kolom — versi compact (UI/UX permintaan: kecilkan kolom) */
   .col-check         { width:38px;  text-align:center;padding:6px 0 }
   .col-no            { width:46px;  text-align:center }
-  .col-nomor-surat   { width:115px }
-  .col-tgl-surat     { width:145px }
-  .col-waktu         { width:175px }
-  .col-perihal       { width:200px }
-  .col-tujuan        { width:140px }
-  .col-nama          { width:210px }
-  .col-menimbang     { width:200px }
-  .col-alat          { width:130px }
-  .col-mak           { width:170px }
-  .col-ttd           { width:170px }
-  .col-tipe          { width:230px }
-  .col-status        { width:115px }
-  .col-aksi          { width:200px;text-align:right }
-  .col-pengaju       { width:180px }
+  .col-nomor-surat   { width:88px }   /* #4: kecil, wrap natural ke 2 baris */
+  .col-tgl-surat     { width:84px }   /* #5: "3 Mei" baris 1, "2026" baris 2 */
+  .col-waktu         { width:135px }  /* #6: kecil */
+  .col-perihal       { width:185px }
+  .col-tujuan        { width:130px }
+  .col-nama          { width:175px }  /* #7: kecil */
+  .col-menimbang     { width:185px }
+  .col-alat          { width:115px }
+  .col-mak           { width:135px }  /* #8: kecil */
+  .col-ttd           { width:160px }
+  .col-tipe          { width:155px }  /* #10: kecil; tipe text wrap */
+  .col-status        { width:105px }
+  .col-aksi          { width:140px;text-align:right } /* #11: kecil (logo only kecuali Setujui) */
+  .col-pengaju       { width:165px }
 
   /* Styling isi kolom pengaju — read-only, text-heavy */
   td.col-pengaju{
@@ -243,6 +260,21 @@
 
   td.col-aksi{padding:8px 10px}
   .aksi-wrap{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+
+  /* ─── Compact display untuk kolom Tanggal Surat ───
+     Tanggal di-render via fmtTgl() jadi format "3 Mei 2026". Dengan
+     col-tgl-surat = 84px, browser akan auto wrap "3 Mei 2026" jadi
+     2 baris ("3 Mei" / "2026") karena white-space normal. CSS di
+     bawah memperjelas line-height & alignment vertikal supaya rapih. */
+  td.col-tgl-surat .ro-text,
+  td.col-tgl-surat .xls-cell{
+    font-size:12px;line-height:1.35;text-align:left;
+    word-spacing:9999px; /* trik: paksa wrap antar kata, bukan antar huruf */
+  }
+  /* Sama untuk col-nomor-surat — "B-022/668870-92800/KP-650/05/2026" akan
+     wrap natural pada "/" karena word-break:break-word di .xls-cell. */
+  td.col-nomor-surat .ro-text,
+  td.col-nomor-surat .xls-cell{font-size:11.5px;line-height:1.4}
 
   .table-empty{padding:48px 24px;text-align:center}
   .table-empty-icon{font-size:28px;opacity:.3;margin-bottom:10px}
@@ -416,13 +448,40 @@
   .form-textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.07)}
   .error-msg{font-size:11px;color:var(--red);display:none}
   .error-msg.show{display:block}
-  .approve-preview{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:12px 14px;font-size:12px;line-height:1.7;color:var(--text)}
-  .approve-preview-row{display:flex;gap:8px;padding:3px 0}
-  .approve-preview-row strong{color:var(--muted);font-weight:600;min-width:120px;flex-shrink:0;font-size:11px;letter-spacing:.3px;text-transform:uppercase;padding-top:1px}
-  .approve-preview-row span{color:var(--navy);font-weight:500;flex:1;word-break:break-word}
-  .save-default-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:12px;color:var(--muted)}
-  .save-default-row input{width:14px;height:14px;accent-color:var(--navy);cursor:pointer}
-  .save-default-row label{cursor:pointer;user-select:none}
+  /* ─── Approve modal: ringkasan data surat ───
+     Pattern: 2-kolom grid untuk fields, dipisahkan oleh garis tipis.
+     Lebih clean dari pattern lama dengan label uppercase. */
+  .approve-preview{
+    background:var(--bg);border:1px solid var(--border);border-radius:9px;
+    padding:14px 16px;font-size:12.5px;line-height:1.6;color:var(--text);
+    margin-bottom:14px;
+  }
+  .approve-preview-row{
+    display:grid;grid-template-columns:120px 1fr;gap:10px;
+    padding:6px 0;border-bottom:1px dashed var(--border);
+  }
+  .approve-preview-row:last-child{border-bottom:none}
+  .approve-preview-row strong{
+    color:var(--muted);font-weight:600;font-size:11px;
+    letter-spacing:.4px;text-transform:uppercase;padding-top:2px;
+  }
+  .approve-preview-row span{color:var(--navy);font-weight:500;word-break:break-word}
+  .approve-preview-row span.empty{color:var(--muted);font-weight:400;font-style:italic}
+
+  /* Bertugas Sebagai: quick-fill row & list per pegawai */
+  .bertugas-quick-row{
+    display:flex;gap:6px;margin-bottom:10px;align-items:center;
+    background:rgba(13,35,64,.03);padding:9px 11px;border-radius:8px;
+    border:1px dashed var(--border);
+  }
+  .form-input-quick{
+    flex:1;padding:8px 11px;border:1.5px solid var(--border2);border-radius:7px;
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;outline:none;
+    background:#fff;
+  }
+  .form-input-quick:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.06)}
+  .btn-quick{padding:8px 13px;font-size:12px;white-space:nowrap;border-radius:7px}
+  .bertugas-list{display:flex;flex-direction:column;gap:7px}
 
   .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .detail-field{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:12px 14px}
@@ -572,7 +631,7 @@
           <thead><tr>
             <th class="col-no">No</th>
             <th class="col-nomor-surat">Nomor Surat</th>
-            <th class="col-tgl-surat">Tgl Surat</th>
+            <th class="col-tgl-surat">Tanggal Surat</th>
             <th class="col-waktu">Waktu Pelaksanaan</th>
             <th class="col-perihal">Perihal</th>
             <th class="col-tujuan">Tempat Tujuan</th>
@@ -644,15 +703,9 @@
     </div>
     <div class="modal-body">
       <div id="approve-alert" class="alert"><span id="approve-alert-icon"></span><span id="approve-alert-text"></span></div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6">Menyetujui: <strong id="approve-perihal" style="color:var(--navy)"></strong></p>
-      <div class="form-group">
-        <label class="form-label" style="margin-bottom:2px">Ringkasan Data Surat</label>
-        <div class="approve-preview" id="approve-preview"></div>
-      </div>
-      <div class="save-default-row">
-        <input type="checkbox" id="inp-save-default" checked>
-        <label for="inp-save-default">💾 Simpan Alat Angkutan, POK & Penandatangan sebagai default</label>
-      </div>
+
+      <!-- Ringkasan langsung tampil tanpa label "Ringkasan Data Surat" — UI clean -->
+      <div class="approve-preview" id="approve-preview"></div>
 
       <!-- BERTUGAS SEBAGAI (role per pegawai) — hanya muncul untuk tipe
            dengan lampiran (T2/T3V) DAN ≥ 2 pegawai. Dikontrol dari
@@ -660,46 +713,37 @@
            dinamis ke #approve-bertugas-list. -->
       <div class="form-group" id="approve-bertugas-row" style="display:none">
         <label class="form-label">
-          📋 Bertugas Sebagai
-          <span style="font-style:italic;color:var(--muted);font-weight:400">(opsional per pegawai, untuk halaman lampiran)</span>
+          <span style="display:inline-flex;align-items:center;gap:6px">
+            <span style="font-size:14px">📋</span>
+            <span>Bertugas Sebagai</span>
+          </span>
+          <span style="font-style:italic;color:var(--muted);font-weight:400;margin-left:6px">(opsional per pegawai)</span>
         </label>
 
         <!-- Quick-fill: isi semua role sekaligus dengan nilai sama -->
-        <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;background:rgba(0,0,0,.025);padding:8px 10px;border-radius:7px">
-          <input type="text" id="inp-bertugas-quick" class="form-input"
-                 placeholder="Contoh: Tim Pelaksana"
-                 style="flex:1;padding:7px 10px;border:1.5px solid var(--border2);border-radius:6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;outline:none">
-          <button type="button" class="btn-outline" onclick="bertugasApplyAll()"
-                  style="padding:7px 12px;font-size:12px;white-space:nowrap"
+        <div class="bertugas-quick-row">
+          <input type="text" id="inp-bertugas-quick" class="form-input form-input-quick"
+                 placeholder="Contoh: Tim Pelaksana">
+          <button type="button" class="btn-outline btn-quick" onclick="bertugasApplyAll()"
                   title="Isi semua pegawai dengan nilai di atas">↓ Isi Semua</button>
-          <button type="button" class="btn-outline" onclick="bertugasClearAll()"
-                  style="padding:7px 12px;font-size:12px;white-space:nowrap"
+          <button type="button" class="btn-outline btn-quick" onclick="bertugasClearAll()"
                   title="Kosongkan semua field bertugas">✕ Kosongkan</button>
         </div>
 
         <!-- List per pegawai — dirender di JS oleh renderBertugasList() -->
-        <div id="approve-bertugas-list" style="display:flex;flex-direction:column;gap:7px"></div>
-
-        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">
-          Format kolom <em>Jabatan/Bertugas Sebagai</em> di lampiran:<br>
-          • Kosong → <code style="font-size:10px">{jabatan_p}</code> saja<br>
-          • Terisi → <code style="font-size:10px">{jabatan_p} / {bertugas_p}</code>
-        </div>
+        <div id="approve-bertugas-list" class="bertugas-list"></div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Waktu Pelaksanaan Kustom <span style="font-style:italic;color:var(--muted);font-weight:400">(opsional)</span></label>
+        <label class="form-label">
+          <span style="display:inline-flex;align-items:center;gap:6px">
+            <span style="font-size:14px">🗓</span>
+            <span>Waktu Pelaksanaan Kustom</span>
+          </span>
+          <span style="font-style:italic;color:var(--muted);font-weight:400;margin-left:6px">(opsional)</span>
+        </label>
         <input type="text" class="form-input" id="inp-waktu-pelaksanaan-text"
-               placeholder="contoh: 25 s.d. 27 Maret &amp; 30 Maret s.d. 1 April 2026">
-        <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4">
-          Kosongkan untuk pakai format otomatis dari Tgl Berangkat — Tgl Kembali.<br>
-          Isi manual hanya kalau pelaksanaan punya beberapa rentang tanggal yang tidak berurutan.
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Catatan Admin <span style="font-style:italic;color:var(--muted);font-weight:400">(opsional, tidak tampil di surat)</span></label>
-        <textarea class="form-textarea" id="inp-catatan-approve" placeholder="Catatan internal..." style="min-height:60px"></textarea>
+               placeholder="Misal: 25 s.d. 27 Maret &amp; 30 Maret s.d. 1 April 2026">
       </div>
     </div>
     <div class="modal-footer">
