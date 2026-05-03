@@ -288,6 +288,7 @@
   .alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
   .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
   .alert.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+  .alert.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
   .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px}
   @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -458,7 +459,38 @@
 // di-load dari 9201-shared.js — tidak lagi dideklarasi ulang di sini.
 const H = SUPABASE_HEADERS; // alias singkat untuk dipakai di file ini
 let SESSION=null;let allPegawai=[];let allSurat=[];const suratMap={};
-function switchTab(tab){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['list','bulk'][i]===tab));document.getElementById('panel-list').classList.toggle('active',tab==='list');document.getElementById('panel-bulk').classList.toggle('active',tab==='bulk');}
+/* #7: Persist active tab antar refresh.
+   Pattern sessionStorage — hanya scope tab browser (hilang saat tutup browser/tab).
+   Per-user juga supaya kalau ganti akun di browser yang sama, default
+   kembali ke "list" (lebih safe — admin/user pertama kali melihat surat).
+
+   Key disesuaikan dengan user.id supaya tidak bocor antar user.
+*/
+function getTabStorageKey(){
+  let uid='anon';
+  try{
+    const s=JSON.parse(localStorage.getItem('nova_user')||'null');
+    if(s&&s.id)uid=String(s.id);
+  }catch(_){}
+  return `nova_active_tab_st_${uid}`;
+}
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['list','bulk'][i]===tab));
+  document.getElementById('panel-list').classList.toggle('active',tab==='list');
+  document.getElementById('panel-bulk').classList.toggle('active',tab==='bulk');
+  // Persist pilihan tab supaya saat user refresh tetap di tab yang sama.
+  try{sessionStorage.setItem(getTabStorageKey(),tab);}catch(_){}
+}
+/* Restore tab saat halaman load. Dipanggil di init() setelah
+   session valid. Default 'list' kalau belum pernah set atau key tidak valid. */
+function restoreActiveTab(){
+  let saved='list';
+  try{
+    const v=sessionStorage.getItem(getTabStorageKey());
+    if(v==='list'||v==='bulk')saved=v;
+  }catch(_){}
+  if(saved!=='list')switchTab(saved);
+}
 function fmtWaktu(mulai,selesai){if(!mulai)return'\u2014';const a=new Date(mulai+'T00:00:00');if(!selesai||selesai===mulai){return`${a.getDate()} ${BULAN[a.getMonth()]} ${a.getFullYear()}`;}const b=new Date(selesai+'T00:00:00');if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()){return`${a.getDate()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}if(a.getFullYear()===b.getFullYear()){return`${a.getDate()} ${BULAN[a.getMonth()]} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}return`${a.getDate()} ${BULAN[a.getMonth()]} ${a.getFullYear()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}
 async function loadPegawai(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=id,NAMA,NIP&order=NAMA.asc`,{headers:H});if(!res.ok)throw new Error();allPegawai=await res.json();}catch(e){console.error('Gagal load pegawai',e);}}
 async function loadSurat(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?user_id=eq.${encodeURIComponent(SESSION.id)}&order=created_at.desc`,{headers:H});if(!res.ok)throw new Error();allSurat=await res.json();updateStats();renderTable(allSurat);document.getElementById('tc-list').textContent=allSurat.length;}catch(e){document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">\u26a0\ufe0f</div><div class="table-empty-text">Gagal memuat data.</div></div>';}}
@@ -1222,6 +1254,141 @@ function renderRowHTML(id){
     ${cellTextHTML('pembebanan','','cth: 054.01.GG\u2026','pok')}
   </tr>`;
 }
+/* ════════════════════════════════════════════════════════════════════
+   #8: DRAFT PERSIST — auto-save isi tabel "Minta Surat Tugas" ke
+   localStorage tiap blur, restore saat halaman load.
+   ─────────────────────────────────────────────────────────────────────
+   Pattern: snapshot semua baris → JSON → localStorage.
+   Key per-user supaya tidak bocor antar akun di browser yang sama.
+   Cleanup: setelah submit sukses, draft di-clear.
+   ════════════════════════════════════════════════════════════════════ */
+function getDraftStorageKey(){
+  let uid='anon';
+  try{
+    const s=JSON.parse(localStorage.getItem('nova_user')||'null');
+    if(s&&s.id)uid=String(s.id);
+  }catch(_){}
+  return `nova_st_draft_${uid}`;
+}
+function snapshotDraft(){
+  // Snapshot setiap baris di #bulk-tbody.
+  // Hanya ambil field user-input — abaikan rendering state (err class, dst).
+  const rows=Array.from(document.querySelectorAll('#bulk-tbody tr[data-row-id]')).map(tr=>{
+    const peg=tr.querySelector('.pg-cell[data-field="pegawai_multi"]');
+    let nips=[],names=[];
+    try{nips=JSON.parse(peg?.dataset.nips||'[]');}catch(_){}
+    try{names=JSON.parse(peg?.dataset.names||'[]');}catch(_){}
+    const waktu=tr.querySelector('input.xls-cell[data-field="waktu"]');
+    const waktuCustom=tr.querySelector('input.waktu-custom[data-field="waktu_text"]');
+    const waktuToggle=tr.querySelector('.waktu-toggle');
+    return{
+      perihal:(tr.querySelector('textarea.xls-cell[data-field="perihal"]')?.value||''),
+      tujuan:(tr.querySelector('textarea.xls-cell[data-field="tujuan"]')?.value||''),
+      pembebanan:(tr.querySelector('input.xls-cell[data-field="pembebanan"]')?.value||''),
+      waktuMulai:waktu?.dataset.isoMulai||'',
+      waktuSelesai:waktu?.dataset.isoSelesai||'',
+      waktuCustom:(waktuCustom?.value||''),
+      waktuCustomExpanded:!!(waktuToggle&&waktuToggle.classList.contains('active')),
+      nips,names,
+    };
+  });
+  // Filter row kosong total — tidak perlu disimpan.
+  const filled=rows.filter(r=>r.perihal||r.tujuan||r.pembebanan||r.waktuMulai||r.waktuCustom||r.nips.length);
+  try{
+    if(filled.length){
+      localStorage.setItem(getDraftStorageKey(),JSON.stringify({
+        version:1,
+        savedAt:Date.now(),
+        rows:filled,
+      }));
+    } else {
+      localStorage.removeItem(getDraftStorageKey());
+    }
+  }catch(e){
+    // Quota exceeded atau localStorage di-disable — fail silently.
+    console.warn('[Draft] gagal save:',e);
+  }
+}
+function loadDraft(){
+  try{
+    const raw=localStorage.getItem(getDraftStorageKey());
+    if(!raw)return null;
+    const obj=JSON.parse(raw);
+    if(!obj||!Array.isArray(obj.rows)||!obj.rows.length)return null;
+    return obj;
+  }catch(_){return null;}
+}
+function clearDraft(){
+  try{localStorage.removeItem(getDraftStorageKey());}catch(_){}
+}
+/* Restore draft ke #bulk-tbody. Dipanggil di init() — setelah addRows(1)
+   default (yang akan langsung di-replace kalau ada draft). */
+function restoreDraft(){
+  const draft=loadDraft();
+  if(!draft)return;
+  // Clear default row dari addRows(1) — kita rebuild dari draft.
+  const tbody=document.getElementById('bulk-tbody');
+  tbody.innerHTML='';
+  // Tambah row sesuai jumlah draft.
+  addRows(draft.rows.length);
+  // Isi setiap row dari snapshot.
+  const trs=Array.from(document.querySelectorAll('#bulk-tbody tr[data-row-id]'));
+  draft.rows.forEach((r,i)=>{
+    const tr=trs[i];if(!tr)return;
+    const perihalEl=tr.querySelector('textarea.xls-cell[data-field="perihal"]');
+    const tujuanEl=tr.querySelector('textarea.xls-cell[data-field="tujuan"]');
+    const waktuEl=tr.querySelector('input.xls-cell[data-field="waktu"]');
+    const pokEl=tr.querySelector('input.xls-cell[data-field="pembebanan"]');
+    const pegCell=tr.querySelector('.pg-cell[data-field="pegawai_multi"]');
+    const waktuCustomEl=tr.querySelector('input.waktu-custom[data-field="waktu_text"]');
+    const waktuToggle=tr.querySelector('.waktu-toggle');
+    if(perihalEl){perihalEl.value=r.perihal||'';autoGrow(perihalEl);}
+    if(tujuanEl){tujuanEl.value=r.tujuan||'';autoGrow(tujuanEl);}
+    if(pokEl)pokEl.value=r.pembebanan||'';
+    if(waktuEl){
+      waktuEl.dataset.isoMulai=r.waktuMulai||'';
+      waktuEl.dataset.isoSelesai=r.waktuSelesai||'';
+      waktuEl.value=r.waktuMulai?fmtWaktu(r.waktuMulai,r.waktuSelesai):'';
+    }
+    if(waktuCustomEl){
+      waktuCustomEl.value=r.waktuCustom||'';
+      // Restore toggle state
+      if(r.waktuCustomExpanded&&waktuCustomEl.classList.contains('hidden')){
+        toggleWaktuCustom(waktuToggle);
+        waktuCustomEl.value=r.waktuCustom||''; // re-set karena toggle reset
+      }
+    }
+    if(pegCell&&Array.isArray(r.nips)&&r.nips.length){
+      pegCell.dataset.nips=JSON.stringify(r.nips);
+      pegCell.dataset.names=JSON.stringify(r.names||[]);
+      // Render tag visual
+      const inp=pegCell.querySelector('.pg-input');
+      const tags=r.nips.map((nip,j)=>buildPegTag(nip,(r.names||[])[j]||nip,false)).join('');
+      if(inp)pegCell.insertAdjacentHTML('afterbegin',tags);
+      if(inp)inp.placeholder='';
+    }
+  });
+  reNumberRows();
+  updateBulkCounters();
+  // Tampilkan info ke user supaya tahu draft di-restore
+  showBulkAlert(`📝 Draft ${draft.rows.length} baris dimuat dari sesi terakhir. Klik kosongkan jika tidak diperlukan.`,'info');
+}
+/* Wire blur listener untuk auto-save draft di setiap field input.
+   Dipanggil di addRows() untuk row baru. */
+function wireDraftListeners(tr){
+  const fields=tr.querySelectorAll('textarea.xls-cell, input.xls-cell, input.waktu-custom');
+  fields.forEach(el=>{
+    el.addEventListener('blur',snapshotDraft);
+  });
+  // Pegawai multi-tag: snapshot saat tag berubah (lewat MutationObserver
+  // sederhana karena tag di-add/remove via JS, bukan input event).
+  const pegCell=tr.querySelector('.pg-cell[data-field="pegawai_multi"]');
+  if(pegCell){
+    const obs=new MutationObserver(()=>snapshotDraft());
+    obs.observe(pegCell,{attributes:true,attributeFilter:['data-nips']});
+  }
+}
+
 function addRows(n){
   const tbody=document.getElementById('bulk-tbody');
   for(let i=0;i<n;i++){
@@ -1232,7 +1399,7 @@ function addRows(n){
   tbody.querySelectorAll('tr[data-row-id]:not([data-wired])').forEach(tr=>{
     tr.dataset.wired='1';
     const delBtn=tr.querySelector('.del-row');
-    if(delBtn)delBtn.addEventListener('click',()=>deleteRow(tr));
+    if(delBtn)delBtn.addEventListener('click',()=>{deleteRow(tr);snapshotDraft();});
     tr.querySelectorAll('textarea.xls-cell').forEach(ta=>{
       autoGrow(ta);
       ta.addEventListener('input',()=>{autoGrow(ta);ta.classList.remove('err');});
@@ -1241,6 +1408,8 @@ function addRows(n){
     tr.querySelectorAll('input.xls-cell').forEach(inp=>{
       inp.addEventListener('input',()=>inp.classList.remove('err'));
     });
+    // #8: wire draft listeners — auto-save tiap blur
+    wireDraftListeners(tr);
   });
   reNumberRows();
   updateBulkCounters();
@@ -1314,6 +1483,8 @@ function clearAll(){
   const ca=document.getElementById('check-all');
   if(ca){ca.checked=false;ca.indeterminate=false;}
   updateBulkCounters();
+  // #8: clear draft localStorage juga supaya tidak restore lagi saat refresh.
+  clearDraft();
 }
 
 /* ══ PASTE dari Excel (tab-separated) ══ */
@@ -1475,6 +1646,9 @@ async function submitChecked(){
     datas.forEach(d=>d.tr.remove());
     reNumberRows(); syncCheckAll(); updateBulkCounters();
     showBulkAlert(`\u2705 ${datas.length} surat tugas berhasil dikirim.`,'success');
+    // #8: snapshot ulang setelah row submitted di-remove. Kalau masih ada
+    // row tersisa (yang tidak di-checked), draft tetap tersimpan.
+    snapshotDraft();
     await loadSurat();
   } catch(e){
     showBulkAlert(`Gagal mengirim: ${e.message}.`,'error');
@@ -1483,7 +1657,9 @@ async function submitChecked(){
   }
 }
 function showBulkAlert(msg,type='error'){
-  document.getElementById('bulk-alert-icon').textContent=type==='success'?'\u2705':'\u26a0\ufe0f';
+  // Map 'info' type ke icon ℹ️ — selain dari sukses & error.
+  const iconMap={success:'\u2705',error:'\u26a0\ufe0f',info:'\u2139\ufe0f'};
+  document.getElementById('bulk-alert-icon').textContent=iconMap[type]||iconMap.error;
   document.getElementById('bulk-alert-text').textContent=msg;
   document.getElementById('bulk-alert').className=`alert ${type} show`;
   document.getElementById('bulk-alert').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1494,8 +1670,15 @@ async function init(){
   if(!SESSION)return;
   Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION,false);
+  // #7: Restore tab terakhir yang user buka sebelum refresh.
+  // Dipanggil sebelum loadSurat() supaya UI panel langsung tampil benar.
+  restoreActiveTab();
   await Promise.all([loadSurat(),loadPegawai()]);
   addRows(1);
+  // #8: Restore draft (kalau ada) — di-call SETELAH addRows(1) default
+  // supaya struktur tabel sudah ada. restoreDraft() akan replace baris
+  // default kalau ada draft tersimpan.
+  restoreDraft();
 }
 init();
 </script>
