@@ -140,6 +140,14 @@ function tipeHasVisum(tipe) {
   return tipeFlags(tipe).has_visum === true;
 }
 
+// Helper: apakah tipe surat ini punya halaman lampiran?
+// Dipakai untuk toggle UI editor "Bertugas Sebagai" — hanya muncul kalau
+// tipe ada lampiran (T2/T3V) DAN pegawai ≥ 2 (1 pegawai tidak butuh role
+// pembeda karena kolom Jabatan/Bertugas hanya berisi 1 baris).
+function tipeHasLampiran(tipe) {
+  return tipeFlags(tipe).has_lampiran === true;
+}
+
 // Helper: ubah enum value ke label readable. Kalau value tidak dikenal,
 // kembalikan apa adanya (untuk debug).
 function tipeLabel(tipe) {
@@ -637,8 +645,17 @@ function renderRowHTML(s) {
         <button class="btn-save-edit" onclick="saveRowEdit(${s.id})">💾 Simpan</button>
         <button class="btn-cancel-edit" onclick="cancelRowEdit(${s.id})">✕ Batal</button>`;
     } else {
+      // Tombol "Edit Role" muncul kalau tipe ada lampiran (T2/T3V) DAN
+      // ≥ 2 pegawai. Sama dengan kondisi show-bertugas di modal Approve.
+      const showEditRole = tipeHasLampiran(s.tipe)
+                           && Array.isArray(s.pegawai_list)
+                           && s.pegawai_list.length >= 2;
+      const btnEditRole = showEditRole
+        ? `<button class="btn-edit-row" onclick="openEditBertugas(${s.id})" title="Edit role per pegawai untuk halaman lampiran" style="background:#5b3a8a;color:#fff;border-color:#5b3a8a">✏️ Edit Role</button>`
+        : '';
       aksi = `
         <button class="btn-edit-row" onclick="enableRowEdit(${s.id})" title="Edit field surat ini">✏️ Edit</button>
+        ${btnEditRole}
         <button class="btn-preview" onclick="openPreview(${s.id})">👁 Preview</button>
         <button class="btn-download" onclick="downloadSuratTugas(${s.id})">📥</button>`;
     }
@@ -2479,6 +2496,10 @@ function closeModal(id) {
     _visumPromptResolver = null;
     fn(null);
   }
+  // Reset state edit-bertugas saat modal ditutup
+  if (id === 'modal-edit-bertugas') {
+    _editBertugasSuratId = null;
+  }
 }
 
 function showPageAlert(msg, type='error') {
@@ -2537,8 +2558,208 @@ function openApprove(id) {
     <div class="approve-preview-row"><strong>Tipe Surat</strong><span>${tipeBadge}</span></div>
   `;
   document.getElementById('inp-catatan-approve').value = s.catatan_admin || '';
+
+  // ─── Toggle & render section "Bertugas Sebagai" ──────────────────
+  // Section muncul HANYA kalau:
+  //   1. Tipe surat punya lampiran (T2/T3V), DAN
+  //   2. Jumlah pegawai >= 2 (kalau cuma 1 orang, tidak butuh role pembeda)
+  // Kondisi 2 disengaja — tabel lampiran 1-baris tidak butuh kolom
+  // "bertugas" karena tidak ada apa-apa untuk dibedakan.
+  const showBertugas = tipeHasLampiran(values.tipe) && values.pegawai_list.length >= 2;
+  const bertugasRow  = document.getElementById('approve-bertugas-row');
+  if (bertugasRow) bertugasRow.style.display = showBertugas ? '' : 'none';
+  if (showBertugas) {
+    // Pre-fill dari nilai yg sudah ada di DB (kalau surat ini sebelumnya
+    // pernah disetujui & sudah punya pegawai_bertugas), atau dari draft
+    // sebelumnya kalau admin batal lalu buka modal lagi. Default: array kosong.
+    const existing = Array.isArray(s.pegawai_bertugas) ? s.pegawai_bertugas : [];
+    renderBertugasList(
+      'approve-bertugas-list',
+      values.pegawai_list,
+      existing,
+      'inp-bertugas-row'
+    );
+    // Reset quick-fill input setiap kali modal dibuka
+    const quick = document.getElementById('inp-bertugas-quick');
+    if (quick) quick.value = '';
+  }
+
   document.getElementById('approve-alert').className = 'alert';
   openModal('modal-approve');
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   BERTUGAS SEBAGAI — UI helpers
+   ─────────────────────────────────────────────────────────────────────
+   Render list editor + apply-all/clear-all + collect values.
+   Dipakai oleh modal-approve (saat setujui) dan modal-edit-bertugas
+   (edit setelah surat selesai).
+
+   Pattern: setiap input punya id `${idPrefix}-${index}` supaya bisa
+   di-collect via for-loop. Index sesuai posisi di array pegawai.
+═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Render list pegawai dengan input "Bertugas Sebagai" di sebelahnya.
+ *
+ * @param {string}    containerId  ID elemen container yg akan diisi
+ * @param {string[]}  pegawaiNames Array nama pegawai (urutan = index)
+ * @param {string[]}  existing     Array nilai bertugas yg sudah ada
+ *                                 (panjang bisa < pegawaiNames; sisanya '')
+ * @param {string}    idPrefix     Prefix untuk id input. Mis. 'inp-bertugas-row'
+ *                                 → input id = 'inp-bertugas-row-0', '...row-1', dst.
+ */
+function renderBertugasList(containerId, pegawaiNames, existing, idPrefix) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = pegawaiNames.map((nm, i) => {
+    const val = String(existing[i] || '').replace(/"/g, '&quot;');
+    return `
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="flex:0 0 28px;text-align:right;font-size:12px;color:var(--muted);font-weight:600">${i + 1}.</span>
+        <span style="flex:1;font-size:12.5px;color:var(--navy);font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(nm)}">${esc(nm)}</span>
+        <input type="text"
+               id="${idPrefix}-${i}"
+               value="${val}"
+               placeholder="Bertugas sebagai…"
+               style="flex:0 0 240px;padding:6px 9px;border:1.5px solid var(--border2);border-radius:6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;outline:none">
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * Collect nilai dari list bertugas. Trim setiap value, return array dengan
+ * panjang sesuai pegawaiCount.
+ *
+ * @param {number} pegawaiCount  Jumlah pegawai (= panjang array yg di-return)
+ * @param {string} idPrefix      Prefix id input (sama dengan render*)
+ * @returns {string[]}  Array string. Element kosong = '' (bukan null).
+ */
+function collectBertugasValues(pegawaiCount, idPrefix) {
+  const out = [];
+  for (let i = 0; i < pegawaiCount; i++) {
+    const el = document.getElementById(`${idPrefix}-${i}`);
+    out.push(el ? String(el.value || '').trim() : '');
+  }
+  return out;
+}
+
+/** Apply nilai dari input quick ke semua field bertugas — modal Approve. */
+function bertugasApplyAll() {
+  const v = (document.getElementById('inp-bertugas-quick')?.value || '').trim();
+  document.querySelectorAll('#approve-bertugas-list input[id^="inp-bertugas-row-"]')
+    .forEach(el => { el.value = v; });
+}
+
+/** Kosongkan semua field bertugas — modal Approve. */
+function bertugasClearAll() {
+  document.querySelectorAll('#approve-bertugas-list input[id^="inp-bertugas-row-"]')
+    .forEach(el => { el.value = ''; });
+}
+
+/** Apply quick value ke semua field — modal Edit Bertugas. */
+function editBertugasApplyAll() {
+  const v = (document.getElementById('inp-edit-bertugas-quick')?.value || '').trim();
+  document.querySelectorAll('#edit-bertugas-list input[id^="inp-edit-bertugas-row-"]')
+    .forEach(el => { el.value = v; });
+}
+
+/** Kosongkan semua field — modal Edit Bertugas. */
+function editBertugasClearAll() {
+  document.querySelectorAll('#edit-bertugas-list input[id^="inp-edit-bertugas-row-"]')
+    .forEach(el => { el.value = ''; });
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   EDIT BERTUGAS — open modal & submit handler
+   ─────────────────────────────────────────────────────────────────────
+   Modal khusus untuk admin mengedit role pegawai pada surat yang sudah
+   selesai (status=selesai). Hanya field pegawai_bertugas yang di-PATCH;
+   surat lainnya tidak disentuh.
+
+   Diakses dari tombol "✏ Edit Role" di tabel (kolom Aksi). Tombol
+   tersebut hanya muncul kalau tipeHasLampiran(s.tipe) && pegawai >= 2.
+═══════════════════════════════════════════════════════════════════════ */
+let _editBertugasSuratId = null;  // surat ID yang sedang di-edit
+
+/** Buka modal Edit Bertugas untuk surat tertentu. */
+function openEditBertugas(suratId) {
+  const s = suratMap[suratId];
+  if (!s) return;
+  // Defensive: kalau dari refresh data tipe sudah berubah jadi non-lampiran
+  // atau jumlah pegawai jadi < 2, tampilkan alert dan abort.
+  if (!tipeHasLampiran(s.tipe)) {
+    showPageAlert('Tipe surat tidak punya halaman lampiran — role tidak relevan.', 'error');
+    return;
+  }
+  const pegawai = Array.isArray(s.pegawai_list) ? s.pegawai_list : [];
+  if (pegawai.length < 2) {
+    showPageAlert('Surat dengan 1 pegawai tidak butuh role bertugas.', 'error');
+    return;
+  }
+
+  _editBertugasSuratId = suratId;
+  document.getElementById('edit-bertugas-perihal').textContent = s.perihal || '—';
+  // Reset quick-fill
+  const quick = document.getElementById('inp-edit-bertugas-quick');
+  if (quick) quick.value = '';
+
+  // Render list pakai existing data
+  const existing = Array.isArray(s.pegawai_bertugas) ? s.pegawai_bertugas : [];
+  renderBertugasList(
+    'edit-bertugas-list',
+    pegawai,
+    existing,
+    'inp-edit-bertugas-row'
+  );
+
+  openModal('modal-edit-bertugas');
+}
+
+/** Submit perubahan ke DB via PATCH. Hanya kolom pegawai_bertugas. */
+async function submitEditBertugas() {
+  const id = _editBertugasSuratId;
+  if (!id) return;
+  const s = suratMap[id];
+  if (!s) return;
+
+  const pegawaiCount = Array.isArray(s.pegawai_list) ? s.pegawai_list.length : 0;
+  const arr = collectBertugasValues(pegawaiCount, 'inp-edit-bertugas-row');
+
+  // Sama logic dengan submitApprove: kalau semua kosong, kirim NULL
+  // (tidak ngotorin DB dengan array empty-strings).
+  const payload = {
+    pegawai_bertugas: arr.some(v => v.length > 0) ? arr : null,
+  };
+
+  const btn = document.getElementById('btn-edit-bertugas-submit');
+  if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { ...H, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const j = await res.json(); msg = j.message || msg; } catch(_) {}
+      throw new Error(msg);
+    }
+
+    // Update suratMap in-memory supaya tidak perlu reload semua data
+    s.pegawai_bertugas = payload.pegawai_bertugas;
+
+    closeModal('modal-edit-bertugas');
+    _editBertugasSuratId = null;
+    showPageAlert('✅ Role pegawai berhasil disimpan.', 'success');
+  } catch(e) {
+    console.error('[9201] submitEditBertugas:', e);
+    showPageAlert(`Gagal menyimpan: ${e.message}`, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -2701,6 +2922,18 @@ async function submitApprove() {
     penandatangan_jabatan: jabatan || '',
     catatan_admin:         document.getElementById('inp-catatan-approve').value.trim() || null,
     tipe:                  values.tipe,
+    // pegawai_bertugas: hanya disertakan kalau tipe ada lampiran & ≥2 pegawai
+    // (kondisi yang sama dengan show-condition di openApprove). Untuk tipe
+    // lain, NULL — biarkan engine docxtemplater lookup → string kosong.
+    // collectBertugasValues() return string[] — element kosong = '' (string).
+    // Kalau SEMUA element kosong, kita kirim NULL juga supaya tidak nyampah
+    // di DB. Cek: ada minimal 1 element non-empty?
+    pegawai_bertugas:      (tipeHasLampiran(values.tipe) && values.pegawai_list.length >= 2)
+                             ? (() => {
+                                 const arr = collectBertugasValues(values.pegawai_list.length, 'inp-bertugas-row');
+                                 return arr.some(v => v.length > 0) ? arr : null;
+                               })()
+                             : null,
   };
 
   const btn = document.getElementById('btn-approve-submit');
@@ -2846,6 +3079,21 @@ async function saveRowEdit(id) {
     penandatangan_jabatan: jabatan || '',
     tipe:                  values.tipe,
   };
+
+  // Edge case: kalau admin edit pegawai_list (tambah/hapus/ubah urutan),
+  // index di pegawai_bertugas tidak lagi valid — reset ke NULL agar admin
+  // ulangi via tombol "Edit Role". Kita compare urutan NIP lama vs baru.
+  // Kalau sama persis → biarkan (tidak ikutkan di payload). Kalau beda →
+  // include pegawai_bertugas: null di payload.
+  const sBefore = suratMap[id];
+  const oldNips = Array.isArray(sBefore && sBefore.pegawai_nip) ? sBefore.pegawai_nip : [];
+  const newNips = values.pegawai_nip;
+  const nipsChanged = oldNips.length !== newNips.length
+                      || oldNips.some((n, i) => String(n).trim() !== String(newNips[i] || '').trim());
+  if (nipsChanged && Array.isArray(sBefore && sBefore.pegawai_bertugas) && sBefore.pegawai_bertugas.length) {
+    payload.pegawai_bertugas = null;
+    console.log('[9201] saveRowEdit: pegawai_list berubah → pegawai_bertugas di-reset ke NULL');
+  }
 
   const row = document.querySelector(`tr[data-surat-id="${id}"]`);
   const btn = row ? row.querySelector('.btn-save-edit') : null;
@@ -3769,7 +4017,12 @@ function fmtTglId(isoStr) {
      {#ul}...{/ul}                            ← bungkus baris tabel
        Field per-iterasi: {no}, {nama_p}, {nip_p},
                           {pangkat_p}, {golongan_p},
-                          {jabatan_p}, {bertugas_p}
+                          {jabatan_p}, {bertugas_p}, {jabatan_bertugas_p}
+       Catatan: {jabatan_bertugas_p} adalah field gabungan untuk kolom
+       "Jabatan/Bertugas Sebagai" — sudah di-format jadi
+       "{jabatan_p} / {bertugas_p}" kalau bertugas_p terisi, atau
+       "{jabatan_p}" saja kalau kosong. Pakai {jabatan_bertugas_p}
+       di template (single placeholder), bukan dua tag terpisah.
      Header lampiran ikut pakai: {nomor_surat}, {tgl_surat}, {awalan},
                                  {menimbang},
                                  {jabatan_penandatangan}, {penandatangan},
@@ -3777,18 +4030,14 @@ function fmtTglId(isoStr) {
 
    Catatan tentang kolom yang BELUM ada di Supabase:
      - {pangkat}     → kolom pangkat/golongan belum ada di riwayat_jabatan → ''
-     - {pangkat_p}, {golongan_p}, {bertugas_p} → di-kosongkan dulu di lampiran,
-                     akan diisi setelah skema DB dilengkapi.
+     - {pangkat_p}, {golongan_p} → di-kosongkan dulu di lampiran, akan
+                     diisi setelah skema DB dilengkapi.
                      {jabatan_p} sudah di-lookup dari riwayat_jabatan.
+                     {bertugas_p} sudah dari kolom pegawai_bertugas[] di DB.
      - {des_*}       → tabel kamus_pok belum dibuat → semua ''
    Field-field di atas akan otomatis terisi setelah skema DB dilengkapi —
    tinggal lookup di buildTemplateData() ini.
 */
-/* ════════════════════════════════════════════════════════════════════
-   PATCH 1 — buildTemplateData()
-   GANTI fungsi buildTemplateData yang ada di admin-surat-tugas.js
-   (sekitar baris 3146-3253) DENGAN versi di bawah ini.
-═══════════════════════════════════════════════════════════════════════ */
 async function buildTemplateData(data, opts) {
   // opts: { jumlahResponden?: number|string|null }
   // Hanya dipakai untuk tipe yang punya visum. Diabaikan untuk tipe lain.
@@ -3823,43 +4072,55 @@ async function buildTemplateData(data, opts) {
   const jabatanHal1   = banyakPegawai ? 'Terlampir' : jabatanPegawai;
   const pangkatHal1   = banyakPegawai ? 'Terlampir' : pangkatPegawai;
 
-  // Bangun array pegawai untuk loop tabel di halaman lampiran (T2/T3).
-  // Setiap item: { no, nama_p, nip_p, pangkat_p, golongan_p, jabatan_p,
-  //                bertugas_p, skerja_p }
-  // pangkat_p / golongan_p / bertugas_p sengaja dikosongkan dulu — user
-  // akan update belakangan setelah skema DB dilengkapi.
-  const pegawaiLampiran = nameList.map((nm, i) => {
+  // Array role tambahan per pegawai (paralel dengan nipList & nameList).
+  // Format DB: TEXT[] — element kosong/NULL artinya pegawai tsb tanpa role
+  // tambahan. Hanya relevan untuk tipe lampiran (T2/T3V); tipe non-lampiran
+  // tidak akan punya field ini di DB → array kosong → semua bertugas_p = ''.
+  const bertugasList = Array.isArray(data.pegawai_bertugas) ? data.pegawai_bertugas : [];
+
+  // Helper kecil — bangun row pegawai standar yang dipakai di lampiran
+  // maupun di array kendaraan/menginap. DRY: kedua array isi pegawai-nya
+  // identik, hanya beda nama variable. Sebelumnya ada duplikasi 100% di
+  // dua .map() berbeda — sekarang konsolidasi via helper ini.
+  //
+  // Aturan format kolom "Jabatan/Bertugas Sebagai":
+  //   - bertugas_p kosong  → tampilkan {jabatan_p} saja
+  //   - bertugas_p terisi  → tampilkan "{jabatan_p} / {bertugas_p}"
+  // Logic ini di-precompute jadi field jabatan_bertugas_p supaya template
+  // tinggal pakai 1 placeholder saja (tidak perlu {#bertugas_p}{/bertugas_p}
+  // conditional di template, lebih simple di-maintain).
+  function buildPegawaiRow(nm, i) {
     const nip = String(nipList[i] || '').trim();
     const p   = pegawaiByNIP[nip];
+    const jabatan_p  = lookupJabatan(nip, data.tanggal_surat) || '';
+    const bertugas_p = String(bertugasList[i] || '').trim();
+    const jabatan_bertugas_p = bertugas_p
+      ? `${jabatan_p} / ${bertugas_p}`
+      : jabatan_p;
     return {
-      no:         String(i + 1),
-      nama_p:     (p && p.NAMA) || nm || '',
-      nip_p:      nip || '-',
-      pangkat_p:  '',
-      golongan_p: '',
-      jabatan_p:  lookupJabatan(nip, data.tanggal_surat) || '',
-      bertugas_p: '',
-      skerja_p:   (p && (p['UNIT KERJA'] || p.UNIT_KERJA)) || '',
+      no:                 String(i + 1),
+      nama_p:             (p && p.NAMA) || nm || '',
+      nip_p:              nip || '-',
+      pangkat_p:          '',
+      golongan_p:         '',
+      jabatan_p,
+      bertugas_p,
+      jabatan_bertugas_p,
+      skerja_p:           (p && (p['UNIT KERJA'] || p.UNIT_KERJA)) || '',
     };
-  });
+  }
+
+  // Bangun array pegawai untuk loop tabel di halaman lampiran (T2/T3V).
+  // Setiap item: { no, nama_p, nip_p, pangkat_p, golongan_p, jabatan_p,
+  //                bertugas_p, jabatan_bertugas_p, skerja_p }
+  // pangkat_p / golongan_p sengaja dikosongkan dulu — user akan update
+  // belakangan setelah skema DB dilengkapi.
+  const pegawaiLampiran = nameList.map(buildPegawaiRow);
 
   // Array kendaraan & menginap — sama isinya per pegawai. Saat ini cuma
   // ada satu "iterasi" per pegawai (tabel di template di-loop sekali per
   // orang). Field belum diisi karena belum ada kolom DB-nya.
-  const pegawaiBaris = nameList.map((nm, i) => {
-    const nip = String(nipList[i] || '').trim();
-    const p   = pegawaiByNIP[nip];
-    return {
-      no:         String(i + 1),
-      nama_p:     (p && p.NAMA) || nm || '',
-      nip_p:      nip || '-',
-      pangkat_p:  '',
-      golongan_p: '',
-      jabatan_p:  lookupJabatan(nip, data.tanggal_surat) || '',
-      bertugas_p: '',
-      skerja_p:   (p && (p['UNIT KERJA'] || p.UNIT_KERJA)) || '',
-    };
-  });
+  const pegawaiBaris = nameList.map(buildPegawaiRow);
 
   // ── Penandatangan ────────────────────────────────────────────────────
   const ttdNama    = data.penandatangan_nama || '';
