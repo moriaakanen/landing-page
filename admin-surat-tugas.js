@@ -701,29 +701,31 @@ function renderRowHTML(s) {
 
   let aksi;
   if (isMenunggu) {
+    // Tombol utama "Setujui" tetap pakai label — eye-catching karena ini
+    // aksi paling penting di row status menunggu.
     aksi = `
       <button class="btn-approve" onclick="openApprove(${s.id})">✅ Setujui</button>`;
   } else if (isSelesai) {
     if (isEditing) {
-      // Mode edit aktif — tampilkan Simpan & Batal, sembunyikan Preview/Download
-      // supaya admin tidak preview docx dengan data yg belum dipersist.
+      // Mode edit aktif — Simpan (label) & Batal (logo only).
       aksi = `
         <button class="btn-save-edit" onclick="saveRowEdit(${s.id})">💾 Simpan</button>
-        <button class="btn-cancel-edit" onclick="cancelRowEdit(${s.id})">✕ Batal</button>`;
+        <button class="btn-cancel-edit" onclick="cancelRowEdit(${s.id})" title="Batal edit">✕</button>`;
     } else {
       // Tombol "Edit Role" muncul kalau tipe ada lampiran (T2/T3V) DAN
       // ≥ 2 pegawai. Sama dengan kondisi show-bertugas di modal Approve.
+      // Semua tombol pakai LOGO ONLY supaya kolom aksi compact.
       const showEditRole = tipeHasLampiran(s.tipe)
                            && Array.isArray(s.pegawai_list)
                            && s.pegawai_list.length >= 2;
       const btnEditRole = showEditRole
-        ? `<button class="btn-edit-row" onclick="openEditBertugas(${s.id})" title="Edit role per pegawai untuk halaman lampiran" style="background:#5b3a8a;color:#fff;border-color:#5b3a8a">✏️ Edit Role</button>`
+        ? `<button class="btn-edit-row btn-icon" onclick="openEditBertugas(${s.id})" title="Edit role per pegawai" style="background:#5b3a8a;color:#fff;border-color:#5b3a8a">✏️</button>`
         : '';
       aksi = `
-        <button class="btn-edit-row" onclick="enableRowEdit(${s.id})" title="Edit field surat ini">✏️ Edit</button>
+        <button class="btn-edit-row btn-icon" onclick="enableRowEdit(${s.id})" title="Edit field surat ini">✏️</button>
         ${btnEditRole}
-        <button class="btn-preview" onclick="openPreview(${s.id})">👁 Preview</button>
-        <button class="btn-download" onclick="downloadSuratTugas(${s.id})">📥</button>`;
+        <button class="btn-preview btn-icon" onclick="openPreview(${s.id})" title="Preview surat">👁</button>
+        <button class="btn-download btn-icon" onclick="downloadSuratTugas(${s.id})" title="Download .docx">📥</button>`;
     }
   } else {
     // Status tidak dikenal — tampilkan placeholder
@@ -1499,16 +1501,25 @@ function acFilter(q) {
   // Mitra hanya dari "tahun aktif" (= tahun saat ini) supaya picker bersih.
   // Mitra tahun lama tetap di mitraList & mitraByNip untuk lookup record
   // surat lama, tapi tidak muncul di dropdown form baru.
-  const tahunAktif = new Date().getFullYear();
-  const mitraPool = mitraList
-    .filter(m => m.tahun === tahunAktif)
-    .map(m => ({
-      NIP: formatMitraNip(m.tahun, m.id),
-      NAMA: m.nama,
-      _isMitra: true,
-      _mitraTahun: m.tahun,
-    }));
-  const combinedPool = pegawaiList.concat(mitraPool);
+  //
+  // EXCLUDE MITRA UNTUK SINGLE PICKER (penandatangan): mitra tidak boleh
+  // jadi penandatangan surat tugas, jadi pool-nya cuma pegawai.
+  // acState.isSingle = true → cell adalah penandatangan; false → pegawai_multi.
+  let combinedPool;
+  if (acState.isSingle) {
+    combinedPool = pegawaiList;
+  } else {
+    const tahunAktif = new Date().getFullYear();
+    const mitraPool = mitraList
+      .filter(m => m.tahun === tahunAktif)
+      .map(m => ({
+        NIP: formatMitraNip(m.tahun, m.id),
+        NAMA: m.nama,
+        _isMitra: true,
+        _mitraTahun: m.tahun,
+      }));
+    combinedPool = pegawaiList.concat(mitraPool);
+  }
 
   acState.filtered = combinedPool.filter(p => {
     if (!q) return true;
@@ -2506,11 +2517,11 @@ function validateApproveFields(values) {
     ['tanggal_surat',      'Tgl Surat'],
     ['tanggal_berangkat',  'Waktu Pelaksanaan'],
     ['perihal',            'Perihal'],
-    // 'tujuan' & 'pembebanan' DIHAPUS dari required list — keduanya opsional.
-    // Tujuan kosong → di-handle oleh {untuk_text} fallback (perihal + tanggal).
-    // Pembebanan kosong → kolom MAK di template render kosong (rule #2).
+    // OPSIONAL (boleh kosong): tujuan, pembebanan, alat_angkutan
+    //  - tujuan kosong       → {untuk_text} fallback ke "{perihal} pada tanggal ..."
+    //  - pembebanan kosong   → kolom MAK di template render kosong
+    //  - alat_angkutan kosong → kolom alat angkutan render kosong
     ['menimbang_custom',   'Menimbang'],
-    ['alat_angkutan',      'Alat Angkutan'],
     ['penandatangan_nama', 'Penandatangan'],
     ['tipe',               'Tipe Surat'],
   ];
@@ -2627,8 +2638,6 @@ function openApprove(id) {
     return;
   }
 
-  document.getElementById('approve-perihal').textContent = values.perihal || s.perihal || '—';
-
   const ttdJabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
   const nomorFull  = buildNomorSuratFull(values.nomor_surat, values.tanggal_surat);
 
@@ -2638,24 +2647,32 @@ function openApprove(id) {
     ? `${esc(tipeLabel(values.tipe))} <span style="display:inline-block;margin-left:6px;background:rgba(200,168,75,.18);color:#7a5c10;border:1px solid rgba(200,168,75,.4);border-radius:100px;padding:1px 7px;font-size:10px;font-weight:600;letter-spacing:.3px">📋 VISUM</span>`
     : esc(tipeLabel(values.tipe));
 
+  // Helper untuk render row dengan styling "empty" kalau value kosong.
+  // Konsisten visual di seluruh preview — UI lebih clean.
+  const row = (label, val, opts) => {
+    opts = opts || {};
+    const isEmpty = !val || (typeof val === 'string' && !val.trim());
+    const display = isEmpty ? '—' : val;
+    return `<div class="approve-preview-row"><strong>${label}</strong><span class="${isEmpty ? 'empty' : ''}"${opts.style ? ' style="' + opts.style + '"' : ''}>${opts.html ? display : esc(display)}</span></div>`;
+  };
+
   document.getElementById('approve-preview').innerHTML = `
-    <div class="approve-preview-row"><strong>Nomor</strong><span style="font-family:ui-monospace,monospace;font-size:11px">${esc(nomorFull)}</span></div>
-    <div class="approve-preview-row"><strong>Tgl Surat</strong><span>${esc(fmtTgl(values.tanggal_surat))}</span></div>
-    <div class="approve-preview-row"><strong>Waktu</strong><span>${esc(fmtWaktu(values.tanggal_berangkat, values.tanggal_kembali))}</span></div>
-    <div class="approve-preview-row"><strong>Perihal</strong><span>${esc(values.perihal)}</span></div>
-    <div class="approve-preview-row"><strong>Tujuan</strong><span>${esc(values.tujuan)}</span></div>
-    <div class="approve-preview-row"><strong>Pegawai</strong><span>${esc(values.pegawai_list.join(', '))}</span></div>
-    <div class="approve-preview-row"><strong>Menimbang</strong><span>${esc(values.menimbang_custom)}</span></div>
-    <div class="approve-preview-row"><strong>Alat Angkutan</strong><span>${esc(values.alat_angkutan)}</span></div>
-    <div class="approve-preview-row"><strong>POK</strong><span>${esc(values.pembebanan)}</span></div>
+    ${row('Nomor', nomorFull, { style: 'font-family:ui-monospace,monospace;font-size:11.5px' })}
+    ${row('Tgl Surat', fmtTgl(values.tanggal_surat))}
+    ${row('Waktu', fmtWaktu(values.tanggal_berangkat, values.tanggal_kembali))}
+    ${row('Perihal', values.perihal)}
+    ${row('Tujuan', values.tujuan)}
+    ${row('Pegawai', values.pegawai_list.join(', '))}
+    ${row('Menimbang', values.menimbang_custom)}
+    ${row('Alat Angkutan', values.alat_angkutan)}
+    ${row('POK', values.pembebanan)}
     <div class="approve-preview-row"><strong>Penandatangan</strong><span>
       ${esc(values.penandatangan_nama)}<br>
-      <em style="color:var(--muted);font-style:italic;font-size:11px">${ttdJabatan ? esc(ttdJabatan) : '<span style="color:var(--red)">⚠ Jabatan tidak ditemukan di riwayat (akan ditampilkan "-" di docx)</span>'}</em><br>
+      <em style="color:var(--muted);font-style:italic;font-size:11px">${ttdJabatan ? esc(ttdJabatan) : '<span style="color:var(--red)">⚠ Jabatan tidak ditemukan di riwayat</span>'}</em><br>
       <span style="color:var(--muted);font-size:11px">NIP. ${esc(values.penandatangan_nip)}</span>
     </span></div>
-    <div class="approve-preview-row"><strong>Tipe Surat</strong><span>${tipeBadge}</span></div>
+    ${row('Tipe Surat', tipeBadge, { html: true })}
   `;
-  document.getElementById('inp-catatan-approve').value = s.catatan_admin || '';
   // Pre-fill waktu_pelaksanaan_text kalau surat ini sebelumnya pernah
   // disetujui & sudah punya value. Default kosong (auto-fallback ke
   // format dari tanggal_berangkat & tanggal_kembali).
@@ -3033,7 +3050,6 @@ async function submitApprove() {
     penandatangan_nama:    values.penandatangan_nama,
     penandatangan_nip:     values.penandatangan_nip,
     penandatangan_jabatan: jabatan || '',
-    catatan_admin:         document.getElementById('inp-catatan-approve').value.trim() || null,
     tipe:                  values.tipe,
     // bertugas_sebagai: hanya disertakan kalau tipe ada lampiran & ≥2 pegawai
     // (kondisi yang sama dengan show-condition di openApprove). Untuk tipe
@@ -3063,7 +3079,12 @@ async function submitApprove() {
       throw new Error(msg);
     }
 
-    if (document.getElementById('inp-save-default').checked) {
+    // Auto-save defaults (alat_angkutan/POK/penandatangan) tanpa checkbox.
+    // Sebelumnya ada checkbox "Simpan default" yang dihapus dari UI —
+    // sekarang behavior-nya selalu auto-save kalau ada nilai. Admin
+    // tidak perlu mikir lagi, dan halaman pengajuan baru langsung
+    // pakai defaults yang sudah pernah dipakai sebelumnya.
+    {
       const newDefaults = {};
       if (values.alat_angkutan)       newDefaults.alat_angkutan = values.alat_angkutan;
       if (values.pembebanan)          newDefaults.pembebanan    = values.pembebanan;
