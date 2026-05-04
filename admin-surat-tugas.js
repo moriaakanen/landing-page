@@ -735,12 +735,14 @@ function renderRowHTML(s) {
   }
 
   // Checkbox dual-purpose:
-  //   - Baris 'selesai'  → bulk-dl-check  (untuk bulk download)
-  //   - Baris 'menunggu' → bulk-approve-check (untuk bulk approve)
+  //   - Baris 'selesai'  → bulk-dl-check  (untuk bulk download, navy default)
+  //   - Baris 'menunggu' → bulk-approve-check (untuk bulk approve, hijau via .ck-success)
   // Keduanya pakai kolom yang sama supaya layout konsisten.
+  // Styling visual checkbox di-handle global oleh 9201-shared.js — di sini
+  // cukup tambahkan class .ck-success untuk varian hijau.
   const checkCell = isSelesai
     ? `<td class="col-check"><input type="checkbox" class="bulk-dl-check" data-surat-id="${s.id}" onchange="updateBulkDownloadCounter()"></td>`
-    : `<td class="col-check"><input type="checkbox" class="bulk-approve-check" data-surat-id="${s.id}" onchange="updateBulkApproveCounter()" title="Pilih untuk bulk approve" style="accent-color:#1a7a4a"></td>`;
+    : `<td class="col-check"><input type="checkbox" class="bulk-approve-check ck-success" data-surat-id="${s.id}" onchange="updateBulkApproveCounter()" title="Pilih untuk bulk approve"></td>`;
 
   // data-editing sebagai marker tambahan agar styling/CSS bisa membedakan
   // baris yg sedang di-edit (ditambah border kuning di seksi CSS).
@@ -761,8 +763,8 @@ function renderRowHTML(s) {
       ${cellPenandatanganHTML(s.id, ttdNip, ttdNama, editable)}
       ${cellTipeHTML(s.id, s.tipe, editable)}
 
-      <td class="col-status">${badgeHTML(s.status)}</td>
       <td class="col-aksi"><div class="aksi-wrap">${aksi}</div></td>
+      <td class="col-status">${badgeHTML(s.status)}</td>
       <td class="col-pengaju" title="${esc(getPengajuNama(s))}">${esc(getPengajuNama(s)) || '<span style="color:var(--muted);font-style:italic">—</span>'}</td>
     </tr>`;
 }
@@ -1001,7 +1003,7 @@ function renderTable(data) {
         <th class="col-check col-check-dual" title="☐ atas = centang semua selesai (bulk download) | ☐ bawah = centang semua menunggu (bulk approve)">
           <div class="th-check-inner">
             <input type="checkbox" id="bulk-dl-master" onchange="toggleBulkDownloadAll(this.checked)" title="Centang semua surat selesai untuk bulk download">
-            <input type="checkbox" id="bulk-ap-master" class="ap-master" onchange="toggleBulkApproveAll(this.checked)" title="Centang semua surat menunggu untuk bulk approve">
+            <input type="checkbox" id="bulk-ap-master" class="ap-master ck-success" onchange="toggleBulkApproveAll(this.checked)" title="Centang semua surat menunggu untuk bulk approve">
           </div>
         </th>
         ${sortHeader('no',            'No',                'col-no')}
@@ -1016,8 +1018,8 @@ function renderTable(data) {
         <th class="col-mak">POK</th>
         <th class="col-ttd">Penandatangan</th>
         <th class="col-tipe">Tipe</th>
-        ${sortHeader('status',        'Status',            'col-status')}
         <th class="col-aksi">Aksi</th>
+        ${sortHeader('status',        'Status',            'col-status')}
         ${sortHeader('pengaju',       'Diajukan oleh',     'col-pengaju')}
       </tr></thead>
       <tbody>${rows}</tbody>
