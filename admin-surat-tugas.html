@@ -189,12 +189,18 @@
 
   /* BULK APPROVE CHECKBOX — baris menunggu */
   td.col-check input.bulk-approve-check{accent-color:#1a7a4a}
-  th.col-check.col-check-dual{padding:4px 0}
-  .th-check-inner{display:flex;flex-direction:column;align-items:center;gap:3px}
-  .th-check-inner label{font-size:8px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;line-height:1}
-  .th-check-inner label.lbl-dl{color:rgba(255,255,255,.4)}
-  .th-check-inner label.lbl-ap{color:rgba(26,122,74,.7)}
-  .th-check-inner input[type="checkbox"].ap-master{accent-color:#1a7a4a;width:12px;height:12px}
+  th.col-check.col-check-dual{padding:4px 0;vertical-align:middle}
+  .th-check-inner{display:flex;flex-direction:column;align-items:center;gap:4px}
+  /* DL master: kotak normal (navy accent) */
+  .th-check-inner input[type="checkbox"]#bulk-dl-master{
+    width:13px;height:13px;accent-color:var(--navy);cursor:pointer;
+    outline:2px solid rgba(255,255,255,.25);outline-offset:1px;border-radius:2px;
+  }
+  /* AP master: kotak dengan outline hijau agar berbeda */
+  .th-check-inner input[type="checkbox"].ap-master{
+    width:13px;height:13px;accent-color:#1a7a4a;cursor:pointer;
+    outline:2px solid rgba(26,122,74,.55);outline-offset:1px;border-radius:2px;
+  }
 
   /* DRAFT SAVED INDICATOR — floating toast ringan */
   #draft-saved-toast{
@@ -225,7 +231,7 @@
   .table-scroll-top::-webkit-scrollbar-thumb:hover{background:#a9a298}
   .table-scroll-top-inner{height:1px}
 
-  table.list-table{width:100%;border-collapse:separate;border-spacing:0;min-width:2288px;table-layout:fixed}
+  table.list-table{width:100%;border-collapse:separate;border-spacing:0;min-width:2223px;table-layout:fixed}
   table.list-table thead th{
     background:#f9f8f5;padding:9px 10px;text-align:center;font-size:10.5px;font-weight:700;
     color:var(--navy);letter-spacing:.5px;text-transform:uppercase;
@@ -266,8 +272,8 @@
   .col-perihal       { width:185px }
   .col-tujuan        { width:130px }
   .col-nama          { width:175px }  /* #7: kecil */
-  .col-menimbang     { width:185px }
-  .col-alat          { width:115px }
+  .col-menimbang     { width:145px }
+  .col-alat          { width:90px }
   .col-mak           { width:155px }  /* #5 r2: lebih lebar untuk muat "KRO" full */
   .col-ttd           { width:160px }
   .col-tipe          { width:155px }  /* #10: kecil; tipe text wrap */
@@ -370,12 +376,11 @@
   td.col-nomor-surat .ro-text,
   td.col-nomor-surat .xls-cell{font-size:11.5px;line-height:1.4}
 
-  /* HEADER 2-baris — white-space:normal agar teks wrap alami di lebar
-     kolom sempit (78px / 118px). text-align:center agar setiap baris
-     yang terbentuk tetap rata tengah. */
-  th.col-tgl-surat,
-  th.col-nomor-surat{
-    white-space:normal;word-break:keep-all;line-height:1.4;
+  /* HEADER 2-baris — specificity harus >= table.list-table thead th (yg set
+     white-space:nowrap). Pakai selector lengkap supaya override benar. */
+  table.list-table thead th.col-tgl-surat,
+  table.list-table thead th.col-nomor-surat{
+    white-space:normal;word-break:normal;line-height:1.4;
     text-align:center;vertical-align:middle;
   }
 
