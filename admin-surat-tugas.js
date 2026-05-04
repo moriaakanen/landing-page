@@ -998,12 +998,10 @@ function renderTable(data) {
   document.getElementById('table-area').innerHTML = `
     <table class="list-table">
       <thead><tr>
-        <th class="col-check col-check-dual" title="Centang: baris selesai = bulk download | baris menunggu = bulk approve">
+        <th class="col-check col-check-dual" title="☐ atas = centang semua selesai (bulk download) | ☐ bawah = centang semua menunggu (bulk approve)">
           <div class="th-check-inner">
-            <label class="lbl-dl" title="Semua selesai">⬇ DL</label>
-            <input type="checkbox" id="bulk-dl-master" onchange="toggleBulkDownloadAll(this.checked)" title="Centang semua surat selesai">
-            <input type="checkbox" id="bulk-ap-master" class="ap-master" onchange="toggleBulkApproveAll(this.checked)" title="Centang semua surat menunggu">
-            <label class="lbl-ap" title="Semua menunggu">✅ AP</label>
+            <input type="checkbox" id="bulk-dl-master" onchange="toggleBulkDownloadAll(this.checked)" title="Centang semua surat selesai untuk bulk download">
+            <input type="checkbox" id="bulk-ap-master" class="ap-master" onchange="toggleBulkApproveAll(this.checked)" title="Centang semua surat menunggu untuk bulk approve">
           </div>
         </th>
         ${sortHeader('no',            'No',                'col-no')}
@@ -2615,12 +2613,26 @@ document.addEventListener('keydown', (e) => {
   }
 
   /* ── Tab: navigasi linear (hanya untuk sel editable) ─────────────
-     ENTER sengaja TIDAK dipakai untuk navigasi cell — pindah kolom
-     hanya via Tab (atau arrow keys di handler di atas).
-     - Plain Enter di textarea (cell perihal/menimbang/dst.) = newline default browser
-     - Plain Enter di input single-line = no-op (tidak melakukan apa-apa)
-     - Shift+Enter di textarea juga newline default                      */
+     ENTER di textarea: plain Enter = pindah ke sel berikutnya (Tab),
+     Alt+Enter = newline. Sebelumnya Enter di textarea = newline default
+     browser, sekarang diubah atas permintaan user.
+     ENTER di input single-line: no-op (tidak ada newline, tidak navigasi)
+     karena field-field seperti nomor_surat, tanggal_surat, MAK
+     sudah punya handler Tab sendiri.                                   */
   if (isReadonly) return; // readonly: biarkan Tab default browser
+
+  // Enter di textarea.xls-cell
+  if (e.key === 'Enter' && isTextarea && isXlsCell) {
+    if (e.altKey) {
+      // Alt+Enter: izinkan newline default browser — jangan intercept
+      return;
+    }
+    // Plain Enter (tanpa Alt/Ctrl/Shift): pindah ke sel berikutnya
+    e.preventDefault();
+    closeAllPopups();
+    moveCellFocus(target, 1);
+    return;
+  }
 
   if (e.key === 'Tab') {
     e.preventDefault();
