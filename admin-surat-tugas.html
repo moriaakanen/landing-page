@@ -187,20 +187,9 @@
   .btn-table-head.btn-table-head-gold:hover:not(:disabled){background:#b89438;border-color:#b89438}
   .btn-table-head.btn-table-head-gold:disabled{opacity:.45}
 
-  /* BULK APPROVE CHECKBOX — baris menunggu */
-  td.col-check input.bulk-approve-check{accent-color:#1a7a4a}
-  th.col-check.col-check-dual{padding:4px 0;vertical-align:middle}
-  .th-check-inner{display:flex;flex-direction:column;align-items:center;gap:4px}
-  /* DL master: kotak normal (navy accent) */
-  .th-check-inner input[type="checkbox"]#bulk-dl-master{
-    width:13px;height:13px;accent-color:var(--navy);cursor:pointer;
-    outline:2px solid rgba(255,255,255,.25);outline-offset:1px;border-radius:2px;
-  }
-  /* AP master: kotak dengan outline hijau agar berbeda */
-  .th-check-inner input[type="checkbox"].ap-master{
-    width:13px;height:13px;accent-color:#1a7a4a;cursor:pointer;
-    outline:2px solid rgba(26,122,74,.55);outline-offset:1px;border-radius:2px;
-  }
+  /* BULK APPROVE — custom checkbox color sekarang via class .ck-success
+     yang didefinisikan di 9201-shared.js. Tidak perlu accent-color/outline
+     lagi. */
 
   /* DRAFT SAVED INDICATOR — floating toast ringan */
   #draft-saved-toast{
@@ -267,15 +256,15 @@
   .col-check         { width:38px;  text-align:center;padding:6px 0 }
   .col-no            { width:46px;  text-align:center }
   .col-nomor-surat   { width:78px }   /* #2 r2: ramping, "Nomor" / "Surat" header 2-baris */
-  .col-tgl-surat     { width:118px }  /* #1 r3: muat "30 April 2026" / "30 Desember 2026" */
+  .col-tgl-surat     { width:96px }   /* lebih ramping; data 11.5px font cukup */
   .col-waktu         { width:175px }  /* #6 + #3: muat picker + toggle multi-range */
   .col-perihal       { width:185px }
   .col-tujuan        { width:130px }
   .col-nama          { width:175px }  /* #7: kecil */
   .col-menimbang     { width:145px }
-  .col-alat          { width:90px }
+  .col-alat          { width:118px }  /* lebar agar header "ALAT ANGKUTAN" tidak terpotong */
   .col-mak           { width:155px }  /* #5 r2: lebih lebar untuk muat "KRO" full */
-  .col-ttd           { width:160px }
+  .col-ttd           { width:130px }  /* lebih ramping */
   .col-tipe          { width:155px }  /* #10: kecil; tipe text wrap */
   .col-status        { width:105px }
   .col-aksi          { width:140px;text-align:center } /* #6 r2: aksi center */
@@ -352,9 +341,12 @@
   /* Sticky look untuk No. & Status */
   td.col-no{text-align:center;font-weight:700;color:var(--muted);font-size:12px;padding:11px 4px;background:#fafaf8}
   td.col-check{text-align:center;padding:11px 4px;background:#fafaf8}
-  td.col-check input[type="checkbox"]{width:14px;height:14px;accent-color:var(--navy);cursor:pointer;vertical-align:middle}
-  td.col-check input[type="checkbox"]:disabled{cursor:not-allowed;opacity:.3}
-  th.col-check input[type="checkbox"]{width:14px;height:14px;accent-color:var(--navy);cursor:pointer;vertical-align:middle}
+  /* Checkbox styling sekarang di-handle GLOBAL oleh 9201-shared.js
+     (custom CSS-rendered checkbox). Per-page tidak perlu set width/height/
+     accent-color/outline lagi — cukup pakai class .ck-success untuk varian
+     hijau (bulk approve). */
+  th.col-check.col-check-dual{padding:6px 0;vertical-align:middle}
+  .th-check-inner{display:flex;flex-direction:column;align-items:center;gap:5px}
   /* #6: Status cell + Aksi cell content rata tengah supaya rapi */
   td.col-status{padding:11px 9px;text-align:center}
   td.col-aksi{padding:8px 10px;text-align:center}
@@ -772,8 +764,8 @@
             <th class="col-alat">Alat Angkutan</th>
             <th class="col-mak">POK</th>
             <th class="col-ttd">Penandatangan</th>
-            <th class="col-status">Status</th>
             <th class="col-aksi">Aksi</th>
+            <th class="col-status">Status</th>
           </tr></thead>
           <tbody><tr><td colspan="13"><div style="padding:16px;display:flex;flex-direction:column;gap:8px">
             <div class="skel" style="height:44px;border-radius:6px"></div>
