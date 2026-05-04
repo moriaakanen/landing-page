@@ -23,6 +23,100 @@
 (function () {
   'use strict';
 
+  // ─── CSS Injection: Custom checkbox & radio (rendering full lewat CSS) ─
+  // Native <input type="checkbox"> di-render OS / browser dan tampil jelek
+  // (terutama di Chrome/Edge — kotak abu-abu pucat yang tidak match dengan
+  // tema gold/navy portal). Kita override SEMUA checkbox global supaya
+  // konsisten dan rapi tanpa perlu edit tiap file HTML.
+  //
+  // Dipakai dengan:
+  //   <input type="checkbox">                    → varian default (navy)
+  //   <input type="checkbox" class="ck-success"> → varian hijau (approve)
+  //   <input type="checkbox" class="ck-gold">    → varian gold
+  //   <input type="checkbox" class="ck-danger">  → varian merah
+  //   <input type="checkbox" class="ck-sm">      → ukuran kecil (14px)
+  //   <input type="checkbox" class="ck-lg">      → ukuran besar (20px)
+  //
+  // Mendukung state: hover, focus-visible, checked, indeterminate, disabled.
+  // SVG checkmark & dash dilekatkan sebagai background-image (data URL)
+  // sehingga tidak butuh font / asset eksternal.
+  if (!document.getElementById('9201-controls-css')) {
+    var ctrlCSS = `
+    /* ── Custom checkbox (global) ──────────────────────────────── */
+    input[type="checkbox"]{
+      -webkit-appearance:none;-moz-appearance:none;appearance:none;
+      --ck-accent:#0d2340;
+      --ck-border:#c9c2b6;
+      width:17px;height:17px;
+      border:1.5px solid var(--ck-border);
+      border-radius:5px;
+      background-color:#fff;
+      cursor:pointer;
+      margin:0;
+      vertical-align:middle;
+      position:relative;
+      flex-shrink:0;
+      display:inline-block;
+      transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease,transform .08s ease;
+      background-repeat:no-repeat;
+      background-position:center;
+      /* Pakai persentase supaya checkmark tetap proporsional walaupun
+         per-page CSS override width/height (mis. jadi 13px atau 20px). */
+      background-size:78% 78%;
+      print-color-adjust:exact;
+      -webkit-print-color-adjust:exact;
+    }
+    input[type="checkbox"]:hover:not(:disabled){
+      border-color:var(--ck-accent);
+    }
+    input[type="checkbox"]:active:not(:disabled){
+      transform:scale(.92);
+    }
+    input[type="checkbox"]:focus-visible{
+      outline:none;
+      box-shadow:0 0 0 3px rgba(200,168,75,.35);
+    }
+    input[type="checkbox"]:checked{
+      background-color:var(--ck-accent);
+      border-color:var(--ck-accent);
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M3.5 8.4 L6.7 11.5 L12.7 4.7' fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    }
+    input[type="checkbox"]:indeterminate{
+      background-color:var(--ck-accent);
+      border-color:var(--ck-accent);
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><line x1='4' y1='8' x2='12' y2='8' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round'/></svg>");
+    }
+    input[type="checkbox"]:disabled{
+      cursor:not-allowed;
+      opacity:.45;
+      background-color:#f1ede5;
+      border-color:#d8d3c8;
+    }
+    input[type="checkbox"]:checked:disabled,
+    input[type="checkbox"]:indeterminate:disabled{
+      background-color:#9ca3af;
+      border-color:#9ca3af;
+    }
+    /* Variants warna */
+    input[type="checkbox"].ck-success{ --ck-accent:#1a7a4a }
+    input[type="checkbox"].ck-gold   { --ck-accent:#c8a84b }
+    input[type="checkbox"].ck-danger { --ck-accent:#c0392b }
+    /* Variants ukuran */
+    input[type="checkbox"].ck-sm{ width:14px;height:14px;border-radius:4px }
+    input[type="checkbox"].ck-lg{ width:20px;height:20px;border-radius:6px }
+    `;
+    var ctrlStyle = document.createElement('style');
+    ctrlStyle.id = '9201-controls-css';
+    ctrlStyle.textContent = ctrlCSS;
+    // Sisipkan di awal <head> supaya specificity rules dari per-page CSS
+    // tetap bisa override jika benar-benar dibutuhkan.
+    if (document.head.firstChild) {
+      document.head.insertBefore(ctrlStyle, document.head.firstChild);
+    } else {
+      document.head.appendChild(ctrlStyle);
+    }
+  }
+
   // ─── Sanity check: config.js wajib sudah di-load duluan ────────
   if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
     console.error('[9201Shared] config.js belum di-load. Pastikan urutan script: '
