@@ -987,7 +987,7 @@ function renderPegawaiList(cfg, groups) {
     return `
       <div class="pg-item${isExpanded ? ' expanded' : ''}" data-nip="${esc(g.nip)}">
         <button class="pg-item-header" type="button"
-                onclick="togglePegawaiExpand(${JSON.stringify(g.nip)})"
+                onclick='togglePegawaiExpand(${JSON.stringify(g.nip)})'
                 aria-expanded="${isExpanded}">
           <div class="pg-avatar">${esc(initials)}</div>
           <div class="pg-info">
