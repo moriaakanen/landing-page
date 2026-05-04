@@ -118,33 +118,70 @@
   .stat-pill-num{font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--navy);line-height:1}
   .stat-pill-label{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:.2px}
 
-  /* Table */
-  .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(13,35,64,.04)}
-  .table-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:#fafaf6}
-  .table-head-title{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--navy)}
-  .table-head-meta{font-size:11px;color:var(--muted)}
-  .table-scroll{overflow-x:auto;max-width:100%}
-  table.list{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
-  table.list thead{background:#fafaf6;border-bottom:1.5px solid var(--border)}
-  table.list th{padding:11px 14px;text-align:left;font-weight:600;color:var(--muted);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;user-select:none}
-  table.list th.sortable{cursor:pointer;transition:color .15s}
-  table.list th.sortable:hover{color:var(--navy)}
-  table.list th.sortable .sort-icon{display:inline-block;margin-left:4px;font-size:9px;opacity:.4;vertical-align:1px}
-  table.list th.sortable.active .sort-icon{opacity:1;color:var(--gold-dark)}
-  table.list td{padding:13px 14px;border-bottom:1px solid var(--border);color:var(--navy);vertical-align:middle}
-  table.list tbody tr:last-child td{border-bottom:none}
-  table.list tbody tr{transition:background .12s}
-  table.list tbody tr:hover{background:#fafdf6}
-  .col-no{width:48px;color:var(--muted);font-weight:600;font-size:12px}
-  .col-aksi{width:128px;text-align:right;white-space:nowrap}
-  .cell-pegawai-name{font-weight:600;color:var(--navy);line-height:1.2}
-  .cell-pegawai-nip{font-size:11px;color:var(--muted);font-family:ui-monospace,monospace;margin-top:2px;letter-spacing:.3px}
+  /* ════════ PEGAWAI GROUP (accordion) ════════ */
+  .pg-wrap{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(13,35,64,.04)}
+  .pg-head{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-bottom:1px solid var(--border);background:#fafaf6;gap:12px;flex-wrap:wrap}
+  .pg-head-title{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:10px}
+  .pg-head-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .pg-head-actions{display:flex;gap:6px}
+  .pg-head-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:var(--white);border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.2px}
+  .pg-head-btn:hover{border-color:var(--navy);color:var(--navy);background:var(--bg)}
+
+  .pg-list{display:flex;flex-direction:column}
+  .pg-item{border-bottom:1px solid var(--border);background:var(--white);transition:background .15s}
+  .pg-item:last-child{border-bottom:none}
+  .pg-item.expanded{background:#fcfcfa}
+
+  .pg-item-header{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;user-select:none;transition:background .12s;width:100%;border:none;background:transparent;text-align:left;font-family:inherit;color:inherit}
+  .pg-item-header:hover{background:#fafaf6}
+  .pg-item.expanded .pg-item-header{background:var(--gold-light)}
+  .pg-item.expanded .pg-item-header:hover{background:#f0e6c8}
+
+  .pg-avatar{width:38px;height:38px;border-radius:50%;background:var(--gold-light);border:1.5px solid rgba(200,168,75,.35);color:var(--gold-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;flex-shrink:0;letter-spacing:.5px;transition:all .15s}
+  .pg-item.expanded .pg-avatar{background:var(--navy);border-color:var(--navy);color:var(--gold)}
+
+  .pg-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .pg-name{font-weight:600;color:var(--navy);font-size:14px;line-height:1.25;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pg-name mark{background:#fff3b0;color:inherit;padding:0 2px;border-radius:2px}
+  .pg-nip{font-size:11px;color:var(--muted);font-family:ui-monospace,monospace;letter-spacing:.3px}
+  .pg-meta{display:flex;align-items:center;gap:14px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+  .pg-meta-item{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;line-height:1.2}
+  .pg-meta-item strong{color:var(--navy);font-weight:700;font-size:12px}
+  .pg-count-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;background:var(--gold-light);border:1px solid rgba(200,168,75,.3);color:var(--gold-dark);border-radius:100px;font-size:10.5px;font-weight:700;letter-spacing:.3px}
+  .pg-item.expanded .pg-count-badge{background:var(--navy);border-color:var(--navy);color:var(--gold)}
+
+  .pg-chevron{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;flex-shrink:0;transition:transform .25s ease,color .15s,background .15s;background:var(--bg)}
+  .pg-item-header:hover .pg-chevron{color:var(--navy);background:var(--white)}
+  .pg-item.expanded .pg-chevron{transform:rotate(180deg);color:var(--navy);background:var(--white)}
+
+  /* Body — slide animation */
+  .pg-body{overflow:hidden;max-height:0;transition:max-height .35s cubic-bezier(.4,0,.2,1)}
+  .pg-item.expanded .pg-body{max-height:8000px}
+  .pg-body-inner{padding:4px 16px 18px}
+
+  /* Inner table per pegawai */
+  table.pg-list-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  table.pg-list-table thead{background:#f7f5ee}
+  table.pg-list-table th{padding:9px 12px;text-align:left;font-weight:600;color:var(--muted);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid var(--border)}
+  table.pg-list-table td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--navy);vertical-align:middle}
+  table.pg-list-table tbody tr:last-child td{border-bottom:none}
+  table.pg-list-table tbody tr{transition:background .12s}
+  table.pg-list-table tbody tr:hover{background:#fafdf6}
+  table.pg-list-table tbody tr.is-latest{background:rgba(200,168,75,.06)}
+  table.pg-list-table tbody tr.is-latest:hover{background:rgba(200,168,75,.12)}
+  .latest-tag{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;background:var(--gold);color:var(--white);border-radius:100px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-left:6px;vertical-align:1px}
+  .pg-table-no{width:38px;color:var(--muted);font-weight:600;font-size:12px;font-variant-numeric:tabular-nums}
+  .pg-table-aksi{width:96px;text-align:right;white-space:nowrap}
+
+  .pg-body-empty{padding:24px;text-align:center;font-size:12px;color:var(--muted);font-style:italic;background:#fafaf6;border-radius:8px;border:1px dashed var(--border)}
+
+  /* Cell formatters (digunakan di inner table per pegawai) */
   .cell-tmt{font-variant-numeric:tabular-nums;white-space:nowrap}
   .cell-empty{color:var(--muted);font-style:italic;font-size:12px}
-  .cell-ak{font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:.3px}
+  .cell-ak{font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:.3px;color:var(--navy);font-size:14px}
   .pgg-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--gold-light);border:1px solid rgba(200,168,75,.3);color:var(--gold-dark);border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.2px;white-space:nowrap}
 
-  /* Empty state */
+  /* Empty state untuk pg-list secara keseluruhan */
   .empty-state{padding:56px 28px;text-align:center;background:var(--white)}
   .empty-icon{font-size:36px;margin-bottom:14px;opacity:.4}
   .empty-title{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px}
@@ -227,7 +264,16 @@
 
   /* ════════ RESPONSIVE ════════ */
   @media(max-width:980px){.main{padding:24px 24px 60px}.page-header{flex-direction:column}.filter-pegawai{max-width:none;width:100%}}
-  @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:20px 16px 60px}.form-row{grid-template-columns:1fr}}
+  @media(max-width:768px){
+    :root{--sidebar-w:220px}
+    .main{padding:20px 16px 60px}
+    .form-row{grid-template-columns:1fr}
+    .pg-item-header{padding:12px 14px;gap:11px}
+    .pg-meta{gap:10px}
+    .pg-meta-item span:not(strong){display:none}
+    .pg-body-inner{padding:4px 10px 14px}
+    table.pg-list-table th,table.pg-list-table td{padding:9px 10px}
+  }
   @media(max-width:600px){
     .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
     .sidebar.open{left:0}
@@ -237,6 +283,13 @@
     .modal-overlay{padding:20px 12px}
     .toast-stack{left:12px;right:12px;bottom:12px}
     .toast{max-width:none;min-width:0}
+    .pg-avatar{width:34px;height:34px;font-size:12px}
+    .pg-name{font-size:13px}
+    .pg-head{padding:11px 14px}
+    .pg-meta{width:100%;justify-content:space-between;margin-top:0}
+    /* Inner table jadi scroll horizontal saat sempit */
+    .pg-table-scroll{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}
+    table.pg-list-table{min-width:480px}
   }
 </style>
 </head>
@@ -382,14 +435,14 @@ const TAB_CONFIG = {
     icon:     '⭐',
     titleAdd: 'Tambah Riwayat Angka Kredit',
     titleEdit:'Edit Riwayat Angka Kredit',
+    // Kolom untuk inner table per pegawai. Kolom 'Pegawai' sengaja
+    // dihapus karena nama pegawai sudah jadi judul card di atas.
+    // Kolom 'No' & 'Aksi' di-render terpisah oleh renderPegawaiInnerTable().
     columns: [
-      { key:'no',      label:'No',      cls:'col-no' },
-      { key:'pegawai', label:'Pegawai', render: r => renderPegawaiCell(r) },
-      { key:'ak',      label:'Angka Kredit', sortable:true, sortKey:'angka_kredit', cls:'cell-ak',
+      { key:'ak',  label:'Angka Kredit', cls:'cell-ak',
         render: r => fmtAK(r.angka_kredit) },
-      { key:'tmt',     label:'TMT', sortable:true, sortKey:'tmt', cls:'cell-tmt',
+      { key:'tmt', label:'TMT', cls:'cell-tmt',
         render: r => fmtTgl(r.tmt) },
-      { key:'aksi',    label:'Aksi', cls:'col-aksi' },
     ],
     fields: [
       { name:'pegawai_nip',  label:'Pegawai',      type:'pegawai', required:true },
@@ -415,7 +468,8 @@ const TAB_CONFIG = {
       return String(r.angka_kredit ?? '').includes(t)
           || (pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
     },
-    defaultSort: { key:'tmt', dir:'desc' },
+    // Ringkasan untuk meta di header pegawai (mis. "AK terakhir: 25.500").
+    latestSummary: r => fmtAK(r.angka_kredit),
   },
 
   pangkat: {
@@ -425,15 +479,12 @@ const TAB_CONFIG = {
     titleAdd: 'Tambah Riwayat Pangkat &amp; Golongan',
     titleEdit:'Edit Riwayat Pangkat &amp; Golongan',
     columns: [
-      { key:'no',      label:'No',      cls:'col-no' },
-      { key:'pegawai', label:'Pegawai', render: r => renderPegawaiCell(r) },
-      { key:'pgg',     label:'Pangkat / Golongan', sortable:true, sortKey:'golongan',
+      { key:'pgg', label:'Pangkat / Golongan',
         render: r => `<span class="pgg-badge">${esc(r.pangkat || '-')} <span style="opacity:.7">/</span> ${esc(r.golongan || '-')}</span>` },
-      { key:'tmt',     label:'TMT', sortable:true, sortKey:'tmt', cls:'cell-tmt',
+      { key:'tmt', label:'TMT', cls:'cell-tmt',
         render: r => fmtTgl(r.tmt) },
-      { key:'tmt_pak', label:'TMT Ikut PAK', sortable:true, sortKey:'tmt_ikut_pak', cls:'cell-tmt',
+      { key:'tmt_pak', label:'TMT Ikut PAK', cls:'cell-tmt',
         render: r => r.tmt_ikut_pak ? fmtTgl(r.tmt_ikut_pak) : '<span class="cell-empty">—</span>' },
-      { key:'aksi',    label:'Aksi', cls:'col-aksi' },
     ],
     fields: [
       { name:'pegawai_nip', label:'Pegawai',      type:'pegawai', required:true },
@@ -465,7 +516,7 @@ const TAB_CONFIG = {
           || (r.golongan || '').toLowerCase().includes(t)
           || (pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
     },
-    defaultSort: { key:'tmt', dir:'desc' },
+    latestSummary: r => `${r.pangkat || '-'} / ${r.golongan || '-'}`,
   },
 
   jabatan: {
@@ -475,16 +526,12 @@ const TAB_CONFIG = {
     titleAdd: 'Tambah Riwayat Jabatan',
     titleEdit:'Edit Riwayat Jabatan',
     columns: [
-      { key:'no',       label:'No',       cls:'col-no' },
-      { key:'pegawai',  label:'Pegawai',  cls:'col-pegawai',
-        render: r => renderPegawaiCell(r) },
-      { key:'jabatan',  label:'Jabatan',  sortable:true, sortKey:'jabatan',
-        render: r => esc(r.jabatan || '-') },
-      { key:'tmt',      label:'TMT',      sortable:true, sortKey:'tmt', cls:'cell-tmt',
+      { key:'jabatan', label:'Jabatan',
+        render: r => `<span style="font-weight:600">${esc(r.jabatan || '-')}</span>` },
+      { key:'tmt',     label:'TMT', cls:'cell-tmt',
         render: r => fmtTgl(r.tmt) },
-      { key:'tmt_pak',  label:'TMT Ikut PAK', sortable:true, sortKey:'tmt_ikut_pak', cls:'cell-tmt',
+      { key:'tmt_pak', label:'TMT Ikut PAK', cls:'cell-tmt',
         render: r => r.tmt_ikut_pak ? fmtTgl(r.tmt_ikut_pak) : '<span class="cell-empty">—</span>' },
-      { key:'aksi',     label:'Aksi',     cls:'col-aksi' },
     ],
     fields: [
       { name:'pegawai_nip', label:'Pegawai',      type:'pegawai',  required:true },
@@ -516,7 +563,7 @@ const TAB_CONFIG = {
       return (r.jabatan || '').toLowerCase().includes(t)
           || (r.nama || pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
     },
-    defaultSort: { key:'tmt', dir:'desc' },
+    latestSummary: r => r.jabatan || '-',
   },
 
   gelar: {
@@ -526,13 +573,10 @@ const TAB_CONFIG = {
     titleAdd: 'Tambah Riwayat Gelar',
     titleEdit:'Edit Riwayat Gelar',
     columns: [
-      { key:'no',      label:'No',      cls:'col-no' },
-      { key:'pegawai', label:'Pegawai', render: r => renderPegawaiCell(r) },
-      { key:'gelar',   label:'Gelar (Nama Lengkap dengan Gelar)', sortable:true, sortKey:'gelar',
+      { key:'gelar', label:'Nama Lengkap dengan Gelar',
         render: r => `<strong>${esc(r.gelar || '-')}</strong>` },
-      { key:'tmt',     label:'TMT', sortable:true, sortKey:'tmt', cls:'cell-tmt',
+      { key:'tmt',   label:'TMT', cls:'cell-tmt',
         render: r => fmtTgl(r.tmt) },
-      { key:'aksi',    label:'Aksi', cls:'col-aksi' },
     ],
     fields: [
       { name:'pegawai_nip', label:'Pegawai',      type:'pegawai', required:true,
@@ -558,7 +602,7 @@ const TAB_CONFIG = {
       return (r.gelar || '').toLowerCase().includes(t)
           || (pegawaiByNIP[r.pegawai_nip]?.NAMA || '').toLowerCase().includes(t);
     },
-    defaultSort: { key:'tmt', dir:'desc' },
+    latestSummary: r => r.gelar || '-',
   },
 };
 
@@ -573,9 +617,13 @@ let loadErrors = {};                              // { tabKey: errorMessage }
 let currentTab = 'ak';                            // default tab pertama = AK
 let filterNip = null;
 let searchQuery = '';
-let sortStateByTab = {};
 let editingRow = null;
 let pendingDelete = null;
+
+// Set per-tab dari pegawai_nip yang sedang ter-expand di accordion view.
+// Disimpan terpisah per tab supaya pengguna yang switch tab tetap melihat
+// state yang sama di tab itu kalau kembali.
+let expandedByTab = { ak:new Set(), pangkat:new Set(), jabatan:new Set(), gelar:new Set() };
 
 // ────────────────────────────────────────────────────────────────
 // SESSION
@@ -600,10 +648,33 @@ function fmtAK(v) {
   if (isNaN(n)) return String(v);
   return Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/\.?0+$/, '');
 }
-function renderPegawaiCell(r) {
-  const peg = pegawaiByNIP[r.pegawai_nip];
-  const nama = r.nama || (peg && peg.NAMA) || '—';
-  return `<div class="cell-pegawai-name">${esc(nama)}</div><div class="cell-pegawai-nip">${esc(r.pegawai_nip || '—')}</div>`;
+
+/**
+ * Ambil 1-2 huruf inisial dari nama untuk avatar bulat.
+ */
+function initialsFromName(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '—';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+/**
+ * Highlight substring `q` di dalam `text`. Hasil di-escape, jadi aman
+ * untuk innerHTML. Kalau q kosong → return text yang ter-escape.
+ */
+function highlightMatch(text, q) {
+  const safe = esc(text || '');
+  if (!q) return safe;
+  const lo = String(text || '').toLowerCase();
+  const ql = q.toLowerCase();
+  const idx = lo.indexOf(ql);
+  if (idx < 0) return safe;
+  // Hitung posisi di string ter-escape — escape karakter sebelum match
+  const before = esc(text.slice(0, idx));
+  const match  = esc(text.slice(idx, idx + q.length));
+  const after  = esc(text.slice(idx + q.length));
+  return `${before}<mark>${match}</mark>${after}`;
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -694,20 +765,55 @@ function applyFilters(tabKey) {
     const q = searchQuery.trim();
     if (q) data = data.filter(r => TAB_CONFIG[tabKey].matchSearch(r, q));
   }
-  const sortS = sortStateByTab[tabKey] || TAB_CONFIG[tabKey].defaultSort;
-  if (sortS && sortS.key) {
-    data = [...data].sort((a, b) => {
-      const va = a[sortS.key]; const vb = b[sortS.key];
-      if (va == null && vb == null) return 0;
-      if (va == null) return 1;
-      if (vb == null) return -1;
-      const cmp = (typeof va === 'number' && typeof vb === 'number')
-        ? va - vb
-        : String(va).localeCompare(String(vb));
-      return sortS.dir === 'desc' ? -cmp : cmp;
-    });
-  }
   return data;
+}
+
+/**
+ * Group rows by pegawai_nip → array urut sesuai nama pegawai (asc, locale-aware).
+ * Setiap entry dalam group sudah disort TMT desc (terbaru di atas).
+ *
+ * Output:
+ *   [
+ *     { nip, nama, rows: [<rows sorted by tmt desc>], latestTmt, count },
+ *     ...
+ *   ]
+ *
+ * Pegawai yang TIDAK ada di tabel data_pegawai (mis. NIP yatim karena
+ * pegawai dihapus tapi riwayat masih ada) tetap muncul dengan nama
+ * fallback dari kolom `nama` di row pertama atau "[Pegawai dihapus]".
+ */
+function groupByPegawai(rows) {
+  const map = new Map();
+  rows.forEach(r => {
+    const nip = r.pegawai_nip || '__no_nip__';
+    if (!map.has(nip)) {
+      const peg = pegawaiByNIP[nip];
+      const nama = (peg && peg.NAMA) || r.nama || (nip === '__no_nip__' ? '[Tanpa NIP]' : null);
+      map.set(nip, {
+        nip:       nip === '__no_nip__' ? '' : nip,
+        nama:      nama || '[Pegawai dihapus]',
+        rows:      [],
+        latestTmt: null,
+      });
+    }
+    const g = map.get(nip);
+    g.rows.push(r);
+    if (r.tmt && (!g.latestTmt || r.tmt > g.latestTmt)) g.latestTmt = r.tmt;
+  });
+  // Sort tiap group by TMT desc (terbaru di atas)
+  for (const g of map.values()) {
+    g.rows.sort((a, b) => {
+      const va = a.tmt || '';
+      const vb = b.tmt || '';
+      if (va === vb) return 0;
+      return va < vb ? 1 : -1;
+    });
+    g.count = g.rows.length;
+  }
+  // Sort groups by nama asc (locale-aware untuk huruf Indonesia)
+  return Array.from(map.values()).sort((a, b) =>
+    a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' })
+  );
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -796,16 +902,28 @@ function renderTab() {
   const cfg = TAB_CONFIG[currentTab];
   const data = applyFilters(currentTab);
   const el = document.getElementById('tab-pane');
-  const total = data.length;
   const totalAll = (allData[currentTab] || []).length;
-  const uniqPegawai = new Set(data.map(r => r.pegawai_nip)).size;
-  const tmtTerbaru = data.length ? data.reduce((max, r) => (r.tmt && (!max || r.tmt > max) ? r.tmt : max), null) : null;
+  const groups = groupByPegawai(data);
+  const totalEntries = data.length;
+  const uniqPegawai = groups.length;
+  const tmtTerbaru = data.length
+    ? data.reduce((max, r) => (r.tmt && (!max || r.tmt > max) ? r.tmt : max), null)
+    : null;
+
+  // Auto-expand kalau ada filter pegawai aktif (cuma 1 group hasilnya).
+  // Atau kalau ada search query yang menghasilkan ≤ 5 group (anggap user
+  // sedang nyari sesuatu spesifik, jadi langsung expand).
+  if (filterNip && groups.length === 1) {
+    expandedByTab[currentTab].add(groups[0].nip);
+  } else if (searchQuery.trim() && groups.length > 0 && groups.length <= 5) {
+    groups.forEach(g => expandedByTab[currentTab].add(g.nip));
+  }
 
   el.innerHTML = `
     <div class="toolbar">
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
-        <input class="search-input" type="text" placeholder="Cari di tab ${esc(cfg.label)}..."
+        <input class="search-input" type="text" placeholder="Cari nama pegawai atau ${esc(cfg.label.toLowerCase())}..."
                value="${esc(searchQuery)}" oninput="onSearchInput(event)">
       </div>
       <button class="btn btn-primary" onclick="openAddModal()">+ Tambah ${esc(cfg.label)}</button>
@@ -814,7 +932,7 @@ function renderTab() {
     <div class="stats-row">
       <div class="stat-pill">
         <div class="stat-pill-icon">${cfg.icon}</div>
-        <div><div class="stat-pill-num">${total}</div>
+        <div><div class="stat-pill-num">${totalEntries}</div>
         <div class="stat-pill-label">${searchQuery || filterNip ? 'Hasil tampilan' : 'Total entri'}</div></div>
       </div>
       <div class="stat-pill">
@@ -836,45 +954,110 @@ function renderTab() {
       ` : ''}
     </div>
 
-    <div class="table-wrap">
-      <div class="table-head">
-        <span class="table-head-title">Daftar ${esc(cfg.label)}</span>
-        <span class="table-head-meta">${total} entri</span>
+    <div class="pg-wrap">
+      <div class="pg-head">
+        <span class="pg-head-title">
+          <span>${cfg.icon}</span>
+          <span>Daftar ${esc(cfg.label)} per Pegawai</span>
+        </span>
+        <div class="pg-head-meta">
+          <span>${uniqPegawai} pegawai · ${totalEntries} entri</span>
+          ${groups.length > 0 ? `
+            <div class="pg-head-actions">
+              <button class="pg-head-btn" onclick="expandAllPegawai()" type="button">▼ Buka semua</button>
+              <button class="pg-head-btn" onclick="collapseAllPegawai()" type="button">▲ Tutup semua</button>
+            </div>
+          ` : ''}
+        </div>
       </div>
-      ${data.length === 0 ? renderEmptyState(cfg) : renderTable(cfg, data)}
+      ${groups.length === 0 ? renderEmptyState(cfg) : renderPegawaiList(cfg, groups)}
     </div>
   `;
 }
 
-function renderTable(cfg, data) {
-  const sortS = sortStateByTab[currentTab] || cfg.defaultSort;
-  const headHTML = cfg.columns.map(col => {
-    const isSorted = col.sortable && sortS && col.sortKey === sortS.key;
-    const cls = (col.cls || '') + (col.sortable ? ' sortable' : '') + (isSorted ? ' active' : '');
-    const onClick = col.sortable ? `onclick="onSortClick('${col.sortKey}')"` : '';
-    const sortIcon = col.sortable
-      ? `<span class="sort-icon">${isSorted ? (sortS.dir === 'desc' ? '▼' : '▲') : '↕'}</span>`
-      : '';
-    return `<th class="${cls}" ${onClick}>${esc(col.label)}${sortIcon}</th>`;
+function renderPegawaiList(cfg, groups) {
+  const expanded = expandedByTab[currentTab];
+  const itemsHTML = groups.map(g => {
+    const isExpanded = expanded.has(g.nip);
+    const initials = initialsFromName(g.nama);
+    const latestRow = g.rows[0]; // sudah sorted TMT desc
+    const latestSummary = latestRow ? cfg.latestSummary(latestRow) : '';
+    const namaHTML = highlightMatch(g.nama, searchQuery);
+
+    return `
+      <div class="pg-item${isExpanded ? ' expanded' : ''}" data-nip="${esc(g.nip)}">
+        <button class="pg-item-header" type="button"
+                onclick="togglePegawaiExpand(${JSON.stringify(g.nip)})"
+                aria-expanded="${isExpanded}">
+          <div class="pg-avatar">${esc(initials)}</div>
+          <div class="pg-info">
+            <div class="pg-name">${namaHTML}</div>
+            <div class="pg-nip">${esc(g.nip || '— tanpa NIP —')}</div>
+          </div>
+          <div class="pg-meta">
+            <div class="pg-meta-item">
+              <span>Terbaru:</span>
+              <strong>${esc(latestSummary)}</strong>
+            </div>
+            <div class="pg-meta-item">
+              <span>TMT:</span>
+              <strong>${g.latestTmt ? fmtTgl(g.latestTmt) : '—'}</strong>
+            </div>
+            <span class="pg-count-badge">${g.count} entri</span>
+          </div>
+          <div class="pg-chevron" aria-hidden="true">▼</div>
+        </button>
+        <div class="pg-body">
+          <div class="pg-body-inner">
+            ${renderPegawaiInnerTable(cfg, g.rows)}
+          </div>
+        </div>
+      </div>
+    `;
   }).join('');
 
-  const bodyHTML = data.map((r, i) => {
+  return `<div class="pg-list">${itemsHTML}</div>`;
+}
+
+/**
+ * Render tabel kecil untuk satu pegawai (sudah sorted TMT desc oleh
+ * groupByPegawai). Baris pertama (TMT paling baru) di-tag "TERBARU"
+ * dengan background highlight tipis.
+ */
+function renderPegawaiInnerTable(cfg, rows) {
+  if (!rows.length) {
+    return '<div class="pg-body-empty">Tidak ada entri.</div>';
+  }
+  const headHTML = '<th class="pg-table-no">No</th>'
+    + cfg.columns.map(c => `<th>${esc(c.label)}</th>`).join('')
+    + '<th class="pg-table-aksi">Aksi</th>';
+
+  const bodyHTML = rows.map((r, i) => {
+    const isLatest = i === 0;
     const cellsHTML = cfg.columns.map(col => {
       const cls = col.cls || '';
-      if (col.key === 'no')   return `<td class="${cls}">${i + 1}</td>`;
-      if (col.key === 'aksi') return `<td class="${cls}">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openEditModal(${r.id})" title="Edit" type="button">✎</button>
-          <button class="btn btn-danger  btn-sm btn-icon" onclick="openDeleteModal(${r.id})" title="Hapus" type="button">🗑</button>
-        </td>`;
       const html = col.render ? col.render(r) : esc(r[col.key] ?? '—');
+      // Tambahkan tag TERBARU di kolom TMT untuk baris pertama
+      if (isLatest && col.key === 'tmt') {
+        return `<td class="${cls}">${html}<span class="latest-tag">Terbaru</span></td>`;
+      }
       return `<td class="${cls}">${html}</td>`;
     }).join('');
-    return `<tr>${cellsHTML}</tr>`;
+    const aksiHTML = `
+      <td class="pg-table-aksi">
+        <button class="btn btn-outline btn-sm btn-icon" onclick="openEditModal(${r.id})" title="Edit" type="button">✎</button>
+        <button class="btn btn-danger  btn-sm btn-icon" onclick="openDeleteModal(${r.id})" title="Hapus" type="button">🗑</button>
+      </td>`;
+    return `<tr${isLatest ? ' class="is-latest"' : ''}>
+      <td class="pg-table-no">${i + 1}</td>
+      ${cellsHTML}
+      ${aksiHTML}
+    </tr>`;
   }).join('');
 
   return `
-    <div class="table-scroll">
-      <table class="list">
+    <div class="pg-table-scroll">
+      <table class="pg-list-table">
         <thead><tr>${headHTML}</tr></thead>
         <tbody>${bodyHTML}</tbody>
       </table>
@@ -912,31 +1095,43 @@ Kemungkinan besar tabel ini belum punya RLS policy untuk anon role. Tambahkan po
   </div>`;
 }
 
-function onSearchInput(e) {
-  searchQuery = e.target.value;
-  const cfg = TAB_CONFIG[currentTab];
-  const data = applyFilters(currentTab);
-  const tableWrap = document.querySelector('.table-wrap');
-  if (tableWrap) {
-    tableWrap.innerHTML = `
-      <div class="table-head">
-        <span class="table-head-title">Daftar ${esc(cfg.label)}</span>
-        <span class="table-head-meta">${data.length} entri</span>
-      </div>
-      ${data.length === 0 ? renderEmptyState(cfg) : renderTable(cfg, data)}
-    `;
+// ────────────────────────────────────────────────────────────────
+// PEGAWAI EXPAND / COLLAPSE
+// ────────────────────────────────────────────────────────────────
+function togglePegawaiExpand(nip) {
+  const setRef = expandedByTab[currentTab];
+  if (setRef.has(nip)) setRef.delete(nip);
+  else                 setRef.add(nip);
+
+  // Toggle DOM langsung tanpa re-render penuh — lebih smooth secara visual
+  // karena CSS transition pada .pg-body bisa berjalan.
+  const item = document.querySelector(`.pg-item[data-nip="${CSS.escape(String(nip))}"]`);
+  if (item) {
+    const willExpand = setRef.has(nip);
+    item.classList.toggle('expanded', willExpand);
+    const btn = item.querySelector('.pg-item-header');
+    if (btn) btn.setAttribute('aria-expanded', String(willExpand));
   }
-  Object.keys(TAB_CONFIG).forEach(updateTabCount);
 }
 
-function onSortClick(sortKey) {
-  const cur = sortStateByTab[currentTab] || TAB_CONFIG[currentTab].defaultSort;
-  if (cur.key === sortKey) {
-    sortStateByTab[currentTab] = { key: sortKey, dir: cur.dir === 'asc' ? 'desc' : 'asc' };
-  } else {
-    sortStateByTab[currentTab] = { key: sortKey, dir: 'asc' };
-  }
+function expandAllPegawai() {
+  const data = applyFilters(currentTab);
+  const groups = groupByPegawai(data);
+  const setRef = expandedByTab[currentTab];
+  groups.forEach(g => setRef.add(g.nip));
   renderTab();
+}
+
+function collapseAllPegawai() {
+  expandedByTab[currentTab].clear();
+  renderTab();
+}
+
+function onSearchInput(e) {
+  searchQuery = e.target.value;
+  // Re-render penuh karena hasil search bisa sangat berbeda (grup berubah).
+  renderTab();
+  Object.keys(TAB_CONFIG).forEach(updateTabCount);
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -1290,11 +1485,11 @@ async function init() {
 
   // Skeleton awal
   document.getElementById('tab-pane').innerHTML = `
-    <div class="table-wrap" style="padding:20px;display:flex;flex-direction:column;gap:8px">
+    <div class="pg-wrap" style="padding:20px;display:flex;flex-direction:column;gap:10px">
       <div class="skel" style="height:38px"></div>
-      <div class="skel" style="height:48px"></div>
-      <div class="skel" style="height:48px"></div>
-      <div class="skel" style="height:48px"></div>
+      <div class="skel" style="height:62px"></div>
+      <div class="skel" style="height:62px"></div>
+      <div class="skel" style="height:62px"></div>
     </div>
   `;
 
