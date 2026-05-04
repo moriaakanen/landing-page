@@ -350,7 +350,9 @@ function parseFlexRange(input) {
 ═══════════════════════════════════════════════════════════════════════ */
 async function loadPegawai() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=NIP,NAMA&order=NAMA.asc`, { headers: H });
+    // Sertakan "UNIT KERJA" untuk tag {skerja_p} di template docx.
+    // Perlu di-encode karena kolom punya spasi.
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=NIP,NAMA,"UNIT KERJA"&order=NAMA.asc`, { headers: H });
     if (!res.ok) return;
     pegawaiList = await res.json();
     pegawaiByNIP = {};
@@ -732,12 +734,13 @@ function renderRowHTML(s) {
     aksi = `<span style="font-size:11px;color:var(--muted);font-style:italic">—</span>`;
   }
 
-  // Checkbox bulk-download — enabled hanya untuk row status 'selesai'
-  // (yang siap di-generate ke .docx). Row 'menunggu' dapat checkbox
-  // disabled supaya layout konsisten tapi tidak bisa dipilih.
+  // Checkbox dual-purpose:
+  //   - Baris 'selesai'  → bulk-dl-check  (untuk bulk download)
+  //   - Baris 'menunggu' → bulk-approve-check (untuk bulk approve)
+  // Keduanya pakai kolom yang sama supaya layout konsisten.
   const checkCell = isSelesai
     ? `<td class="col-check"><input type="checkbox" class="bulk-dl-check" data-surat-id="${s.id}" onchange="updateBulkDownloadCounter()"></td>`
-    : `<td class="col-check"><input type="checkbox" disabled title="Hanya surat yang sudah selesai bisa di-download"></td>`;
+    : `<td class="col-check"><input type="checkbox" class="bulk-approve-check" data-surat-id="${s.id}" onchange="updateBulkApproveCounter()" title="Pilih untuk bulk approve" style="accent-color:#1a7a4a"></td>`;
 
   // data-editing sebagai marker tambahan agar styling/CSS bisa membedakan
   // baris yg sedang di-edit (ditambah border kuning di seksi CSS).
@@ -853,6 +856,8 @@ function snapshotAdminDraft(suratId) {
         suratId: suratId,
         values: values,
       }));
+      // Tampilkan toast "Draft tersimpan" — ringan, auto-hide 1.5 detik.
+      showDraftSavedToast();
     }
   } catch (e) {
     console.warn('[Admin Draft] gagal save:', e);
@@ -993,7 +998,14 @@ function renderTable(data) {
   document.getElementById('table-area').innerHTML = `
     <table class="list-table">
       <thead><tr>
-        <th class="col-check" title="Centang semua surat selesai untuk bulk download"><input type="checkbox" id="bulk-dl-master" onchange="toggleBulkDownloadAll(this.checked)"></th>
+        <th class="col-check col-check-dual" title="Centang: baris selesai = bulk download | baris menunggu = bulk approve">
+          <div class="th-check-inner">
+            <label class="lbl-dl" title="Semua selesai">⬇ DL</label>
+            <input type="checkbox" id="bulk-dl-master" onchange="toggleBulkDownloadAll(this.checked)" title="Centang semua surat selesai">
+            <input type="checkbox" id="bulk-ap-master" class="ap-master" onchange="toggleBulkApproveAll(this.checked)" title="Centang semua surat menunggu">
+            <label class="lbl-ap" title="Semua menunggu">✅ AP</label>
+          </div>
+        </th>
         ${sortHeader('no',            'No',                'col-no')}
         ${sortHeader('nomor_surat',   'Nomor Surat',       'col-nomor-surat')}
         ${sortHeader('tanggal_surat', 'Tanggal Surat',     'col-tgl-surat')}
@@ -1018,6 +1030,8 @@ function renderTable(data) {
     setupTopScrollbar();
     // Reset state bulk download (master + counter) setelah re-render
     updateBulkDownloadCounter();
+    // Reset state bulk approve
+    updateBulkApproveCounter();
     // #8: Restore admin drafts (kalau ada) untuk row-row yang lagi tampil.
     // Dipanggil setelah attachEditableListeners supaya MutationObserver-nya
     // tidak trigger save saat applying draft (bisa kena race condition).
@@ -4293,6 +4307,243 @@ function toggleBulkDownloadAll(checked) {
   updateBulkDownloadCounter();
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   DRAFT SAVED TOAST
+   Toast ringan yang muncul sebentar (1.5 detik) saat draft otomatis
+   tersimpan ke localStorage. Memberi konfirmasi visual ke admin.
+════════════════════════════════════════════════════════════════════ */
+let _draftToastTimer = null;
+function showDraftSavedToast() {
+  const el = document.getElementById('draft-saved-toast');
+  if (!el) return;
+  el.classList.add('show');
+  clearTimeout(_draftToastTimer);
+  _draftToastTimer = setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   BULK APPROVE — setujui banyak surat menunggu sekaligus
+   ─────────────────────────────────────────────────────────────────────
+   Flow:
+     1. Admin centang checkbox di baris 'menunggu' (class bulk-approve-check)
+     2. Tombol "Setujui Terpilih (N)" aktif
+     3. openBulkApprove() — validasi semua, tampilkan modal konfirmasi
+     4. Admin klik "Setujui Semua" → submitBulkApprove() proses sequential
+     5. Setiap surat diapprove dengan nilai dari baris tabel (tanpa bertugas_sebagai
+        dan jumlah_responden — bisa diedit setelah via Edit Role / approve individual)
+════════════════════════════════════════════════════════════════════ */
+
+/** Update label & state tombol bulk approve berdasarkan checkbox yang dipilih. */
+function updateBulkApproveCounter() {
+  const all     = document.querySelectorAll('.bulk-approve-check');
+  const checked = document.querySelectorAll('.bulk-approve-check:checked');
+  const btn     = document.getElementById('btn-bulk-approve');
+  const master  = document.getElementById('bulk-ap-master');
+
+  if (btn) {
+    if (checked.length === 0) {
+      btn.textContent = '✅ Setujui Terpilih';
+      btn.disabled    = true;
+    } else {
+      btn.textContent = `✅ Setujui Terpilih (${checked.length})`;
+      btn.disabled    = false;
+    }
+  }
+
+  if (master) {
+    if (all.length === 0 || checked.length === 0) {
+      master.checked = false; master.indeterminate = false;
+    } else if (checked.length === all.length) {
+      master.checked = true;  master.indeterminate = false;
+    } else {
+      master.checked = false; master.indeterminate = true;
+    }
+  }
+}
+
+/** Toggle semua checkbox baris menunggu. */
+function toggleBulkApproveAll(checked) {
+  document.querySelectorAll('.bulk-approve-check').forEach(c => { c.checked = !!checked; });
+  updateBulkApproveCounter();
+}
+
+/** Buka modal konfirmasi bulk approve — validasi semua surat terpilih terlebih dahulu. */
+function openBulkApprove() {
+  const checkeds = Array.from(document.querySelectorAll('.bulk-approve-check:checked'));
+  const ids = checkeds.map(c => parseInt(c.dataset.suratId, 10)).filter(Number.isFinite);
+  if (!ids.length) {
+    showPageAlert('Pilih minimal 1 surat menunggu untuk disetujui.', 'error');
+    return;
+  }
+
+  // Validasi semua — kumpulkan yang valid dan yang tidak
+  const valid    = [];
+  const invalid  = [];
+  ids.forEach(id => {
+    const values = collectRowFields(id);
+    if (!values) { invalid.push({ id, reason: 'Data tidak ditemukan' }); return; }
+    const { errors } = validateApproveFields(values);
+    if (errors.length) {
+      invalid.push({ id, reason: errors.join(', '), values });
+    } else {
+      valid.push({ id, values });
+    }
+  });
+
+  // Render list di modal
+  const listEl = document.getElementById('bulk-approve-list');
+  if (listEl) {
+    listEl.innerHTML = valid.map(({ id, values }) => {
+      const s = suratMap[id];
+      const nomorFull = buildNomorSuratFull(values.nomor_surat, values.tanggal_surat);
+      const tipeLbl   = tipeLabel(values.tipe);
+      const hasVisum  = tipeHasVisum(values.tipe);
+      const hasLamp   = tipeHasLampiran(values.tipe) && values.pegawai_list.length >= 2;
+      const warnings  = [];
+      if (hasVisum) warnings.push('visum — isi Jumlah Responden setelah approve via individual');
+      if (hasLamp)  warnings.push('lampiran — isi Bertugas Sebagai via Edit Role setelah approve');
+      return `
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:14px;margin-top:1px">✅</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nomorFull)}</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">${esc(values.perihal || '—')} · ${esc(tipeLbl)}</div>
+            ${warnings.length ? `<div style="font-size:10.5px;color:#92400e;margin-top:3px;background:#fef3c7;padding:2px 7px;border-radius:5px;display:inline-block">⚠ ${esc(warnings.join(' · '))}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('') + (invalid.length ? `
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;margin-top:6px">
+        <div style="font-size:12px;font-weight:600;color:#991b1b;margin-bottom:6px">⚠ ${invalid.length} surat dilewati (tidak valid):</div>
+        ${invalid.map(({ id, reason, values }) => {
+          const v = values || {};
+          return `<div style="font-size:11.5px;color:#991b1b;margin-bottom:3px">• ${esc(v.perihal || 'ID #' + id)}: ${esc(reason)}</div>`;
+        }).join('')}
+      </div>` : '');
+  }
+
+  document.getElementById('bulk-approve-count').textContent = valid.length;
+  document.getElementById('bulk-approve-progress').style.display = 'none';
+
+  const submitBtn = document.getElementById('btn-bulk-approve-submit');
+  if (submitBtn) submitBtn.disabled = valid.length === 0;
+
+  // Simpan IDs valid ke attribute modal supaya bisa diakses submitBulkApprove
+  document.getElementById('modal-bulk-approve').dataset.validIds = JSON.stringify(valid.map(v => v.id));
+
+  openModal('modal-bulk-approve');
+}
+
+/** Proses bulk approve — sequential, update progress bar. */
+async function submitBulkApprove() {
+  const modal = document.getElementById('modal-bulk-approve');
+  let ids;
+  try {
+    ids = JSON.parse(modal.dataset.validIds || '[]');
+  } catch(_) { ids = []; }
+  if (!ids.length) return;
+
+  const submitBtn = document.getElementById('btn-bulk-approve-submit');
+  const cancelBtn = document.getElementById('btn-bulk-approve-cancel');
+  const progressEl = document.getElementById('bulk-approve-progress');
+  const progressText = document.getElementById('bulk-approve-progress-text');
+  const progressBar  = document.getElementById('bulk-approve-bar');
+
+  if (submitBtn) { submitBtn.disabled = true; }
+  if (cancelBtn) { cancelBtn.disabled = true; }
+  if (progressEl) progressEl.style.display = '';
+
+  let success = 0;
+  const failures = [];
+
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+    const pct = Math.round(((i) / ids.length) * 100);
+    if (progressBar)  progressBar.style.width  = pct + '%';
+    if (progressText) progressText.textContent = `Memproses ${i + 1} / ${ids.length}…`;
+
+    const values = collectRowFields(id);
+    if (!values) { failures.push(`#${id}: data tidak ditemukan`); continue; }
+
+    const jabatan = lookupJabatan(values.penandatangan_nip, values.tanggal_surat);
+    const waktuText = values.waktu_pelaksanaan_text && values.waktu_pelaksanaan_text.trim()
+      ? values.waktu_pelaksanaan_text : null;
+
+    const payload = {
+      status:                'selesai',
+      nomor_surat:           values.nomor_surat,
+      tanggal_surat:         values.tanggal_surat,
+      tanggal_berangkat:     values.tanggal_berangkat,
+      tanggal_kembali:       values.tanggal_kembali || null,
+      waktu_pelaksanaan_text: waktuText,
+      perihal:               values.perihal,
+      tujuan:                values.tujuan,
+      pegawai_nip:           values.pegawai_nip,
+      pegawai_list:          values.pegawai_list,
+      menimbang_custom:      values.menimbang_custom,
+      alat_angkutan:         values.alat_angkutan,
+      pembebanan:            values.pembebanan,
+      tempat_terbit:         values.tempat_terbit,
+      penandatangan_nama:    values.penandatangan_nama,
+      penandatangan_nip:     values.penandatangan_nip,
+      penandatangan_jabatan: jabatan || '',
+      tipe:                  values.tipe,
+      // bertugas_sebagai & jumlah_responden: sengaja NULL di bulk approve.
+      // Admin bisa isi setelah via tombol Edit Role / approve individual.
+      bertugas_sebagai:      null,
+      jumlah_responden:      null,
+    };
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { ...H, 'Prefer': 'return=minimal' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try { const j = await res.json(); msg = j.message || msg; } catch(_) {}
+        throw new Error(msg);
+      }
+      clearAdminDraft(id);
+      // Auto-save defaults dari surat pertama yang berhasil
+      if (success === 0) {
+        const nd = {};
+        if (values.alat_angkutan)     nd.alat_angkutan = values.alat_angkutan;
+        if (values.pembebanan)        nd.pembebanan    = values.pembebanan;
+        if (values.penandatangan_nip) nd.ttd_nip       = values.penandatangan_nip;
+        if (values.penandatangan_nama)nd.ttd_nama      = values.penandatangan_nama;
+        saveApproveDefaults({ ...loadApproveDefaults(), ...nd });
+      }
+      success++;
+    } catch(e) {
+      const s = suratMap[id];
+      failures.push(`${(s && s.perihal) || '#' + id}: ${e.message}`);
+    }
+  }
+
+  // Selesai
+  if (progressBar)  progressBar.style.width  = '100%';
+  if (progressText) progressText.textContent = `Selesai: ${success} berhasil${failures.length ? `, ${failures.length} gagal` : ''}.`;
+
+  closeModal('modal-bulk-approve');
+  if (failures.length === 0) {
+    showPageAlert(`✅ ${success} surat berhasil disetujui.`, 'success');
+  } else {
+    showPageAlert(`⚠️ ${success} berhasil, ${failures.length} gagal: ${failures.slice(0,2).join('; ')}${failures.length > 2 ? '…' : ''}`, 'error');
+    console.warn('[9201 Bulk Approve] failures:', failures);
+  }
+
+  // Unceklis semua approve checkbox
+  document.querySelectorAll('.bulk-approve-check').forEach(c => { c.checked = false; });
+
+  // Reload data
+  const dirtySnapshot = captureMenungguDirty(null);
+  await loadSurat();
+  reapplyMenungguDirty(dirtySnapshot);
+  loadMAKSuggestions();
+  updateBulkApproveCounter();
+}
+
 /**
  * Loop checked surat dan trigger download .docx satu per satu.
  * Dipanggil dari onclick tombol "Download Terpilih".
@@ -5072,7 +5323,22 @@ async function buildTemplateData(data, opts) {
     nomor_spd:             nomorSPD,
     nama_ppk:              namaPPK,
     nip_ppk:               nipPPK,
+    // {nip} — tetap NIP asli (dipakai di beberapa tempat lain di template).
+    // Untuk SPD baris "Nama/NIP", pakai tag TUNGGAL {nama_nip} di template
+    // supaya hasilnya "Terlampir" (bukan "Terlampir / Terlampir").
+    // → Di template Word: ganti "{nama} / {nip}" menjadi "{nama_nip}"
     nip:                   firstNip,
+    // {nama_nip} — tag gabungan untuk sel "Nama / NIP" di SPD.
+    //   1 pegawai  : "Nama Lengkap / NIP123"
+    //   ≥ 2 pegawai: "Terlampir"
+    nama_nip:              banyakPegawai
+                             ? 'Terlampir'
+                             : (namaPegawai && firstNip
+                                  ? `${namaPegawai} / ${firstNip}`
+                                  : (namaPegawai || firstNip || '')),
+    // {skerja_p} halaman 1: unit kerja pegawai / instansi mitra.
+    // "Terlampir" jika ≥2 pegawai (konsisten dengan {nama}/{jabatan}).
+    skerja_p:              banyakPegawai ? 'Terlampir' : skerjaPegawai,
     pangkat:               pangkatHal1,    // ← "Terlampir" jika ≥2 pegawai
     angkutan:              data.alat_angkutan || '',
     hari:                  hari ? String(hari) : '',
