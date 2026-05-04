@@ -186,6 +186,28 @@
   }
   .btn-table-head.btn-table-head-gold:hover:not(:disabled){background:#b89438;border-color:#b89438}
   .btn-table-head.btn-table-head-gold:disabled{opacity:.45}
+
+  /* BULK APPROVE CHECKBOX — baris menunggu */
+  td.col-check input.bulk-approve-check{accent-color:#1a7a4a}
+  th.col-check.col-check-dual{padding:4px 0}
+  .th-check-inner{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .th-check-inner label{font-size:8px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;line-height:1}
+  .th-check-inner label.lbl-dl{color:rgba(255,255,255,.4)}
+  .th-check-inner label.lbl-ap{color:rgba(26,122,74,.7)}
+  .th-check-inner input[type="checkbox"].ap-master{accent-color:#1a7a4a;width:12px;height:12px}
+
+  /* DRAFT SAVED INDICATOR — floating toast ringan */
+  #draft-saved-toast{
+    position:fixed;bottom:20px;right:20px;
+    background:#1a7a4a;color:#fff;
+    font-size:11.5px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;
+    padding:7px 14px;border-radius:7px;
+    box-shadow:0 4px 16px rgba(0,0,0,.18);
+    opacity:0;pointer-events:none;z-index:9999;
+    transition:opacity .25s ease,transform .25s ease;
+    transform:translateY(6px);
+  }
+  #draft-saved-toast.show{opacity:1;transform:translateY(0)}
   .table-scroll{overflow-x:auto;overflow-y:visible}
   .table-scroll::-webkit-scrollbar{height:10px}
   .table-scroll::-webkit-scrollbar-track{background:var(--bg)}
@@ -210,12 +232,7 @@
     border-bottom:2px solid var(--border);border-right:1px solid var(--border);
     white-space:nowrap;position:sticky;top:0;z-index:5;
   }
-  /* Untuk kolom yang punya 2-baris header (Tanggal Surat, Nomor Surat),
-     non-uppercase supaya tetap rapih dengan word-spacing trick. */
-  table.list-table thead th.col-tgl-surat,
-  table.list-table thead th.col-nomor-surat{
-    white-space:normal;
-  }
+  /* col-nomor-surat dan col-tgl-surat: white-space diatur di blok text-align di atas */
   table.list-table thead th:last-child{border-right:none}
 
   /* Header yang bisa di-sort */
@@ -353,13 +370,13 @@
   td.col-nomor-surat .ro-text,
   td.col-nomor-surat .xls-cell{font-size:11.5px;line-height:1.4}
 
-  /* HEADER 2-baris untuk kolom kompak — pakai word-spacing trick supaya
-     "Tanggal Surat" → "Tanggal" / "Surat" dan "Nomor Surat" → "Nomor"
-     / "Surat" otomatis wrap antar kata di header (header non-input,
-     trick aman). */
+  /* HEADER 2-baris — white-space:normal agar teks wrap alami di lebar
+     kolom sempit (78px / 118px). text-align:center agar setiap baris
+     yang terbentuk tetap rata tengah. */
   th.col-tgl-surat,
   th.col-nomor-surat{
-    word-spacing:9999px;line-height:1.35;
+    white-space:normal;word-break:keep-all;line-height:1.4;
+    text-align:center;vertical-align:middle;
   }
 
   .table-empty{padding:48px 24px;text-align:center}
@@ -729,6 +746,7 @@
           <button class="btn-table-head" onclick="document.getElementById('inp-import-excel').click()" title="Import surat dari file Excel — langsung jadi surat 'menunggu'">⬆ Import Excel</button>
           <input type="file" id="inp-import-excel" accept=".xlsx,.xls" style="display:none" onchange="importSuratFromExcel(this)">
           <button class="btn-table-head btn-table-head-gold" id="btn-bulk-download" onclick="bulkDownloadSelected()" disabled title="Pilih dulu surat yang ingin di-download">📥 Download Terpilih</button>
+          <button class="btn-table-head" style="background:rgba(26,122,74,.9);border-color:rgba(26,122,74,.7);color:#fff" id="btn-bulk-approve" onclick="openBulkApprove()" disabled title="Pilih dulu surat menunggu yang ingin disetujui">✅ Setujui Terpilih</button>
           <button class="btn-table-head" onclick="loadSurat()" title="Muat ulang data">↺ Muat Ulang</button>
         </div>
       </div>
@@ -930,6 +948,49 @@
 <!-- (#2 refactor) Modal `modal-visum-prompt` dihapus.
      Jumlah responden visum sekarang persistent di kolom DB
      surat_tugas.jumlah_responden — di-input admin saat approve. -->
+
+<!-- DRAFT SAVED TOAST — floating indicator saat draft tersimpan otomatis -->
+<div id="draft-saved-toast">📝 Draft tersimpan</div>
+
+<!-- MODAL BULK APPROVE — konfirmasi sebelum menyetujui banyak surat sekaligus -->
+<div class="modal-overlay" id="modal-bulk-approve" style="display:none" onclick="if(event.target===this)closeModal('modal-bulk-approve')">
+  <div class="modal modal-wide">
+    <div class="modal-header approve">
+      <span class="modal-title">✅ Setujui <em>Surat Terpilih</em></span>
+      <button class="modal-close" onclick="closeModal('modal-bulk-approve')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert info show" style="margin-bottom:0;border-radius:8px">
+        <span>ℹ️</span>
+        <span style="font-size:12px;line-height:1.55">
+          Surat akan disetujui menggunakan nilai yang sudah terisi di tabel.
+          <strong>Bertugas Sebagai</strong> dan <strong>Jumlah Responden</strong> tidak diisi di sini — gunakan tombol
+          <em>Edit Role</em> / buka modal Setujui individual setelah proses selesai.
+        </span>
+      </div>
+
+      <!-- List surat yang akan disetujui — diisi JS -->
+      <div id="bulk-approve-list" style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;padding-right:4px"></div>
+
+      <!-- Progress indicator — muncul saat proses berjalan -->
+      <div id="bulk-approve-progress" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:12.5px;color:var(--navy)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:16px;height:16px;border:2px solid rgba(13,35,64,.2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>
+          <span id="bulk-approve-progress-text">Memproses...</span>
+        </div>
+        <div style="margin-top:8px;background:var(--border);border-radius:4px;height:5px;overflow:hidden">
+          <div id="bulk-approve-bar" style="height:100%;background:#1a7a4a;border-radius:4px;transition:width .3s ease;width:0%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" id="btn-bulk-approve-cancel" onclick="closeModal('modal-bulk-approve')">Batal</button>
+      <button class="btn-primary" id="btn-bulk-approve-submit" onclick="submitBulkApprove()" style="background:#1a7a4a">
+        ✅ Setujui Semua (<span id="bulk-approve-count">0</span>)
+      </button>
+    </div>
+  </div>
+</div>
 
 <script src="config.js"></script>
 <script src="9201-shared.js"></script>
