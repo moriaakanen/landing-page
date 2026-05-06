@@ -246,6 +246,50 @@
   .cell-ak{font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:.3px;color:var(--navy);font-size:14px}
   .pgg-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--gold-light);border:1px solid rgba(200,168,75,.3);color:var(--gold-dark);border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.2px;white-space:nowrap}
 
+  /* ════════ PENGAJUAN PAK (tab khusus) ════════ */
+  /* Tab Pengajuan punya rendering custom — tidak pakai TAB_CONFIG generic.
+     Layout: filter status pills di atas, lalu list card per pengajuan. */
+  .pj-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;background:var(--white);padding:8px;border:1px solid var(--border);border-radius:10px}
+  .pj-filter-btn{padding:6px 14px;border:1px solid var(--border2);background:var(--bg);color:var(--muted);border-radius:6px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+  .pj-filter-btn:hover{border-color:var(--navy);color:var(--navy)}
+  .pj-filter-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .pj-filter-btn .pj-filter-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:16px;padding:0 5px;background:rgba(0,0,0,.1);color:inherit;font-size:10px;font-weight:700;border-radius:100px}
+  .pj-filter-btn.active .pj-filter-count{background:rgba(255,255,255,.25)}
+
+  .pj-list{display:flex;flex-direction:column;gap:10px}
+  .pj-item{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--border2);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:48px 1fr auto;gap:14px;align-items:center;transition:box-shadow .15s,border-color .15s}
+  .pj-item:hover{box-shadow:0 4px 12px rgba(13,35,64,.06)}
+  .pj-item.is-menunggu{border-left-color:#f59e0b}
+  .pj-item.is-selesai {border-left-color:var(--success)}
+  .pj-item.is-ditolak {border-left-color:var(--red)}
+  .pj-item-avatar{width:42px;height:42px;border-radius:50%;background:var(--gold-light);border:1.5px solid rgba(200,168,75,.35);color:var(--gold-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;letter-spacing:.5px}
+  .pj-item-body{min-width:0;display:flex;flex-direction:column;gap:4px}
+  .pj-item-name{font-size:13.5px;font-weight:600;color:var(--navy);line-height:1.3;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pj-item-nip{font-size:11px;color:var(--muted);font-family:ui-monospace,monospace}
+  .pj-item-meta{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:14px;line-height:1.4}
+  .pj-item-meta strong{color:var(--navy);font-weight:700}
+  .pj-item-catatan{font-size:11.5px;color:var(--muted);font-style:italic;line-height:1.5;margin-top:2px;background:var(--bg);padding:6px 10px;border-radius:5px;border:1px solid var(--border)}
+  .pj-item-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+  .pj-status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
+  .pj-status-pill.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+  .pj-status-pill.selesai {background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
+  .pj-status-pill.ditolak {background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+  .pj-action-btns{display:flex;gap:6px}
+  .pj-btn{padding:6px 12px;border:none;border-radius:6px;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.2px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+  .pj-btn.approve{background:var(--success);color:#fff}
+  .pj-btn.approve:hover{background:#155f3b}
+  .pj-btn.reject {background:#fef2f2;color:var(--red);border:1px solid #fecaca}
+  .pj-btn.reject:hover {background:#fee2e2;border-color:#fca5a5}
+  .pj-btn:disabled{opacity:.5;cursor:not-allowed}
+  .pj-empty{padding:48px 24px;text-align:center;background:var(--white);border:1px solid var(--border);border-radius:12px}
+  .pj-empty-icon{font-size:36px;margin-bottom:10px;opacity:.4}
+  .pj-empty-title{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px}
+  .pj-empty-desc{font-size:12px;color:var(--muted);line-height:1.6}
+  @media(max-width:680px){
+    .pj-item{grid-template-columns:1fr;gap:8px}
+    .pj-item-actions{align-items:stretch}
+  }
+
   /* Empty state untuk pg-list secara keseluruhan */
   .empty-state{padding:56px 28px;text-align:center;background:var(--white)}
   .empty-icon{font-size:36px;margin-bottom:14px;opacity:.4}
@@ -395,8 +439,11 @@
     <!-- RLS / load-error banner (hidden by default) -->
     <div id="load-banner-mount"></div>
 
-    <!-- TABS NAV — URUTAN BARU: AK → Pangkat → Jabatan → Gelar -->
+    <!-- TABS NAV — URUTAN: Pengajuan PAK → AK → Pangkat → Jabatan → Gelar -->
     <nav class="tabs-nav fade-in" style="animation-delay:.05s" role="tablist">
+      <button class="tab-btn" role="tab" data-tab="pengajuan" onclick="switchTab('pengajuan')">
+        <span class="tab-btn-icon">📥</span> Pengajuan PAK <span class="tab-btn-count" id="count-pengajuan">0</span>
+      </button>
       <button class="tab-btn active" role="tab" data-tab="ak" onclick="switchTab('ak')">
         <span class="tab-btn-icon">⭐</span> Angka Kredit <span class="tab-btn-count" id="count-ak">0</span>
       </button>
@@ -447,6 +494,31 @@
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeDeleteModal()" type="button">Batal</button>
       <button class="btn btn-danger" id="btn-delete-submit" onclick="submitDelete()" type="button">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MODAL CONFIRM PENGAJUAN PAK ═══════════════════════ -->
+<!-- Dipakai untuk approve atau reject pengajuan. Mode di-set lewat
+     pengajuanAction state ('approve' / 'reject') saat openPengajuanModal(). -->
+<div class="modal-overlay" id="modal-pengajuan" onclick="if(event.target===this)closePengajuanModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-pengajuan-title">Setujui <em>Pengajuan</em></span>
+      <button class="modal-close" onclick="closePengajuanModal()" type="button">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-pengajuan-info" style="background:#fafaf6;border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.6;color:var(--navy)"></div>
+      <div class="form-group">
+        <label id="modal-pengajuan-keterangan-label" style="display:block;font-size:11px;font-weight:600;color:var(--navy);letter-spacing:.3px;text-transform:uppercase;margin-bottom:6px">Catatan Admin (opsional)</label>
+        <textarea id="modal-pengajuan-keterangan" rows="3" maxlength="500"
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:7px;font-family:inherit;font-size:13px;outline:none;resize:vertical"
+          placeholder="Tulis catatan untuk pemohon..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closePengajuanModal()" type="button">Batal</button>
+      <button class="btn" id="btn-pengajuan-submit" onclick="submitPengajuanAction()" type="button">Konfirmasi</button>
     </div>
   </div>
 </div>
@@ -691,6 +763,15 @@ let pendingDelete = null;
 // state yang sama di tab itu kalau kembali.
 let expandedByTab = { ak:new Set(), pangkat:new Set(), jabatan:new Set(), gelar:new Set() };
 
+// ─── Pengajuan PAK ───────────────────────────────────────────────
+// Tab "pengajuan" punya rendering custom (bukan via TAB_CONFIG generic)
+// karena perilakunya berbeda: tidak ada add/edit/delete, hanya approve/reject.
+// State terpisah supaya tidak campur dengan allData.
+let pengajuanData      = [];           // semua pengajuan, desc by created_at
+let pengajuanError     = null;         // error message kalau load gagal
+let pengajuanFilter    = 'menunggu';   // 'menunggu' | 'selesai' | 'ditolak' | 'all'
+let pendingPengajuan   = null;         // { id, action: 'approve'|'reject', row }
+
 // ────────────────────────────────────────────────────────────────
 // SESSION
 // ────────────────────────────────────────────────────────────────
@@ -794,9 +875,51 @@ async function loadTab(tabKey) {
 }
 
 async function loadAllRiwayat() {
-  await Promise.all(Object.keys(TAB_CONFIG).map(loadTab));
+  // Paralel: load semua tab + pengajuan PAK sekaligus.
+  await Promise.all([
+    ...Object.keys(TAB_CONFIG).map(loadTab),
+    loadPengajuan(),
+  ]);
   Object.keys(TAB_CONFIG).forEach(t => updateTabCount(t));
+  updatePengajuanCount();
   renderLoadBanner();
+}
+
+/**
+ * Load semua pengajuan PAK (semua status, semua pegawai). Tabel ini
+ * mungkin belum dibuat (kalau SQL schema belum di-apply) — tangkap
+ * error dengan rapi supaya halaman tetap berfungsi untuk tab lain.
+ */
+async function loadPengajuan() {
+  pengajuanError = null;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/pengajuan_pak?select=*&order=created_at.desc`,
+      { headers: H }
+    );
+    if (!res.ok) {
+      let errMsg = `HTTP ${res.status}`;
+      try {
+        const errJson = await res.json();
+        if (errJson.message) errMsg = errJson.message;
+        if (errJson.code)    errMsg += ' · code=' + errJson.code;
+      } catch(_) {}
+      throw new Error(errMsg);
+    }
+    pengajuanData = await res.json();
+  } catch(e) {
+    console.error('[9201] Gagal load pengajuan_pak:', e);
+    pengajuanData = [];
+    pengajuanError = e.message || String(e);
+  }
+}
+
+function updatePengajuanCount() {
+  // Tampilkan jumlah pengajuan yang masih MENUNGGU di badge tab —
+  // itu yang paling penting untuk admin (antrian to-do).
+  const menunggu = pengajuanData.filter(p => p.status === 'menunggu').length;
+  const el = document.getElementById('count-pengajuan');
+  if (el) el.textContent = menunggu;
 }
 
 function renderLoadBanner() {
@@ -955,7 +1078,10 @@ document.addEventListener('click', (e) => {
 // TAB SWITCHING & RENDER
 // ────────────────────────────────────────────────────────────────
 function switchTab(tabKey) {
-  if (!TAB_CONFIG[tabKey]) return;
+  // Tab pengajuan adalah tab khusus — tidak ada di TAB_CONFIG karena
+  // perilakunya berbeda (no CRUD generic, hanya approve/reject).
+  const isValidTab = (tabKey === 'pengajuan') || !!TAB_CONFIG[tabKey];
+  if (!isValidTab) return;
   currentTab = tabKey;
   searchQuery = '';
   document.querySelectorAll('.tab-btn').forEach(b => {
@@ -965,6 +1091,12 @@ function switchTab(tabKey) {
 }
 
 function renderTab() {
+  // Cabang khusus untuk tab Pengajuan PAK — tidak pakai TAB_CONFIG.
+  if (currentTab === 'pengajuan') {
+    renderPengajuanTab();
+    return;
+  }
+
   const cfg = TAB_CONFIG[currentTab];
   const data = applyFilters(currentTab);
   const el = document.getElementById('tab-pane');
@@ -1044,6 +1176,250 @@ function renderTab() {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// PENGAJUAN PAK TAB — rendering custom (bukan via TAB_CONFIG)
+// ────────────────────────────────────────────────────────────────────
+// Admin lihat antrian pengajuan dari user, dan approve/reject. Saat
+// approve, RPC `pengajuan_pak_approve` otomatis insert ke
+// riwayat_angka_kredit (tabel sumber kebenaran) — tidak perlu manual.
+//
+// Filter status pills:
+//   - 'menunggu' (default, paling penting buat admin)
+//   - 'selesai'  (sudah disetujui & masuk riwayat)
+//   - 'ditolak'
+//   - 'all'      (semua)
+//
+// Filter pegawai global (`filterNip`) ikut diterapkan supaya admin bisa
+// fokus ke 1 orang kalau perlu.
+// ════════════════════════════════════════════════════════════════════
+function renderPengajuanTab() {
+  const el = document.getElementById('tab-pane');
+
+  // Apply filters
+  let data = pengajuanData;
+  if (filterNip) data = data.filter(p => p.pegawai_nip === filterNip);
+
+  // Hitung count per status (sebelum filter status, sesudah filter NIP)
+  const counts = {
+    menunggu: data.filter(p => p.status === 'menunggu').length,
+    selesai:  data.filter(p => p.status === 'selesai').length,
+    ditolak:  data.filter(p => p.status === 'ditolak').length,
+    all:      data.length,
+  };
+
+  // Apply filter status
+  if (pengajuanFilter !== 'all') {
+    data = data.filter(p => p.status === pengajuanFilter);
+  }
+
+  // Banner error kalau load gagal (mis. tabel pengajuan_pak belum dibuat
+  // di Supabase). Beri panduan jelas ke admin supaya tidak bingung.
+  const errorBanner = pengajuanError ? `
+    <div class="rls-banner fade-in" style="margin-bottom:14px">
+      <span class="rls-banner-icon">⚠️</span>
+      <div class="rls-banner-body">
+        <div class="rls-banner-title">Gagal memuat data Pengajuan PAK</div>
+        <div>Pastikan tabel <strong>pengajuan_pak</strong> dan RPC <strong>pengajuan_pak_create / approve / reject</strong> sudah dibuat di Supabase. Jalankan file <code>db-pengajuan-pak.sql</code> di SQL Editor.</div>
+        <div class="rls-banner-detail">${esc(pengajuanError)}</div>
+      </div>
+    </div>` : '';
+
+  // Filter pills
+  const filterPills = `
+    <div class="pj-filter">
+      ${['menunggu','selesai','ditolak','all'].map(k => {
+        const label = k === 'menunggu' ? 'Menunggu'
+                    : k === 'selesai'  ? 'Selesai'
+                    : k === 'ditolak'  ? 'Ditolak'
+                    : 'Semua';
+        const cls = pengajuanFilter === k ? 'active' : '';
+        return `<button class="pj-filter-btn ${cls}" onclick="setPengajuanFilter('${k}')">
+          ${esc(label)}<span class="pj-filter-count">${counts[k]}</span>
+        </button>`;
+      }).join('')}
+    </div>`;
+
+  // Empty state
+  if (data.length === 0) {
+    const emptyMsg = pengajuanFilter === 'menunggu'
+      ? 'Tidak ada pengajuan yang menunggu persetujuan saat ini.'
+      : pengajuanFilter === 'selesai'
+      ? 'Belum ada pengajuan yang disetujui.'
+      : pengajuanFilter === 'ditolak'
+      ? 'Belum ada pengajuan yang ditolak.'
+      : 'Belum ada pengajuan PAK sama sekali.';
+    el.innerHTML = `
+      ${errorBanner}
+      ${filterPills}
+      <div class="pj-empty">
+        <div class="pj-empty-icon">📥</div>
+        <div class="pj-empty-title">Tidak ada pengajuan</div>
+        <div class="pj-empty-desc">${esc(emptyMsg)}</div>
+      </div>`;
+    return;
+  }
+
+  // Render list
+  el.innerHTML = `
+    ${errorBanner}
+    ${filterPills}
+    <div class="pj-list">
+      ${data.map(p => renderPengajuanItem(p)).join('')}
+    </div>`;
+}
+
+function renderPengajuanItem(p) {
+  const peg = pegawaiByNIP[p.pegawai_nip];
+  const nama = (peg && peg.NAMA) || '[Pegawai dihapus]';
+  const initials = initialsFromName(nama);
+  const status = p.status || 'menunggu';
+  const statusLabel = status === 'menunggu' ? 'Menunggu'
+                    : status === 'selesai'  ? 'Selesai'
+                    : status === 'ditolak'  ? 'Ditolak'
+                    : status;
+
+  const catatanHtml = p.catatan
+    ? `<div class="pj-item-catatan">📝 ${esc(p.catatan)}</div>`
+    : '';
+  const ketAdminHtml = (p.keterangan_admin && status !== 'menunggu')
+    ? `<div class="pj-item-catatan" style="border-color:rgba(13,35,64,.12)">💬 <strong>Admin:</strong> ${esc(p.keterangan_admin)}</div>`
+    : '';
+
+  // Action buttons hanya muncul kalau status masih 'menunggu'
+  const actions = status === 'menunggu' ? `
+    <div class="pj-action-btns">
+      <button class="pj-btn approve" onclick="openPengajuanModal(${p.id}, 'approve')">✓ Setujui</button>
+      <button class="pj-btn reject"  onclick="openPengajuanModal(${p.id}, 'reject')">✕ Tolak</button>
+    </div>` : '';
+
+  return `
+    <div class="pj-item is-${esc(status)}">
+      <div class="pj-item-avatar">${esc(initials)}</div>
+      <div class="pj-item-body">
+        <div class="pj-item-name">
+          ${esc(nama)}
+          ${p.pegawai_nip ? `<span class="pj-item-nip">${esc(p.pegawai_nip)}</span>` : ''}
+        </div>
+        <div class="pj-item-meta">
+          <span>AK: <strong>${esc(fmtAK(p.angka_kredit))}</strong></span>
+          <span>TMT: <strong>${esc(fmtTgl(p.tmt))}</strong></span>
+          <span>Diajukan: <strong>${esc(fmtTglWaktu(p.created_at))}</strong></span>
+        </div>
+        ${catatanHtml}
+        ${ketAdminHtml}
+      </div>
+      <div class="pj-item-actions">
+        <span class="pj-status-pill ${esc(status)}">${esc(statusLabel)}</span>
+        ${actions}
+      </div>
+    </div>`;
+}
+
+// Format ISO timestamp jadi "5 Mei 2026, 14:32" (Indonesia-style)
+function fmtTglWaktu(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const tgl = d.getDate();
+    const bln = BULAN[d.getMonth()];
+    const thn = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    return `${tgl} ${bln} ${thn}, ${hh}:${mm}`;
+  } catch(_) { return iso; }
+}
+
+function setPengajuanFilter(filter) {
+  pengajuanFilter = filter;
+  renderPengajuanTab();
+}
+
+// ─── Approve / Reject modal ────────────────────────────────────────
+function openPengajuanModal(id, action) {
+  const row = pengajuanData.find(p => p.id === id);
+  if (!row) { showToast('Pengajuan tidak ditemukan', 'error'); return; }
+  pendingPengajuan = { id, action, row };
+
+  const peg = pegawaiByNIP[row.pegawai_nip];
+  const nama = (peg && peg.NAMA) || row.pegawai_nip || '—';
+
+  const isApprove = (action === 'approve');
+  const titleEl = document.getElementById('modal-pengajuan-title');
+  const infoEl  = document.getElementById('modal-pengajuan-info');
+  const submitBtn = document.getElementById('btn-pengajuan-submit');
+
+  titleEl.innerHTML = isApprove
+    ? 'Setujui <em>Pengajuan PAK</em>'
+    : 'Tolak <em>Pengajuan PAK</em>';
+
+  infoEl.innerHTML = `
+    <div style="font-weight:600;margin-bottom:6px">${esc(nama)}</div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:11.5px">
+      <span>NIP: <strong style="color:var(--navy)">${esc(row.pegawai_nip)}</strong></span>
+      <span>AK: <strong style="color:var(--navy)">${esc(fmtAK(row.angka_kredit))}</strong></span>
+      <span>TMT: <strong style="color:var(--navy)">${esc(fmtTgl(row.tmt))}</strong></span>
+    </div>
+    ${row.catatan ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-style:italic;color:var(--muted)">📝 ${esc(row.catatan)}</div>` : ''}
+    ${isApprove ? `
+      <div style="margin-top:10px;padding:8px 10px;background:#d1fae5;border:1px solid #a7f3d0;border-radius:6px;color:#065f46;font-size:11.5px">
+        ✓ Saat disetujui, data ini otomatis dimasukkan ke <strong>Riwayat Angka Kredit</strong>.
+      </div>` : `
+      <div style="margin-top:10px;padding:8px 10px;background:#fee2e2;border:1px solid #fecaca;border-radius:6px;color:#991b1b;font-size:11.5px">
+        ⚠️ Pengajuan akan ditolak dan tidak akan masuk ke Riwayat AK.
+      </div>`}
+  `;
+
+  submitBtn.className = 'btn ' + (isApprove ? 'btn-primary' : 'btn-danger');
+  submitBtn.textContent = isApprove ? 'Ya, Setujui' : 'Ya, Tolak';
+  // Pakai style background warna success untuk approve
+  if (isApprove) submitBtn.style.background = 'var(--success)';
+  else submitBtn.style.background = '';
+
+  document.getElementById('modal-pengajuan-keterangan').value = '';
+  document.getElementById('modal-pengajuan').classList.add('show');
+}
+
+function closePengajuanModal() {
+  document.getElementById('modal-pengajuan').classList.remove('show');
+  pendingPengajuan = null;
+}
+
+async function submitPengajuanAction() {
+  if (!pendingPengajuan) return;
+  const { id, action } = pendingPengajuan;
+  const ket = document.getElementById('modal-pengajuan-keterangan').value.trim();
+
+  const submitBtn = document.getElementById('btn-pengajuan-submit');
+  submitBtn.disabled = true;
+  const oldText = submitBtn.textContent;
+  submitBtn.textContent = 'Memproses...';
+
+  try {
+    const fnName = action === 'approve' ? 'pengajuan_pak_approve' : 'pengajuan_pak_reject';
+    await novaRpc(fnName, {
+      p_caller_id:    SESSION.id,
+      p_pengajuan_id: id,
+      p_keterangan:   ket || null,
+    });
+    closePengajuanModal();
+    showToast(action === 'approve' ? 'Pengajuan disetujui' : 'Pengajuan ditolak', 'success');
+
+    // Reload pengajuan + (kalau approve) reload AK juga supaya ringkasan
+    // di tab AK ikut update
+    await loadPengajuan();
+    if (action === 'approve') await loadTab('ak');
+    Object.keys(TAB_CONFIG).forEach(updateTabCount);
+    updatePengajuanCount();
+    renderTab();
+  } catch(e) {
+    showToast('Gagal: ' + e.message, 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = oldText;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
 // AK STATUS MINI-CARD
 // ────────────────────────────────────────────────────────────────────
 // Tampil di tab AK ketika filterNip aktif. Menggabungkan riwayat AK +
@@ -1067,32 +1443,11 @@ function getLatestRiwayat(rowList, nip) {
   return latest;
 }
 
-/**
- * Ekstrak jenjang dari teks `jabatan` (mis. "Statistisi Ahli Pertama" →
- * jenjang Ahli Pertama). Cek dari yang paling spesifik dulu agar
- * "Ahli Pertama" tidak ke-claim oleh "Ahli" generic.
- *
- * Return jenjang object dari JENJANG_FUNGSIONAL atau null.
- */
-function extractJenjangFromJabatan(jabatanText) {
-  if (!jabatanText || typeof window.JENJANG_BY_KEY === 'undefined') return null;
-  const t = String(jabatanText).toLowerCase();
-  // Order penting: yang LEBIH SPESIFIK didahulukan.
-  const matches = [
-    ['ahli_pertama', /\bahli\s+pertama\b/],
-    ['ahli_madya',   /\bahli\s+madya\b/],
-    ['ahli_utama',   /\bahli\s+utama\b/],
-    ['ahli_muda',    /\bahli\s+muda\b/],
-    ['penyelia',     /\bpenyelia\b/],
-    ['mahir',        /\bmahir\b/],
-    ['pelaksana',    /\bpelaksana\b/],
-    ['pemula',       /\bpemula\b/],
-  ];
-  for (const [key, re] of matches) {
-    if (re.test(t)) return window.JENJANG_BY_KEY[key];
-  }
-  return null;
-}
+// ─── extractJenjangFromJabatan ───────────────────────────────────
+// Sebelumnya didefinisikan di sini. Sekarang sudah dipindah ke
+// 9201-pak-data.js sebagai window.extractJenjangFromJabatan supaya
+// reusable juga oleh halaman Profil (index.html). Pemakaiannya di
+// renderAKStatusCard() di bawah → window.extractJenjangFromJabatan(...).
 
 /**
  * Hitung dan render mini-card status AK untuk pegawai dengan NIP `nip`.
@@ -1134,7 +1489,7 @@ function renderAKStatusCard(nip) {
   const akTanggal   = fmtTgl(latestAK.tmt);
 
   // Hitung progress jenjang
-  const jenjang = latestJabatan ? extractJenjangFromJabatan(latestJabatan.jabatan) : null;
+  const jenjang = latestJabatan ? window.extractJenjangFromJabatan(latestJabatan.jabatan) : null;
   const jenjangProg = jenjang ? window.progressToNextJenjang(akKumulatif, jenjang) : null;
 
   // Hitung progress golongan
