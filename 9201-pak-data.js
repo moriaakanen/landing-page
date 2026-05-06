@@ -190,6 +190,39 @@ function getNextGolongan(gol_aktif) {
 }
 window.getNextGolongan = getNextGolongan;
 
+/**
+ * Ekstrak jenjang dari teks `jabatan` (mis. "Statistisi Ahli Pertama" →
+ * jenjang Ahli Pertama). Cek dari yang paling spesifik dulu agar
+ * "Ahli Pertama" tidak ke-claim oleh "Ahli" generic.
+ *
+ * Return jenjang object dari JENJANG_FUNGSIONAL atau null kalau tidak
+ * cocok dengan jenjang manapun.
+ *
+ * Dipakai oleh halaman Profil Saya (index.html) dan Riwayat Kepegawaian
+ * Admin (admin-riwayat.html) — pindah ke sini agar tidak duplikasi.
+ */
+function extractJenjangFromJabatan(jabatanText) {
+  if (!jabatanText || typeof window.JENJANG_BY_KEY === 'undefined') return null;
+  const t = String(jabatanText).toLowerCase();
+  // Order penting: yang LEBIH SPESIFIK didahulukan (Ahli Pertama sebelum
+  // pattern "ahli" lain agar match akurat).
+  const matches = [
+    ['ahli_pertama', /\bahli\s+pertama\b/],
+    ['ahli_madya',   /\bahli\s+madya\b/],
+    ['ahli_utama',   /\bahli\s+utama\b/],
+    ['ahli_muda',    /\bahli\s+muda\b/],
+    ['penyelia',     /\bpenyelia\b/],
+    ['mahir',        /\bmahir\b/],
+    ['pelaksana',    /\bpelaksana\b/],
+    ['pemula',       /\bpemula\b/],
+  ];
+  for (const [key, re] of matches) {
+    if (re.test(t)) return window.JENJANG_BY_KEY[key];
+  }
+  return null;
+}
+window.extractJenjangFromJabatan = extractJenjangFromJabatan;
+
 // ─── PROGRESSI / GAP ANALYSIS ─────────────────────────────────────────
 
 /**
