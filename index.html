@@ -94,36 +94,54 @@
 
   /* ════════ PAK CARD (baru — summary + collapsible) ════════ */
   /* Card khusus untuk Riwayat PAK. Strukturnya berbeda dari info-card biasa
-     karena harus muat:
-       - Header dengan judul + tombol "Ajukan PAK" di kanan
-       - Summary 5 metrik (PAK terakhir, kebutuhan AK ×2, perkiraan ×2)
-       - Collapsible body (riwayat AK lengkap + daftar pengajuan)
-     Header summary di-klik untuk toggle expand/collapse. */
-  .pak-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(13,35,64,.04)}
-  .pak-card-head{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--border);background:#fafaf6}
-  .pak-card-head .info-card-icon{flex-shrink:0}
+  /* ════════ PAK CARD — REDESIGN: clean, modern, professional ════════
+     Tujuan desain:
+       - Header tetap punya tombol "Ajukan PAK" — tapi accent gold untuk
+         visibility tinggi (ini CTA utama).
+       - Hero metric tunggal: PAK Terakhir (besar, fraunces) — dominan.
+       - 4 metric cards di bawahnya: Naik Pangkat / Naik Jenjang dengan
+         dual info (kebutuhan AK + perkiraan tahun). Ringkas & terorganisir.
+       - Soft border + subtle hover state — mirroring desain card lain
+         tapi dengan warna gold sebagai accent untuk hirarki visual.
+     ────────────────────────────────────────────────────────────── */
+  .pak-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.06)}
+  .pak-card-head{display:flex;align-items:center;gap:12px;padding:14px 18px 13px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fafaf6 0%,#f5f4ef 100%)}
+  .pak-card-head .info-card-icon{flex-shrink:0;background:rgba(200,168,75,.18)}
   .pak-card-title{flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--navy);letter-spacing:.6px;text-transform:uppercase}
-  .pak-card-action{padding:6px 12px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:background .15s,transform .12s;letter-spacing:.2px;display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
-  .pak-card-action:hover{background:var(--navy2)}
+  .pak-card-action{padding:8px 14px;background:var(--gold);color:#fff;border:none;border-radius:7px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,transform .12s,box-shadow .15s;letter-spacing:.2px;display:inline-flex;align-items:center;gap:6px;flex-shrink:0;box-shadow:0 1px 2px rgba(167,138,58,.25)}
+  .pak-card-action:hover{background:var(--gold-dark);box-shadow:0 2px 6px rgba(167,138,58,.32)}
   .pak-card-action:active{transform:translateY(1px)}
-  .pak-card-action[disabled]{opacity:.5;cursor:not-allowed}
+  .pak-card-action[disabled]{opacity:.5;cursor:not-allowed;box-shadow:none}
+  .pak-card-action span{font-size:14px;font-weight:300;line-height:1}
 
-  /* Summary panel — diklik untuk toggle */
-  .pak-summary{padding:14px 18px;cursor:pointer;user-select:none;transition:background .15s;border-bottom:1px solid transparent;position:relative}
-  .pak-summary:hover{background:#fafaf6}
-  .pak-summary.expanded{border-bottom-color:var(--border);background:#fafaf6}
-  .pak-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;padding-right:24px}
-  .pak-summary-row{display:flex;flex-direction:column;gap:2px;min-width:0}
-  .pak-summary-row.full{grid-column:1/-1;padding:6px 10px;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.18);border-radius:6px}
-  .pak-summary-label{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;font-weight:600}
-  .pak-summary-value{font-size:13px;color:var(--navy);font-weight:600;line-height:1.35;font-variant-numeric:tabular-nums}
-  .pak-summary-value.big{font-family:'Fraunces',serif;font-size:18px;font-weight:600;letter-spacing:-.2px}
-  .pak-summary-value.muted{color:var(--muted);font-weight:500;font-style:italic}
-  .pak-summary-value.success{color:var(--success)}
-  .pak-summary-caret{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--muted);transition:transform .2s}
-  .pak-summary.expanded .pak-summary-caret{transform:translateY(-50%) rotate(180deg)}
+  /* Hero metric: PAK Terakhir (selalu visible, dominan) */
+  .pak-hero{padding:18px 20px 14px;background:linear-gradient(135deg,rgba(200,168,75,.08) 0%,rgba(200,168,75,.02) 100%);border-bottom:1px solid var(--border);display:flex;align-items:baseline;justify-content:space-between;gap:14px;cursor:pointer;user-select:none;transition:background .15s}
+  .pak-hero:hover{background:linear-gradient(135deg,rgba(200,168,75,.12) 0%,rgba(200,168,75,.04) 100%)}
+  .pak-hero-left{min-width:0;flex:1}
+  .pak-hero-label{font-size:10px;font-weight:600;color:var(--gold-dark);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:4px}
+  .pak-hero-value{font-family:'Fraunces',serif;font-size:30px;font-weight:500;color:var(--navy);line-height:1;letter-spacing:-.5px}
+  .pak-hero-value.muted{color:var(--muted);font-style:italic;font-size:18px;font-weight:400}
+  .pak-hero-caret{font-size:11px;color:var(--muted);transition:transform .2s;flex-shrink:0;align-self:center}
+  .pak-hero.expanded .pak-hero-caret{transform:rotate(180deg)}
 
-  /* Body collapsible */
+  /* Metric cards grid (Naik Pangkat / Naik Jenjang) */
+  .pak-metrics{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid transparent;transition:border-color .15s}
+  .pak-hero.expanded ~ .pak-metrics{border-bottom-color:var(--border)}
+  .pak-metric{padding:14px 18px;background:var(--white);border-right:1px solid var(--border);min-width:0}
+  .pak-metric:last-child{border-right:none}
+  .pak-metric-icon-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .pak-metric-icon{width:24px;height:24px;border-radius:6px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+  .pak-metric-title{font-size:10.5px;font-weight:700;color:var(--navy);letter-spacing:.5px;text-transform:uppercase;line-height:1.3}
+  .pak-metric-rows{display:flex;flex-direction:column;gap:7px}
+  .pak-metric-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12px;line-height:1.3}
+  .pak-metric-row-label{color:var(--muted);font-weight:500;font-size:11px;flex-shrink:0}
+  .pak-metric-row-value{color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;text-align:right;min-width:0;word-break:break-word}
+  .pak-metric-row-value.success{color:var(--success);display:inline-flex;align-items:center;gap:4px}
+  .pak-metric-row-value.success::before{content:'✓';font-size:11px}
+  .pak-metric-row-value.muted{color:var(--muted);font-weight:500;font-style:italic;font-size:11px}
+  .pak-metric-row-value.warn{color:#92400e;font-weight:600}
+
+  /* Body collapsible — riwayat AK + pengajuan */
   .pak-body{display:none;background:var(--white)}
   .pak-body.show{display:block}
   .pak-body-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:14px 18px 6px;display:flex;align-items:center;gap:6px}
@@ -133,20 +151,24 @@
   .status-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
   .status-pill.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
   .status-pill.selesai{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
-  .status-pill.ditolak{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
 
-  /* Pengajuan list item — sedikit beda dari riwayat-row biasa */
-  .pengajuan-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;padding:10px 18px;align-items:center;border-bottom:1px solid #f4f1e9;line-height:1.4}
+  /* Pengajuan list item — dua kolom: info kiri, periode/AK kanan */
+  .pengajuan-row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:11px 18px;align-items:center;border-bottom:1px solid #f4f1e9;line-height:1.4}
   .pengajuan-row:last-child{border-bottom:none}
   .pengajuan-main{font-size:13px;color:var(--navy);font-weight:600;min-width:0}
-  .pengajuan-main .sub{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px;font-style:italic}
-  .pengajuan-tmt{font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
-  .pengajuan-cancel{padding:4px 10px;background:#fef2f2;color:var(--red);border:1px solid #fecaca;border-radius:5px;font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer;transition:background .15s}
-  .pengajuan-cancel:hover{background:#fee2e2}
+  .pengajuan-main .sub{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px}
+  .pengajuan-meta{font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
+  .pengajuan-meta strong{color:var(--navy);font-weight:600;font-size:12.5px;display:block;margin-bottom:1px}
+  .pengajuan-download{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(200,168,75,.12);color:var(--gold-dark);border:1px solid rgba(200,168,75,.3);border-radius:5px;font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:4px;transition:background .15s}
+  .pengajuan-download:hover{background:rgba(200,168,75,.22)}
 
   @media(max-width:480px){
-    .pak-summary-grid{grid-template-columns:1fr}
-    .pengajuan-row{grid-template-columns:1fr;gap:4px}
+    .pak-metrics{grid-template-columns:1fr}
+    .pak-metric{border-right:none;border-bottom:1px solid var(--border)}
+    .pak-metric:last-child{border-bottom:none}
+    .pak-hero-value{font-size:24px}
+    .pengajuan-row{grid-template-columns:1fr;gap:6px}
+    .pengajuan-meta{text-align:left}
   }
 
   /* Skeleton states */
@@ -221,6 +243,40 @@
   .btn-danger{background:#fef2f2;color:var(--red);border:1px solid #fecaca}
   .btn-danger:hover{background:#fee2e2}
   .btn-primary{background:var(--navy);color:#fff}
+
+  /* ════════ MODAL PENGAJUAN PAK — wider, structured layout ════════
+     Modal pengajuan PAK butuh space lebih besar karena:
+       - Periode picker (3 dropdown side-by-side: bulan_start, bulan_end, tahun)
+       - Penandatangan picker (autocomplete pegawai)
+       - Preview pane: tampilan calculated values (ak_n1, akb, ak_tot)
+     Modal ini share .modal-overlay & .modal base style, tapi punya
+     class extra .modal-pak untuk override max-width dan layout. */
+  .modal.modal-pak{max-width:580px}
+  .modal-pak .form-row-3col{display:grid;grid-template-columns:1fr 1fr 110px;gap:10px}
+  .modal-pak .form-row-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:560px){
+    .modal-pak .form-row-3col,.modal-pak .form-row-2col{grid-template-columns:1fr}
+  }
+  /* Help text di bawah label (style halus, tidak mengganggu) */
+  .form-help{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.45}
+  .form-help.warn{color:#92400e}
+  .form-help.success{color:var(--success)}
+
+  /* Preview pane di dalam modal — tampilkan calculated values realtime */
+  .pak-preview{background:#fafaf6;border:1px solid var(--border);border-radius:9px;padding:14px 16px;margin-bottom:14px}
+  .pak-preview-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .pak-preview-head-icon{width:22px;height:22px;background:var(--gold-light);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+  .pak-preview-head-title{font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.5px;text-transform:uppercase}
+  .pak-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+  .pak-preview-item{min-width:0}
+  .pak-preview-item.full{grid-column:1/-1}
+  .pak-preview-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.6px;text-transform:uppercase;margin-bottom:2px}
+  .pak-preview-value{font-size:12.5px;color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.35;word-break:break-word}
+  .pak-preview-value.muted{color:var(--muted);font-weight:500;font-style:italic}
+  .pak-preview-value.big{font-family:'Fraunces',serif;font-size:18px;font-weight:600;line-height:1.1;letter-spacing:-.2px;color:var(--gold-dark)}
+  .pak-preview-divider{grid-column:1/-1;height:1px;background:var(--border);margin:4px 0}
+  .pak-preview-error{padding:10px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:7px;color:var(--red);font-size:12px;line-height:1.5}
+  .pak-preview-loading{font-size:12px;color:var(--muted);font-style:italic;padding:6px 0}
   .btn-primary:hover{background:var(--navy2)}
   .event-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg);margin-bottom:8px;border:1px solid var(--border)}
   .event-list-color{width:10px;height:10px;border-radius:3px;flex-shrink:0}
@@ -376,42 +432,94 @@
 </div>
 
 <!-- ════════ MODAL PENGAJUAN PAK ════════ -->
+<!-- ─── MODAL PENGAJUAN PAK ─────────────────────────────────────
+     Flow:
+       1. User pilih periode (bulan_start, bulan_end, tahun) + tgl_pengajuan + penandatangan
+       2. Realtime preview: nama, NIP, pangkat/gol/TMT, jabatan/TMT, AK n-1, akb, total
+       3. Tombol "Generate & Submit" → call RPC pengajuan_pak_create + render docx + saveAs
+     Tag user input: {periode}, {tgl_pengajuan}, {penandatangan} — sisanya
+     auto-resolve dari Supabase. -->
 <div class="modal-overlay" id="pak-modal" onclick="if(event.target===this)closePakModal()">
-  <div class="modal">
+  <div class="modal modal-pak">
     <div class="modal-header">
       <div class="modal-title">Ajukan <em>PAK</em> Baru</div>
-      <button class="modal-close" onclick="closePakModal()">✕</button>
+      <button class="modal-close" onclick="closePakModal()" type="button">✕</button>
     </div>
     <div class="modal-body">
       <p style="font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:14px;background:#fafaf6;padding:10px 12px;border-radius:7px;border:1px solid var(--border)">
-        Pengajuan akan dikirim ke administrator untuk diverifikasi. Pastikan
-        nilai angka kredit sesuai dengan dokumen PAK resmi yang Anda miliki.
+        Sistem akan menghitung AK secara otomatis dari predikat kinerja
+        Anda di periode yang dipilih, lalu menghasilkan dokumen pengajuan
+        siap ditandatangani.
       </p>
+
+      <!-- ─── INPUT: Periode ───────────────────────────────── -->
       <div class="form-group">
-        <label>Angka Kredit Kumulatif</label>
-        <input type="number" id="pak-evt-ak" step="0.001" min="0" placeholder="mis. 100.500">
-        <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4">
-          Tulis dengan titik sebagai pemisah desimal (mis. 100.500, bukan 100,500).
+        <label>Periode Pengajuan</label>
+        <div class="form-row-3col">
+          <select id="pak-input-bulan-start" onchange="onPakInputChange()">
+            <option value="">Bulan awal…</option>
+          </select>
+          <select id="pak-input-bulan-end" onchange="onPakInputChange()">
+            <option value="">Bulan akhir…</option>
+          </select>
+          <select id="pak-input-tahun" onchange="onPakInputChange()">
+            <option value="">Tahun…</option>
+          </select>
+        </div>
+        <div class="form-help">
+          Untuk pengajuan tahunan, pilih Januari s.d Desember pada tahun yang sama.
         </div>
       </div>
+
+      <!-- ─── INPUT: Tanggal Pengajuan ─────────────────────── -->
       <div class="form-group">
-        <label>TMT (Tanggal Periode AK)</label>
-        <input type="date" id="pak-evt-tmt">
-        <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4">
-          Biasanya 31 Desember atau 30 Juni.
+        <label>Tanggal Pengajuan</label>
+        <input type="date" id="pak-input-tgl" onchange="onPakInputChange()">
+        <div class="form-help">
+          Default hari ini. Minimal harus lebih dari akhir periode (mis.
+          periode Jan s.d Mar 2025 → tanggal pengajuan minimal 1 April 2025).
         </div>
       </div>
+
+      <!-- ─── INPUT: Penandatangan ─────────────────────────── -->
       <div class="form-group">
-        <label>Catatan (opsional)</label>
-        <textarea id="pak-evt-catatan" placeholder="Misal: nomor SK, periode penilaian, atau keterangan lain..." maxlength="500"></textarea>
+        <label>Penandatangan</label>
+        <select id="pak-input-penandatangan" onchange="onPakInputChange()">
+          <option value="">Memuat daftar pegawai…</option>
+        </select>
+        <div class="form-help">
+          Pilih pegawai yang akan menandatangani surat. Jabatan akan
+          otomatis diambil dari riwayat jabatan terbaru.
+        </div>
+      </div>
+
+      <!-- ─── PREVIEW: Calculated values (real-time) ──────── -->
+      <div class="pak-preview" id="pak-preview" style="display:none">
+        <div class="pak-preview-head">
+          <div class="pak-preview-head-icon">📊</div>
+          <div class="pak-preview-head-title">Ringkasan Perhitungan</div>
+        </div>
+        <div id="pak-preview-content">
+          <div class="pak-preview-loading">Menghitung…</div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closePakModal()">Batal</button>
-      <button class="btn btn-primary" id="btn-submit-pak" onclick="submitPak()">Kirim Pengajuan</button>
+      <button class="btn btn-secondary" onclick="closePakModal()" type="button">Batal</button>
+      <button class="btn btn-primary" id="btn-submit-pak" onclick="submitPak()" type="button" disabled>
+        Generate &amp; Kirim
+      </button>
     </div>
   </div>
 </div>
+
+<!-- ─── DOCX RENDER LIBS — untuk fitur Ajukan PAK ──────────────────
+     Urutan critical: PizZip → docxtemplater → FileSaver. Generator
+     juga punya fallback CDN dynamic loader (lihat 9201-pak-generator.js)
+     kalau salah satu CDN gagal. -->
+<script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip.js"></script>
+<script src="https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
 <script src="config.js"></script>
 <script src="9201-shared.js"></script>
@@ -419,6 +527,7 @@
 <script src="9201-sidebar.js"></script>
 <script src="9201-role-switcher.js"></script>
 <script src="9201-pak-data.js"></script>
+<script src="9201-pak-generator.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
 // PROFIL SAYA — versi modern. Logika fetch profil dirombak menjadi
@@ -637,17 +746,16 @@ const STATE_PROFIL = {
 };
 
 /**
- * Hitung perkiraan tahun naik jenjang/pangkat.
+ * Hitung perkiraan TANGGAL naik jenjang/pangkat berdasarkan laju AK
+ * historis. Output diformat sebagai "Nama-Bulan YYYY" (mis. "Maret 2027").
  *
- * Asumsi sederhana: laju AK tahunan = (AK_kumulatif - AK_awal_jenjang/golongan)
- * dibagi tahun terlewat sejak entri AK pertama dari pegawai.
- *
- * Kalau tidak cukup data (kurang dari 2 entri AK), return null — biar
- * UI menampilkan placeholder.
+ * Asumsi sederhana: laju AK tahunan = (AK_terbaru − AK_terlama) / (tahun_terlama..tahun_terbaru).
+ * Kalau tidak cukup data (kurang dari 2 entri AK), return null — UI akan
+ * menampilkan placeholder.
  *
  * @param {number} sisa     - berapa AK lagi yang dibutuhkan
  * @param {Array}  akList   - riwayat AK pegawai (desc by tmt)
- * @returns {string|null}   - "± 2026" atau "± 2 tahun lagi" atau null
+ * @returns {string|null}   - mis. "Maret 2027" atau null
  */
 function estimasiTahunPromosi(sisa, akList) {
   if (sisa == null || sisa <= 0) return null;
@@ -663,19 +771,21 @@ function estimasiTahunPromosi(sisa, akList) {
   const delta      = akLatest - akEarliest;
   if (delta <= 0) return null;
 
-  // Hitung tahun terlewat (decimal years)
-  const tahunEarliest = parseInt(String(earliest.tmt).slice(0,4), 10);
-  const tahunLatest   = parseInt(String(latest.tmt).slice(0,4), 10);
-  const tahunGap      = tahunLatest - tahunEarliest;
-  if (tahunGap <= 0) return null;
+  // Hitung tahun terlewat (bisa fractional, lebih akurat dari int year-only)
+  const dEarliest = new Date(earliest.tmt);
+  const dLatest   = new Date(latest.tmt);
+  const yearGap   = (dLatest - dEarliest) / (1000 * 60 * 60 * 24 * 365.25);
+  if (yearGap <= 0) return null;
 
-  const lajuPerTahun = delta / tahunGap;
+  const lajuPerTahun = delta / yearGap;
   if (lajuPerTahun <= 0) return null;
 
+  // Tahun fractional yang dibutuhkan
   const tahunLagi = sisa / lajuPerTahun;
-  const now = new Date();
-  const tahunPerkiraan = now.getFullYear() + Math.ceil(tahunLagi);
-  return `± ${tahunPerkiraan} (~${tahunLagi.toFixed(1)} thn lagi)`;
+  // Convert ke perkiraan tanggal absolut
+  const target = new Date();
+  target.setMonth(target.getMonth() + Math.ceil(tahunLagi * 12));
+  return `${BULAN[target.getMonth()]} ${target.getFullYear()}`;
 }
 
 function renderPakCard() {
@@ -685,79 +795,100 @@ function renderPakCard() {
   const latestJab = STATE_PROFIL.latestJabatan;
   const latestPgg = STATE_PROFIL.latestPangkat;
 
-  // Summary metrics
+  // ─── Hero metric: PAK Terakhir ───
   const pakTerakhir = latestAK ? fmtAK(latestAK.angka_kredit) : null;
   const akKumulatif = latestAK ? Number(latestAK.angka_kredit) || 0 : 0;
 
-  // Naik pangkat / golongan
+  // ─── Naik pangkat / golongan ───
   const golongan = latestPgg ? window.getGolonganByName(latestPgg.golongan) : null;
   const golProg  = golongan ? window.progressToNextGolongan(akKumulatif, golongan) : null;
 
-  // Naik jenjang
+  // ─── Naik jenjang ───
   const jenjang   = latestJab ? window.extractJenjangFromJabatan(latestJab.jabatan) : null;
   const jenjProg  = jenjang ? window.progressToNextJenjang(akKumulatif, jenjang) : null;
 
-  // Build summary cells. cellPak punya class tambahan 'full' supaya
-  // ditampilkan span dua kolom di grid 2-kolom (lihat CSS .pak-summary-row.full).
-  const cellPak = `
-    <div class="pak-summary-row full">
-      <span class="pak-summary-label">PAK Terakhir</span>
-      <span class="pak-summary-value big ${pakTerakhir ? '' : 'muted'}">
-        ${pakTerakhir ? esc(pakTerakhir) : 'Belum ada'}
-      </span>
-    </div>`;
-
-  const cellNaikPgg = (() => {
-    if (!golProg)              return rowPlaceholder('Naik Pangkat / Golongan', 'Data pangkat belum ada');
-    if (golProg.error)         return rowPlaceholder('Naik Pangkat / Golongan', golProg.error);
-    if (golProg.target_ak === null) return rowSuccess('Naik Pangkat / Golongan', 'Sudah di puncak (IVe)');
-    if (golProg.can_promote_by_ak)
-      return rowSuccess('Kebutuhan AK Pangkat', 'AK cukup ✓');
+  // ─── Build metric rows: pangkat panel ───
+  const buildPangkatPanel = () => {
+    let kebutuhanRow, perkiraanRow;
+    if (!golProg) {
+      kebutuhanRow = `<div class="pak-metric-row-value muted">Data belum ada</div>`;
+      perkiraanRow = `<div class="pak-metric-row-value muted">—</div>`;
+    } else if (golProg.error) {
+      kebutuhanRow = `<div class="pak-metric-row-value muted">${esc(golProg.error)}</div>`;
+      perkiraanRow = `<div class="pak-metric-row-value muted">—</div>`;
+    } else if (golProg.target_ak === null) {
+      kebutuhanRow = `<div class="pak-metric-row-value success">Sudah di puncak (IVe)</div>`;
+      perkiraanRow = `<div class="pak-metric-row-value muted">Tidak ada</div>`;
+    } else if (golProg.can_promote_by_ak) {
+      kebutuhanRow = `<div class="pak-metric-row-value success">AK cukup</div>`;
+      perkiraanRow = `<div class="pak-metric-row-value success">Siap diajukan</div>`;
+    } else {
+      kebutuhanRow = `<div class="pak-metric-row-value warn">Kurang ${esc(fmtAK(golProg.sisa))}</div>`;
+      const est = estimasiTahunPromosi(golProg.sisa, akList);
+      perkiraanRow = est
+        ? `<div class="pak-metric-row-value">${esc(est)}</div>`
+        : `<div class="pak-metric-row-value muted">Data belum cukup</div>`;
+    }
     return `
-      <div class="pak-summary-row">
-        <span class="pak-summary-label">Kebutuhan AK Pangkat</span>
-        <span class="pak-summary-value">Kurang ${esc(fmtAK(golProg.sisa))}</span>
+      <div class="pak-metric">
+        <div class="pak-metric-icon-row">
+          <div class="pak-metric-icon">📈</div>
+          <div class="pak-metric-title">Naik Pangkat</div>
+        </div>
+        <div class="pak-metric-rows">
+          <div class="pak-metric-row">
+            <span class="pak-metric-row-label">Kebutuhan AK</span>
+            ${kebutuhanRow}
+          </div>
+          <div class="pak-metric-row">
+            <span class="pak-metric-row-label">Perkiraan</span>
+            ${perkiraanRow}
+          </div>
+        </div>
       </div>`;
-  })();
+  };
 
-  const cellNaikJenj = (() => {
-    if (!jenjProg)              return rowPlaceholder('Naik Jenjang', 'Jabatan/jenjang belum terdeteksi');
-    if (jenjProg.error)         return rowPlaceholder('Naik Jenjang', jenjProg.error);
-    if (jenjProg.target_ak === null) return rowSuccess('Naik Jenjang', 'Sudah di puncak');
-    if (jenjProg.can_promote_by_ak)
-      return rowSuccess('Kebutuhan AK Jenjang', 'AK cukup ✓');
+  const buildJenjangPanel = () => {
+    let kebutuhanRow, perkiraanRow;
+    if (!jenjProg) {
+      kebutuhanRow = `<div class="pak-metric-row-value muted">Jenjang belum terdeteksi</div>`;
+      perkiraanRow = `<div class="pak-metric-row-value muted">—</div>`;
+    } else if (jenjProg.error) {
+      kebutuhanRow = `<div class="pak-metric-row-value muted">${esc(jenjProg.error)}</div>`;
+      perkiraanRow = `<div class="pak-metric-row-value muted">—</div>`;
+    } else if (jenjProg.target_ak === null) {
+      kebutuhanRow = `<div class="pak-metric-row-value success">Sudah di puncak</div>`;
+      perkiraanRow = `<div class="pak-metric-row-value muted">Tidak ada</div>`;
+    } else if (jenjProg.can_promote_by_ak) {
+      kebutuhanRow = `<div class="pak-metric-row-value success">AK cukup</div>`;
+      perkiraanRow = `<div class="pak-metric-row-value success">Siap diajukan</div>`;
+    } else {
+      kebutuhanRow = `<div class="pak-metric-row-value warn">Kurang ${esc(fmtAK(jenjProg.sisa))}</div>`;
+      const est = estimasiTahunPromosi(jenjProg.sisa, akList);
+      perkiraanRow = est
+        ? `<div class="pak-metric-row-value">${esc(est)}</div>`
+        : `<div class="pak-metric-row-value muted">Data belum cukup</div>`;
+    }
     return `
-      <div class="pak-summary-row">
-        <span class="pak-summary-label">Kebutuhan AK Jenjang</span>
-        <span class="pak-summary-value">Kurang ${esc(fmtAK(jenjProg.sisa))}</span>
+      <div class="pak-metric">
+        <div class="pak-metric-icon-row">
+          <div class="pak-metric-icon">🎯</div>
+          <div class="pak-metric-title">Naik Jenjang</div>
+        </div>
+        <div class="pak-metric-rows">
+          <div class="pak-metric-row">
+            <span class="pak-metric-row-label">Kebutuhan AK</span>
+            ${kebutuhanRow}
+          </div>
+          <div class="pak-metric-row">
+            <span class="pak-metric-row-label">Perkiraan</span>
+            ${perkiraanRow}
+          </div>
+        </div>
       </div>`;
-  })();
+  };
 
-  const cellPerkiraanPgg = (() => {
-    if (!golProg || golProg.error)              return rowPlaceholder('Perkiraan Naik Pangkat', '—');
-    if (golProg.target_ak === null)             return rowSuccess('Perkiraan Naik Pangkat', 'Tidak ada');
-    if (golProg.can_promote_by_ak)              return rowSuccess('Perkiraan Naik Pangkat', 'Siap diajukan');
-    const est = estimasiTahunPromosi(golProg.sisa, akList);
-    return `
-      <div class="pak-summary-row">
-        <span class="pak-summary-label">Perkiraan Naik Pangkat</span>
-        <span class="pak-summary-value ${est ? '' : 'muted'}">${est ? esc(est) : 'Data belum cukup'}</span>
-      </div>`;
-  })();
-
-  const cellPerkiraanJenj = (() => {
-    if (!jenjProg || jenjProg.error)            return rowPlaceholder('Perkiraan Naik Jenjang', '—');
-    if (jenjProg.target_ak === null)            return rowSuccess('Perkiraan Naik Jenjang', 'Tidak ada');
-    if (jenjProg.can_promote_by_ak)             return rowSuccess('Perkiraan Naik Jenjang', 'Siap diajukan');
-    const est = estimasiTahunPromosi(jenjProg.sisa, akList);
-    return `
-      <div class="pak-summary-row">
-        <span class="pak-summary-label">Perkiraan Naik Jenjang</span>
-        <span class="pak-summary-value ${est ? '' : 'muted'}">${est ? esc(est) : 'Data belum cukup'}</span>
-      </div>`;
-  })();
-
-  // Riwayat dan pengajuan body (collapsible)
+  // ─── Riwayat AK + pengajuan body (collapsible) ───
   const riwayatHtml = akList.length
     ? akList.map(r => riwayatRow(`<strong>${esc(fmtAK(r.angka_kredit))}</strong>`, r.tmt)).join('')
     : riwayatEmpty();
@@ -774,19 +905,22 @@ function renderPakCard() {
       <div class="pak-card-head">
         <div class="info-card-icon">⭐</div>
         <div class="pak-card-title">Riwayat PAK</div>
-        <button class="pak-card-action" onclick="event.stopPropagation();openPakModal()" title="Ajukan PAK baru">
+        <button class="pak-card-action" onclick="event.stopPropagation();openPakModal()" title="Ajukan PAK baru" type="button">
           <span>+</span> Ajukan PAK
         </button>
       </div>
-      <div class="pak-summary ${expandedCls}" onclick="togglePakExpanded()">
-        <div class="pak-summary-grid">
-          ${cellPak}
-          ${cellNaikPgg}
-          ${cellNaikJenj}
-          ${cellPerkiraanPgg}
-          ${cellPerkiraanJenj}
+      <div class="pak-hero ${expandedCls}" onclick="togglePakExpanded()">
+        <div class="pak-hero-left">
+          <div class="pak-hero-label">PAK Terakhir</div>
+          <div class="pak-hero-value ${pakTerakhir ? '' : 'muted'}">
+            ${pakTerakhir ? esc(pakTerakhir) : 'Belum ada'}
+          </div>
         </div>
-        <span class="pak-summary-caret">▼</span>
+        <div class="pak-hero-caret">▼</div>
+      </div>
+      <div class="pak-metrics">
+        ${buildPangkatPanel()}
+        ${buildJenjangPanel()}
       </div>
       <div class="pak-body ${showCls}" id="pak-body">
         <div class="pak-body-section-label">Pengajuan PAK</div>
@@ -797,121 +931,380 @@ function renderPakCard() {
     </div>`;
 }
 
-function rowPlaceholder(label, msg) {
-  return `
-    <div class="pak-summary-row">
-      <span class="pak-summary-label">${esc(label)}</span>
-      <span class="pak-summary-value muted">${esc(msg)}</span>
-    </div>`;
-}
-function rowSuccess(label, msg) {
-  return `
-    <div class="pak-summary-row">
-      <span class="pak-summary-label">${esc(label)}</span>
-      <span class="pak-summary-value success">${esc(msg)}</span>
-    </div>`;
-}
-
+/**
+ * Render satu baris pengajuan PAK (schema BARU: tahun_periode,
+ * bulan_start, bulan_end, ak_total, mode_hitung, status, nomor_urut).
+ *
+ * Tombol "Unduh Dokumen" tampil untuk semua status — generate-on-demand
+ * dari row data (tidak butuh dokumen_url tersimpan).
+ */
 function pengajuanRow(p) {
   const status = (p.status || 'menunggu').toLowerCase();
-  const statusLabel = status === 'menunggu' ? 'Menunggu'
-                    : status === 'selesai'  ? 'Selesai'
-                    : status === 'ditolak'  ? 'Ditolak'
-                    : status;
-  const sub = p.catatan
-    ? `<span class="sub">${esc(p.catatan)}</span>`
-    : (p.keterangan_admin ? `<span class="sub">Admin: ${esc(p.keterangan_admin)}</span>` : '');
-  const cancelBtn = status === 'menunggu'
-    ? `<button class="pengajuan-cancel" onclick="cancelPengajuan(${p.id})" title="Batalkan pengajuan">Batal</button>`
-    : '';
+  const statusLabel = status === 'menunggu' ? 'Menunggu' : 'Selesai';
+
+  // Format periode: "Mei 2025" atau "Januari s.d Maret 2025"
+  let periodeStr = '—';
+  if (p.bulan_start && p.bulan_end && p.tahun_periode) {
+    if (p.bulan_start === p.bulan_end) {
+      periodeStr = `${BULAN[p.bulan_start - 1]} ${p.tahun_periode}`;
+    } else {
+      periodeStr = `${BULAN[p.bulan_start - 1]} s.d ${BULAN[p.bulan_end - 1]} ${p.tahun_periode}`;
+    }
+  }
+
+  // Nomor surat (3 digit, padded)
+  const noStr = p.nomor_urut ? String(p.nomor_urut).padStart(3, '0') : '—';
+
   return `
     <div class="pengajuan-row">
       <div class="pengajuan-main">
-        <strong>${esc(fmtAK(p.angka_kredit))}</strong>
+        <strong>${esc(periodeStr)}</strong>
         <span class="status-pill ${esc(status)}" style="margin-left:6px">${esc(statusLabel)}</span>
-        ${sub}
+        <span class="sub">No. ${esc(noStr)} · ${esc(p.mode_hitung || '—')} · AK didapat ${esc(fmtAK(p.ak_didapat))}</span>
       </div>
-      <div>
-        <span class="riwayat-tmt-label">TMT</span>
-        <span class="pengajuan-tmt">${esc(fmtTglRiwayat(p.tmt))}</span>
+      <div class="pengajuan-meta">
+        <strong>${esc(fmtAK(p.ak_total))}</strong>
+        <span>Total AK</span>
+        <button class="pengajuan-download" onclick="downloadPengajuan(${p.id})" title="Unduh dokumen .docx" type="button">
+          ⬇ Unduh
+        </button>
       </div>
-      <div>${cancelBtn}</div>
     </div>`;
 }
 
 function togglePakExpanded() {
   STATE_PROFIL.pakExpanded = !STATE_PROFIL.pakExpanded;
-  const summaryEl = document.querySelector('.pak-summary');
-  const bodyEl    = document.getElementById('pak-body');
-  if (summaryEl) summaryEl.classList.toggle('expanded', STATE_PROFIL.pakExpanded);
-  if (bodyEl)    bodyEl.classList.toggle('show', STATE_PROFIL.pakExpanded);
+  const heroEl = document.querySelector('.pak-hero');
+  const bodyEl = document.getElementById('pak-body');
+  if (heroEl) heroEl.classList.toggle('expanded', STATE_PROFIL.pakExpanded);
+  if (bodyEl) bodyEl.classList.toggle('show', STATE_PROFIL.pakExpanded);
 }
 
-// ─── PENGAJUAN PAK — modal ────────────────────────────────────
-function openPakModal() {
+// ═══════════════════════════════════════════════════════════════
+// PENGAJUAN PAK — modal baru (periode + tgl_pengajuan + penandatangan)
+// ═══════════════════════════════════════════════════════════════
+
+// Cache list pegawai (untuk dropdown penandatangan). Di-fetch sekali
+// saat modal dibuka, di-cache untuk session.
+let _pegawaiListCache = null;
+
+async function ensurePegawaiList() {
+  if (_pegawaiListCache) return _pegawaiListCache;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/data_pegawai?select=NIP,NAMA&order=NAMA.asc`,
+      { headers: SUPABASE_HEADERS }
+    );
+    if (res.ok) {
+      _pegawaiListCache = await res.json();
+    } else {
+      _pegawaiListCache = [];
+    }
+  } catch(e) {
+    console.warn('[PAK] Gagal fetch data_pegawai:', e);
+    _pegawaiListCache = [];
+  }
+  return _pegawaiListCache;
+}
+
+function populateBulanSelect(selectEl, placeholder) {
+  selectEl.innerHTML = `<option value="">${placeholder}</option>` +
+    BULAN.map((nm, i) => `<option value="${i + 1}">${esc(nm)}</option>`).join('');
+}
+
+function populateTahunSelect(selectEl) {
+  // Tahun: dari (tahun sekarang - 5) sampai (tahun sekarang + 1).
+  // Range cukup untuk pengajuan retroaktif beberapa tahun ke belakang.
+  const now = new Date().getFullYear();
+  const opts = [];
+  for (let y = now + 1; y >= now - 5; y--) {
+    opts.push(`<option value="${y}">${y}</option>`);
+  }
+  selectEl.innerHTML = `<option value="">Tahun…</option>` + opts.join('');
+}
+
+async function openPakModal() {
   if (!STATE_PROFIL.nip) {
     alert('NIP belum tersedia. Tidak bisa mengajukan PAK.');
     return;
   }
-  document.getElementById('pak-evt-ak').value = '';
-  document.getElementById('pak-evt-tmt').value = '';
-  document.getElementById('pak-evt-catatan').value = '';
+  // Reset & populate dropdowns
+  const selStart = document.getElementById('pak-input-bulan-start');
+  const selEnd   = document.getElementById('pak-input-bulan-end');
+  const selTahun = document.getElementById('pak-input-tahun');
+  const inputTgl = document.getElementById('pak-input-tgl');
+  const selTtd   = document.getElementById('pak-input-penandatangan');
+
+  populateBulanSelect(selStart, 'Bulan awal…');
+  populateBulanSelect(selEnd,   'Bulan akhir…');
+  populateTahunSelect(selTahun);
+
+  // Default tgl_pengajuan = hari ini
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  inputTgl.value = `${yyyy}-${mm}-${dd}`;
+
+  // Reset preview & button
+  document.getElementById('pak-preview').style.display = 'none';
+  document.getElementById('btn-submit-pak').disabled   = true;
+
+  // Show modal sekarang (sebelum fetch pegawai supaya tidak laggy)
   document.getElementById('pak-modal').classList.add('show');
+
+  // Populate dropdown penandatangan async
+  selTtd.innerHTML = `<option value="">Memuat daftar pegawai…</option>`;
+  const pegawaiList = await ensurePegawaiList();
+  if (pegawaiList.length) {
+    selTtd.innerHTML = `<option value="">Pilih pegawai…</option>` +
+      pegawaiList.map(p =>
+        `<option value="${esc(p.NIP)}">${esc(p.NAMA || p.NIP)}</option>`
+      ).join('');
+  } else {
+    selTtd.innerHTML = `<option value="">(Gagal memuat daftar pegawai)</option>`;
+  }
 }
+
 function closePakModal() {
   document.getElementById('pak-modal').classList.remove('show');
 }
 
+/**
+ * Trigger compute preview saat user ubah input.
+ *
+ * Validasi step-by-step:
+ *   1. Periode lengkap (start, end, tahun, start ≤ end)
+ *   2. tgl_pengajuan ≥ akhir periode + 1 bulan
+ *   3. Penandatangan dipilih
+ * Kalau lengkap → call PakGenerator.resolveContext + tampilkan preview.
+ *
+ * Debounced supaya tidak fetch berulang saat user ngetik tanggal.
+ */
+let _previewDebounceTimer = null;
+let _previewLastReqId     = 0;
+
+function onPakInputChange() {
+  clearTimeout(_previewDebounceTimer);
+  _previewDebounceTimer = setTimeout(computePakPreview, 250);
+}
+
+async function computePakPreview() {
+  const previewEl    = document.getElementById('pak-preview');
+  const contentEl    = document.getElementById('pak-preview-content');
+  const submitBtn    = document.getElementById('btn-submit-pak');
+  submitBtn.disabled = true;
+
+  const bulan_start  = parseInt(document.getElementById('pak-input-bulan-start').value, 10);
+  const bulan_end    = parseInt(document.getElementById('pak-input-bulan-end').value, 10);
+  const tahun        = parseInt(document.getElementById('pak-input-tahun').value, 10);
+  const tgl          = document.getElementById('pak-input-tgl').value;
+  const penandatangan_nip = document.getElementById('pak-input-penandatangan').value;
+
+  // Validasi minimal — kalau belum lengkap, hide preview
+  if (!bulan_start || !bulan_end || !tahun || !tgl || !penandatangan_nip) {
+    previewEl.style.display = 'none';
+    return;
+  }
+  if (bulan_start > bulan_end) {
+    previewEl.style.display = 'block';
+    contentEl.innerHTML = `<div class="pak-preview-error">Bulan awal harus ≤ bulan akhir.</div>`;
+    return;
+  }
+
+  // Validasi tgl_pengajuan ≥ akhir periode + 1 bulan
+  // Mis. periode Jan-Mar 2025 → minimal 1 April 2025
+  const minDate = new Date(tahun, bulan_end, 1); // bulan_end (1-12) → index 0-11, bulan setelahnya = bulan_end (because months are 0-indexed)
+  const tglDate = new Date(tgl);
+  if (tglDate < minDate) {
+    const minStr = `1 ${BULAN[bulan_end % 12]} ${bulan_end === 12 ? tahun + 1 : tahun}`;
+    previewEl.style.display = 'block';
+    contentEl.innerHTML = `<div class="pak-preview-error">
+      Tanggal pengajuan minimal <strong>${esc(minStr)}</strong>
+      (lebih dari akhir periode).
+    </div>`;
+    return;
+  }
+
+  // Show loading
+  previewEl.style.display = 'block';
+  contentEl.innerHTML = `<div class="pak-preview-loading">Menghitung…</div>`;
+
+  // Track request id supaya kalau user cepat ganti input, hasil lama
+  // tidak overwrite hasil baru
+  const reqId = ++_previewLastReqId;
+
+  try {
+    const ctx = await PakGenerator.resolveContext({
+      pegawai_nip:        STATE_PROFIL.nip,
+      tahun_periode:      tahun,
+      bulan_start, bulan_end,
+      tgl_pengajuan:      tgl,
+      penandatangan_nip,
+    });
+    if (reqId !== _previewLastReqId) return; // user sudah ganti input lagi
+
+    const m = ctx._meta;
+    const modeBadge = m.mode_hitung === 'tahunan'
+      ? '<span class="status-pill selesai" style="margin-left:6px">Tahunan</span>'
+      : '<span class="status-pill menunggu" style="margin-left:6px">Bulanan</span>';
+
+    contentEl.innerHTML = `
+      <div class="pak-preview-grid">
+        <div class="pak-preview-item full">
+          <div class="pak-preview-label">Pegawai</div>
+          <div class="pak-preview-value">${esc(m.nama_display)} ${modeBadge}</div>
+        </div>
+        <div class="pak-preview-item full">
+          <div class="pak-preview-label">${esc(m.jabatan_tmt.split('/')[0] || 'Jabatan')}</div>
+          <div class="pak-preview-value">${esc(m.pangkat_golongan_tmt)}</div>
+        </div>
+        <div class="pak-preview-divider"></div>
+        <div class="pak-preview-item">
+          <div class="pak-preview-label">Predikat</div>
+          <div class="pak-preview-value">${esc(ctx.predikat || '—')}${
+            ctx.predikat_2 ? ` <span class="pak-preview-value muted">(+ ${esc(ctx.predikat_2)})</span>` : ''
+          }</div>
+        </div>
+        <div class="pak-preview-item">
+          <div class="pak-preview-label">Penandatangan</div>
+          <div class="pak-preview-value">${esc(m.penandatangan_nama || '—')}</div>
+        </div>
+        <div class="pak-preview-divider"></div>
+        <div class="pak-preview-item">
+          <div class="pak-preview-label">AK Sebelumnya</div>
+          <div class="pak-preview-value">${esc(ctx.ak_n1)}</div>
+        </div>
+        <div class="pak-preview-item">
+          <div class="pak-preview-label">AK Didapat (akb)</div>
+          <div class="pak-preview-value">${esc(ctx.akb)}</div>
+        </div>
+        <div class="pak-preview-item full">
+          <div class="pak-preview-label">AK Total Baru</div>
+          <div class="pak-preview-value big">${esc(ctx.ak_tot)}</div>
+        </div>
+      </div>`;
+
+    // Cache context supaya submitPak() tidak perlu resolve ulang
+    _pendingPakContext = ctx;
+    submitBtn.disabled = false;
+  } catch (e) {
+    if (reqId !== _previewLastReqId) return;
+    contentEl.innerHTML = `<div class="pak-preview-error">${esc(e.message || String(e))}</div>`;
+    _pendingPakContext = null;
+  }
+}
+
+let _pendingPakContext = null;
+
+/**
+ * Submit pengajuan PAK:
+ *   1. Call RPC pengajuan_pak_create (atomic, return row dengan nomor_urut)
+ *   2. Resolve context ulang dengan nomor_urut yang sudah ter-assign
+ *   3. Render dokumen .docx + saveAs
+ *   4. Reload pengajuan list + re-render card
+ */
 async function submitPak() {
-  const ak      = document.getElementById('pak-evt-ak').value.trim();
-  const tmt     = document.getElementById('pak-evt-tmt').value;
-  const catatan = document.getElementById('pak-evt-catatan').value.trim();
-  if (!ak)  { alert('Angka kredit wajib diisi.'); return; }
-  if (!tmt) { alert('TMT wajib diisi.'); return; }
-  const akNum = parseFloat(ak);
-  if (isNaN(akNum) || akNum < 0) { alert('Angka kredit tidak valid.'); return; }
+  if (!_pendingPakContext) {
+    alert('Silakan lengkapi input dan tunggu preview selesai dihitung.');
+    return;
+  }
+  const ctx = _pendingPakContext;
+  const m   = ctx._meta;
+
+  const bulan_start = parseInt(document.getElementById('pak-input-bulan-start').value, 10);
+  const bulan_end   = parseInt(document.getElementById('pak-input-bulan-end').value, 10);
+  const tahun       = parseInt(document.getElementById('pak-input-tahun').value, 10);
+  const tgl         = document.getElementById('pak-input-tgl').value;
+  const ttdNip      = document.getElementById('pak-input-penandatangan').value;
 
   const btn = document.getElementById('btn-submit-pak');
   btn.disabled = true;
   const oldText = btn.textContent;
-  btn.textContent = 'Mengirim...';
+  btn.textContent = 'Mengirim…';
+
   try {
     const callerId = (JSON.parse(localStorage.getItem('nova_user') || '{}') || {}).id;
-    await novaRpc('pengajuan_pak_create', {
-      p_caller_id:    callerId,
-      p_pegawai_nip:  STATE_PROFIL.nip,
-      p_angka_kredit: akNum,
-      p_tmt:          tmt,
-      p_catatan:      catatan || null,
+
+    // ─── 1. Insert ke DB (atomic nomor_urut) ───
+    const inserted = await novaRpc('pengajuan_pak_create', {
+      p_caller_id:           callerId,
+      p_pegawai_nip:         STATE_PROFIL.nip,
+      p_tahun_periode:       tahun,
+      p_bulan_start:         bulan_start,
+      p_bulan_end:           bulan_end,
+      p_mode_hitung:         m.mode_hitung,
+      p_ak_didapat:          m.ak_didapat,
+      p_ak_n1:               m.ak_n1_num,
+      p_ak_total:            m.ak_tot_num,
+      p_detail_predikat:     m.detail_predikat,
+      p_tgl_pengajuan:       tgl,
+      p_penandatangan_nip:   ttdNip,
+      p_penandatangan_nama:  m.penandatangan_nama || null,
     });
+
+    // RPC return row: nomor_urut sudah ter-assign
+    const row = Array.isArray(inserted) ? inserted[0] : inserted;
+    const nomor_urut = row && row.nomor_urut;
+
+    // ─── 2. Resolve context ulang dengan nomor_urut final ───
+    btn.textContent = 'Membuat dokumen…';
+    const ctxFinal = await PakGenerator.resolveContext({
+      pegawai_nip:        STATE_PROFIL.nip,
+      tahun_periode:      tahun,
+      bulan_start, bulan_end,
+      tgl_pengajuan:      tgl,
+      penandatangan_nip:  ttdNip,
+      nomor_urut,
+    });
+
+    // ─── 3. Render & download ───
+    const blob = await PakGenerator.renderDoc(ctxFinal);
+    const filename = `Konversi PK ke AK — ${ctxFinal._meta.nama_display} — ${ctxFinal.periode}.docx`;
+    if (typeof window.saveAs === 'function') {
+      window.saveAs(blob, filename);
+    }
+
     closePakModal();
-    // Reload pengajuan saja (riwayat tidak berubah sampai admin approve)
+    // ─── 4. Reload & re-render ───
     await reloadPengajuan();
-    // Re-render card PAK supaya pengajuan baru tampil
-    const session = JSON.parse(localStorage.getItem('nova_user') || '{}');
     refreshPakCardOnly();
-    // Auto-expand supaya user lihat hasil pengajuannya
     if (!STATE_PROFIL.pakExpanded) togglePakExpanded();
   } catch(e) {
-    alert('Gagal mengajukan PAK: ' + e.message);
+    console.error('[PAK] submitPak error:', e);
+    alert('Gagal mengajukan PAK: ' + (e.message || e));
   } finally {
     btn.disabled = false;
     btn.textContent = oldText;
   }
 }
 
-async function cancelPengajuan(id) {
-  if (!confirm('Batalkan pengajuan PAK ini?')) return;
+/**
+ * Re-generate dan unduh dokumen pengajuan yang sudah ada (mis. user
+ * butuh ulang setelah tutup browser). Generate-on-demand dari row
+ * pengajuan_pak yang sudah punya nomor_urut.
+ */
+async function downloadPengajuan(id) {
+  const p = STATE_PROFIL.pengajuan.find(x => x.id === id);
+  if (!p) { alert('Pengajuan tidak ditemukan.'); return; }
   try {
-    const callerId = (JSON.parse(localStorage.getItem('nova_user') || '{}') || {}).id;
-    await novaRpc('pengajuan_pak_cancel', {
-      p_caller_id:    callerId,
-      p_pengajuan_id: id,
+    const ctx = await PakGenerator.resolveContext({
+      pegawai_nip:       p.pegawai_nip,
+      tahun_periode:     p.tahun_periode,
+      bulan_start:       p.bulan_start,
+      bulan_end:         p.bulan_end,
+      tgl_pengajuan:     p.tgl_pengajuan,
+      penandatangan_nip: p.penandatangan_nip,
+      nomor_urut:        p.nomor_urut,
     });
-    await reloadPengajuan();
-    refreshPakCardOnly();
+    const blob = await PakGenerator.renderDoc(ctx);
+    const filename = `Konversi PK ke AK — ${ctx._meta.nama_display} — ${ctx.periode}.docx`;
+    if (typeof window.saveAs === 'function') {
+      window.saveAs(blob, filename);
+    }
   } catch(e) {
-    alert('Gagal membatalkan: ' + e.message);
+    console.error('[PAK] downloadPengajuan error:', e);
+    alert('Gagal membuat dokumen: ' + (e.message || e));
   }
 }
 
