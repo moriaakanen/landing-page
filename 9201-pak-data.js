@@ -23,6 +23,14 @@
  * Catatan: nilai-nilai di bawah disesuaikan dengan tabel Kriteria.xlsx
  * yang disediakan unit pengelola. JANGAN HARDCODE angka ini di file
  * lain — selalu import lewat konstanta di sini.
+ *
+ * REV 2026-05 — Sinkronisasi ke Kriteria.xlsx terbaru:
+ *   - JENJANG_FUNGSIONAL: ak_awal & ak_naik di-update (Pemula ak_awal
+ *     30→30, Pelaksana ak_awal 40→60, dll). Detail di tabel di bawah.
+ *   - GOLONGAN_PNS: ak_awal & ak_naik di-update (IIa ak_awal 25→30, dll).
+ *   - Tambah field `kebutuhan_naik` (= ak_naik − ak_awal) di JENJANG &
+ *     GOLONGAN. Dipakai oleh generator pengajuan PAK untuk tag
+ *     {pangkat_min} & {jenjang_min}.
  */
 
 // ─── PREDIKAT KINERJA ─────────────────────────────────────────────────
@@ -76,32 +84,35 @@ window.getPredikat = getPredikat;
 // Sumber: Kriteria.xlsx — sheet "Kriteria", section "Angka Kredit
 // Jabatan Fungsional".
 //
-// ak_awal     = AK kumulatif yang dimiliki saat MEMASUKI jenjang ini
-// ak_naik     = AK kumulatif yang dibutuhkan sebelum bisa naik ke
-//               jenjang berikutnya. NULL = sudah di puncak (Penyelia
-//               wajib pindah kategori ke Keahlian; Ahli Utama mentok).
-// order       = urutan dalam kategori, dipakai oleh getNextJenjang().
+// ak_awal         = AK kumulatif yang dimiliki saat MEMASUKI jenjang ini
+// ak_naik         = AK kumulatif yang dibutuhkan sebelum bisa naik ke
+//                   jenjang berikutnya. NULL = sudah di puncak (Penyelia
+//                   wajib pindah kategori ke Keahlian; Ahli Utama mentok).
+// kebutuhan_naik  = ak_naik − ak_awal. Berapa AK yang harus dikumpulkan
+//                   selama di jenjang ini sebelum eligible naik. NULL = MAX.
+//                   Dipakai oleh generator pengajuan PAK ({jenjang_min}).
+// order           = urutan dalam kategori, dipakai oleh getNextJenjang().
 window.JENJANG_FUNGSIONAL = [
   // Kategori Keterampilan
   { key: 'pemula',       nama: 'Pemula',       kategori: 'keterampilan',
-    koefisien: 3.75, ak_awal: 25,  ak_naik: 40,  min_pendidikan: 'SMA',     order: 1 },
+    koefisien: 3.75, ak_awal: 30,  ak_naik: 60,  kebutuhan_naik: 30,  min_pendidikan: 'SMA',     order: 1 },
   { key: 'pelaksana',    nama: 'Pelaksana',    kategori: 'keterampilan',
-    koefisien: 5,    ak_awal: 40,  ak_naik: 100, min_pendidikan: 'SMA',     order: 2 },
+    koefisien: 5,    ak_awal: 60,  ak_naik: 100, kebutuhan_naik: 40,  min_pendidikan: 'SMA',     order: 2 },
   { key: 'mahir',        nama: 'Mahir',        kategori: 'keterampilan',
-    koefisien: 12.5, ak_awal: 100, ak_naik: 200, min_pendidikan: 'SMA',     order: 3 },
+    koefisien: 12.5, ak_awal: 100, ak_naik: 200, kebutuhan_naik: 100, min_pendidikan: 'SMA',     order: 3 },
   { key: 'penyelia',     nama: 'Penyelia',     kategori: 'keterampilan',
     koefisien: 25,   ak_awal: 200, ak_naik: null /* MAX harus pindah ke Keahlian */,
-    min_pendidikan: 'S1/DIV', order: 4 },
+    kebutuhan_naik: null, min_pendidikan: 'S1/DIV', order: 4 },
   // Kategori Keahlian
   { key: 'ahli_pertama', nama: 'Ahli Pertama', kategori: 'keahlian',
-    koefisien: 12.5, ak_awal: 100, ak_naik: 200, min_pendidikan: 'S1/DIV', order: 1 },
+    koefisien: 12.5, ak_awal: 100, ak_naik: 200, kebutuhan_naik: 100, min_pendidikan: 'S1/DIV', order: 1 },
   { key: 'ahli_muda',    nama: 'Ahli Muda',    kategori: 'keahlian',
-    koefisien: 25,   ak_awal: 200, ak_naik: 400, min_pendidikan: 'S1/DIV', order: 2 },
+    koefisien: 25,   ak_awal: 200, ak_naik: 400, kebutuhan_naik: 200, min_pendidikan: 'S1/DIV', order: 2 },
   { key: 'ahli_madya',   nama: 'Ahli Madya',   kategori: 'keahlian',
-    koefisien: 37.5, ak_awal: 400, ak_naik: 850, min_pendidikan: 'S2',     order: 3 },
+    koefisien: 37.5, ak_awal: 400, ak_naik: 850, kebutuhan_naik: 450, min_pendidikan: 'S2',     order: 3 },
   { key: 'ahli_utama',   nama: 'Ahli Utama',   kategori: 'keahlian',
     koefisien: 50,   ak_awal: 850, ak_naik: null /* MAX */,
-    min_pendidikan: 'S2', order: 4 },
+    kebutuhan_naik: null, min_pendidikan: 'S2', order: 4 },
 ];
 
 window.JENJANG_BY_KEY = window.JENJANG_FUNGSIONAL.reduce((acc, j) => {
@@ -141,20 +152,21 @@ window.getNextJenjang = getNextJenjang;
 // ─── GOLONGAN PNS ─────────────────────────────────────────────────────
 // Sumber: Kriteria.xlsx — sheet "Kriteria", section "Angka Kredit
 // Golongan". Format AK Awal / Min Kenaikan sama seperti jenjang.
+// kebutuhan_naik = ak_naik − ak_awal. Dipakai untuk tag {pangkat_min}.
 window.GOLONGAN_PNS = [
-  { kode:1,  golongan:'IIa',  pangkat:'Pengatur Muda',           ak_awal:25,   ak_naik:40,   min_pendidikan:'SMA' },
-  { kode:2,  golongan:'IIb',  pangkat:'Pengatur Muda Tk. I',     ak_awal:40,   ak_naik:60,   min_pendidikan:'SMA' },
-  { kode:3,  golongan:'IIc',  pangkat:'Pengatur',                ak_awal:60,   ak_naik:80,   min_pendidikan:'SMA' },
-  { kode:4,  golongan:'IId',  pangkat:'Pengatur Tk. I',          ak_awal:80,   ak_naik:100,  min_pendidikan:'SMA' },
-  { kode:5,  golongan:'IIIa', pangkat:'Penata Muda',             ak_awal:100,  ak_naik:150,  min_pendidikan:'S1/DIV' },
-  { kode:6,  golongan:'IIIb', pangkat:'Penata Muda Tk. I',       ak_awal:150,  ak_naik:200,  min_pendidikan:'S1/DIV' },
-  { kode:7,  golongan:'IIIc', pangkat:'Penata',                  ak_awal:200,  ak_naik:300,  min_pendidikan:'S1/DIV' },
-  { kode:8,  golongan:'IIId', pangkat:'Penata Tk. I',            ak_awal:300,  ak_naik:400,  min_pendidikan:'S2' },
-  { kode:9,  golongan:'IVa',  pangkat:'Pembina',                 ak_awal:400,  ak_naik:550,  min_pendidikan:'S2' },
-  { kode:10, golongan:'IVb',  pangkat:'Pembina Tk. I',           ak_awal:550,  ak_naik:700,  min_pendidikan:'S2' },
-  { kode:11, golongan:'IVc',  pangkat:'Pembina Utama Muda',      ak_awal:700,  ak_naik:850,  min_pendidikan:'S2' },
-  { kode:12, golongan:'IVd',  pangkat:'Pembina Utama Madya',     ak_awal:850,  ak_naik:1050, min_pendidikan:'S2' },
-  { kode:13, golongan:'IVe',  pangkat:'Pembina Utama',           ak_awal:1050, ak_naik:null /* MAX */, min_pendidikan:'S2' },
+  { kode:1,  golongan:'IIa',  pangkat:'Pengatur Muda',           ak_awal:30,   ak_naik:45,   kebutuhan_naik:15,  min_pendidikan:'SMA' },
+  { kode:2,  golongan:'IIb',  pangkat:'Pengatur Muda Tk. I',     ak_awal:45,   ak_naik:60,   kebutuhan_naik:15,  min_pendidikan:'SMA' },
+  { kode:3,  golongan:'IIc',  pangkat:'Pengatur',                ak_awal:60,   ak_naik:80,   kebutuhan_naik:20,  min_pendidikan:'SMA' },
+  { kode:4,  golongan:'IId',  pangkat:'Pengatur Tk. I',          ak_awal:80,   ak_naik:100,  kebutuhan_naik:20,  min_pendidikan:'SMA' },
+  { kode:5,  golongan:'IIIa', pangkat:'Penata Muda',             ak_awal:100,  ak_naik:150,  kebutuhan_naik:50,  min_pendidikan:'S1/DIV' },
+  { kode:6,  golongan:'IIIb', pangkat:'Penata Muda Tk. I',       ak_awal:150,  ak_naik:200,  kebutuhan_naik:50,  min_pendidikan:'S1/DIV' },
+  { kode:7,  golongan:'IIIc', pangkat:'Penata',                  ak_awal:200,  ak_naik:300,  kebutuhan_naik:100, min_pendidikan:'S1/DIV' },
+  { kode:8,  golongan:'IIId', pangkat:'Penata Tk. I',            ak_awal:300,  ak_naik:400,  kebutuhan_naik:100, min_pendidikan:'S2' },
+  { kode:9,  golongan:'IVa',  pangkat:'Pembina',                 ak_awal:400,  ak_naik:550,  kebutuhan_naik:150, min_pendidikan:'S2' },
+  { kode:10, golongan:'IVb',  pangkat:'Pembina Tk. I',           ak_awal:550,  ak_naik:700,  kebutuhan_naik:150, min_pendidikan:'S2' },
+  { kode:11, golongan:'IVc',  pangkat:'Pembina Utama Muda',      ak_awal:700,  ak_naik:850,  kebutuhan_naik:150, min_pendidikan:'S2' },
+  { kode:12, golongan:'IVd',  pangkat:'Pembina Utama Madya',     ak_awal:850,  ak_naik:1050, kebutuhan_naik:200, min_pendidikan:'S2' },
+  { kode:13, golongan:'IVe',  pangkat:'Pembina Utama',           ak_awal:1050, ak_naik:null /* MAX */, kebutuhan_naik:null, min_pendidikan:'S2' },
 ];
 
 window.GOLONGAN_BY_KODE = window.GOLONGAN_PNS.reduce((acc, g) => {
@@ -222,6 +234,39 @@ function extractJenjangFromJabatan(jabatanText) {
   return null;
 }
 window.extractJenjangFromJabatan = extractJenjangFromJabatan;
+
+/**
+ * Ekstrak NAMA JABATAN tanpa jenjang dari teks lengkap.
+ * Mis. "Statistisi Ahli Pertama" → "Statistisi"
+ *      "Pranata Komputer Pelaksana" → "Pranata Komputer"
+ *      "Statistisi Ahli Madya" → "Statistisi"
+ *
+ * Strip suffix jenjang (case-insensitive, dengan whitespace toleran).
+ * Return string asli kalau tidak ada match.
+ *
+ * Dipakai oleh generator pengajuan PAK ({keputusan}).
+ */
+function extractNamaJabatanTanpaJenjang(jabatanText) {
+  if (!jabatanText) return '';
+  const t = String(jabatanText).trim();
+  // Order: yang lebih spesifik dulu agar "Ahli Pertama" di-strip sebelum
+  // pattern "Ahli" yang lebih pendek kena match duluan.
+  const patterns = [
+    /\s+ahli\s+pertama\s*$/i,
+    /\s+ahli\s+madya\s*$/i,
+    /\s+ahli\s+utama\s*$/i,
+    /\s+ahli\s+muda\s*$/i,
+    /\s+penyelia\s*$/i,
+    /\s+mahir\s*$/i,
+    /\s+pelaksana\s*$/i,
+    /\s+pemula\s*$/i,
+  ];
+  for (const re of patterns) {
+    if (re.test(t)) return t.replace(re, '').trim();
+  }
+  return t;
+}
+window.extractNamaJabatanTanpaJenjang = extractNamaJabatanTanpaJenjang;
 
 // ─── PROGRESSI / GAP ANALYSIS ─────────────────────────────────────────
 
@@ -531,6 +576,31 @@ function fmtAKNumber(v) {
   return Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/\.?0+$/, '');
 }
 window.fmtAKNumber = fmtAKNumber;
+
+/**
+ * Format AK untuk OUTPUT DOKUMEN (locale Indonesia: koma sebagai
+ * pemisah desimal, titik untuk ribuan). Mis. 1234.567 → "1.234,567".
+ *
+ * Bedanya dengan fmtAKNumber: yang ini selalu menampilkan minimal 1
+ * digit desimal kalau ada koma, dan pakai locale ID. fmtAKNumber pakai
+ * dot untuk konteks input/UI English.
+ *
+ * Dipakai oleh 9201-pak-generator.js untuk semua tag {ak}, {ak_n1},
+ * {ak_tot}, {akb}, dll. di template surat.
+ */
+function fmtAKNumberID(v) {
+  if (v == null || v === '') return '';
+  const n = Number(v);
+  if (isNaN(n)) return String(v);
+  if (Number.isInteger(n)) return n.toLocaleString('id-ID');
+  // Buang trailing zero, tapi keep decimal separator sebagai koma.
+  let s = n.toFixed(3).replace(/\.?0+$/, '');
+  // Ubah dot decimal jadi koma, tambah titik ribuan di integer part.
+  const [intPart, fracPart] = s.split('.');
+  const intFormatted = parseInt(intPart, 10).toLocaleString('id-ID');
+  return fracPart ? `${intFormatted},${fracPart}` : intFormatted;
+}
+window.fmtAKNumberID = fmtAKNumberID;
 
 /**
  * Cek apakah pendidikan pegawai memenuhi minimum jenjang/golongan.
