@@ -32,6 +32,7 @@
   // berdasarkan active_role)
   var NAV_ADMIN_ITEMS = [
     { key: 'admin-surat',         href: 'admin-surat-tugas.html',    icon: '✅', label: 'Surat Tugas' },
+    { key: 'admin-pengajuan-pak', href: 'admin-pengajuan-pak.html',  icon: '⭐', label: 'Pengajuan PAK' },
     { key: 'riwayat',             href: 'admin-riwayat.html',        icon: '📜', label: 'Riwayat Kepegawaian' },
     { key: 'kamus-pok',           href: 'manajemen-kamus-pok.html',  icon: '📚', label: 'Kamus POK' },
     { key: 'manajemen-mitra',     href: 'manajemen-mitra.html',      icon: '🤝', label: 'Manajemen Mitra' },
