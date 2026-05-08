@@ -368,35 +368,47 @@
    *
    * PENTING: tag {@...} di docxtemplater menggantikan SELURUH paragraf
    * (`<w:p>...</w:p>`), bukan hanya isi run/text-nya. Jadi output di
-   * sini wajib berupa COMPLETE paragraph element(s) dengan struktur
-   * `<w:p>...<w:r>...</w:r>...</w:p>`. Kalau cuma `<w:r>` saja, hasil
-   * akhir-nya jadi malformed Word XML — file ter-download tapi error
-   * "trying to open the file" saat dibuka di Microsoft Word.
+   * sini wajib berupa COMPLETE paragraph element. Kalau cuma `<w:r>`
+   * saja, hasil akhir-nya jadi malformed Word XML — file ter-download
+   * tapi error "trying to open the file" saat dibuka di Word.
    *
-   * Format teks: dua kata "Kelebihan/Kekurangan" yang salah satunya
-   * di-strikethrough (sesuai semantik kondisi):
-   *   - strikeKelebihan=true  → "~~Kelebihan~~/Kekurangan"
-   *   - strikeKelebihan=false → "Kelebihan/~~Kekurangan~~"
+   * Format output: 1 paragraf yang isinya 4 kemungkinan kalimat:
+   *   - kep_pangkat, AK kurang  : "~Kelebihan~/Kekurangan*) Angka Kredit yang harus dipenuhi untuk kenaikan pangkat"
+   *   - kep_pangkat, AK cukup   : "Kelebihan/~Kekurangan~*) Angka Kredit yang harus dipenuhi untuk kenaikan pangkat"
+   *   - kep_jenjang, AK kurang  : "~Kelebihan~/Kekurangan*) Angka Kredit yang harus dipenuhi untuk kenaikan jenjang"
+   *   - kep_jenjang, AK cukup   : "Kelebihan/~Kekurangan~*) Angka Kredit yang harus dipenuhi untuk kenaikan jenjang"
    *
    * Font/spacing: Cambria 10pt, spacing after=0 — sesuai paragraf
    * asli di template supaya tidak ada visual jump.
+   *
+   * @param {boolean} strikeKelebihan  true → "Kelebihan" yg di-strike, false → "Kekurangan"
+   * @param {string}  jenis            'pangkat' atau 'jenjang' (untuk suffix kalimat)
    */
-  function buildKepXml(strikeKelebihan) {
+  function buildKepXml(strikeKelebihan, jenis) {
     // Properti paragraf & run — match template asli
     const pPr = '<w:pPr><w:spacing w:after="0"/><w:rPr><w:rFonts w:ascii="Cambria" w:eastAsia="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>';
     const rPrBase   = '<w:rPr><w:rFonts w:ascii="Cambria" w:eastAsia="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr>';
     const rPrStrike = '<w:rPr><w:rFonts w:ascii="Cambria" w:eastAsia="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:strike w:val="true"/></w:rPr>';
 
-    // Build 2 runs di dalam 1 paragraf
+    // Suffix kalimat berdasarkan jenis
+    const suffix = `*) Angka Kredit yang harus dipenuhi untuk kenaikan ${jenis}`;
+
+    // Build runs di dalam 1 paragraf:
+    //   run 1: "Kelebihan" atau "Kelebihan/" (strike kalau perlu)
+    //   run 2: "/Kekurangan" atau "Kekurangan" (strike kalau perlu)
+    //   run 3: "*) Angka Kredit yang harus dipenuhi untuk kenaikan pangkat/jenjang" (selalu normal)
     let runs;
     if (strikeKelebihan) {
+      // "Kelebihan" di-strike, "/Kekurangan" normal, " Angka..." normal
       runs =
         `<w:r>${rPrStrike}<w:t xml:space="preserve">Kelebihan</w:t></w:r>`
-      + `<w:r>${rPrBase}<w:t xml:space="preserve">/Kekurangan</w:t></w:r>`;
+      + `<w:r>${rPrBase}<w:t xml:space="preserve">/Kekurangan${suffix}</w:t></w:r>`;
     } else {
+      // "Kelebihan/" normal, "Kekurangan" di-strike, " Angka..." normal
       runs =
         `<w:r>${rPrBase}<w:t xml:space="preserve">Kelebihan/</w:t></w:r>`
-      + `<w:r>${rPrStrike}<w:t xml:space="preserve">Kekurangan</w:t></w:r>`;
+      + `<w:r>${rPrStrike}<w:t xml:space="preserve">Kekurangan</w:t></w:r>`
+      + `<w:r>${rPrBase}<w:t xml:space="preserve">${suffix}</w:t></w:r>`;
     }
 
     return `<w:p>${pPr}${runs}</w:p>`;
@@ -652,8 +664,8 @@
     // ─── Build {kep_pangkat}, {kep_jenjang} (raw XML) ────────
     // Kalau kurang_lebih < 0 → strike "Kelebihan"
     // Kalau kurang_lebih ≥ 0 → strike "Kekurangan"
-    const kep_pangkat_xml = buildKepXml(kurang_lebih_p < 0);
-    const kep_jenjang_xml = buildKepXml(kurang_lebih_j < 0);
+    const kep_pangkat_xml = buildKepXml(kurang_lebih_p < 0, 'pangkat');
+    const kep_jenjang_xml = buildKepXml(kurang_lebih_j < 0, 'jenjang');
 
     // ─── Build {keputusan} ──────────────────────────────────
     const keputusan = buildKeputusan({
