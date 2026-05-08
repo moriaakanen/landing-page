@@ -427,6 +427,7 @@
 <script src="9201-topbar.js"></script>
 <script src="9201-sidebar.js"></script>
 <script src="9201-role-switcher.js"></script>
+<script src="9201-notifikasi.js"></script>
 
 <!-- Library PAK -->
 <script src="9201-pak-data.js"></script>
@@ -1718,6 +1719,16 @@ async function init() {
   });
 
   await loadAll();
+
+  // Deep-link support: kalau URL punya ?nip=X, auto-open detail modal.
+  // Dipakai oleh notifikasi (klik notif PAK admin → buka detail langsung).
+  try {
+    const params = new URLSearchParams(location.search);
+    const targetNIP = params.get('nip');
+    if (targetNIP && STATE.pegawaiSummary.find(s => s.nip === targetNIP)) {
+      openDetail(targetNIP);
+    }
+  } catch (_) { /* ignore */ }
 }
 
 if (document.readyState === 'loading') {
