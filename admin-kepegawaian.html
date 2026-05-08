@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230d2340'/><g fill='%23c8a84b' transform='translate(0,1)'><path d='M 5 15 C 2 13, 1 9, 3 4 C 4 8, 6 11, 9 13 Z' opacity='0.55'/><path d='M 6 18 C 3 16, 2 11, 4 7 C 5 10, 7 14, 10 16 Z' opacity='0.85'/><path d='M 8 18 Q 8 12, 13 11 L 19 11 Q 23 12, 23 16 Q 23 20, 19 21 L 14 22 Q 8 22, 8 18 Z'/><circle cx='20' cy='11' r='3.2'/><path d='M 18 8 Q 18 6, 19 6 Q 19 5, 20 5.5 Q 20 4.5, 21 5 Q 21 6, 22 6.5 L 22 8 Z'/><path d='M 23 11 L 25.5 10.5 L 23 12.5 Z'/><path d='M 22 12.5 Q 22.5 14.5, 21.5 14.5 L 21 12.5 Z'/><circle cx='20.2' cy='10.5' r='0.65' fill='white'/><rect x='13' y='22' width='1' height='4' rx='0.3'/><rect x='17.5' y='22' width='1' height='4' rx='0.3'/></g></svg>">
+<title>9201 — Kepegawaian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+
+<!-- Library docx — untuk re-generate dokumen pengajuan PAK -->
+<script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip.js"></script>
+<script src="https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<style>
+  :root{
+    --bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;
+    --gold:#c8a84b;--gold-light:#f5edda;--gold-dark:#a78a3a;
+    --text:#1a1a2e;--muted:#6b7280;
+    --border:#e2ddd6;--border2:#d1ccc3;
+    --red:#c0392b;--success:#1a7a4a;--warn:#92400e;
+    --sidebar-w:260px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
+
+  /* ════════ SIDEBAR ════════ */
+  .layout{display:flex;flex:1;min-height:0}
+  .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+  .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
+  .nav-group-label{font-size:10px;font-weight:600;color:var(--border2);letter-spacing:1.2px;text-transform:uppercase;padding:16px 20px 6px;margin-top:4px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;text-decoration:none;user-select:none;transition:background .15s,color .15s}
+  .nav-item:hover{background:var(--bg);color:var(--navy)}
+  .nav-item.active{background:var(--gold-light);color:var(--navy);border-left-color:var(--gold);font-weight:600}
+  .nav-item-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--bg);flex-shrink:0;transition:background .15s}
+  .nav-item.active .nav-item-icon{background:rgba(200,168,75,.2)}
+  .nav-item:hover .nav-item-icon{background:var(--border)}
+  .sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.7}
+  .sidebar-footer strong{color:var(--navy);font-weight:600}
+  .admin-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.35);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--gold);margin-top:4px;letter-spacing:.3px}
+
+  /* ════════ MAIN ════════ */
+  .main{flex:1;overflow-y:auto;padding:32px 40px 60px}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .fade-in{animation:fadeUp .5s cubic-bezier(.2,.7,.3,1) both}
+
+  /* ════════ PAGE HEADER ════════ */
+  .page-header{margin-bottom:22px}
+  .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold-dark);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
+  .page-title{font-family:'Fraunces',serif;font-size:clamp(24px,2.5vw,30px);font-weight:300;color:var(--navy);line-height:1.2}
+  .page-title em{font-style:italic;color:var(--gold);font-weight:400}
+  .page-desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6;max-width:680px}
+
+  /* ════════ STATS ROW ════════ */
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+  .stat-pill{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 16px;box-shadow:0 1px 3px rgba(13,35,64,.04)}
+  .stat-pill-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+  .stat-pill-num{font-family:'Fraunces',serif;font-size:21px;font-weight:500;color:var(--navy);line-height:1.1}
+  .stat-pill-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-top:2px}
+
+  /* ════════ FILTER BAR ════════ */
+  .filter-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .search-wrap{position:relative;flex:1;min-width:240px;max-width:400px}
+  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted)}
+  .search-input{width:100%;padding:9px 12px 9px 34px;border:1.5px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;background:var(--white)}
+  .search-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
+  .filter-select{padding:9px 14px 9px 12px;border:1.5px solid var(--border2);border-radius:8px;font-family:inherit;font-size:13px;outline:none;background:var(--white);cursor:pointer;transition:border-color .15s,box-shadow .15s;min-width:140px}
+  .filter-select:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
+  .filter-info{margin-left:auto;font-size:12px;color:var(--muted);font-weight:500}
+
+  /* ════════ PEGAWAI CARDS GRID ════════ */
+  .pegawai-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px}
+
+  .pg-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;display:flex;flex-direction:column}
+  .pg-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(13,35,64,.08);border-color:var(--border2)}
+  .pg-card.has-pending{border-left:4px solid var(--gold);background:linear-gradient(90deg,rgba(200,168,75,.04) 0%,var(--white) 60%)}
+
+  .pg-card-head{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+  .pg-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:var(--gold);font-family:'Fraunces',serif;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:.5px}
+  .pg-name-wrap{flex:1;min-width:0}
+  .pg-name{font-size:14px;font-weight:600;color:var(--navy);line-height:1.3;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .pg-nip{font-size:11.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums;font-weight:500}
+
+  .pg-pill-pak{display:inline-flex;align-items:center;gap:3px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:100px;padding:2px 8px;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;flex-shrink:0}
+
+  /* Card body — info utama */
+  .pg-card-body{padding:13px 16px 14px;display:flex;flex-direction:column;gap:9px}
+  .pg-row{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:baseline;font-size:12.5px;line-height:1.4}
+  .pg-row-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .pg-row-value{color:var(--navy);font-weight:500;font-variant-numeric:tabular-nums;word-break:break-word}
+  .pg-row-value.empty{color:var(--muted);font-style:italic;font-weight:400}
+  .pg-row-value strong{font-weight:600}
+  .pg-row-value.warn{color:var(--warn)}
+  .pg-row-value.success{color:var(--success)}
+
+  /* Mini progress bar untuk kebutuhan AK */
+  .pg-mini-bar{height:4px;background:var(--bg);border-radius:100px;overflow:hidden;margin-top:4px}
+  .pg-mini-bar-fill{height:100%;border-radius:100px;transition:width .3s}
+  .pg-mini-bar-fill.is-low{background:#ef4444}
+  .pg-mini-bar-fill.is-mid{background:var(--gold)}
+  .pg-mini-bar-fill.is-high{background:#84cc16}
+  .pg-mini-bar-fill.is-ready{background:var(--success)}
+
+  /* Footer card */
+  .pg-card-foot{padding:9px 16px;background:#fafaf6;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:var(--muted);font-weight:500}
+  .pg-card-foot-detail{display:inline-flex;align-items:center;gap:4px;color:var(--gold-dark);font-weight:600}
+
+  /* ════════ EMPTY/LOADING STATES ════════ */
+  .empty-state{padding:64px 22px;text-align:center;color:var(--muted);grid-column:1/-1}
+  .empty-icon{font-size:36px;margin-bottom:10px;opacity:.5}
+  .empty-title{font-family:'Fraunces',serif;font-size:18px;color:var(--navy);font-weight:500;margin-bottom:4px}
+  .empty-desc{font-size:13px;line-height:1.6;max-width:380px;margin:0 auto}
+
+  /* Skeleton card */
+  .pg-skel{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-height:200px}
+  .skel{background:linear-gradient(90deg,rgba(13,35,64,.05) 25%,rgba(13,35,64,.1) 50%,rgba(13,35,64,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:5px;height:14px}
+  .skel.tall{height:42px}
+  .skel.short{width:60%}
+  @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+  /* Page alert */
+  .alert{display:none;padding:11px 16px;border-radius:8px;font-size:12.5px;font-weight:500;margin-bottom:14px;line-height:1.5;border:1px solid}
+  .alert.show{display:flex;align-items:flex-start;gap:8px}
+  .alert.success{background:#ecfdf5;color:var(--success);border-color:#a7f3d0}
+  .alert.error  {background:#fef2f2;color:var(--red);    border-color:#fecaca}
+  .alert.info   {background:#eff6ff;color:#1e40af;       border-color:#bfdbfe}
+  .alert.warn   {background:#fffbeb;color:var(--warn);   border-color:#fde68a}
+</style>
+</head>
+<body>
+
+<div id="topbar-mount"></div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar" data-active="kepegawaian"></aside>
+
+  <main class="main">
+    <div class="page-header fade-in">
+      <div class="page-eyebrow">Administrasi</div>
+      <h1 class="page-title">Kepe<em>gawai</em>an</h1>
+      <p class="page-desc">Kelola data riwayat kepegawaian dan pengajuan PAK seluruh pegawai. Klik nama pegawai untuk melihat riwayat lengkap dan mengajukan PAK.</p>
+    </div>
+
+    <div id="page-alert" class="alert"></div>
+
+    <!-- ─── STATS ────────────────────────────────────────────────── -->
+    <div class="stats-row fade-in" style="animation-delay:.06s">
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#e8f0fe">👥</div><div><div class="stat-pill-num" id="st-total">—</div><div class="stat-pill-label">Total Pegawai</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef3c7">⏳</div><div><div class="stat-pill-num" id="st-pak-pending">—</div><div class="stat-pill-label">PAK Menunggu</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">✓</div><div><div class="stat-pill-num" id="st-ready-pangkat">—</div><div class="stat-pill-label">Siap Naik Pangkat</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fdf4ff">🎯</div><div><div class="stat-pill-num" id="st-ready-jenjang">—</div><div class="stat-pill-label">Siap Naik Jenjang</div></div></div>
+    </div>
+
+    <!-- ─── FILTER BAR ───────────────────────────────────────────── -->
+    <div class="filter-bar fade-in" style="animation-delay:.08s">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" id="search-input" placeholder="Cari nama, NIP, jabatan…" oninput="onFilterChange()">
+      </div>
+      <select class="filter-select" id="filter-jenjang" onchange="onFilterChange()">
+        <option value="">Semua Jenjang</option>
+        <option value="pemula">Pemula</option>
+        <option value="pelaksana">Pelaksana</option>
+        <option value="mahir">Mahir</option>
+        <option value="penyelia">Penyelia</option>
+        <option value="ahli_pertama">Ahli Pertama</option>
+        <option value="ahli_muda">Ahli Muda</option>
+        <option value="ahli_madya">Ahli Madya</option>
+        <option value="ahli_utama">Ahli Utama</option>
+      </select>
+      <select class="filter-select" id="filter-pak" onchange="onFilterChange()">
+        <option value="">Status PAK: Semua</option>
+        <option value="menunggu">Ada PAK Menunggu</option>
+        <option value="ready">Siap Naik (AK Cukup)</option>
+      </select>
+      <span class="filter-info" id="filter-info">—</span>
+    </div>
+
+    <!-- ─── GRID PEGAWAI ─────────────────────────────────────────── -->
+    <div class="pegawai-grid fade-in" id="grid-pegawai" style="animation-delay:.1s">
+      <!-- skeleton awal -->
+      <div class="pg-skel"><div class="skel tall"></div><div class="skel"></div><div class="skel short"></div><div class="skel"></div></div>
+      <div class="pg-skel"><div class="skel tall"></div><div class="skel"></div><div class="skel short"></div><div class="skel"></div></div>
+      <div class="pg-skel"><div class="skel tall"></div><div class="skel"></div><div class="skel short"></div><div class="skel"></div></div>
+      <div class="pg-skel"><div class="skel tall"></div><div class="skel"></div><div class="skel short"></div><div class="skel"></div></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Library shared 9201 -->
+<script src="config.js"></script>
+<script src="9201-shared.js"></script>
+<script src="9201-topbar.js"></script>
+<script src="9201-sidebar.js"></script>
+<script src="9201-role-switcher.js"></script>
+
+<!-- Library PAK -->
+<script src="9201-pak-data.js"></script>
+<script src="9201-pak-generator.js"></script>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════════════════
+   STATE
+   ────────────────────────────────────────────────────────────────────
+   Single source of truth — semua data di-fetch sekali saat load,
+   filter/render dilakukan client-side.
+   ──────────────────────────────────────────────────────────────────── */
+const STATE = {
+  pegawaiList: [],          // [{NIP, NAMA, ...}]
+  pegawaiByNIP: {},         // map NIP → pegawai
+
+  // Riwayat (semua row, akan di-group per pegawai saat render)
+  riwayatAK: [],            // [{pegawai_nip, angka_kredit, tmt}]
+  riwayatPangkat: [],       // [{pegawai_nip, pangkat, golongan, tmt, ...}]
+  riwayatJabatan: [],       // [{pegawai_nip, jabatan, tmt, jenis, ...}]
+  riwayatGelar: [],         // [{pegawai_nip, gelar, tmt}]
+
+  // Pengajuan PAK (semua status)
+  pengajuanPAK: [],
+
+  // Computed: per-pegawai summary (di-build di buildPegawaiSummary)
+  pegawaiSummary: [],       // [{nip, nama, latestAK, latestPangkat, ..., pakPending, prog}]
+
+  // Filter state
+  filtered: [],
+
+  // Detail modal yang sedang terbuka
+  detailOpenNIP: null,
+};
+
+/* ════════════════════════════════════════════════════════════════════
+   HELPERS
+   ──────────────────────────────────────────────────────────────────── */
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])
+  );
+}
+
+function fmtAK(v) {
+  if (v == null || v === '') return '—';
+  const n = Number(v);
+  if (isNaN(n)) return String(v);
+  return Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/\.?0+$/, '');
+}
+
+function fmtTglID(iso) {
+  if (!iso) return '—';
+  const m = String(iso).slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return iso;
+  return `${parseInt(m[3], 10)} ${BULAN[parseInt(m[2], 10) - 1]} ${m[1]}`;
+}
+
+function fmtPeriode(p) {
+  if (!p.bulan_start || !p.bulan_end || !p.tahun_periode) return '—';
+  if (p.bulan_start === p.bulan_end) {
+    return `${BULAN[p.bulan_start - 1]} ${p.tahun_periode}`;
+  }
+  return `${BULAN[p.bulan_start - 1]} s.d ${BULAN[p.bulan_end - 1]} ${p.tahun_periode}`;
+}
+
+function initialsFromName(name) {
+  if (!name) return '—';
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '—';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function showAlert(type, msg) {
+  const el = document.getElementById('page-alert');
+  el.className = `alert show ${type}`;
+  el.innerHTML = msg;
+  if (type !== 'error') {
+    setTimeout(() => { el.classList.remove('show'); }, 6000);
+  }
+}
+
+/**
+ * Estimasi tanggal naik pangkat/jenjang berdasar laju AK historis.
+ * Output: "Maret 2027" atau null kalau data tidak cukup.
+ */
+function estimasiTanggalPromosi(sisa, akList) {
+  if (sisa == null || sisa <= 0) return null;
+  if (!Array.isArray(akList) || akList.length < 2) return null;
+  const sorted = [...akList].slice().sort((a,b) => String(a.tmt).localeCompare(String(b.tmt)));
+  const earliest = sorted[0];
+  const latest   = sorted[sorted.length - 1];
+  const akEarliest = Number(earliest.angka_kredit) || 0;
+  const akLatest   = Number(latest.angka_kredit) || 0;
+  const delta      = akLatest - akEarliest;
+  if (delta <= 0) return null;
+  const dEarliest = new Date(earliest.tmt);
+  const dLatest   = new Date(latest.tmt);
+  const yearGap   = (dLatest - dEarliest) / (1000 * 60 * 60 * 24 * 365.25);
+  if (yearGap <= 0) return null;
+  const lajuPerTahun = delta / yearGap;
+  if (lajuPerTahun <= 0) return null;
+  const tahunLagi = sisa / lajuPerTahun;
+  const target = new Date();
+  target.setMonth(target.getMonth() + Math.ceil(tahunLagi * 12));
+  return `${BULAN[target.getMonth()]} ${target.getFullYear()}`;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   LOAD DATA — fetch parallel: pegawai + 4 riwayat + pengajuan PAK
+   ──────────────────────────────────────────────────────────────────── */
+
+async function loadAll() {
+  try {
+    const [pegawaiRes, akRes, pangkatRes, jabatanRes, gelarRes, pakRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=*&order=NAMA.asc`,                 { headers: SUPABASE_HEADERS }),
+      fetch(`${SUPABASE_URL}/rest/v1/riwayat_angka_kredit?select=*&order=tmt.desc`,         { headers: SUPABASE_HEADERS }),
+      fetch(`${SUPABASE_URL}/rest/v1/riwayat_pangkat_golongan?select=*&order=tmt.desc`,     { headers: SUPABASE_HEADERS }),
+      fetch(`${SUPABASE_URL}/rest/v1/riwayat_jabatan?select=*&order=tmt.desc`,              { headers: SUPABASE_HEADERS }),
+      fetch(`${SUPABASE_URL}/rest/v1/riwayat_gelar?select=*&order=tmt.desc`,                { headers: SUPABASE_HEADERS }),
+      fetch(`${SUPABASE_URL}/rest/v1/pengajuan_pak?select=*&order=created_at.desc`,         { headers: SUPABASE_HEADERS }),
+    ]);
+
+    // Data pegawai wajib sukses
+    if (!pegawaiRes.ok) throw new Error(`Fetch data_pegawai gagal (HTTP ${pegawaiRes.status})`);
+    STATE.pegawaiList = await pegawaiRes.json();
+    STATE.pegawaiByNIP = STATE.pegawaiList.reduce((acc, p) => {
+      if (p.NIP) acc[p.NIP] = p;
+      return acc;
+    }, {});
+
+    // Riwayat — non-fatal, default ke array kosong kalau gagal
+    STATE.riwayatAK      = akRes.ok      ? await akRes.json()      : [];
+    STATE.riwayatPangkat = pangkatRes.ok ? await pangkatRes.json() : [];
+    STATE.riwayatJabatan = jabatanRes.ok ? await jabatanRes.json() : [];
+    STATE.riwayatGelar   = gelarRes.ok   ? await gelarRes.json()   : [];
+    STATE.pengajuanPAK   = pakRes.ok     ? await pakRes.json()     : [];
+
+    // Build summary per pegawai
+    buildPegawaiSummary();
+
+    // Update stats + render
+    updateStats();
+    onFilterChange();
+  } catch (e) {
+    console.error('[admin-kepegawaian] loadAll error:', e);
+    document.getElementById('grid-pegawai').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">Gagal memuat data</div>
+        <div class="empty-desc">${esc(e.message || e)}</div>
+      </div>`;
+  }
+}
+
+/**
+ * Build STATE.pegawaiSummary — array of {nip, nama, ..., prog, pakPending}
+ * dengan info lengkap per pegawai siap di-render.
+ */
+function buildPegawaiSummary() {
+  // Group riwayat per NIP, ambil yang terbaru per kategori
+  const akByNIP        = groupLatestByNIP(STATE.riwayatAK,      'tmt');
+  const pangkatByNIP   = groupLatestByNIP(STATE.riwayatPangkat, 'tmt');
+  // Untuk jabatan: hanya jenis 'utama' yang relevan (bukan jabatan tambahan)
+  const jabatanUtamaList = STATE.riwayatJabatan.filter(j => (j.jenis || 'utama') === 'utama');
+  const jabatanByNIP   = groupLatestByNIP(jabatanUtamaList, 'tmt');
+  const gelarByNIP     = groupLatestByNIP(STATE.riwayatGelar,   'tmt');
+
+  // Group AK list per NIP (untuk estimasi laju kenaikan)
+  const akListByNIP = {};
+  STATE.riwayatAK.forEach(r => {
+    if (!r.pegawai_nip) return;
+    if (!akListByNIP[r.pegawai_nip]) akListByNIP[r.pegawai_nip] = [];
+    akListByNIP[r.pegawai_nip].push(r);
+  });
+
+  // Pengajuan PAK per pegawai
+  const pakByNIP = {};
+  STATE.pengajuanPAK.forEach(p => {
+    if (!p.pegawai_nip) return;
+    if (!pakByNIP[p.pegawai_nip]) pakByNIP[p.pegawai_nip] = [];
+    pakByNIP[p.pegawai_nip].push(p);
+  });
+
+  STATE.pegawaiSummary = STATE.pegawaiList.map(peg => {
+    const nip = peg.NIP;
+    const latestAK      = akByNIP[nip]      || null;
+    const latestPangkat = pangkatByNIP[nip] || null;
+    const latestJabatan = jabatanByNIP[nip] || null;
+    const latestGelar   = gelarByNIP[nip]   || null;
+    const akList        = akListByNIP[nip]  || [];
+    const pakList       = pakByNIP[nip]     || [];
+    const pakPending    = pakList.filter(p => p.status === 'menunggu');
+
+    // Hitung progress kebutuhan AK
+    const akKumulatif = latestAK ? Number(latestAK.angka_kredit) || 0 : 0;
+    const golongan    = latestPangkat ? window.getGolonganByName(latestPangkat.golongan) : null;
+    const jenjang     = latestJabatan ? window.extractJenjangFromJabatan(latestJabatan.jabatan) : null;
+    const prog        = golongan ? window.progressGolongan(akKumulatif, golongan) : null;
+
+    return {
+      nip, nama: peg.NAMA || '(Tanpa Nama)',
+      pegawai: peg,
+      latestAK, latestPangkat, latestJabatan, latestGelar,
+      akList, pakList, pakPending,
+      akKumulatif,
+      golongan, jenjang, prog,
+    };
+  });
+}
+
+/** Helper: group rows by pegawai_nip, pick the one with max value of `field` */
+function groupLatestByNIP(rows, field) {
+  const map = {};
+  for (const r of rows) {
+    if (!r.pegawai_nip) continue;
+    const cur = map[r.pegawai_nip];
+    if (!cur || String(r[field] || '').localeCompare(String(cur[field] || '')) > 0) {
+      map[r.pegawai_nip] = r;
+    }
+  }
+  return map;
+}
+
+function updateStats() {
+  const total = STATE.pegawaiSummary.length;
+  const pakPending = STATE.pegawaiSummary.filter(s => s.pakPending.length > 0).length;
+  const readyP = STATE.pegawaiSummary.filter(s => s.prog && s.prog.pangkat && s.prog.pangkat.can_promote).length;
+  const readyJ = STATE.pegawaiSummary.filter(s => s.prog && s.prog.jenjang && s.prog.jenjang.can_promote).length;
+
+  document.getElementById('st-total').textContent        = total;
+  document.getElementById('st-pak-pending').textContent  = pakPending;
+  document.getElementById('st-ready-pangkat').textContent = readyP;
+  document.getElementById('st-ready-jenjang').textContent = readyJ;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   FILTER + RENDER
+   ──────────────────────────────────────────────────────────────────── */
+
+function onFilterChange() {
+  const q       = document.getElementById('search-input').value.trim().toLowerCase();
+  const fJenjang= document.getElementById('filter-jenjang').value;
+  const fPAK    = document.getElementById('filter-pak').value;
+
+  STATE.filtered = STATE.pegawaiSummary.filter(s => {
+    // Search
+    if (q) {
+      const haystack = `${s.nama} ${s.nip || ''} ${(s.latestJabatan && s.latestJabatan.jabatan) || ''}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    // Filter jenjang
+    if (fJenjang) {
+      if (!s.jenjang || s.jenjang.key !== fJenjang) return false;
+    }
+    // Filter PAK status
+    if (fPAK === 'menunggu') {
+      if (s.pakPending.length === 0) return false;
+    } else if (fPAK === 'ready') {
+      const ready = (s.prog && ((s.prog.pangkat && s.prog.pangkat.can_promote) || (s.prog.jenjang && s.prog.jenjang.can_promote)));
+      if (!ready) return false;
+    }
+    return true;
+  });
+
+  // Sort: pakPending > 0 dulu, lalu by nama
+  STATE.filtered.sort((a, b) => {
+    const aP = a.pakPending.length > 0 ? 1 : 0;
+    const bP = b.pakPending.length > 0 ? 1 : 0;
+    if (aP !== bP) return bP - aP;
+    return String(a.nama).localeCompare(String(b.nama), 'id');
+  });
+
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid-pegawai');
+  const rows = STATE.filtered;
+
+  document.getElementById('filter-info').textContent =
+    `${rows.length} dari ${STATE.pegawaiSummary.length} pegawai`;
+
+  if (!rows.length) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">Tidak ada hasil</div>
+      <div class="empty-desc">Tidak ada pegawai yang cocok dengan filter saat ini.</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = rows.map(renderPegawaiCard).join('');
+}
+
+/**
+ * Render satu card pegawai dengan summary lengkap.
+ */
+function renderPegawaiCard(s) {
+  // Pill PAK menunggu
+  const pakPill = s.pakPending.length > 0
+    ? `<span class="pg-pill-pak" title="${s.pakPending.length} pengajuan PAK menunggu persetujuan">⏳ PAK Menunggu</span>`
+    : '';
+
+  // Card class — highlight kalau ada PAK menunggu
+  const cardCls = s.pakPending.length > 0 ? 'pg-card has-pending' : 'pg-card';
+
+  // AK Terbaru row
+  const akRow = s.latestAK
+    ? `<strong>${esc(fmtAK(s.latestAK.angka_kredit))}</strong> <span style="color:var(--muted);font-weight:500">· per ${esc(fmtTglID(s.latestAK.tmt))}</span>`
+    : `<span class="empty">Belum ada</span>`;
+
+  // Jabatan & Pangkat
+  const jabatanRow = s.latestJabatan
+    ? esc(s.latestJabatan.jabatan)
+    : `<span class="empty">Belum ada</span>`;
+
+  const pangkatRow = s.latestPangkat
+    ? `${esc(s.latestPangkat.pangkat || '—')} <span style="color:var(--muted)">/</span> ${esc(s.latestPangkat.golongan || '—')}`
+    : `<span class="empty">Belum ada</span>`;
+
+  // Kebutuhan + perkiraan (gabungan, ringkas)
+  const kebutuhan = renderKebutuhanRow(s);
+
+  return `
+    <div class="${cardCls}" onclick="openDetail('${esc(s.nip)}')">
+      <div class="pg-card-head">
+        <div class="pg-avatar">${esc(initialsFromName(s.nama))}</div>
+        <div class="pg-name-wrap">
+          <div class="pg-name">${esc(s.nama)} ${pakPill}</div>
+          <div class="pg-nip">${esc(s.nip || '— tanpa NIP —')}</div>
+        </div>
+      </div>
+      <div class="pg-card-body">
+        <div class="pg-row">
+          <span class="pg-row-label">Jabatan</span>
+          <span class="pg-row-value">${jabatanRow}</span>
+        </div>
+        <div class="pg-row">
+          <span class="pg-row-label">Pangkat</span>
+          <span class="pg-row-value">${pangkatRow}</span>
+        </div>
+        <div class="pg-row">
+          <span class="pg-row-label">AK Terbaru</span>
+          <span class="pg-row-value">${akRow}</span>
+        </div>
+        ${kebutuhan}
+      </div>
+      <div class="pg-card-foot">
+        <span>${s.pakList.length > 0 ? `${s.pakList.length} pengajuan PAK` : 'Belum ada pengajuan PAK'}</span>
+        <span class="pg-card-foot-detail">Lihat detail →</span>
+      </div>
+    </div>`;
+}
+
+/**
+ * Render baris "Kebutuhan AK" di card — tampilkan info pangkat+jenjang
+ * ringkas dengan mini progress bar.
+ */
+function renderKebutuhanRow(s) {
+  if (!s.prog) {
+    return `
+      <div class="pg-row">
+        <span class="pg-row-label">Kebutuhan</span>
+        <span class="pg-row-value empty">Belum ada data pangkat/jabatan</span>
+      </div>`;
+  }
+
+  // Build status untuk pangkat & jenjang
+  const renderSubProg = (prog, label, perkiraanLabel) => {
+    if (prog === null) {
+      return `
+        <div style="font-size:11.5px;line-height:1.4">
+          <span style="color:var(--muted);font-weight:500">${esc(label)}:</span>
+          <span class="pg-row-value success" style="font-size:11.5px">Sudah di puncak</span>
+        </div>`;
+    }
+    if (prog.can_promote) {
+      return `
+        <div style="font-size:11.5px;line-height:1.4">
+          <span style="color:var(--muted);font-weight:500">${esc(label)}:</span>
+          <span class="pg-row-value success" style="font-size:11.5px">AK cukup ✓</span>
+        </div>`;
+    }
+    // Mini progress bar — hitung persen sederhana
+    const pct = Math.max(0, Math.min(100, ((s.akKumulatif) / prog.target_min) * 100));
+    const fillCls = pct >= 80 ? 'is-high' : pct >= 50 ? 'is-mid' : 'is-low';
+    const est = estimasiTanggalPromosi(prog.sisa, s.akList);
+    return `
+      <div style="font-size:11.5px;line-height:1.4">
+        <span style="color:var(--muted);font-weight:500">${esc(label)}:</span>
+        <span class="pg-row-value warn" style="font-size:11.5px">Kurang ${esc(fmtAK(prog.sisa))}</span>
+        ${est ? `<span style="color:var(--muted);font-weight:500"> · ~${esc(est)}</span>` : ''}
+        <div class="pg-mini-bar"><div class="pg-mini-bar-fill ${fillCls}" style="width:${pct.toFixed(0)}%"></div></div>
+      </div>`;
+  };
+
+  return `
+    <div class="pg-row">
+      <span class="pg-row-label">Kebutuhan</span>
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+        ${renderSubProg(s.prog.pangkat, 'Naik Pangkat')}
+        ${renderSubProg(s.prog.jenjang, 'Naik Jenjang')}
+      </div>
+    </div>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   DETAIL MODAL — placeholder untuk Fase A4
+   ──────────────────────────────────────────────────────────────────── */
+
+function openDetail(nip) {
+  // TODO Fase A4: implement modal detail dengan tabs
+  STATE.detailOpenNIP = nip;
+  const s = STATE.pegawaiSummary.find(x => x.nip === nip);
+  if (!s) return;
+  alert(`[Placeholder Fase A4]\n\nDetail pegawai akan dibuka di sini.\n\nNama: ${s.nama}\nNIP: ${nip}\nPengajuan PAK: ${s.pakList.length} (${s.pakPending.length} menunggu)\n\nFitur yang akan ada:\n- Tabs: Pengajuan PAK, AK, Pangkat, Jabatan, Gelar\n- Tombol Ajukan PAK\n- Approve PAK menunggu\n- Add/Edit/Delete riwayat`);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   INIT
+   ──────────────────────────────────────────────────────────────────── */
+
+async function init() {
+  // Cek role admin via initRoleSwitcher
+  const session = JSON.parse(localStorage.getItem('nova_user') || 'null');
+  if (!session) {
+    location.href = 'index.html';
+    return;
+  }
+  initRoleSwitcher(session, true);
+
+  // ESC handler (untuk modal detail nanti)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && STATE.detailOpenNIP !== null) {
+      // closeDetail() — akan diimplement di Fase A4
+    }
+  });
+
+  await loadAll();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+
+</body>
+</html>
