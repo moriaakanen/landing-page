@@ -9,7 +9,7 @@
  *   - JENJANG_FUNGSIONAL     — 8 jenjang (Pemula → Ahli Utama)
  *   - GOLONGAN_PNS           — 13 golongan (IIa → IVe)
  *   - Helper lookup          — getPredikat(), getJenjangByName(), dll.
- *   - Helper progresi        — getNextJenjang(), progressToNextJenjang(), dll.
+ *   - Helper progresi        — getNextJenjang(), progressGolongan(), dll.
  *   - Calculation functions:
  *       calcAK_annual()        — Case 1: setahun penuh, predikat tahunan
  *       calcAK_periode()       — Case 2: pro-rata bulanan untuk 1 periode
@@ -89,38 +89,38 @@ window.getPredikat = getPredikat;
 // Sumber: Kriteria.xlsx — sheet "Kriteria", section "Angka Kredit
 // Jabatan Fungsional".
 //
-// ak_awal       = AK kumulatif yang dimiliki saat MEMASUKI jenjang ini
-// ak_naik       = AK kumulatif yang dibutuhkan sebelum bisa naik ke
-//                 jenjang berikutnya. NULL = sudah di puncak (Penyelia
-//                 wajib pindah kategori ke Keahlian; Ahli Utama mentok).
-// koefisien     = koefisien pengali AK per tahun (untuk hitung {ak}
-//                 dalam pengajuan PAK).
-// order         = urutan dalam kategori, dipakai oleh getNextJenjang().
+// Field per jenjang:
+//   koefisien   = pengali AK per tahun (untuk hitung {ak} di pengajuan PAK)
+//   kategori    = 'keterampilan' atau 'keahlian' (untuk getNextJenjang)
+//   order       = urutan dalam kategori (untuk getNextJenjang)
+//   is_puncak   = true kalau jenjang tertinggi dalam kategori-nya
+//                 (Penyelia di keterampilan, Ahli Utama di keahlian)
+//   min_pendidikan = persyaratan pendidikan minimum
 //
-// CATATAN: tag {jenjang_min} di template surat sekarang di-resolve dari
-// GOLONGAN_PNS (per-golongan), BUKAN dari sini. Karena delta untuk naik
-// jenjang berbeda-beda tergantung posisi golongan dalam jenjang. Lihat
-// dokumentasi di GOLONGAN_PNS di bawah.
+// CATATAN: Threshold AK pegawai (untuk pengajuan PAK & card profil)
+// di-track di GOLONGAN_PNS lewat field pangkat_min & jenjang_min,
+// BUKAN di sini. Karena threshold tergantung posisi golongan, bukan
+// jenjang.
 window.JENJANG_FUNGSIONAL = [
   // Kategori Keterampilan
   { key: 'pemula',       nama: 'Pemula',       kategori: 'keterampilan',
-    koefisien: 3.75, ak_awal: 30,  ak_naik: 60,  min_pendidikan: 'SMA',     order: 1 },
+    koefisien: 3.75, is_puncak: false, min_pendidikan: 'SMA',     order: 1 },
   { key: 'pelaksana',    nama: 'Pelaksana',    kategori: 'keterampilan',
-    koefisien: 5,    ak_awal: 60,  ak_naik: 100, min_pendidikan: 'SMA',     order: 2 },
+    koefisien: 5,    is_puncak: false, min_pendidikan: 'SMA',     order: 2 },
   { key: 'mahir',        nama: 'Mahir',        kategori: 'keterampilan',
-    koefisien: 12.5, ak_awal: 100, ak_naik: 200, min_pendidikan: 'SMA',     order: 3 },
+    koefisien: 12.5, is_puncak: false, min_pendidikan: 'SMA',     order: 3 },
   { key: 'penyelia',     nama: 'Penyelia',     kategori: 'keterampilan',
-    koefisien: 25,   ak_awal: 200, ak_naik: null /* MAX harus pindah ke Keahlian */,
+    koefisien: 25,   is_puncak: true /* puncak Keterampilan, harus pindah ke Keahlian */,
     min_pendidikan: 'S1/DIV', order: 4 },
   // Kategori Keahlian
   { key: 'ahli_pertama', nama: 'Ahli Pertama', kategori: 'keahlian',
-    koefisien: 12.5, ak_awal: 100, ak_naik: 200, min_pendidikan: 'S1/DIV', order: 1 },
+    koefisien: 12.5, is_puncak: false, min_pendidikan: 'S1/DIV', order: 1 },
   { key: 'ahli_muda',    nama: 'Ahli Muda',    kategori: 'keahlian',
-    koefisien: 25,   ak_awal: 200, ak_naik: 400, min_pendidikan: 'S1/DIV', order: 2 },
+    koefisien: 25,   is_puncak: false, min_pendidikan: 'S1/DIV', order: 2 },
   { key: 'ahli_madya',   nama: 'Ahli Madya',   kategori: 'keahlian',
-    koefisien: 37.5, ak_awal: 400, ak_naik: 850, min_pendidikan: 'S2',     order: 3 },
+    koefisien: 37.5, is_puncak: false, min_pendidikan: 'S2',     order: 3 },
   { key: 'ahli_utama',   nama: 'Ahli Utama',   kategori: 'keahlian',
-    koefisien: 50,   ak_awal: 850, ak_naik: null /* MAX */,
+    koefisien: 50,   is_puncak: true /* MAX */,
     min_pendidikan: 'S2', order: 4 },
 ];
 
@@ -150,7 +150,7 @@ window.getJenjangByName = getJenjangByName;
  * Ahli Utama → null karena MAX).
  */
 function getNextJenjang(jenjang_aktif) {
-  if (!jenjang_aktif || jenjang_aktif.ak_naik === null) return null;
+  if (!jenjang_aktif || jenjang_aktif.is_puncak) return null;
   return window.JENJANG_FUNGSIONAL.find(j =>
     j.kategori === jenjang_aktif.kategori &&
     j.order === jenjang_aktif.order + 1
@@ -163,62 +163,47 @@ window.getNextJenjang = getNextJenjang;
 // Golongan".
 //
 // Field per golongan:
-//   ak_awal           = AK kumulatif saat MASUK golongan ini
-//   ak_naik           = AK kumulatif yang dibutuhkan untuk eligible naik
-//                       pangkat (= ak_awal golongan berikutnya). NULL = MAX.
-//   ak_naik_jenjang   = AK kumulatif yang dibutuhkan untuk eligible naik
-//                       jenjang (= ak_awal golongan PERTAMA dari jenjang
-//                       berikutnya). NULL kalau di jenjang puncak (Ahli
-//                       Utama: IVd, IVe). Untuk golongan yang naik
-//                       pangkat-nya = naik jenjang (mis. IIb→IIc),
-//                       ak_naik_jenjang === ak_naik.
-//   pangkat_min       = delta AK dari AWAL JENJANG sampai threshold naik
-//                       pangkat. = ak_naik − ak_awal_jenjang_start.
-//                       Sumber: kolom "Min Kenaikan Pangkat/Golongan"
-//                       di xlsx. Untuk golongan AWAL jenjang (IIa, IIc,
-//                       IIIa, IIIc, IVa, IVd) = delta single step.
-//                       Untuk golongan BUKAN-AWAL (IIb, IId, IIIb, IIId,
-//                       IVb, IVc, IVe) = cumulative dari awal jenjang.
+//   pangkat_min       = AK threshold untuk naik pangkat dari golongan ini.
 //                       NULL kalau pangkat puncak (IVe).
-//                       Dipakai oleh tag {pangkat_min} di template surat.
-//   jenjang_min       = delta AK dari AWAL JENJANG sampai threshold naik
-//                       jenjang. = ak_naik_jenjang − ak_awal_jenjang_start.
+//                       Dipakai oleh tag {pangkat_min} di template surat
+//                       dan untuk kalkulasi kekurangan AK di card profil.
+//   jenjang_min       = AK threshold untuk naik jenjang dari golongan ini.
 //                       Sama untuk semua golongan dalam satu jenjang
 //                       (mis. IVa, IVb, IVc semuanya 450 untuk Ahli Madya).
 //                       NULL kalau jenjang puncak (Ahli Utama: IVd, IVe).
 //                       Dipakai oleh tag {jenjang_min} di template surat.
 //
+// Rumus kekurangan AK (konsisten di seluruh aplikasi):
+//   sisa_pangkat = ak_terbaru − pangkat_min
+//   sisa_jenjang = ak_terbaru − jenjang_min
+//
+//   Positif (>0)  = AK SUDAH CUKUP/LEBIH untuk eligible naik
+//   Nol/Negatif   = AK MASIH KURANG sebesar |nilai|
+//
 // Catatan logika {keputusan} — kalau pangkat_min === jenjang_min →
-// "naik pangkat sekaligus naik jenjang". Karena keduanya di-measure
-// dari awal jenjang, pangkat_min sama dengan jenjang_min hanya pada
-// golongan terakhir di jenjang (yang naik pangkat-nya = naik jenjang
-// ke jenjang berikutnya). Mis. IIb (Pemula→Pelaksana via IIc),
-// IIIb (Mahir→Penyelia atau Ahli Pertama→Ahli Muda), IVc (Ahli
-// Madya→Ahli Utama).
+// "naik pangkat sekaligus naik jenjang". Hanya pada golongan terakhir
+// di jenjang (IIb, IId, IIIb, IIId, IVc).
 window.GOLONGAN_PNS = [
-  // Pemula                                                                                              ak_awal   ak_naik   ak_naik_jenjang   pangkat_min   jenjang_min
-  { kode:1,  golongan:'IIa',  pangkat:'Pengatur Muda',           ak_awal:30,   ak_naik:45,   ak_naik_jenjang:60,   pangkat_min:15,  jenjang_min:30,  min_pendidikan:'SMA' },
-  { kode:2,  golongan:'IIb',  pangkat:'Pengatur Muda Tk. I',     ak_awal:45,   ak_naik:60,   ak_naik_jenjang:60,   pangkat_min:30,  jenjang_min:30,  min_pendidikan:'SMA' },
+  // Pemula
+  { kode:1,  golongan:'IIa',  pangkat:'Pengatur Muda',           pangkat_min:15,  jenjang_min:30,  min_pendidikan:'SMA' },
+  { kode:2,  golongan:'IIb',  pangkat:'Pengatur Muda Tk. I',     pangkat_min:30,  jenjang_min:30,  min_pendidikan:'SMA' },
   // Pelaksana
-  { kode:3,  golongan:'IIc',  pangkat:'Pengatur',                ak_awal:60,   ak_naik:80,   ak_naik_jenjang:100,  pangkat_min:20,  jenjang_min:40,  min_pendidikan:'SMA' },
-  { kode:4,  golongan:'IId',  pangkat:'Pengatur Tk. I',          ak_awal:80,   ak_naik:100,  ak_naik_jenjang:100,  pangkat_min:40,  jenjang_min:40,  min_pendidikan:'SMA' },
-  // Mahir / Ahli Pertama (sharing golongan; jenjang_min sama untuk dua kategori karena ak_awal jenjang berikutnya sama-sama 200)
-  { kode:5,  golongan:'IIIa', pangkat:'Penata Muda',             ak_awal:100,  ak_naik:150,  ak_naik_jenjang:200,  pangkat_min:50,  jenjang_min:100, min_pendidikan:'S1/DIV' },
-  { kode:6,  golongan:'IIIb', pangkat:'Penata Muda Tk. I',       ak_awal:150,  ak_naik:200,  ak_naik_jenjang:200,  pangkat_min:100, jenjang_min:100, min_pendidikan:'S1/DIV' },
-  // Penyelia / Ahli Muda (sharing golongan; ke jenjang berikutnya = Ahli Madya, ak_awal 400)
-  { kode:7,  golongan:'IIIc', pangkat:'Penata',                  ak_awal:200,  ak_naik:300,  ak_naik_jenjang:400,  pangkat_min:100, jenjang_min:200, min_pendidikan:'S1/DIV' },
-  { kode:8,  golongan:'IIId', pangkat:'Penata Tk. I',            ak_awal:300,  ak_naik:400,  ak_naik_jenjang:400,  pangkat_min:200, jenjang_min:200, min_pendidikan:'S2' },
+  { kode:3,  golongan:'IIc',  pangkat:'Pengatur',                pangkat_min:20,  jenjang_min:40,  min_pendidikan:'SMA' },
+  { kode:4,  golongan:'IId',  pangkat:'Pengatur Tk. I',          pangkat_min:40,  jenjang_min:40,  min_pendidikan:'SMA' },
+  // Mahir / Ahli Pertama
+  { kode:5,  golongan:'IIIa', pangkat:'Penata Muda',             pangkat_min:50,  jenjang_min:100, min_pendidikan:'S1/DIV' },
+  { kode:6,  golongan:'IIIb', pangkat:'Penata Muda Tk. I',       pangkat_min:100, jenjang_min:100, min_pendidikan:'S1/DIV' },
+  // Penyelia / Ahli Muda
+  { kode:7,  golongan:'IIIc', pangkat:'Penata',                  pangkat_min:100, jenjang_min:200, min_pendidikan:'S1/DIV' },
+  { kode:8,  golongan:'IIId', pangkat:'Penata Tk. I',            pangkat_min:200, jenjang_min:200, min_pendidikan:'S2' },
   // Ahli Madya (3 golongan: IVa, IVb, IVc — semua jenjang_min 450 ke Ahli Utama)
-  { kode:9,  golongan:'IVa',  pangkat:'Pembina',                 ak_awal:400,  ak_naik:550,  ak_naik_jenjang:850,  pangkat_min:150, jenjang_min:450, min_pendidikan:'S2' },
-  { kode:10, golongan:'IVb',  pangkat:'Pembina Tk. I',           ak_awal:550,  ak_naik:700,  ak_naik_jenjang:850,  pangkat_min:300, jenjang_min:450, min_pendidikan:'S2' },
-  { kode:11, golongan:'IVc',  pangkat:'Pembina Utama Muda',      ak_awal:700,  ak_naik:850,  ak_naik_jenjang:850,  pangkat_min:450, jenjang_min:450, min_pendidikan:'S2' },
-  // Ahli Utama (puncak jenjang — ak_naik_jenjang & jenjang_min null)
-  { kode:12, golongan:'IVd',  pangkat:'Pembina Utama Madya',     ak_awal:850,  ak_naik:1050, ak_naik_jenjang:null, pangkat_min:200, jenjang_min:null, min_pendidikan:'S2' },
-  // IVe = puncak total (pangkat tertinggi & jenjang tertinggi). Semua
-  // field "naik" di-set null. Generator akan output keputusan "TIDAK
-  // ADA REKOMENDASI..." dan kep_pangkat/kep_jenjang sebagai paragraf
-  // plain "—".
-  { kode:13, golongan:'IVe',  pangkat:'Pembina Utama',           ak_awal:1050, ak_naik:null, ak_naik_jenjang:null, pangkat_min:null, jenjang_min:null, min_pendidikan:'S2' },
+  { kode:9,  golongan:'IVa',  pangkat:'Pembina',                 pangkat_min:150, jenjang_min:450, min_pendidikan:'S2' },
+  { kode:10, golongan:'IVb',  pangkat:'Pembina Tk. I',           pangkat_min:300, jenjang_min:450, min_pendidikan:'S2' },
+  { kode:11, golongan:'IVc',  pangkat:'Pembina Utama Muda',      pangkat_min:450, jenjang_min:450, min_pendidikan:'S2' },
+  // Ahli Utama (puncak jenjang — jenjang_min null)
+  { kode:12, golongan:'IVd',  pangkat:'Pembina Utama Madya',     pangkat_min:200, jenjang_min:null, min_pendidikan:'S2' },
+  // IVe = puncak total (semua null)
+  { kode:13, golongan:'IVe',  pangkat:'Pembina Utama',           pangkat_min:null, jenjang_min:null, min_pendidikan:'S2' },
 ];
 
 window.GOLONGAN_BY_KODE = window.GOLONGAN_PNS.reduce((acc, g) => {
@@ -249,7 +234,9 @@ window.getGolonganByKode = getGolonganByKode;
 
 /** Golongan berikutnya. Return null kalau sudah IVe (puncak). */
 function getNextGolongan(gol_aktif) {
-  if (!gol_aktif || gol_aktif.ak_naik === null) return null;
+  // Puncak = pangkat_min null (artinya tidak ada threshold naik pangkat
+  // = sudah di IVe).
+  if (!gol_aktif || gol_aktif.pangkat_min === null) return null;
   return window.GOLONGAN_BY_KODE[gol_aktif.kode + 1] || null;
 }
 window.getNextGolongan = getNextGolongan;
@@ -323,98 +310,94 @@ window.extractNamaJabatanTanpaJenjang = extractNamaJabatanTanpaJenjang;
 // ─── PROGRESSI / GAP ANALYSIS ─────────────────────────────────────────
 
 /**
- * Berapa AK lagi pegawai butuh untuk naik jenjang berikutnya?
+ * Hitung progress AK pegawai untuk naik PANGKAT dan naik JENJANG.
  *
- * @param {number} ak_kumulatif - total AK pegawai sekarang
- * @param {object} jenjang_aktif - dari JENJANG_FUNGSIONAL
+ * Rumus simple (sesuai aturan unit pengelola):
+ *   selisih_p = ak_kumulatif − pangkat_min
+ *   selisih_j = ak_kumulatif − jenjang_min
+ *
+ *   Positif (≥0) = AK SUDAH CUKUP/LEBIH untuk eligible naik (can_promote=true)
+ *   Negatif      = AK MASIH KURANG sebesar |selisih| (can_promote=false)
+ *
+ * Catatan: AK didapat per pengajuan dibatasi koefisien × 150% (Sangat
+ * Baik), jadi pegawai TIDAK akan melompati threshold sampai jauh dalam
+ * 1 pengajuan. Skenario realistis: pegawai dekat dengan threshold —
+ * kurang sedikit, tepat, atau lebih sedikit. Kasus extreme (AK jauh
+ * di bawah pangkat_min) hanya muncul kalau data riwayat AK tidak
+ * lengkap — tetap di-handle dengan benar (menunjukkan kekurangan besar).
+ *
+ * Konsisten dengan rumus pengajuan PAK ({kurang_lebih_p} & {kurang_lebih_j}
+ * di template surat).
+ *
+ * @param {number} ak_kumulatif - total AK pegawai sekarang (dari
+ *                                 riwayat_angka_kredit kolom angka_kredit
+ *                                 untuk tmt terbaru)
+ * @param {object} gol_aktif - dari GOLONGAN_PNS
  * @returns {object} {
- *   target_ak, sisa, progress_pct, jenjang_berikutnya,
- *   can_promote_by_ak, blocker
+ *   pangkat: { sisa, can_promote, target_min, blocker } | null kalau puncak
+ *   jenjang: { sisa, can_promote, target_min, blocker } | null kalau puncak
  * }
  *
- * Catatan: can_promote_by_ak === true tidak otomatis berarti pegawai
- * BISA naik — masih perlu lulus UKOM dan pendidikan terpenuhi. Cek
- * blocker untuk pesan ke admin.
+ * Field per sub-object:
+ *   sisa         = |selisih| kalau AK kurang. 0 kalau sudah cukup/lebih.
+ *                  Selalu ≥ 0 (display absolut).
+ *   can_promote  = boolean — apakah AK ≥ threshold (selisih ≥ 0)
+ *   target_min   = pangkat_min atau jenjang_min (untuk display)
+ *   blocker      = pesan informatif (string atau null)
  */
-function progressToNextJenjang(ak_kumulatif, jenjang_aktif) {
-  if (!jenjang_aktif) {
-    return { error: 'Jenjang tidak diketahui' };
+function progressGolongan(ak_kumulatif, gol_aktif) {
+  if (!gol_aktif) {
+    return { error: 'Golongan tidak diketahui' };
   }
 
-  // Kasus puncak (tidak ada jenjang berikutnya)
-  if (jenjang_aktif.ak_naik === null) {
-    const isKeterampilanTop = jenjang_aktif.kategori === 'keterampilan';
-    return {
-      target_ak: null,
-      sisa: 0,
-      progress_pct: 100,
-      jenjang_berikutnya: null,
-      can_promote_by_ak: false,
-      blocker: isKeterampilanTop
-        ? 'Penyelia adalah jenjang tertinggi kategori Keterampilan. '
-          + 'Untuk lanjut, pegawai harus pindah ke kategori Keahlian '
-          + '(Ahli Pertama) — wajib UKOM dan pendidikan minimal S1/DIV.'
-        : 'Sudah di jenjang tertinggi (Ahli Utama). Tidak ada lagi promosi jenjang.',
+  const ak = Number(ak_kumulatif) || 0;
+
+  // Sub-object untuk PANGKAT
+  let pangkat;
+  if (gol_aktif.pangkat_min == null) {
+    // Pangkat puncak (IVe)
+    pangkat = null;
+  } else {
+    const selisih = ak - gol_aktif.pangkat_min;
+    const cukup   = (selisih >= 0);
+    pangkat = {
+      sisa: cukup ? 0 : r3(-selisih),  // display absolut
+      can_promote: cukup,
+      target_min: gol_aktif.pangkat_min,
+      blocker: cukup
+        ? 'AK sudah cukup. Pastikan masa kerja minimal 4 tahun di golongan '
+          + 'sekarang dan pendidikan memenuhi syarat.'
+        : null,
     };
   }
 
-  const target = jenjang_aktif.ak_naik;
-  const sisa = Math.max(0, target - ak_kumulatif);
-  const range = jenjang_aktif.ak_naik - jenjang_aktif.ak_awal;
-  const dapat = ak_kumulatif - jenjang_aktif.ak_awal;
-  const pct = range > 0 ? (dapat / range) * 100 : 100;
-
-  return {
-    target_ak: target,
-    sisa: Number(sisa.toFixed(3)),
-    progress_pct: Math.max(0, Math.min(100, Number(pct.toFixed(2)))),
-    jenjang_berikutnya: getNextJenjang(jenjang_aktif),
-    can_promote_by_ak: sisa === 0,
-    blocker: sisa === 0
-      ? 'AK sudah cukup. Pastikan sudah lulus UKOM dan pendidikan '
-        + 'memenuhi syarat jenjang berikutnya.'
-      : null,
-  };
-}
-window.progressToNextJenjang = progressToNextJenjang;
-
-/**
- * Berapa AK lagi pegawai butuh untuk naik pangkat/golongan?
- * Logika sama dengan progressToNextJenjang() tapi pakai data golongan.
- */
-function progressToNextGolongan(ak_kumulatif, gol_aktif) {
-  if (!gol_aktif) return { error: 'Golongan tidak diketahui' };
-
-  if (gol_aktif.ak_naik === null) {
-    return {
-      target_ak: null,
-      sisa: 0,
-      progress_pct: 100,
-      golongan_berikutnya: null,
-      can_promote_by_ak: false,
-      blocker: 'Sudah di golongan tertinggi (IVe). Tidak ada lagi kenaikan pangkat.',
+  // Sub-object untuk JENJANG
+  let jenjang;
+  if (gol_aktif.jenjang_min == null) {
+    // Jenjang puncak (Ahli Utama: IVd, IVe)
+    jenjang = null;
+  } else {
+    const selisih = ak - gol_aktif.jenjang_min;
+    const cukup   = (selisih >= 0);
+    jenjang = {
+      sisa: cukup ? 0 : r3(-selisih),
+      can_promote: cukup,
+      target_min: gol_aktif.jenjang_min,
+      blocker: cukup
+        ? 'AK sudah cukup. Pastikan sudah lulus UKOM dan pendidikan '
+          + 'memenuhi syarat jenjang berikutnya.'
+        : null,
     };
   }
 
-  const target = gol_aktif.ak_naik;
-  const sisa = Math.max(0, target - ak_kumulatif);
-  const range = gol_aktif.ak_naik - gol_aktif.ak_awal;
-  const dapat = ak_kumulatif - gol_aktif.ak_awal;
-  const pct = range > 0 ? (dapat / range) * 100 : 100;
-
-  return {
-    target_ak: target,
-    sisa: Number(sisa.toFixed(3)),
-    progress_pct: Math.max(0, Math.min(100, Number(pct.toFixed(2)))),
-    golongan_berikutnya: getNextGolongan(gol_aktif),
-    can_promote_by_ak: sisa === 0,
-    blocker: sisa === 0
-      ? 'AK sudah cukup. Pastikan masa kerja minimal 4 tahun di golongan '
-        + 'sekarang dan pendidikan memenuhi syarat.'
-      : null,
-  };
+  return { pangkat, jenjang };
 }
-window.progressToNextGolongan = progressToNextGolongan;
+window.progressGolongan = progressGolongan;
+
+/** Internal: round ke 3 desimal. Hindari floating-point noise. */
+function r3(n) {
+  return Number(Number(n).toFixed(3));
+}
 
 // ─── KALKULASI AK ──────────────────────────────────────────────────────
 
