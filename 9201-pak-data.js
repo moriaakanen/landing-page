@@ -24,13 +24,18 @@
  * yang disediakan unit pengelola. JANGAN HARDCODE angka ini di file
  * lain — selalu import lewat konstanta di sini.
  *
- * REV 2026-05 — Sinkronisasi ke Kriteria.xlsx terbaru:
- *   - JENJANG_FUNGSIONAL: ak_awal & ak_naik di-update (Pemula ak_awal
- *     30→30, Pelaksana ak_awal 40→60, dll). Detail di tabel di bawah.
- *   - GOLONGAN_PNS: ak_awal & ak_naik di-update (IIa ak_awal 25→30, dll).
- *   - Tambah field `kebutuhan_naik` (= ak_naik − ak_awal) di JENJANG &
- *     GOLONGAN. Dipakai oleh generator pengajuan PAK untuk tag
- *     {pangkat_min} & {jenjang_min}.
+ * REV 2026-05 (a) — Sinkronisasi ke Kriteria.xlsx terbaru:
+ *   - JENJANG_FUNGSIONAL: ak_awal & ak_naik di-update sesuai xlsx.
+ *   - GOLONGAN_PNS: ak_awal & ak_naik di-update sesuai xlsx.
+ *
+ * REV 2026-05 (b) — Restructure {pangkat_min} & {jenjang_min}:
+ *   Sebelumnya: kebutuhan_naik (delta) di JENJANG_FUNGSIONAL & GOLONGAN_PNS.
+ *   Sekarang  : pangkat_min & jenjang_min di GOLONGAN_PNS saja, karena
+ *               delta untuk naik jenjang tergantung POSISI golongan dalam
+ *               jenjang (mis. IIa→Pelaksana butuh 30 AK, IIb→Pelaksana
+ *               cuma 15 AK karena naik pangkat IIb→IIc otomatis naik
+ *               jenjang). Generator pengajuan PAK pakai field baru ini.
+ *               Field kebutuhan_naik dihapus.
  */
 
 // ─── PREDIKAT KINERJA ─────────────────────────────────────────────────
@@ -84,35 +89,39 @@ window.getPredikat = getPredikat;
 // Sumber: Kriteria.xlsx — sheet "Kriteria", section "Angka Kredit
 // Jabatan Fungsional".
 //
-// ak_awal         = AK kumulatif yang dimiliki saat MEMASUKI jenjang ini
-// ak_naik         = AK kumulatif yang dibutuhkan sebelum bisa naik ke
-//                   jenjang berikutnya. NULL = sudah di puncak (Penyelia
-//                   wajib pindah kategori ke Keahlian; Ahli Utama mentok).
-// kebutuhan_naik  = ak_naik − ak_awal. Berapa AK yang harus dikumpulkan
-//                   selama di jenjang ini sebelum eligible naik. NULL = MAX.
-//                   Dipakai oleh generator pengajuan PAK ({jenjang_min}).
-// order           = urutan dalam kategori, dipakai oleh getNextJenjang().
+// ak_awal       = AK kumulatif yang dimiliki saat MEMASUKI jenjang ini
+// ak_naik       = AK kumulatif yang dibutuhkan sebelum bisa naik ke
+//                 jenjang berikutnya. NULL = sudah di puncak (Penyelia
+//                 wajib pindah kategori ke Keahlian; Ahli Utama mentok).
+// koefisien     = koefisien pengali AK per tahun (untuk hitung {ak}
+//                 dalam pengajuan PAK).
+// order         = urutan dalam kategori, dipakai oleh getNextJenjang().
+//
+// CATATAN: tag {jenjang_min} di template surat sekarang di-resolve dari
+// GOLONGAN_PNS (per-golongan), BUKAN dari sini. Karena delta untuk naik
+// jenjang berbeda-beda tergantung posisi golongan dalam jenjang. Lihat
+// dokumentasi di GOLONGAN_PNS di bawah.
 window.JENJANG_FUNGSIONAL = [
   // Kategori Keterampilan
   { key: 'pemula',       nama: 'Pemula',       kategori: 'keterampilan',
-    koefisien: 3.75, ak_awal: 30,  ak_naik: 60,  kebutuhan_naik: 30,  min_pendidikan: 'SMA',     order: 1 },
+    koefisien: 3.75, ak_awal: 30,  ak_naik: 60,  min_pendidikan: 'SMA',     order: 1 },
   { key: 'pelaksana',    nama: 'Pelaksana',    kategori: 'keterampilan',
-    koefisien: 5,    ak_awal: 60,  ak_naik: 100, kebutuhan_naik: 40,  min_pendidikan: 'SMA',     order: 2 },
+    koefisien: 5,    ak_awal: 60,  ak_naik: 100, min_pendidikan: 'SMA',     order: 2 },
   { key: 'mahir',        nama: 'Mahir',        kategori: 'keterampilan',
-    koefisien: 12.5, ak_awal: 100, ak_naik: 200, kebutuhan_naik: 100, min_pendidikan: 'SMA',     order: 3 },
+    koefisien: 12.5, ak_awal: 100, ak_naik: 200, min_pendidikan: 'SMA',     order: 3 },
   { key: 'penyelia',     nama: 'Penyelia',     kategori: 'keterampilan',
     koefisien: 25,   ak_awal: 200, ak_naik: null /* MAX harus pindah ke Keahlian */,
-    kebutuhan_naik: null, min_pendidikan: 'S1/DIV', order: 4 },
+    min_pendidikan: 'S1/DIV', order: 4 },
   // Kategori Keahlian
   { key: 'ahli_pertama', nama: 'Ahli Pertama', kategori: 'keahlian',
-    koefisien: 12.5, ak_awal: 100, ak_naik: 200, kebutuhan_naik: 100, min_pendidikan: 'S1/DIV', order: 1 },
+    koefisien: 12.5, ak_awal: 100, ak_naik: 200, min_pendidikan: 'S1/DIV', order: 1 },
   { key: 'ahli_muda',    nama: 'Ahli Muda',    kategori: 'keahlian',
-    koefisien: 25,   ak_awal: 200, ak_naik: 400, kebutuhan_naik: 200, min_pendidikan: 'S1/DIV', order: 2 },
+    koefisien: 25,   ak_awal: 200, ak_naik: 400, min_pendidikan: 'S1/DIV', order: 2 },
   { key: 'ahli_madya',   nama: 'Ahli Madya',   kategori: 'keahlian',
-    koefisien: 37.5, ak_awal: 400, ak_naik: 850, kebutuhan_naik: 450, min_pendidikan: 'S2',     order: 3 },
+    koefisien: 37.5, ak_awal: 400, ak_naik: 850, min_pendidikan: 'S2',     order: 3 },
   { key: 'ahli_utama',   nama: 'Ahli Utama',   kategori: 'keahlian',
     koefisien: 50,   ak_awal: 850, ak_naik: null /* MAX */,
-    kebutuhan_naik: null, min_pendidikan: 'S2', order: 4 },
+    min_pendidikan: 'S2', order: 4 },
 ];
 
 window.JENJANG_BY_KEY = window.JENJANG_FUNGSIONAL.reduce((acc, j) => {
@@ -151,22 +160,61 @@ window.getNextJenjang = getNextJenjang;
 
 // ─── GOLONGAN PNS ─────────────────────────────────────────────────────
 // Sumber: Kriteria.xlsx — sheet "Kriteria", section "Angka Kredit
-// Golongan". Format AK Awal / Min Kenaikan sama seperti jenjang.
-// kebutuhan_naik = ak_naik − ak_awal. Dipakai untuk tag {pangkat_min}.
+// Golongan".
+//
+// Field per golongan:
+//   ak_awal           = AK kumulatif saat MASUK golongan ini
+//   ak_naik           = AK kumulatif yang dibutuhkan untuk eligible naik
+//                       pangkat (= ak_awal golongan berikutnya). NULL = MAX.
+//   ak_naik_jenjang   = AK kumulatif yang dibutuhkan untuk eligible naik
+//                       jenjang (= ak_awal golongan PERTAMA dari jenjang
+//                       berikutnya). NULL kalau di jenjang puncak (Ahli
+//                       Utama: IVd, IVe). Untuk golongan yang naik
+//                       pangkat-nya = naik jenjang (mis. IIb→IIc),
+//                       ak_naik_jenjang === ak_naik.
+//   pangkat_min       = delta AK dari AWAL JENJANG sampai threshold naik
+//                       pangkat. = ak_naik − ak_awal_jenjang_start.
+//                       Sumber: kolom "Min Kenaikan Pangkat/Golongan"
+//                       di xlsx. Untuk golongan AWAL jenjang (IIa, IIc,
+//                       IIIa, IIIc, IVa, IVd) = delta single step.
+//                       Untuk golongan BUKAN-AWAL (IIb, IId, IIIb, IIId,
+//                       IVb, IVc, IVe) = cumulative dari awal jenjang.
+//                       NULL kalau pangkat puncak (IVe).
+//                       Dipakai oleh tag {pangkat_min} di template surat.
+//   jenjang_min       = delta AK dari AWAL JENJANG sampai threshold naik
+//                       jenjang. = ak_naik_jenjang − ak_awal_jenjang_start.
+//                       Sama untuk semua golongan dalam satu jenjang
+//                       (mis. IVa, IVb, IVc semuanya 450 untuk Ahli Madya).
+//                       NULL kalau jenjang puncak (Ahli Utama: IVd, IVe).
+//                       Dipakai oleh tag {jenjang_min} di template surat.
+//
+// Catatan logika {keputusan} — kalau pangkat_min === jenjang_min →
+// "naik pangkat sekaligus naik jenjang". Karena keduanya di-measure
+// dari awal jenjang, pangkat_min sama dengan jenjang_min hanya pada
+// golongan terakhir di jenjang (yang naik pangkat-nya = naik jenjang
+// ke jenjang berikutnya). Mis. IIb (Pemula→Pelaksana via IIc),
+// IIIb (Mahir→Penyelia atau Ahli Pertama→Ahli Muda), IVc (Ahli
+// Madya→Ahli Utama).
 window.GOLONGAN_PNS = [
-  { kode:1,  golongan:'IIa',  pangkat:'Pengatur Muda',           ak_awal:30,   ak_naik:45,   kebutuhan_naik:15,  min_pendidikan:'SMA' },
-  { kode:2,  golongan:'IIb',  pangkat:'Pengatur Muda Tk. I',     ak_awal:45,   ak_naik:60,   kebutuhan_naik:15,  min_pendidikan:'SMA' },
-  { kode:3,  golongan:'IIc',  pangkat:'Pengatur',                ak_awal:60,   ak_naik:80,   kebutuhan_naik:20,  min_pendidikan:'SMA' },
-  { kode:4,  golongan:'IId',  pangkat:'Pengatur Tk. I',          ak_awal:80,   ak_naik:100,  kebutuhan_naik:20,  min_pendidikan:'SMA' },
-  { kode:5,  golongan:'IIIa', pangkat:'Penata Muda',             ak_awal:100,  ak_naik:150,  kebutuhan_naik:50,  min_pendidikan:'S1/DIV' },
-  { kode:6,  golongan:'IIIb', pangkat:'Penata Muda Tk. I',       ak_awal:150,  ak_naik:200,  kebutuhan_naik:50,  min_pendidikan:'S1/DIV' },
-  { kode:7,  golongan:'IIIc', pangkat:'Penata',                  ak_awal:200,  ak_naik:300,  kebutuhan_naik:100, min_pendidikan:'S1/DIV' },
-  { kode:8,  golongan:'IIId', pangkat:'Penata Tk. I',            ak_awal:300,  ak_naik:400,  kebutuhan_naik:100, min_pendidikan:'S2' },
-  { kode:9,  golongan:'IVa',  pangkat:'Pembina',                 ak_awal:400,  ak_naik:550,  kebutuhan_naik:150, min_pendidikan:'S2' },
-  { kode:10, golongan:'IVb',  pangkat:'Pembina Tk. I',           ak_awal:550,  ak_naik:700,  kebutuhan_naik:150, min_pendidikan:'S2' },
-  { kode:11, golongan:'IVc',  pangkat:'Pembina Utama Muda',      ak_awal:700,  ak_naik:850,  kebutuhan_naik:150, min_pendidikan:'S2' },
-  { kode:12, golongan:'IVd',  pangkat:'Pembina Utama Madya',     ak_awal:850,  ak_naik:1050, kebutuhan_naik:200, min_pendidikan:'S2' },
-  { kode:13, golongan:'IVe',  pangkat:'Pembina Utama',           ak_awal:1050, ak_naik:null /* MAX */, kebutuhan_naik:null, min_pendidikan:'S2' },
+  // Pemula                                                                                              ak_awal   ak_naik   ak_naik_jenjang   pangkat_min   jenjang_min
+  { kode:1,  golongan:'IIa',  pangkat:'Pengatur Muda',           ak_awal:30,   ak_naik:45,   ak_naik_jenjang:60,   pangkat_min:15,  jenjang_min:30,  min_pendidikan:'SMA' },
+  { kode:2,  golongan:'IIb',  pangkat:'Pengatur Muda Tk. I',     ak_awal:45,   ak_naik:60,   ak_naik_jenjang:60,   pangkat_min:30,  jenjang_min:30,  min_pendidikan:'SMA' },
+  // Pelaksana
+  { kode:3,  golongan:'IIc',  pangkat:'Pengatur',                ak_awal:60,   ak_naik:80,   ak_naik_jenjang:100,  pangkat_min:20,  jenjang_min:40,  min_pendidikan:'SMA' },
+  { kode:4,  golongan:'IId',  pangkat:'Pengatur Tk. I',          ak_awal:80,   ak_naik:100,  ak_naik_jenjang:100,  pangkat_min:40,  jenjang_min:40,  min_pendidikan:'SMA' },
+  // Mahir / Ahli Pertama (sharing golongan; jenjang_min sama untuk dua kategori karena ak_awal jenjang berikutnya sama-sama 200)
+  { kode:5,  golongan:'IIIa', pangkat:'Penata Muda',             ak_awal:100,  ak_naik:150,  ak_naik_jenjang:200,  pangkat_min:50,  jenjang_min:100, min_pendidikan:'S1/DIV' },
+  { kode:6,  golongan:'IIIb', pangkat:'Penata Muda Tk. I',       ak_awal:150,  ak_naik:200,  ak_naik_jenjang:200,  pangkat_min:100, jenjang_min:100, min_pendidikan:'S1/DIV' },
+  // Penyelia / Ahli Muda (sharing golongan; ke jenjang berikutnya = Ahli Madya, ak_awal 400)
+  { kode:7,  golongan:'IIIc', pangkat:'Penata',                  ak_awal:200,  ak_naik:300,  ak_naik_jenjang:400,  pangkat_min:100, jenjang_min:200, min_pendidikan:'S1/DIV' },
+  { kode:8,  golongan:'IIId', pangkat:'Penata Tk. I',            ak_awal:300,  ak_naik:400,  ak_naik_jenjang:400,  pangkat_min:200, jenjang_min:200, min_pendidikan:'S2' },
+  // Ahli Madya (3 golongan: IVa, IVb, IVc — semua jenjang_min 450 ke Ahli Utama)
+  { kode:9,  golongan:'IVa',  pangkat:'Pembina',                 ak_awal:400,  ak_naik:550,  ak_naik_jenjang:850,  pangkat_min:150, jenjang_min:450, min_pendidikan:'S2' },
+  { kode:10, golongan:'IVb',  pangkat:'Pembina Tk. I',           ak_awal:550,  ak_naik:700,  ak_naik_jenjang:850,  pangkat_min:300, jenjang_min:450, min_pendidikan:'S2' },
+  { kode:11, golongan:'IVc',  pangkat:'Pembina Utama Muda',      ak_awal:700,  ak_naik:850,  ak_naik_jenjang:850,  pangkat_min:450, jenjang_min:450, min_pendidikan:'S2' },
+  // Ahli Utama (puncak jenjang — ak_naik_jenjang & jenjang_min null)
+  { kode:12, golongan:'IVd',  pangkat:'Pembina Utama Madya',     ak_awal:850,  ak_naik:1050, ak_naik_jenjang:null, pangkat_min:200, jenjang_min:null, min_pendidikan:'S2' },
+  { kode:13, golongan:'IVe',  pangkat:'Pembina Utama',           ak_awal:1050, ak_naik:null /* MAX pangkat */, ak_naik_jenjang:null, pangkat_min:null, jenjang_min:null, min_pendidikan:'S2' },
 ];
 
 window.GOLONGAN_BY_KODE = window.GOLONGAN_PNS.reduce((acc, g) => {
