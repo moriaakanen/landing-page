@@ -128,6 +128,141 @@
   .alert.error  {background:#fef2f2;color:var(--red);    border-color:#fecaca}
   .alert.info   {background:#eff6ff;color:#1e40af;       border-color:#bfdbfe}
   .alert.warn   {background:#fffbeb;color:var(--warn);   border-color:#fde68a}
+
+  /* ════════ MODAL DETAIL PEGAWAI ════════ */
+  .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,.5);z-index:400;display:none;align-items:flex-start;justify-content:center;padding:30px 20px;backdrop-filter:blur(2px);overflow-y:auto}
+  .modal-overlay.show{display:flex}
+  .modal{background:var(--white);border-radius:14px;width:100%;max-width:920px;box-shadow:0 20px 60px rgba(13,35,64,.25);animation:popIn .22s cubic-bezier(.175,.885,.32,1.275);display:flex;flex-direction:column;max-height:calc(100vh - 60px)}
+  .modal.modal-narrow{max-width:580px}
+  @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+  /* Header detail pegawai */
+  .pg-detail-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,#fafaf6 0%,var(--white) 100%);border-radius:14px 14px 0 0}
+  .pg-detail-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:var(--gold);font-family:'Fraunces',serif;font-size:22px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:.5px}
+  .pg-detail-name-wrap{flex:1;min-width:0}
+  .pg-detail-name{font-family:'Fraunces',serif;font-size:21px;font-weight:500;color:var(--navy);line-height:1.2}
+  .pg-detail-meta{font-size:12px;color:var(--muted);margin-top:4px;font-weight:500;line-height:1.5}
+  .pg-detail-meta strong{color:var(--navy)}
+  .modal-close{width:32px;height:32px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);transition:all .15s;flex-shrink:0}
+  .modal-close:hover{background:var(--border);color:var(--navy)}
+
+  /* Tabs nav */
+  .pg-tabs{display:flex;gap:4px;padding:0 22px;background:var(--white);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0}
+  .pg-tab{padding:11px 14px;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);background:transparent;border:none;cursor:pointer;border-bottom:2.5px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+  .pg-tab:hover{color:var(--navy)}
+  .pg-tab.active{color:var(--navy);border-bottom-color:var(--gold)}
+  .pg-tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;background:var(--bg);border-radius:100px;font-size:10px;font-weight:700;color:var(--muted)}
+  .pg-tab.active .pg-tab-count{background:rgba(200,168,75,.2);color:var(--gold-dark)}
+  .pg-tab-count.warn{background:#fef3c7;color:#92400e}
+
+  /* Tab content area */
+  .pg-tab-content{flex:1;overflow-y:auto;padding:18px 22px}
+  .pg-tab-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .pg-tab-actions h3{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:0}
+
+  /* Mini-table per riwayat */
+  .mini-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  .mini-table thead{background:#f9f8f3}
+  .mini-table th{padding:9px 12px;text-align:left;font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;border-bottom:1.5px solid var(--border)}
+  .mini-table td{padding:10px 12px;color:var(--navy);border-bottom:1px solid var(--border);vertical-align:middle;line-height:1.5}
+  .mini-table tbody tr:hover{background:#fafaf6}
+  .mini-table tbody tr:last-child td{border-bottom:none}
+  .mini-table .col-tmt{width:130px;font-variant-numeric:tabular-nums;font-size:12px}
+  .mini-table .col-aksi{width:auto;text-align:right;white-space:nowrap}
+  .mini-table .empty-cell{padding:32px 16px;text-align:center;color:var(--muted);font-size:12.5px;font-style:italic}
+
+  /* Action buttons in mini-table */
+  .btn-mini{display:inline-flex;align-items:center;gap:3px;padding:4px 9px;border-radius:5px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;letter-spacing:.2px;transition:all .15s;margin-left:4px}
+  .btn-mini-edit{background:var(--bg);color:var(--navy);border-color:var(--border)}
+  .btn-mini-edit:hover{background:var(--border)}
+  .btn-mini-del{background:#fef2f2;color:var(--red);border-color:#fecaca}
+  .btn-mini-del:hover{background:#fee2e2}
+  .btn-mini-approve{background:rgba(26,122,74,.12);color:var(--success);border-color:rgba(26,122,74,.3)}
+  .btn-mini-approve:hover{background:rgba(26,122,74,.22)}
+  .btn-mini-download{background:rgba(200,168,75,.12);color:var(--gold-dark);border-color:rgba(200,168,75,.32)}
+  .btn-mini-download:hover{background:rgba(200,168,75,.22)}
+
+  /* Badge pangkat / golongan / status */
+  .pgg-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--gold-light);color:var(--gold-dark);border:1px solid rgba(200,168,75,.3);border-radius:5px;font-weight:600;font-size:11.5px;letter-spacing:.2px}
+  .status-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+  .status-pill.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+  .status-pill.selesai {background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
+  .mode-pill{display:inline-flex;padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:600;letter-spacing:.2px;text-transform:capitalize;border:1px solid;font-variant-numeric:tabular-nums}
+  .mode-pill.tahunan{background:#eff6ff;color:#1e40af;border-color:#bfdbfe}
+  .mode-pill.bulanan{background:#fdf4ff;color:#86198f;border-color:#f5d0fe}
+
+  /* Buttons (umum) */
+  .btn{padding:9px 16px;border-radius:7px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent;display:inline-flex;align-items:center;gap:5px}
+  .btn-secondary{background:var(--bg);color:var(--navy);border-color:var(--border)}
+  .btn-secondary:hover{background:var(--border)}
+  .btn-primary{background:var(--navy);color:#fff}
+  .btn-primary:hover{background:var(--navy2)}
+  .btn-success{background:var(--success);color:#fff}
+  .btn-success:hover:not(:disabled){background:#0e5e36}
+  .btn-success:disabled{opacity:.55;cursor:not-allowed}
+  .btn-gold{background:var(--gold);color:#fff}
+  .btn-gold:hover:not(:disabled){background:var(--gold-dark)}
+  .btn-gold:disabled{opacity:.55;cursor:not-allowed}
+  .btn-danger{background:#fef2f2;color:var(--red);border-color:#fecaca}
+  .btn-danger:hover{background:#fee2e2}
+
+  /* ════════ MODAL FORM (Add/Edit + Ajukan PAK) ════════ */
+  .modal-header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fafaf6;gap:12px;border-radius:14px 14px 0 0}
+  .modal-title{font-family:'Fraunces',serif;font-size:17px;font-weight:500;color:var(--navy);line-height:1.3}
+  .modal-title em{font-style:italic;color:var(--gold)}
+  .modal-body{padding:18px 22px;overflow-y:auto;flex:1}
+  .modal-footer{padding:12px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:#fafaf6;flex-wrap:wrap;border-radius:0 0 14px 14px}
+
+  .form-group{margin-bottom:14px}
+  .form-group label{display:block;font-size:11.5px;font-weight:600;color:var(--navy);margin-bottom:5px;letter-spacing:.2px;text-transform:uppercase}
+  .form-group input[type="text"],
+  .form-group input[type="number"],
+  .form-group input[type="date"],
+  .form-group select,
+  .form-group textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:7px;font-family:inherit;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;background:var(--white);color:var(--navy)}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
+  .form-group textarea{resize:vertical;min-height:60px}
+  .form-help{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.45}
+  .form-help.warn{color:#92400e}
+  .form-row-3col{display:grid;grid-template-columns:1fr 1fr 110px;gap:10px}
+  .form-row-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:560px){
+    .form-row-3col,.form-row-2col{grid-template-columns:1fr}
+  }
+
+  /* PAK preview pane (di modal Ajukan PAK) */
+  .pak-preview{background:#fafaf6;border:1px solid var(--border);border-radius:9px;padding:14px 16px;margin-bottom:14px}
+  .pak-preview-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .pak-preview-head-icon{width:22px;height:22px;background:var(--gold-light);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+  .pak-preview-head-title{font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.5px;text-transform:uppercase}
+  .pak-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+  .pak-preview-item{min-width:0}
+  .pak-preview-item.full{grid-column:1/-1}
+  .pak-preview-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.6px;text-transform:uppercase;margin-bottom:2px}
+  .pak-preview-value{font-size:12.5px;color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.35;word-break:break-word}
+  .pak-preview-value.muted{color:var(--muted);font-weight:500;font-style:italic}
+  .pak-preview-value.big{font-family:'Fraunces',serif;font-size:18px;font-weight:600;line-height:1.1;letter-spacing:-.2px;color:var(--gold-dark)}
+  .pak-preview-divider{grid-column:1/-1;height:1px;background:var(--border);margin:4px 0}
+  .pak-preview-error{padding:10px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:7px;color:var(--red);font-size:12px;line-height:1.5}
+  .pak-preview-loading{font-size:12px;color:var(--muted);font-style:italic;padding:6px 0}
+
+  /* Pengajuan PAK detail panels (di tab Pengajuan PAK) */
+  .pak-detail-card{background:var(--white);border:1px solid var(--border);border-radius:9px;padding:13px 15px;margin-bottom:10px;transition:border-color .15s}
+  .pak-detail-card:hover{border-color:var(--border2)}
+  .pak-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .pak-detail-title{font-weight:700;color:var(--navy);font-size:13px}
+  .pak-detail-title-meta{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px;font-variant-numeric:tabular-nums}
+  .pak-detail-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
+  .pak-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px 14px;font-size:12.5px}
+  .pak-detail-grid .k{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:1px}
+  .pak-detail-grid .v{color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums}
+  .pak-detail-grid .v.big{font-family:'Fraunces',serif;font-size:16px;color:var(--gold-dark)}
+
+  /* Toast (kecil-kecil success notif) */
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:600;opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.2,.7,.3,1);box-shadow:0 8px 24px rgba(13,35,64,.3);max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.success{background:var(--success)}
+  .toast.error{background:var(--red)}
 </style>
 </head>
 <body>
@@ -191,6 +326,101 @@
   </main>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL DETAIL PEGAWAI — tabs: Pengajuan PAK, AK, Pangkat, Jabatan, Gelar
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeDetail()">
+  <div class="modal">
+    <div class="pg-detail-head">
+      <div class="pg-detail-avatar" id="detail-avatar">—</div>
+      <div class="pg-detail-name-wrap">
+        <div class="pg-detail-name" id="detail-name">—</div>
+        <div class="pg-detail-meta" id="detail-meta">—</div>
+      </div>
+      <button class="modal-close" onclick="closeDetail()" type="button">✕</button>
+    </div>
+    <div class="pg-tabs" id="detail-tabs">
+      <!-- diisi oleh openDetail() -->
+    </div>
+    <div class="pg-tab-content" id="detail-tab-content">
+      <!-- diisi oleh switchTab() -->
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL AJUKAN PAK — port dari index.html
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="pak-modal" onclick="if(event.target===this)closePakModal()">
+  <div class="modal modal-narrow">
+    <div class="modal-header">
+      <div class="modal-title">Ajukan <em>PAK</em> Baru</div>
+      <button class="modal-close" onclick="closePakModal()" type="button">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:14px;background:#fafaf6;padding:10px 12px;border-radius:7px;border:1px solid var(--border)">
+        Sistem akan menghitung AK secara otomatis dari predikat kinerja
+        pegawai di periode yang dipilih, lalu menghasilkan dokumen pengajuan
+        siap ditandatangani.
+      </p>
+      <div class="form-group">
+        <label>Periode Pengajuan</label>
+        <div class="form-row-3col">
+          <select id="pak-input-bulan-start" onchange="onPakInputChange()"><option value="">Bulan awal…</option></select>
+          <select id="pak-input-bulan-end"   onchange="onPakInputChange()"><option value="">Bulan akhir…</option></select>
+          <select id="pak-input-tahun"       onchange="onPakInputChange()"><option value="">Tahun…</option></select>
+        </div>
+        <div class="form-help">Untuk pengajuan tahunan, pilih Januari s.d Desember pada tahun yang sama.</div>
+      </div>
+      <div class="form-group">
+        <label>Tanggal Pengajuan</label>
+        <input type="date" id="pak-input-tgl" onchange="onPakInputChange()">
+        <div class="form-help">Default hari ini. Minimal harus lebih dari akhir periode (mis. periode Jan s.d Mar 2025 → tanggal pengajuan minimal 1 April 2025).</div>
+      </div>
+      <div class="form-group">
+        <label>Penandatangan</label>
+        <select id="pak-input-penandatangan" onchange="onPakInputChange()"><option value="">Memuat daftar pegawai…</option></select>
+        <div class="form-help">Pilih pegawai yang akan menandatangani surat. Jabatan akan otomatis diambil dari riwayat jabatan terbaru.</div>
+      </div>
+      <div class="pak-preview" id="pak-preview" style="display:none">
+        <div class="pak-preview-head">
+          <div class="pak-preview-head-icon">📊</div>
+          <div class="pak-preview-head-title">Ringkasan Perhitungan</div>
+        </div>
+        <div id="pak-preview-content"><div class="pak-preview-loading">Menghitung…</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closePakModal()" type="button">Batal</button>
+      <button class="btn btn-primary" id="btn-submit-pak" onclick="submitPak()" type="button" disabled>
+        Generate &amp; Kirim
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL ADD/EDIT RIWAYAT — generic, dinamis berdasar tab
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="riwayat-modal" onclick="if(event.target===this)closeRiwayatModal()">
+  <div class="modal modal-narrow">
+    <div class="modal-header">
+      <div class="modal-title" id="riwayat-modal-title">—</div>
+      <button class="modal-close" onclick="closeRiwayatModal()" type="button">✕</button>
+    </div>
+    <div class="modal-body" id="riwayat-modal-body">
+      <!-- form fields di-render dinamis berdasar TAB_CONFIG[currentTab].fields -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeRiwayatModal()" type="button">Batal</button>
+      <button class="btn btn-primary" id="btn-save-riwayat" onclick="saveRiwayat()" type="button">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notif (success/error inline) -->
+<div class="toast" id="toast"></div>
+
 <!-- Library shared 9201 -->
 <script src="config.js"></script>
 <script src="9201-shared.js"></script>
@@ -232,6 +462,160 @@ const STATE = {
 
   // Detail modal yang sedang terbuka
   detailOpenNIP: null,
+  detailActiveTab: 'pengajuan',  // 'pengajuan' | 'ak' | 'pangkat' | 'jabatan' | 'gelar'
+
+  // Add/Edit riwayat modal state
+  riwayatModalMode: null,        // 'add' | 'edit'
+  riwayatModalTab: null,         // tab key (ak/pangkat/jabatan/gelar)
+  riwayatModalRow: null,         // row yang di-edit (null kalau add)
+
+  // Ajukan PAK modal state — di-set saat openPakModal
+  pakModalNIP: null,
+  pakResolvedContext: null,      // hasil resolveContext dari preview, di-cache
+};
+
+/* ════════════════════════════════════════════════════════════════════
+   TAB_CONFIG — port dari admin-riwayat.html
+   ────────────────────────────────────────────────────────────────────
+   Konfigurasi tiap tab riwayat (AK, Pangkat, Jabatan, Gelar). Berisi:
+   - table          : nama tabel Supabase
+   - label          : label tab
+   - icon           : emoji untuk header tab
+   - titleAdd/Edit  : title modal add/edit
+   - columns        : array {key, label, render(row)} untuk mini-table
+   - fields         : array {name, label, type, required, ...} untuk form
+   - buildPayload   : fn(form) → object untuk INSERT/UPDATE
+   - rowToForm      : fn(row) → form values untuk edit mode
+   ──────────────────────────────────────────────────────────────────── */
+const TAB_CONFIG = {
+  ak: {
+    table:     'riwayat_angka_kredit',
+    label:     'Angka Kredit',
+    icon:      '⭐',
+    titleAdd:  'Tambah Riwayat Angka Kredit',
+    titleEdit: 'Edit Riwayat Angka Kredit',
+    columns: [
+      { key:'ak',  label:'Angka Kredit', render: r => `<strong>${esc(fmtAK(r.angka_kredit))}</strong>` },
+      { key:'tmt', label:'TMT', cls:'col-tmt', render: r => esc(fmtTglID(r.tmt)) },
+    ],
+    fields: [
+      { name:'angka_kredit', label:'Angka Kredit', type:'number', required:true,
+        step:'0.001', min:'0', placeholder:'mis. 22.792',
+        help:'Tulis dengan titik sebagai pemisah desimal (mis. 22.792, bukan 22,792).' },
+      { name:'tmt', label:'TMT', type:'date', required:true,
+        help:'Tanggal periode AK. Biasanya 31 Desember atau 30 Juni.' },
+    ],
+    buildPayload: (form, nip) => ({
+      pegawai_nip:  nip,
+      angka_kredit: parseFloat(form.angka_kredit),
+      tmt:          form.tmt,
+    }),
+    rowToForm: r => ({
+      angka_kredit: r.angka_kredit ?? '',
+      tmt:          r.tmt || '',
+    }),
+  },
+
+  pangkat: {
+    table:     'riwayat_pangkat_golongan',
+    label:     'Pangkat & Golongan',
+    icon:      '📈',
+    titleAdd:  'Tambah Riwayat Pangkat & Golongan',
+    titleEdit: 'Edit Riwayat Pangkat & Golongan',
+    columns: [
+      { key:'pgg', label:'Pangkat / Golongan',
+        render: r => `<span class="pgg-badge">${esc(r.pangkat || '-')} <span style="opacity:.6">/</span> ${esc(r.golongan || '-')}</span>` },
+      { key:'tmt', label:'TMT', cls:'col-tmt', render: r => esc(fmtTglID(r.tmt)) },
+      { key:'tmt_pak', label:'TMT Ikut PAK', cls:'col-tmt',
+        render: r => r.tmt_ikut_pak ? esc(fmtTglID(r.tmt_ikut_pak)) : '<span style="color:var(--muted)">—</span>' },
+    ],
+    fields: [
+      { name:'pgg', label:'Pangkat / Golongan', type:'pgg', required:true },
+      { name:'tmt', label:'TMT', type:'date', required:true },
+      { name:'tmt_ikut_pak', label:'TMT Ikut PAK', type:'date', required:false,
+        help:'Opsional. Dapat dikosongkan jika belum diketahui.' },
+    ],
+    buildPayload(form, nip) {
+      const [pangkat, golongan] = (form.pgg || '').split('|');
+      return {
+        pegawai_nip:  nip,
+        pangkat:      pangkat || '',
+        golongan:     golongan || '',
+        tmt:          form.tmt,
+        tmt_ikut_pak: form.tmt_ikut_pak || null,
+      };
+    },
+    rowToForm: r => ({
+      pgg:          r.pangkat && r.golongan ? `${r.pangkat}|${r.golongan}` : '',
+      tmt:          r.tmt || '',
+      tmt_ikut_pak: r.tmt_ikut_pak || '',
+    }),
+  },
+
+  jabatan: {
+    table:     'riwayat_jabatan',
+    label:     'Jabatan',
+    icon:      '💼',
+    titleAdd:  'Tambah Riwayat Jabatan',
+    titleEdit: 'Edit Riwayat Jabatan',
+    columns: [
+      { key:'jabatan', label:'Jabatan',
+        render: r => `<span style="font-weight:600">${esc(r.jabatan || '-')}</span>` },
+      { key:'tmt', label:'TMT', cls:'col-tmt', render: r => esc(fmtTglID(r.tmt)) },
+      { key:'tmt_pak', label:'TMT Ikut PAK', cls:'col-tmt',
+        render: r => r.tmt_ikut_pak ? esc(fmtTglID(r.tmt_ikut_pak)) : '<span style="color:var(--muted)">—</span>' },
+    ],
+    fields: [
+      { name:'jabatan', label:'Jabatan', type:'text', required:true,
+        placeholder:'mis. Statistisi Pelaksana', maxLength:200 },
+      { name:'tmt', label:'TMT', type:'date', required:true },
+      { name:'tmt_ikut_pak', label:'TMT Ikut PAK', type:'date', required:false,
+        help:'Opsional. Dapat dikosongkan jika belum diketahui.' },
+    ],
+    buildPayload(form, nip) {
+      const peg = STATE.pegawaiByNIP[nip];
+      return {
+        pegawai_nip:  nip,
+        nama:         peg ? (peg.NAMA || '') : '',
+        jabatan:      (form.jabatan || '').trim(),
+        tmt:          form.tmt,
+        tmt_ikut_pak: form.tmt_ikut_pak || null,
+      };
+    },
+    rowToForm: r => ({
+      jabatan:      r.jabatan || '',
+      tmt:          r.tmt || '',
+      tmt_ikut_pak: r.tmt_ikut_pak || '',
+    }),
+  },
+
+  gelar: {
+    table:     'riwayat_gelar',
+    label:     'Gelar',
+    icon:      '🎓',
+    titleAdd:  'Tambah Riwayat Gelar',
+    titleEdit: 'Edit Riwayat Gelar',
+    columns: [
+      { key:'gelar', label:'Nama Lengkap dengan Gelar',
+        render: r => `<strong>${esc(r.gelar || '-')}</strong>` },
+      { key:'tmt', label:'TMT', cls:'col-tmt', render: r => esc(fmtTglID(r.tmt)) },
+    ],
+    fields: [
+      { name:'gelar', label:'Nama Lengkap dengan Gelar', type:'text', required:true,
+        placeholder:'mis. Andi Saputra, S.Si.', maxLength:200,
+        help:'Tulis nama lengkap beserta gelar akademik (mis. "Andi Saputra, S.Si." atau "Dr. Budi, M.Si.").' },
+      { name:'tmt', label:'TMT', type:'date', required:true },
+    ],
+    buildPayload: (form, nip) => ({
+      pegawai_nip:  nip,
+      gelar:        (form.gelar || '').trim(),
+      tmt:          form.tmt,
+    }),
+    rowToForm: r => ({
+      gelar: r.gelar || '',
+      tmt:   r.tmt || '',
+    }),
+  },
 };
 
 /* ════════════════════════════════════════════════════════════════════
@@ -612,12 +996,700 @@ function renderKebutuhanRow(s) {
    DETAIL MODAL — placeholder untuk Fase A4
    ──────────────────────────────────────────────────────────────────── */
 
+/* ════════════════════════════════════════════════════════════════════
+   DETAIL MODAL — Pegawai detail dengan tabs
+   ──────────────────────────────────────────────────────────────────── */
+
+/**
+ * Buka modal detail untuk pegawai dengan NIP tertentu.
+ * Render: header + tabs nav + tab content (default = Pengajuan PAK).
+ */
 function openDetail(nip) {
-  // TODO Fase A4: implement modal detail dengan tabs
-  STATE.detailOpenNIP = nip;
   const s = STATE.pegawaiSummary.find(x => x.nip === nip);
+  if (!s) {
+    showToast('Data pegawai tidak ditemukan', 'error');
+    return;
+  }
+  STATE.detailOpenNIP = nip;
+  // Default tab: Pengajuan PAK kalau ada yang menunggu, kalau tidak ke AK
+  STATE.detailActiveTab = (s.pakPending.length > 0) ? 'pengajuan' : 'ak';
+
+  // Header
+  document.getElementById('detail-avatar').textContent = initialsFromName(s.nama);
+  const namePill = s.pakPending.length > 0
+    ? `<span class="pg-pill-pak" style="margin-left:8px;vertical-align:middle">⏳ ${s.pakPending.length} PAK MENUNGGU</span>`
+    : '';
+  document.getElementById('detail-name').innerHTML = `${esc(s.nama)}${namePill}`;
+
+  const metaParts = [];
+  if (s.nip) metaParts.push(`NIP: <strong>${esc(s.nip)}</strong>`);
+  if (s.latestPangkat) metaParts.push(`Pangkat: <strong>${esc(s.latestPangkat.pangkat || '—')} / ${esc(s.latestPangkat.golongan || '—')}</strong>`);
+  if (s.latestJabatan) metaParts.push(`Jabatan: <strong>${esc(s.latestJabatan.jabatan || '—')}</strong>`);
+  document.getElementById('detail-meta').innerHTML = metaParts.length ? metaParts.join(' &middot; ') : 'Belum ada riwayat lengkap.';
+
+  // Render tabs nav
+  renderDetailTabs(s);
+  // Render isi tab default
+  switchTab(STATE.detailActiveTab);
+
+  document.getElementById('detail-modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() {
+  STATE.detailOpenNIP = null;
+  document.getElementById('detail-modal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+/**
+ * Render tabs navigation dengan count per tab.
+ * Tab "Pengajuan PAK" punya .warn count kalau ada yang menunggu.
+ */
+function renderDetailTabs(s) {
+  // Hitung count per kategori
+  const akList     = STATE.riwayatAK.filter(r => r.pegawai_nip === s.nip);
+  const pangkatList= STATE.riwayatPangkat.filter(r => r.pegawai_nip === s.nip);
+  const jabatanList= STATE.riwayatJabatan.filter(r => r.pegawai_nip === s.nip);
+  const gelarList  = STATE.riwayatGelar.filter(r => r.pegawai_nip === s.nip);
+  const pakCount   = s.pakList.length;
+  const pakPendingCount = s.pakPending.length;
+
+  const tabs = [
+    { key:'pengajuan', label:'Pengajuan PAK', icon:'⭐', count:pakCount, warn:pakPendingCount > 0 },
+    { key:'ak',        label:'Angka Kredit',  icon:'📊', count:akList.length },
+    { key:'pangkat',   label:'Pangkat',       icon:'📈', count:pangkatList.length },
+    { key:'jabatan',   label:'Jabatan',       icon:'💼', count:jabatanList.length },
+    { key:'gelar',     label:'Gelar',         icon:'🎓', count:gelarList.length },
+  ];
+
+  document.getElementById('detail-tabs').innerHTML = tabs.map(t => {
+    const cls = STATE.detailActiveTab === t.key ? 'pg-tab active' : 'pg-tab';
+    const cntCls = t.warn ? 'pg-tab-count warn' : 'pg-tab-count';
+    return `<button class="${cls}" type="button" onclick="switchTab('${t.key}')">
+      <span>${t.icon}</span> ${esc(t.label)}
+      <span class="${cntCls}">${t.count}</span>
+    </button>`;
+  }).join('');
+}
+
+function switchTab(tabKey) {
+  if (!STATE.detailOpenNIP) return;
+  STATE.detailActiveTab = tabKey;
+  const s = STATE.pegawaiSummary.find(x => x.nip === STATE.detailOpenNIP);
   if (!s) return;
-  alert(`[Placeholder Fase A4]\n\nDetail pegawai akan dibuka di sini.\n\nNama: ${s.nama}\nNIP: ${nip}\nPengajuan PAK: ${s.pakList.length} (${s.pakPending.length} menunggu)\n\nFitur yang akan ada:\n- Tabs: Pengajuan PAK, AK, Pangkat, Jabatan, Gelar\n- Tombol Ajukan PAK\n- Approve PAK menunggu\n- Add/Edit/Delete riwayat`);
+
+  // Re-render nav untuk update active highlight
+  renderDetailTabs(s);
+
+  const container = document.getElementById('detail-tab-content');
+  if (tabKey === 'pengajuan') {
+    container.innerHTML = renderTabPengajuan(s);
+  } else {
+    // ak / pangkat / jabatan / gelar
+    container.innerHTML = renderTabRiwayat(s, tabKey);
+  }
+}
+
+/**
+ * Render tab "Pengajuan PAK" — list semua pengajuan pegawai dengan
+ * tombol Approve (kalau menunggu) dan Download.
+ */
+function renderTabPengajuan(s) {
+  const items = s.pakList.slice().sort((a,b) =>
+    String(b.tgl_pengajuan || b.created_at || '').localeCompare(String(a.tgl_pengajuan || a.created_at || ''))
+  );
+
+  const header = `
+    <div class="pg-tab-actions">
+      <h3>Pengajuan Penilaian Angka Kredit</h3>
+      <button class="btn btn-gold" type="button" onclick="openPakModal()">+ Ajukan PAK</button>
+    </div>`;
+
+  if (!items.length) {
+    return header + `
+      <div style="padding:36px 20px;text-align:center;color:var(--muted);font-size:13px;background:var(--bg);border-radius:9px;border:1px dashed var(--border2);line-height:1.6">
+        Belum ada pengajuan PAK untuk pegawai ini.<br>
+        Klik <strong style="color:var(--navy)">+ Ajukan PAK</strong> di atas untuk membuat pengajuan baru.
+      </div>`;
+  }
+
+  const cards = items.map(p => {
+    const statusCls = p.status === 'menunggu' ? 'menunggu' : 'selesai';
+    const modeCls   = p.mode_hitung === 'tahunan' ? 'tahunan' : 'bulanan';
+    const periode   = fmtPeriode(p);
+    const akAng     = `<strong style="font-variant-numeric:tabular-nums">${esc(fmtAK(p.ak_total))}</strong>`;
+
+    const actions = [];
+    actions.push(`<button class="btn-mini btn-mini-download" onclick="downloadPengajuan(${p.id})" type="button">⬇ Unduh</button>`);
+    if (p.status === 'menunggu') {
+      actions.push(`<button class="btn-mini btn-mini-approve" onclick="approvePengajuan(${p.id})" type="button">✓ Approve</button>`);
+    }
+
+    return `
+      <div class="pak-detail-card">
+        <div class="pak-detail-head">
+          <div>
+            <span class="pak-detail-title">No. ${esc(String(p.nomor_urut).padStart(3,'0'))} / ${esc(String(p.tahun_periode))}</span>
+            <span class="status-pill ${statusCls}" style="margin-left:6px">${esc(p.status)}</span>
+            <span class="mode-pill ${modeCls}" style="margin-left:4px">${esc(p.mode_hitung)}</span>
+            <span class="pak-detail-title-meta">Diajukan: ${esc(fmtTglID(p.tgl_pengajuan))}</span>
+          </div>
+          <div class="pak-detail-actions">${actions.join('')}</div>
+        </div>
+        <div class="pak-detail-grid">
+          <div><span class="k">Periode</span><span class="v">${esc(periode)}</span></div>
+          <div><span class="k">AK Didapat</span><span class="v">+ ${esc(fmtAK(p.ak_didapat))}</span></div>
+          <div><span class="k">AK Sebelumnya</span><span class="v">${esc(fmtAK(p.ak_n1))}</span></div>
+          <div><span class="k">AK Total Baru</span><span class="v big">${esc(fmtAK(p.ak_total))}</span></div>
+          <div style="grid-column:1/-1"><span class="k">Penandatangan</span><span class="v">${esc(p.penandatangan_nama || '—')}</span></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  return header + cards;
+}
+
+/**
+ * Render tab riwayat (ak/pangkat/jabatan/gelar) — mini-table dengan
+ * tombol edit/delete + tombol "Tambah" di atas.
+ */
+function renderTabRiwayat(s, tabKey) {
+  const cfg = TAB_CONFIG[tabKey];
+  if (!cfg) return '<div style="padding:24px;color:var(--muted)">Tab tidak dikenali.</div>';
+
+  // Filter rows untuk pegawai ini
+  const sourceMap = {
+    ak:      STATE.riwayatAK,
+    pangkat: STATE.riwayatPangkat,
+    jabatan: STATE.riwayatJabatan,
+    gelar:   STATE.riwayatGelar,
+  };
+  const rows = sourceMap[tabKey].filter(r => r.pegawai_nip === s.nip)
+    .slice().sort((a,b) => String(b.tmt || '').localeCompare(String(a.tmt || '')));
+
+  const header = `
+    <div class="pg-tab-actions">
+      <h3>${esc(cfg.icon)} Riwayat ${esc(cfg.label)}</h3>
+      <button class="btn btn-secondary" type="button" onclick="openRiwayatModal('${tabKey}', null)">+ Tambah</button>
+    </div>`;
+
+  if (!rows.length) {
+    return header + `
+      <div style="padding:36px 20px;text-align:center;color:var(--muted);font-size:13px;background:var(--bg);border-radius:9px;border:1px dashed var(--border2);line-height:1.6">
+        Belum ada riwayat ${esc(cfg.label.toLowerCase())} untuk pegawai ini.
+      </div>`;
+  }
+
+  const tbody = rows.map(r => {
+    const cells = cfg.columns.map(c => {
+      const cls = c.cls ? ` class="${c.cls}"` : '';
+      return `<td${cls}>${c.render(r)}</td>`;
+    }).join('');
+    return `<tr>${cells}<td class="col-aksi">
+      <button class="btn-mini btn-mini-edit" onclick='openRiwayatModal("${tabKey}", ${JSON.stringify(r.id)})' type="button">Edit</button>
+      <button class="btn-mini btn-mini-del" onclick='deleteRiwayat("${tabKey}", ${JSON.stringify(r.id)})' type="button">Hapus</button>
+    </td></tr>`;
+  }).join('');
+
+  const headers = cfg.columns.map(c => {
+    const cls = c.cls ? ` class="${c.cls}"` : '';
+    return `<th${cls}>${esc(c.label)}</th>`;
+  }).join('');
+
+  return header + `
+    <table class="mini-table">
+      <thead><tr>${headers}<th class="col-aksi">Aksi</th></tr></thead>
+      <tbody>${tbody}</tbody>
+    </table>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   AJUKAN PAK MODAL — port dari index.html
+   ──────────────────────────────────────────────────────────────────── */
+
+let _previewDebounceTimer = null;
+
+/**
+ * Buka modal Ajukan PAK untuk pegawai yang sedang dilihat di detail.
+ */
+async function openPakModal() {
+  if (!STATE.detailOpenNIP) {
+    showToast('Buka detail pegawai dulu', 'error');
+    return;
+  }
+  STATE.pakModalNIP = STATE.detailOpenNIP;
+  STATE.pakResolvedContext = null;
+
+  // Populate dropdowns
+  const bs = document.getElementById('pak-input-bulan-start');
+  const be = document.getElementById('pak-input-bulan-end');
+  const th = document.getElementById('pak-input-tahun');
+  const ttd = document.getElementById('pak-input-penandatangan');
+
+  // Reset
+  bs.innerHTML = '<option value="">Bulan awal…</option>';
+  be.innerHTML = '<option value="">Bulan akhir…</option>';
+  th.innerHTML = '<option value="">Tahun…</option>';
+  ttd.innerHTML = '<option value="">Pilih penandatangan…</option>';
+
+  for (let i = 1; i <= 12; i++) {
+    bs.innerHTML += `<option value="${i}">${BULAN[i-1]}</option>`;
+    be.innerHTML += `<option value="${i}">${BULAN[i-1]}</option>`;
+  }
+  // Tahun: 5 tahun ke belakang sampai tahun ini
+  const currentYear = new Date().getFullYear();
+  for (let y = currentYear; y >= currentYear - 5; y--) {
+    th.innerHTML += `<option value="${y}">${y}</option>`;
+  }
+
+  // Penandatangan: semua pegawai
+  STATE.pegawaiList.forEach(p => {
+    if (!p.NIP) return;
+    ttd.innerHTML += `<option value="${esc(p.NIP)}">${esc(p.NAMA || p.NIP)}</option>`;
+  });
+
+  // Reset tgl pengajuan ke hari ini
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm   = String(today.getMonth() + 1).padStart(2, '0');
+  const dd   = String(today.getDate()).padStart(2, '0');
+  document.getElementById('pak-input-tgl').value = `${yyyy}-${mm}-${dd}`;
+
+  // Hide preview & disable submit
+  document.getElementById('pak-preview').style.display = 'none';
+  document.getElementById('btn-submit-pak').disabled = true;
+
+  document.getElementById('pak-modal').classList.add('show');
+}
+
+function closePakModal() {
+  document.getElementById('pak-modal').classList.remove('show');
+  STATE.pakModalNIP = null;
+  STATE.pakResolvedContext = null;
+}
+
+function onPakInputChange() {
+  // Debounce 250ms supaya tidak fetch terus-menerus saat user mengetik
+  if (_previewDebounceTimer) clearTimeout(_previewDebounceTimer);
+  _previewDebounceTimer = setTimeout(computePakPreview, 250);
+}
+
+/**
+ * Cek input lengkap → fetch context → tampilkan preview perhitungan.
+ */
+async function computePakPreview() {
+  const bs  = document.getElementById('pak-input-bulan-start').value;
+  const be  = document.getElementById('pak-input-bulan-end').value;
+  const th  = document.getElementById('pak-input-tahun').value;
+  const tgl = document.getElementById('pak-input-tgl').value;
+  const ttd = document.getElementById('pak-input-penandatangan').value;
+
+  const previewEl  = document.getElementById('pak-preview');
+  const contentEl  = document.getElementById('pak-preview-content');
+  const submitBtn  = document.getElementById('btn-submit-pak');
+
+  // Cek lengkap
+  if (!bs || !be || !th || !tgl || !ttd || !STATE.pakModalNIP) {
+    previewEl.style.display = 'none';
+    submitBtn.disabled = true;
+    return;
+  }
+
+  // Validasi periode: bulan_start <= bulan_end
+  if (parseInt(bs) > parseInt(be)) {
+    previewEl.style.display = 'block';
+    contentEl.innerHTML = `<div class="pak-preview-error">Periode tidak valid: bulan awal (${BULAN[bs-1]}) harus ≤ bulan akhir (${BULAN[be-1]}).</div>`;
+    submitBtn.disabled = true;
+    return;
+  }
+
+  previewEl.style.display = 'block';
+  contentEl.innerHTML = '<div class="pak-preview-loading">Menghitung…</div>';
+  submitBtn.disabled = true;
+
+  try {
+    const ctx = await PakGenerator.resolveContext({
+      pegawai_nip: STATE.pakModalNIP,
+      bulan_start: parseInt(bs),
+      bulan_end:   parseInt(be),
+      tahun:       parseInt(th),
+      tgl_pengajuan: tgl,
+      penandatangan_nip: ttd,
+      // nomor_urut belum tahu sampai submit (di-assign atomic oleh RPC)
+      nomor_urut_preview: null,
+    });
+
+    STATE.pakResolvedContext = ctx;
+
+    const m = ctx._meta;
+    const periodeText = PakGenerator.resolvePeriodeText
+      ? PakGenerator.resolvePeriodeText({ bulan_start: parseInt(bs), bulan_end: parseInt(be), tahun: parseInt(th) })
+      : `${BULAN[bs-1]} s.d ${BULAN[be-1]} ${th}`;
+
+    contentEl.innerHTML = `
+      <div class="pak-preview-grid">
+        <div class="pak-preview-item">
+          <div class="pak-preview-label">Periode</div>
+          <div class="pak-preview-value">${esc(periodeText)}</div>
+        </div>
+        <div class="pak-preview-item">
+          <div class="pak-preview-label">Mode Hitung</div>
+          <div class="pak-preview-value" style="text-transform:capitalize">${esc(m.mode_hitung)}</div>
+        </div>
+        <div class="pak-preview-divider"></div>
+        <div class="pak-preview-item">
+          <div class="pak-preview-label">AK Sebelumnya</div>
+          <div class="pak-preview-value">${esc(fmtAK(m.ak_n1_num))}</div>
+        </div>
+        <div class="pak-preview-item">
+          <div class="pak-preview-label">AK Didapat</div>
+          <div class="pak-preview-value" style="color:var(--success)">+ ${esc(fmtAK(m.ak_didapat))}</div>
+        </div>
+        <div class="pak-preview-item full">
+          <div class="pak-preview-label">AK Total Baru</div>
+          <div class="pak-preview-value big">${esc(fmtAK(m.ak_tot_num))}</div>
+        </div>
+      </div>`;
+
+    submitBtn.disabled = false;
+  } catch (e) {
+    console.error('[PAK preview] error:', e);
+    contentEl.innerHTML = `<div class="pak-preview-error">${esc(e.message || String(e))}</div>`;
+    submitBtn.disabled = true;
+    STATE.pakResolvedContext = null;
+  }
+}
+
+/**
+ * Submit PAK: call RPC pengajuan_pak_create → re-resolve dengan
+ * nomor_urut → render doc → saveAs.
+ */
+async function submitPak() {
+  if (!STATE.pakResolvedContext || !STATE.pakModalNIP) {
+    showToast('Tunggu hasil perhitungan dulu', 'error');
+    return;
+  }
+  const m = STATE.pakResolvedContext._meta;
+  const session = JSON.parse(localStorage.getItem('nova_user') || 'null');
+  if (!session) { showToast('Sesi habis, silakan login ulang', 'error'); return; }
+
+  const bs  = parseInt(document.getElementById('pak-input-bulan-start').value);
+  const be  = parseInt(document.getElementById('pak-input-bulan-end').value);
+  const th  = parseInt(document.getElementById('pak-input-tahun').value);
+  const tgl = document.getElementById('pak-input-tgl').value;
+  const ttd = document.getElementById('pak-input-penandatangan').value;
+
+  const submitBtn = document.getElementById('btn-submit-pak');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Memproses…';
+
+  try {
+    // 1. Call RPC pengajuan_pak_create — atomic, return nomor_urut
+    const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/pengajuan_pak_create`, {
+      method: 'POST',
+      headers: { ...SUPABASE_HEADERS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        p_caller_id: session.id,
+        p_pegawai_nip: STATE.pakModalNIP,
+        p_tahun_periode: th,
+        p_bulan_start: bs,
+        p_bulan_end:   be,
+        p_mode_hitung: m.mode_hitung,
+        p_ak_didapat:  m.ak_didapat,
+        p_ak_n1:       m.ak_n1_num,
+        p_ak_total:    m.ak_tot_num,
+        p_detail_predikat: m.detail_predikat,
+        p_tgl_pengajuan: tgl,
+        p_penandatangan_nip:  ttd,
+        p_penandatangan_nama: m.penandatangan_nama,
+      }),
+    });
+
+    if (!rpcRes.ok) {
+      const errTxt = await rpcRes.text();
+      let errMsg = errTxt;
+      try { const j = JSON.parse(errTxt); errMsg = j.message || j.hint || errTxt; } catch(_) {}
+      throw new Error(errMsg);
+    }
+    const inserted = await rpcRes.json();
+    const newRow = Array.isArray(inserted) ? inserted[0] : inserted;
+    if (!newRow || !newRow.id) throw new Error('RPC tidak return data row');
+
+    // 2. Re-resolve context dengan nomor_urut yang baru di-assign
+    const ctxFinal = await PakGenerator.resolveContext({
+      pegawai_nip: STATE.pakModalNIP,
+      bulan_start: bs,
+      bulan_end:   be,
+      tahun:       th,
+      tgl_pengajuan: tgl,
+      penandatangan_nip: ttd,
+      nomor_urut_preview: newRow.nomor_urut,
+    });
+
+    // 3. Render doc & saveAs
+    const blob = await PakGenerator.renderDoc(ctxFinal);
+    const safeName = (STATE.pegawaiByNIP[STATE.pakModalNIP]?.NAMA || STATE.pakModalNIP).replace(/[^\w\s-]/g, '_');
+    const filename = `Konversi PK ke AK — ${safeName}.docx`;
+    saveAs(blob, filename);
+
+    showToast('Pengajuan berhasil dibuat dan dokumen ter-download', 'success');
+    closePakModal();
+
+    // Reload data
+    await loadAll();
+    // Re-open detail modal kalau pegawai yang sama
+    if (STATE.detailOpenNIP === STATE.pakModalNIP || STATE.detailOpenNIP) {
+      const reopenNIP = STATE.detailOpenNIP;
+      closeDetail();
+      openDetail(reopenNIP);
+    }
+  } catch (e) {
+    console.error('[submitPak] error:', e);
+    showToast(`Gagal: ${e.message || e}`, 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Generate & Kirim';
+  }
+}
+
+/**
+ * Re-generate dokumen dari pengajuan yang sudah ada (tombol Unduh di tab).
+ */
+async function downloadPengajuan(pakId) {
+  const p = STATE.pengajuanPAK.find(x => x.id === pakId);
+  if (!p) { showToast('Pengajuan tidak ditemukan', 'error'); return; }
+  try {
+    const ctx = await PakGenerator.resolveContext({
+      pegawai_nip: p.pegawai_nip,
+      bulan_start: p.bulan_start,
+      bulan_end:   p.bulan_end,
+      tahun:       p.tahun_periode,
+      tgl_pengajuan: p.tgl_pengajuan,
+      penandatangan_nip: p.penandatangan_nip,
+      nomor_urut_preview: p.nomor_urut,
+    });
+    const blob = await PakGenerator.renderDoc(ctx);
+    const safeName = (STATE.pegawaiByNIP[p.pegawai_nip]?.NAMA || p.pegawai_nip).replace(/[^\w\s-]/g, '_');
+    saveAs(blob, `Konversi PK ke AK — ${safeName}.docx`);
+  } catch (e) {
+    console.error('[admin-pak] download error:', e);
+    showToast(`Gagal membuat dokumen: ${e.message || e}`, 'error');
+  }
+}
+
+/**
+ * Approve pengajuan PAK (admin only). Call RPC pengajuan_pak_approve.
+ */
+async function approvePengajuan(pakId) {
+  const p = STATE.pengajuanPAK.find(x => x.id === pakId);
+  if (!p) return;
+  if (!confirm(`Approve pengajuan No. ${String(p.nomor_urut).padStart(3,'0')} / ${p.tahun_periode}?\n\nIni akan menambahkan AK ${fmtAK(p.ak_total)} ke riwayat angka kredit pegawai dan menandai status pengajuan jadi "selesai".`)) return;
+
+  const session = JSON.parse(localStorage.getItem('nova_user') || 'null');
+  if (!session) { showToast('Sesi habis', 'error'); return; }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/pengajuan_pak_approve`, {
+      method: 'POST',
+      headers: { ...SUPABASE_HEADERS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_caller_id: session.id, p_pengajuan_id: pakId }),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      let msg = t;
+      try { const j = JSON.parse(t); msg = j.message || j.hint || t; } catch(_) {}
+      throw new Error(msg);
+    }
+    showToast('Pengajuan berhasil di-approve', 'success');
+
+    // Reload + reopen
+    await loadAll();
+    if (STATE.detailOpenNIP) {
+      const reopenNIP = STATE.detailOpenNIP;
+      closeDetail();
+      openDetail(reopenNIP);
+    }
+  } catch (e) {
+    console.error('[approvePengajuan] error:', e);
+    showToast(`Gagal approve: ${e.message || e}`, 'error');
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   ADD/EDIT/DELETE RIWAYAT — generic untuk ak/pangkat/jabatan/gelar
+   ──────────────────────────────────────────────────────────────────── */
+
+function openRiwayatModal(tabKey, rowId) {
+  const cfg = TAB_CONFIG[tabKey];
+  if (!cfg || !STATE.detailOpenNIP) return;
+
+  STATE.riwayatModalTab = tabKey;
+  STATE.riwayatModalRow = null;
+  STATE.riwayatModalMode = rowId ? 'edit' : 'add';
+
+  let formValues = {};
+  if (rowId) {
+    const sourceMap = { ak:STATE.riwayatAK, pangkat:STATE.riwayatPangkat, jabatan:STATE.riwayatJabatan, gelar:STATE.riwayatGelar };
+    const row = sourceMap[tabKey].find(r => r.id === rowId);
+    if (row) {
+      STATE.riwayatModalRow = row;
+      formValues = cfg.rowToForm(row);
+    }
+  }
+
+  document.getElementById('riwayat-modal-title').innerHTML =
+    rowId ? esc(cfg.titleEdit) : esc(cfg.titleAdd);
+
+  document.getElementById('riwayat-modal-body').innerHTML = renderRiwayatForm(cfg, formValues);
+
+  document.getElementById('riwayat-modal').classList.add('show');
+}
+
+function closeRiwayatModal() {
+  document.getElementById('riwayat-modal').classList.remove('show');
+  STATE.riwayatModalTab = null;
+  STATE.riwayatModalRow = null;
+  STATE.riwayatModalMode = null;
+}
+
+/**
+ * Render form fields berdasar cfg.fields[] dengan value awal dari `vals`.
+ * Field type: text | number | date | pgg (custom dropdown golongan)
+ */
+function renderRiwayatForm(cfg, vals) {
+  return cfg.fields.map(f => {
+    const cur = vals[f.name] ?? '';
+    let inputHTML = '';
+
+    if (f.type === 'pgg') {
+      // Dropdown spesial: kombinasi pangkat|golongan dari GOLONGAN_PNS
+      const opts = (window.GOLONGAN_PNS || []).map(g => {
+        const val = `${g.pangkat}|${g.golongan}`;
+        const sel = cur === val ? ' selected' : '';
+        return `<option value="${esc(val)}"${sel}>${esc(g.pangkat)} (${esc(g.golongan)})</option>`;
+      }).join('');
+      inputHTML = `<select id="rf-${f.name}" ${f.required?'required':''}>
+        <option value="">Pilih pangkat / golongan…</option>
+        ${opts}
+      </select>`;
+    } else if (f.type === 'date') {
+      inputHTML = `<input type="date" id="rf-${f.name}" value="${esc(cur)}" ${f.required?'required':''}>`;
+    } else if (f.type === 'number') {
+      inputHTML = `<input type="number" id="rf-${f.name}" value="${esc(cur)}"
+        ${f.step?`step="${f.step}"`:''} ${f.min?`min="${f.min}"`:''}
+        ${f.placeholder?`placeholder="${esc(f.placeholder)}"`:''}
+        ${f.required?'required':''}>`;
+    } else {
+      inputHTML = `<input type="text" id="rf-${f.name}" value="${esc(cur)}"
+        ${f.placeholder?`placeholder="${esc(f.placeholder)}"`:''}
+        ${f.maxLength?`maxlength="${f.maxLength}"`:''}
+        ${f.required?'required':''}>`;
+    }
+
+    return `<div class="form-group">
+      <label>${esc(f.label)}${f.required?' <span style="color:var(--red)">*</span>':''}</label>
+      ${inputHTML}
+      ${f.help ? `<div class="form-help">${esc(f.help)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function saveRiwayat() {
+  const cfg = TAB_CONFIG[STATE.riwayatModalTab];
+  if (!cfg || !STATE.detailOpenNIP) return;
+
+  // Collect form values
+  const form = {};
+  for (const f of cfg.fields) {
+    const el = document.getElementById(`rf-${f.name}`);
+    if (!el) continue;
+    form[f.name] = el.value;
+    if (f.required && !el.value) {
+      showToast(`Kolom "${f.label}" wajib diisi`, 'error');
+      return;
+    }
+  }
+
+  const payload = cfg.buildPayload(form, STATE.detailOpenNIP);
+
+  const btn = document.getElementById('btn-save-riwayat');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan…';
+
+  try {
+    let url = `${SUPABASE_URL}/rest/v1/${cfg.table}`;
+    let method = 'POST';
+    if (STATE.riwayatModalMode === 'edit' && STATE.riwayatModalRow) {
+      url += `?id=eq.${STATE.riwayatModalRow.id}`;
+      method = 'PATCH';
+    }
+    const res = await fetch(url, {
+      method,
+      headers: { ...SUPABASE_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const t = await res.text(); let msg = t;
+      try { const j = JSON.parse(t); msg = j.message || j.hint || t; } catch(_) {}
+      throw new Error(msg);
+    }
+    showToast(STATE.riwayatModalMode === 'edit' ? 'Riwayat berhasil diperbarui' : 'Riwayat berhasil ditambahkan', 'success');
+    closeRiwayatModal();
+    await loadAll();
+    if (STATE.detailOpenNIP) {
+      const reopenNIP = STATE.detailOpenNIP;
+      closeDetail();
+      openDetail(reopenNIP);
+    }
+  } catch (e) {
+    console.error('[saveRiwayat] error:', e);
+    showToast(`Gagal: ${e.message || e}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan';
+  }
+}
+
+async function deleteRiwayat(tabKey, rowId) {
+  const cfg = TAB_CONFIG[tabKey];
+  if (!cfg) return;
+  if (!confirm(`Hapus riwayat ${cfg.label.toLowerCase()} ini? Aksi ini tidak dapat dibatalkan.`)) return;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${cfg.table}?id=eq.${rowId}`, {
+      method: 'DELETE',
+      headers: SUPABASE_HEADERS,
+    });
+    if (!res.ok) {
+      const t = await res.text(); let msg = t;
+      try { const j = JSON.parse(t); msg = j.message || j.hint || t; } catch(_) {}
+      throw new Error(msg);
+    }
+    showToast('Riwayat berhasil dihapus', 'success');
+    await loadAll();
+    if (STATE.detailOpenNIP) {
+      const reopenNIP = STATE.detailOpenNIP;
+      closeDetail();
+      openDetail(reopenNIP);
+    }
+  } catch (e) {
+    console.error('[deleteRiwayat] error:', e);
+    showToast(`Gagal menghapus: ${e.message || e}`, 'error');
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   TOAST
+   ──────────────────────────────────────────────────────────────────── */
+
+let _toastTimer = null;
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast show ${type}`;
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3500);
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -633,10 +1705,15 @@ async function init() {
   }
   initRoleSwitcher(session, true);
 
-  // ESC handler (untuk modal detail nanti)
+  // ESC handler: close modal yang sedang terbuka (paling atas dulu)
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && STATE.detailOpenNIP !== null) {
-      // closeDetail() — akan diimplement di Fase A4
+    if (e.key !== 'Escape') return;
+    if (document.getElementById('riwayat-modal').classList.contains('show')) {
+      closeRiwayatModal();
+    } else if (document.getElementById('pak-modal').classList.contains('show')) {
+      closePakModal();
+    } else if (document.getElementById('detail-modal').classList.contains('show')) {
+      closeDetail();
     }
   });
 
