@@ -10,8 +10,7 @@
  *   - "profil"            → Profil Saya (index.html)
  *   - "surat-tugas"       → Surat Tugas user (surat-tugas.html)
  *   - "admin-surat"       → Persetujuan Surat (admin-surat-tugas.html)
- *   - "admin-pengajuan-pak"→ Pengajuan PAK (admin-pengajuan-pak.html)
- *   - "riwayat"           → Riwayat Kepegawaian (admin-riwayat.html)
+ *   - "kepegawaian"       → Kepegawaian (admin-kepegawaian.html — gabungan baru)
  *   - "kamus-pok"         → Kamus POK (manajemen-kamus-pok.html)
  *   - "manajemen-mitra"   → Manajemen Mitra (manajemen-mitra.html)
  *   - "manajemen-pengguna"→ Manajemen Pengguna (manajemen-pengguna.html)
@@ -30,11 +29,15 @@
   ];
 
   // Daftar menu untuk ADMIN (di-show/hide oleh 9201-role-switcher.js
-  // berdasarkan active_role)
+  // berdasarkan active_role).
+  //
+  // CATATAN: Halaman "Pengajuan PAK" dan "Riwayat Kepegawaian" lama
+  // sudah digabung jadi satu halaman "Kepegawaian" (admin-kepegawaian.html)
+  // yang tampilkan list pegawai sebagai card, dengan detail per-pegawai
+  // berisi semua riwayat + pengajuan PAK + tombol Ajukan PAK.
   var NAV_ADMIN_ITEMS = [
     { key: 'admin-surat',         href: 'admin-surat-tugas.html',    icon: '✅', label: 'Surat Tugas' },
-    { key: 'admin-pengajuan-pak', href: 'admin-pengajuan-pak.html',  icon: '⭐', label: 'Pengajuan PAK' },
-    { key: 'riwayat',             href: 'admin-riwayat.html',        icon: '📜', label: 'Riwayat Kepegawaian' },
+    { key: 'kepegawaian',         href: 'admin-kepegawaian.html',    icon: '👥', label: 'Kepegawaian' },
     { key: 'kamus-pok',           href: 'manajemen-kamus-pok.html',  icon: '📚', label: 'Kamus POK' },
     { key: 'manajemen-mitra',     href: 'manajemen-mitra.html',      icon: '🤝', label: 'Manajemen Mitra' },
     { key: 'manajemen-pengguna',  href: 'manajemen-pengguna.html',   icon: '👥', label: 'Manajemen Pengguna' },
