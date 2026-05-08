@@ -214,7 +214,11 @@ window.GOLONGAN_PNS = [
   { kode:11, golongan:'IVc',  pangkat:'Pembina Utama Muda',      ak_awal:700,  ak_naik:850,  ak_naik_jenjang:850,  pangkat_min:450, jenjang_min:450, min_pendidikan:'S2' },
   // Ahli Utama (puncak jenjang — ak_naik_jenjang & jenjang_min null)
   { kode:12, golongan:'IVd',  pangkat:'Pembina Utama Madya',     ak_awal:850,  ak_naik:1050, ak_naik_jenjang:null, pangkat_min:200, jenjang_min:null, min_pendidikan:'S2' },
-  { kode:13, golongan:'IVe',  pangkat:'Pembina Utama',           ak_awal:1050, ak_naik:null /* MAX pangkat */, ak_naik_jenjang:null, pangkat_min:null, jenjang_min:null, min_pendidikan:'S2' },
+  // IVe = puncak total (pangkat tertinggi & jenjang tertinggi). Semua
+  // field "naik" di-set null. Generator akan output keputusan "TIDAK
+  // ADA REKOMENDASI..." dan kep_pangkat/kep_jenjang sebagai paragraf
+  // plain "—".
+  { kode:13, golongan:'IVe',  pangkat:'Pembina Utama',           ak_awal:1050, ak_naik:null, ak_naik_jenjang:null, pangkat_min:null, jenjang_min:null, min_pendidikan:'S2' },
 ];
 
 window.GOLONGAN_BY_KODE = window.GOLONGAN_PNS.reduce((acc, g) => {
