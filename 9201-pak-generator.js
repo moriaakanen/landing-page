@@ -364,27 +364,42 @@
   // ═══════════════════════════════════════════════════════════════════
 
   /**
-   * Build Word XML dengan satu kata yg di-strikethrough.
+   * Build Word XML untuk tag {@kep_pangkat} / {@kep_jenjang}.
    *
-   * Output untuk {@kep_pangkat}: dua run sequence.
-   *   - kalau "kelebihan_strike=true": "Kelebihan" strike, "/Kekurangan" normal
-   *   - kalau false:                   "Kelebihan/" normal, "Kekurangan" strike
+   * PENTING: tag {@...} di docxtemplater menggantikan SELURUH paragraf
+   * (`<w:p>...</w:p>`), bukan hanya isi run/text-nya. Jadi output di
+   * sini wajib berupa COMPLETE paragraph element(s) dengan struktur
+   * `<w:p>...<w:r>...</w:r>...</w:p>`. Kalau cuma `<w:r>` saja, hasil
+   * akhir-nya jadi malformed Word XML — file ter-download tapi error
+   * "trying to open the file" saat dibuka di Microsoft Word.
    *
-   * XML harus valid SEQUENCE OF RUNS — tidak boleh paragraph/section
-   * elements karena akan di-inject INLINE menggantikan placeholder yg
-   * berada di dalam paragraph.
+   * Format teks: dua kata "Kelebihan/Kekurangan" yang salah satunya
+   * di-strikethrough (sesuai semantik kondisi):
+   *   - strikeKelebihan=true  → "~~Kelebihan~~/Kekurangan"
+   *   - strikeKelebihan=false → "Kelebihan/~~Kekurangan~~"
+   *
+   * Font/spacing: Cambria 10pt, spacing after=0 — sesuai paragraf
+   * asli di template supaya tidak ada visual jump.
    */
   function buildKepXml(strikeKelebihan) {
+    // Properti paragraf & run — match template asli
+    const pPr = '<w:pPr><w:spacing w:after="0"/><w:rPr><w:rFonts w:ascii="Cambria" w:eastAsia="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>';
+    const rPrBase   = '<w:rPr><w:rFonts w:ascii="Cambria" w:eastAsia="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr>';
+    const rPrStrike = '<w:rPr><w:rFonts w:ascii="Cambria" w:eastAsia="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:strike w:val="true"/></w:rPr>';
+
+    // Build 2 runs di dalam 1 paragraf
+    let runs;
     if (strikeKelebihan) {
-      return (
-        '<w:r><w:rPr><w:strike w:val="true"/></w:rPr><w:t xml:space="preserve">Kelebihan</w:t></w:r>'
-      + '<w:r><w:t xml:space="preserve">/Kekurangan</w:t></w:r>'
-      );
+      runs =
+        `<w:r>${rPrStrike}<w:t xml:space="preserve">Kelebihan</w:t></w:r>`
+      + `<w:r>${rPrBase}<w:t xml:space="preserve">/Kekurangan</w:t></w:r>`;
+    } else {
+      runs =
+        `<w:r>${rPrBase}<w:t xml:space="preserve">Kelebihan/</w:t></w:r>`
+      + `<w:r>${rPrStrike}<w:t xml:space="preserve">Kekurangan</w:t></w:r>`;
     }
-    return (
-      '<w:r><w:t xml:space="preserve">Kelebihan/</w:t></w:r>'
-    + '<w:r><w:rPr><w:strike w:val="true"/></w:rPr><w:t xml:space="preserve">Kekurangan</w:t></w:r>'
-    );
+
+    return `<w:p>${pPr}${runs}</w:p>`;
   }
 
   // ═══════════════════════════════════════════════════════════════════
