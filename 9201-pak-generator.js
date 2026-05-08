@@ -787,8 +787,25 @@
       doc.render(templateData);
     } catch (err) {
       console.error('[PakGen] Template render error:', err, err && err.properties);
-      // Pesan error docxtemplater biasanya informatif, tapi panjang.
-      // Ambil pesan utama saja untuk display ke user.
+      // docxtemplater "Multi error" wraps individual tag errors di
+      // err.properties.errors. Tanpa unpack ini, user cuma lihat
+      // pesan generic dan tidak tau tag mana yang salah.
+      if (err && err.properties && Array.isArray(err.properties.errors) && err.properties.errors.length) {
+        const errs = err.properties.errors;
+        // Log SEMUA sub-error ke console untuk debugging
+        errs.forEach((e, i) => {
+          console.error(`[PakGen] Sub-error ${i + 1}/${errs.length}:`, e, e.properties);
+        });
+        // Bangun summary 3 error pertama untuk display ke user
+        const summary = errs.slice(0, 3).map(e => {
+          const props = e.properties || {};
+          const tag = props.xtag || props.id || props.tag || '?';
+          const explain = props.explanation || e.message || 'unknown';
+          return `{${tag}}: ${explain}`;
+        }).join(' | ');
+        const more = errs.length > 3 ? ` (+${errs.length - 3} error lain — cek console)` : '';
+        throw new Error(`Template error (${errs.length}): ${summary}${more}`);
+      }
       const msg = (err && err.message) || 'Render gagal';
       throw new Error(`Template error: ${msg}`);
     }
