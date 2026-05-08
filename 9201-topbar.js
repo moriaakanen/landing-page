@@ -128,7 +128,7 @@
             <span class="notif-header-meta" id="notif-header-meta">—</span>
           </div>
           <div class="notif-list" id="notif-list">
-            <div class="notif-empty">Memuat…</div>
+            <div class="notif-empty"><div class="notif-empty-icon">🔕</div>Tidak ada notifikasi.</div>
           </div>
         </div>
       </div>
