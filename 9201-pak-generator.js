@@ -435,10 +435,10 @@
    * Build string {keputusan} berdasar kondisi (rule dari task.txt user):
    *
    * Aturan asli (saat pangkat_min DAN jenjang_min keduanya ada):
-   *   IF kurang_lebih_p < 0:
+   *   IF diff_p > 0 (AK kurang):
    *     IF pangkat_min == jenjang_min: "BELUM... PANGKAT/JENJANG JABATAN ... JENJANG <jenjang+1> ..."
    *     ELSE:                          "BELUM... PANGKAT ... JENJANG <jenjang> ..."
-   *   IF kurang_lebih_p >= 0:
+   *   IF diff_p <= 0 (AK cukup/lebih):
    *     (sama, tapi awalnya "DAPAT...")
    *
    * Edge cases:
@@ -448,14 +448,15 @@
    *                                        masih bisa naik pangkat. Output keputusan "PANGKAT" saja.
    *
    * @param {object} args
-   *   - kurang_lebih_p, kurang_lebih_j : number atau null
+   *   - diff_p, diff_j  : SIGNED number (pangkat_min/jenjang_min − ak_total) atau null.
+   *                        > 0 = AK kurang, ≤ 0 = cukup/lebih.
    *   - pangkat_min, jenjang_min: number (delta) atau null
    *   - jabatan_aktif: string (mis. "Statistisi Ahli Pertama")
    *   - jenjang_aktif: object dari JENJANG_FUNGSIONAL (atau null)
    *   - golongan_aktif: object dari GOLONGAN_PNS (atau null)
    * @returns {string}
    */
-  function buildKeputusan({ kurang_lebih_p, pangkat_min, jenjang_min,
+  function buildKeputusan({ diff_p, diff_j, pangkat_min, jenjang_min,
                             jabatan_aktif, jenjang_aktif, golongan_aktif }) {
     // Both puncak — pegawai sudah di pangkat & jenjang tertinggi
     if (pangkat_min == null && jenjang_min == null) {
@@ -479,7 +480,8 @@
     // Special case: Ahli Utama (jenjang_min null) — tidak ada naik
     // jenjang, hanya naik pangkat. {keputusan} cuma bicarakan pangkat.
     if (jenjang_min == null) {
-      const prefix = kurang_lebih_p < 0
+      // diff_p > 0 = AK kurang (BELUM); ≤ 0 = cukup/lebih (DAPAT)
+      const prefix = diff_p > 0
         ? 'BELUM DAPAT DIPERTIMBANGKAN UNTUK KENAIKAN'
         : 'DAPAT DIPERTIMBANGKAN UNTUK KENAIKAN';
       const jenjangStr = jenjang_aktif ? jenjang_aktif.nama.toUpperCase() : '—';
@@ -497,7 +499,8 @@
       ? (jenjangNext ? jenjangNext.nama.toUpperCase() : '— (puncak jenjang)')
       : (jenjang_aktif ? jenjang_aktif.nama.toUpperCase() : '—');
 
-    const prefix = kurang_lebih_p < 0
+    // diff_p > 0 = AK kurang (BELUM); ≤ 0 = cukup/lebih (DAPAT)
+    const prefix = diff_p > 0
       ? 'BELUM DAPAT DIPERTIMBANGKAN UNTUK KENAIKAN'
       : 'DAPAT DIPERTIMBANGKAN UNTUK KENAIKAN';
 
@@ -698,38 +701,50 @@
     // dari posisi golongan saat ini). Lihat dokumentasi GOLONGAN_PNS di
     // pak-data.js untuk detail.
     //
-    // Threshold absolut diambil langsung dari field golongan:
-    //   threshold_p = golongan.ak_naik          (AK kumulatif untuk naik pangkat)
-    //   threshold_j = golongan.ak_naik_jenjang  (AK kumulatif untuk naik jenjang)
+    // Rumus internal (signed, untuk logic decision):
+    //   _diff_p = pangkat_min − ak_total
+    //   _diff_j = jenjang_min − ak_total
     //
-    // {kurang_lebih_p} = ak_total − threshold_p
-    // {kurang_lebih_j} = ak_total − threshold_j
-    //   Negatif = AK kurang, positif = lebih/cukup.
+    //   Positif (>0) = AK MASIH KURANG sebesar nilai itu untuk capai threshold.
+    //                  → strikethrough "Kelebihan" (artinya: tinggal "Kekurangan")
+    //   Nol/Negatif  = AK sudah cukup/lebih sebesar |nilai| dari threshold.
+    //                  → strikethrough "Kekurangan" (artinya: tinggal "Kelebihan")
     //
-    // Kalau threshold null → puncak. Tag display "—".
-    const pangkat_min  = golonganAktif.pangkat_min;       // delta dari awal jenjang, atau null kalau puncak (IVe)
-    const jenjang_min  = golonganAktif.jenjang_min;       // delta dari awal jenjang, atau null kalau puncak (IVd, IVe)
-    const ak_threshold_p = golonganAktif.ak_naik;         // threshold absolut, atau null
-    const ak_threshold_j = golonganAktif.ak_naik_jenjang; // threshold absolut, atau null
+    // Display di template ({kurang_lebih_p} & {kurang_lebih_j}): nilai
+    // ABSOLUTE (tanpa tanda + atau −). Tanda kurang/lebih sudah
+    // di-konvey lewat strikethrough Kelebihan/Kekurangan.
+    //
+    // Kalau pangkat_min/jenjang_min == null → puncak. Tag display "—".
+    const pangkat_min  = golonganAktif.pangkat_min;   // delta dari awal jenjang, atau null kalau puncak
+    const jenjang_min  = golonganAktif.jenjang_min;   // delta dari awal jenjang, atau null kalau puncak
 
-    const kurang_lebih_p = (ak_threshold_p != null) ? r3(ak_tot - ak_threshold_p) : null;
-    const kurang_lebih_j = (ak_threshold_j != null) ? r3(ak_tot - ak_threshold_j) : null;
+    const _diff_p = (pangkat_min != null) ? r3(pangkat_min - ak_tot) : null;
+    const _diff_j = (jenjang_min != null) ? r3(jenjang_min - ak_tot) : null;
+
+    // Display value: absolute, tanpa tanda
+    const kurang_lebih_p = (_diff_p != null) ? r3(Math.abs(_diff_p)) : null;
+    const kurang_lebih_j = (_diff_j != null) ? r3(Math.abs(_diff_j)) : null;
 
     // ─── Build {kep_pangkat}, {kep_jenjang} (raw XML) ────────
-    // Kalau kurang_lebih < 0 → strike "Kelebihan" (AK kurang)
-    // Kalau kurang_lebih ≥ 0 → strike "Kekurangan" (AK cukup/lebih)
+    // Pakai _diff (signed) untuk tentukan strikethrough:
+    //   _diff > 0 → AK kurang → strike "Kelebihan"
+    //   _diff ≤ 0 → AK cukup/lebih → strike "Kekurangan"
+    //
     // Kalau pangkat_min/jenjang_min null (puncak) → output paragraf
     // plain "—" (tidak ada strikethrough applicable).
     const kep_pangkat_xml = (pangkat_min == null)
       ? buildPlainParagraphXml('— (sudah di pangkat puncak)')
-      : buildKepXml(kurang_lebih_p < 0, 'pangkat');
+      : buildKepXml(_diff_p > 0, 'pangkat');
     const kep_jenjang_xml = (jenjang_min == null)
       ? buildPlainParagraphXml('— (sudah di jenjang puncak)')
-      : buildKepXml(kurang_lebih_j < 0, 'jenjang');
+      : buildKepXml(_diff_j > 0, 'jenjang');
 
     // ─── Build {keputusan} ──────────────────────────────────
+    // Pass signed _diff_p (bukan absolute kurang_lebih_p) supaya logic
+    // BELUM/DAPAT tetap benar.
     const keputusan = buildKeputusan({
-      kurang_lebih_p, pangkat_min, jenjang_min,
+      diff_p: _diff_p, diff_j: _diff_j,
+      pangkat_min, jenjang_min,
       jabatan_aktif: jabatanRow.jabatan,
       jenjang_aktif: jenjangAktif,
       golongan_aktif: golonganAktif,
