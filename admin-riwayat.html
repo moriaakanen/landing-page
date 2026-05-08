@@ -1488,21 +1488,20 @@ function renderAKStatusCard(nip) {
   const akKumulatif = Number(latestAK.angka_kredit) || 0;
   const akTanggal   = fmtTgl(latestAK.tmt);
 
-  // Hitung progress jenjang
-  const jenjang = latestJabatan ? window.extractJenjangFromJabatan(latestJabatan.jabatan) : null;
-  const jenjangProg = jenjang ? window.progressToNextJenjang(akKumulatif, jenjang) : null;
-
-  // Hitung progress golongan
+  // Hitung progress dari golongan saja (rule baru: threshold pangkat &
+  // jenjang sekarang per-golongan, bukan per-jenjang). Jenjang masih
+  // di-detect dari jabatan untuk display nama jenjang aktif.
+  const jenjang  = latestJabatan ? window.extractJenjangFromJabatan(latestJabatan.jabatan) : null;
   const golongan = latestPangkat ? window.getGolonganByName(latestPangkat.golongan) : null;
-  const golonganProg = golongan ? window.progressToNextGolongan(akKumulatif, golongan) : null;
+  const prog     = golongan ? window.progressGolongan(akKumulatif, golongan) : null;
 
   return `
     <div class="ak-status fade-in">
       ${headerHTML}
       <div class="ak-status-body">
         ${renderAKHero(akKumulatif, akTanggal, latestJabatan, latestPangkat)}
-        ${renderAKProgressJenjang(jenjang, jenjangProg, latestJabatan)}
-        ${renderAKProgressGolongan(golongan, golonganProg, latestPangkat)}
+        ${renderAKProgressJenjang(jenjang, golongan, prog ? prog.jenjang : undefined, latestJabatan, akKumulatif)}
+        ${renderAKProgressGolongan(golongan, prog ? prog.pangkat : undefined, latestPangkat, akKumulatif)}
       </div>
     </div>
   `;
@@ -1531,7 +1530,7 @@ function renderAKHero(akKumulatif, akTanggal, latestJabatan, latestPangkat) {
   `;
 }
 
-function renderAKProgressJenjang(jenjang, prog, latestJabatan) {
+function renderAKProgressJenjang(jenjang, golongan, prog, latestJabatan, akKumulatif) {
   // Kasus: belum ada riwayat jabatan
   if (!latestJabatan) {
     return `
@@ -1570,8 +1569,28 @@ function renderAKProgressJenjang(jenjang, prog, latestJabatan) {
     `;
   }
 
-  // Kasus: sudah di puncak jenjang
-  if (prog.target_ak === null) {
+  // Kasus: tidak ada data golongan (threshold jenjang sekarang dari golongan)
+  if (!golongan) {
+    return `
+      <div class="ak-prog">
+        <div class="ak-prog-label"><span class="ak-prog-icon">💼</span> Naik Jenjang</div>
+        <div class="ak-prog-from-to">${esc(jenjang.nama)}</div>
+        <div class="ak-prog-peak">
+          <div style="font-size:12.5px;color:var(--muted);line-height:1.5">
+            Riwayat pangkat/golongan belum ada — target naik jenjang tidak dapat dihitung
+            (target sekarang per-golongan).
+          </div>
+        </div>
+        <div class="ak-prog-note is-warn">
+          <span class="ak-prog-note-icon">⚠</span>
+          <span>Tambahkan entri di tab <strong>Pangkat &amp; Golongan</strong> dulu.</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // Kasus: sudah di puncak jenjang (prog === null = puncak)
+  if (prog === null) {
     return `
       <div class="ak-prog">
         <div class="ak-prog-label"><span class="ak-prog-icon">💼</span> Naik Jenjang</div>
@@ -1581,21 +1600,33 @@ function renderAKProgressJenjang(jenjang, prog, latestJabatan) {
         </div>
         <div class="ak-prog-note is-info">
           <span class="ak-prog-note-icon">ℹ</span>
-          <span>${esc(prog.blocker)}</span>
+          <span>${jenjang.kategori === 'keterampilan'
+            ? 'Penyelia adalah jenjang tertinggi kategori Keterampilan. Untuk lanjut, pegawai harus pindah ke kategori Keahlian (Ahli Pertama) — wajib UKOM dan pendidikan minimal S1/DIV.'
+            : 'Sudah di jenjang tertinggi (Ahli Utama). Tidak ada lagi promosi jenjang.'
+          }</span>
         </div>
       </div>
     `;
   }
 
   // Kasus normal: hitung progress
-  const fillClass = prog.can_promote_by_ak ? 'is-ready'
-                  : prog.progress_pct >= 70 ? 'is-high'
-                  : prog.progress_pct >= 40 ? 'is-mid' : 'is-low';
-  const noteClass = prog.can_promote_by_ak ? 'is-ready' : 'is-warn';
-  const noteIcon  = prog.can_promote_by_ak ? '✓' : '⚠';
-  const noteMsg   = prog.can_promote_by_ak
-    ? `<strong>AK sudah cukup!</strong> Wajib lulus UKOM untuk pindah ke ${esc(prog.jenjang_berikutnya.nama)}. Cek juga pendidikan minimal ${esc(prog.jenjang_berikutnya.min_pendidikan)}.`
-    : `Wajib lulus <strong>UKOM</strong> sebelum pindah jenjang. Pendidikan min: <strong>${esc(prog.jenjang_berikutnya.min_pendidikan)}</strong>.`;
+  // Progress bar: 0% saat AK = 0, 100% saat AK = pangkat_min/jenjang_min.
+  // Pegawai dengan AK lebih dari threshold akan cap di 100% (sudah cukup).
+  const range = prog.target_min;
+  const pct   = range > 0 ? Math.max(0, Math.min(100, (akKumulatif / range) * 100)) : 100;
+
+  const jenjangNext = window.getNextJenjang(jenjang);
+  const namaTarget    = jenjangNext ? jenjangNext.nama : '— (puncak)';
+  const minPendidikan = jenjangNext ? jenjangNext.min_pendidikan : '—';
+
+  const fillClass = prog.can_promote ? 'is-ready'
+                  : pct >= 70 ? 'is-high'
+                  : pct >= 40 ? 'is-mid' : 'is-low';
+  const noteClass = prog.can_promote ? 'is-ready' : 'is-warn';
+  const noteIcon  = prog.can_promote ? '✓' : '⚠';
+  const noteMsg   = prog.can_promote
+    ? `<strong>AK sudah cukup!</strong> Wajib lulus UKOM untuk pindah ke ${esc(namaTarget)}. Cek juga pendidikan minimal ${esc(minPendidikan)}.`
+    : `Wajib lulus <strong>UKOM</strong> sebelum pindah jenjang. Pendidikan min: <strong>${esc(minPendidikan)}</strong>.`;
 
   return `
     <div class="ak-prog">
@@ -1603,19 +1634,19 @@ function renderAKProgressJenjang(jenjang, prog, latestJabatan) {
       <div class="ak-prog-from-to">
         ${esc(jenjang.nama)}
         <span class="ak-arrow">→</span>
-        <span class="ak-target">${esc(prog.jenjang_berikutnya.nama)}</span>
+        <span class="ak-target">${esc(namaTarget)}</span>
       </div>
       <div class="ak-bar">
-        <div class="ak-bar-fill ${fillClass}" style="width:${prog.progress_pct}%"></div>
+        <div class="ak-bar-fill ${fillClass}" style="width:${pct}%"></div>
       </div>
       <div class="ak-prog-stats">
-        <span class="ak-prog-pct">${prog.progress_pct.toFixed(0)}%</span>
+        <span class="ak-prog-pct">${pct.toFixed(0)}%</span>
         <span class="ak-prog-numbers">
-          ${prog.can_promote_by_ak
+          ${prog.can_promote
             ? `<strong style="color:var(--success)">Target tercapai</strong>`
             : `Kurang <strong>${esc(fmtAK(prog.sisa))}</strong> AK`
           }<br>
-          Target: <strong>${esc(fmtAK(prog.target_ak))}</strong>
+          Min. naik jenjang: <strong>${esc(fmtAK(prog.target_min))}</strong> AK
         </span>
       </div>
       <div class="ak-prog-note ${noteClass}">
@@ -1626,7 +1657,7 @@ function renderAKProgressJenjang(jenjang, prog, latestJabatan) {
   `;
 }
 
-function renderAKProgressGolongan(golongan, prog, latestPangkat) {
+function renderAKProgressGolongan(golongan, prog, latestPangkat, akKumulatif) {
   // Kasus: belum ada riwayat pangkat
   if (!latestPangkat) {
     return `
@@ -1664,8 +1695,8 @@ function renderAKProgressGolongan(golongan, prog, latestPangkat) {
     `;
   }
 
-  // Kasus: sudah di IVe (puncak)
-  if (prog.target_ak === null) {
+  // Kasus: sudah di IVe (puncak) — prog === null
+  if (prog === null) {
     return `
       <div class="ak-prog">
         <div class="ak-prog-label"><span class="ak-prog-icon">📈</span> Naik Pangkat</div>
@@ -1675,21 +1706,28 @@ function renderAKProgressGolongan(golongan, prog, latestPangkat) {
         </div>
         <div class="ak-prog-note is-info">
           <span class="ak-prog-note-icon">ℹ</span>
-          <span>${esc(prog.blocker)}</span>
+          <span>Sudah di golongan tertinggi (IVe). Tidak ada lagi kenaikan pangkat.</span>
         </div>
       </div>
     `;
   }
 
-  // Kasus normal
-  const fillClass = prog.can_promote_by_ak ? 'is-ready'
-                  : prog.progress_pct >= 70 ? 'is-high'
-                  : prog.progress_pct >= 40 ? 'is-mid' : 'is-low';
-  const noteClass = prog.can_promote_by_ak ? 'is-ready' : 'is-info';
-  const noteIcon  = prog.can_promote_by_ak ? '✓' : 'ℹ';
-  const noteMsg   = prog.can_promote_by_ak
-    ? `<strong>AK sudah cukup!</strong> Pastikan masa kerja minimal 4 tahun di ${esc(golongan.golongan)} dan pendidikan min: <strong>${esc(prog.golongan_berikutnya.min_pendidikan)}</strong>.`
-    : `Min. masa kerja 4 tahun di golongan sekarang. Pendidikan min: <strong>${esc(prog.golongan_berikutnya.min_pendidikan)}</strong>.`;
+  // Progress bar: 0% saat AK = 0, 100% saat AK = pangkat_min.
+  const range = prog.target_min;
+  const pct   = range > 0 ? Math.max(0, Math.min(100, (akKumulatif / range) * 100)) : 100;
+
+  const golNext = window.getNextGolongan(golongan);
+  const namaTarget    = golNext ? golNext.golongan : '— (puncak)';
+  const minPendidikan = golNext ? golNext.min_pendidikan : '—';
+
+  const fillClass = prog.can_promote ? 'is-ready'
+                  : pct >= 70 ? 'is-high'
+                  : pct >= 40 ? 'is-mid' : 'is-low';
+  const noteClass = prog.can_promote ? 'is-ready' : 'is-info';
+  const noteIcon  = prog.can_promote ? '✓' : 'ℹ';
+  const noteMsg   = prog.can_promote
+    ? `<strong>AK sudah cukup!</strong> Pastikan masa kerja minimal 4 tahun di ${esc(golongan.golongan)} dan pendidikan min: <strong>${esc(minPendidikan)}</strong>.`
+    : `Min. masa kerja 4 tahun di golongan sekarang. Pendidikan min: <strong>${esc(minPendidikan)}</strong>.`;
 
   return `
     <div class="ak-prog">
@@ -1697,19 +1735,19 @@ function renderAKProgressGolongan(golongan, prog, latestPangkat) {
       <div class="ak-prog-from-to">
         ${esc(golongan.golongan)} · ${esc(golongan.pangkat)}
         <span class="ak-arrow">→</span>
-        <span class="ak-target">${esc(prog.golongan_berikutnya.golongan)}</span>
+        <span class="ak-target">${esc(namaTarget)}</span>
       </div>
       <div class="ak-bar">
-        <div class="ak-bar-fill ${fillClass}" style="width:${prog.progress_pct}%"></div>
+        <div class="ak-bar-fill ${fillClass}" style="width:${pct}%"></div>
       </div>
       <div class="ak-prog-stats">
-        <span class="ak-prog-pct">${prog.progress_pct.toFixed(0)}%</span>
+        <span class="ak-prog-pct">${pct.toFixed(0)}%</span>
         <span class="ak-prog-numbers">
-          ${prog.can_promote_by_ak
+          ${prog.can_promote
             ? `<strong style="color:var(--success)">Target tercapai</strong>`
             : `Kurang <strong>${esc(fmtAK(prog.sisa))}</strong> AK`
           }<br>
-          Target: <strong>${esc(fmtAK(prog.target_ak))}</strong>
+          Min. naik pangkat: <strong>${esc(fmtAK(prog.target_min))}</strong> AK
         </span>
       </div>
       <div class="ak-prog-note ${noteClass}">
