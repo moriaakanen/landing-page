@@ -10,6 +10,7 @@
  *   - "profil"            → Profil Saya (index.html)
  *   - "surat-tugas"       → Surat Tugas user (surat-tugas.html)
  *   - "admin-surat"       → Persetujuan Surat (admin-surat-tugas.html)
+ *   - "admin-pengajuan-pak"→ Pengajuan PAK (admin-pengajuan-pak.html)
  *   - "riwayat"           → Riwayat Kepegawaian (admin-riwayat.html)
  *   - "kamus-pok"         → Kamus POK (manajemen-kamus-pok.html)
  *   - "manajemen-mitra"   → Manajemen Mitra (manajemen-mitra.html)
