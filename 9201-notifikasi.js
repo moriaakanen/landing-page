@@ -265,14 +265,14 @@
 
     var count = unreadCount();
     if (metaEl) {
-      metaEl.textContent = count > 0 ? (count + ' belum dibaca') : 'Tidak ada baru';
+      metaEl.textContent = count > 0 ? (count + ' belum dibaca') : 'Tidak ada notifikasi baru';
     }
 
     if (!state.list.length) {
       listEl.innerHTML = ''
         + '<div class="notif-empty">'
         +   '<div class="notif-empty-icon">🔕</div>'
-        +   'Belum ada notifikasi.'
+        +   'Tidak ada notifikasi.'
         + '</div>';
       return;
     }
@@ -426,19 +426,32 @@
       console.warn('[notif] SUPABASE_URL/HEADERS belum ter-load. Notifikasi disabled.');
       return;
     }
-    if (!attachHandlers()) {
-      console.warn('[notif] notif-btn element tidak ditemukan. Notifikasi disabled.');
-      return;
+
+    // Race condition mitigation: 9201-topbar.js render HTML di DOMContentLoaded,
+    // dan kita juga init di DOMContentLoaded. Urutan eksekusi tidak deterministik —
+    // kalau notifikasi.js jalan dulu, notif-btn belum ada di DOM. Retry sampai 10x
+    // dengan delay 50ms.
+    var attempts = 0;
+    var maxAttempts = 20;
+    function tryAttach() {
+      if (attachHandlers()) {
+        // Initial fetch
+        refresh();
+        startPolling();
+        // Re-fetch saat tab kembali fokus
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden) refresh();
+        });
+        return;
+      }
+      attempts++;
+      if (attempts < maxAttempts) {
+        setTimeout(tryAttach, 50);
+      } else {
+        console.warn('[notif] notif-btn element tidak ditemukan setelah ' + maxAttempts + ' percobaan. Notifikasi disabled.');
+      }
     }
-
-    // Initial fetch
-    refresh();
-    startPolling();
-
-    // Re-fetch saat tab kembali fokus (catch missed updates)
-    document.addEventListener('visibilitychange', function () {
-      if (!document.hidden) refresh();
-    });
+    tryAttach();
   }
 
   // ─── Bootstrap ───────────────────────────────────────────────────
