@@ -537,7 +537,7 @@
 // Helpers umum (esc, logout, novaRpc, novaCheckSession, SUPABASE_HEADERS)
 // di-load dari 9201-shared.js — tidak lagi dideklarasi ulang di sini.
 //
-// PAK helpers (progressToNextJenjang, progressToNextGolongan,
+// PAK helpers (progressGolongan, getNextJenjang/Golongan,
 // extractJenjangFromJabatan, getGolonganByName) di-load dari
 // 9201-pak-data.js — dipakai untuk render card Riwayat PAK.
 // ═══════════════════════════════════════════════════════════════
@@ -799,32 +799,32 @@ function renderPakCard() {
   const pakTerakhir = latestAK ? fmtAK(latestAK.angka_kredit) : null;
   const akKumulatif = latestAK ? Number(latestAK.angka_kredit) || 0 : 0;
 
-  // ─── Naik pangkat / golongan ───
+  // ─── Threshold pangkat & jenjang dari golongan saat ini ───
+  // Pakai progressGolongan() yang return {pangkat, jenjang} sekaligus.
+  // Pangkat & jenjang sub-object null kalau pegawai sudah di puncak
+  // masing-masing.
   const golongan = latestPgg ? window.getGolonganByName(latestPgg.golongan) : null;
-  const golProg  = golongan ? window.progressToNextGolongan(akKumulatif, golongan) : null;
+  const prog     = golongan ? window.progressGolongan(akKumulatif, golongan) : null;
 
-  // ─── Naik jenjang ───
-  const jenjang   = latestJab ? window.extractJenjangFromJabatan(latestJab.jabatan) : null;
-  const jenjProg  = jenjang ? window.progressToNextJenjang(akKumulatif, jenjang) : null;
-
-  // ─── Build metric rows: pangkat panel ───
-  const buildPangkatPanel = () => {
+  // Helper: build sub-panel (Naik Pangkat ATAU Naik Jenjang)
+  const buildPanel = (icon, title, subProg, puncakLabel) => {
     let kebutuhanRow, perkiraanRow;
-    if (!golProg) {
-      kebutuhanRow = `<div class="pak-metric-row-value muted">Data belum ada</div>`;
+    if (!golongan || !prog) {
+      // Data golongan tidak ada / tidak dikenali
+      kebutuhanRow = `<div class="pak-metric-row-value muted">Data golongan belum ada</div>`;
       perkiraanRow = `<div class="pak-metric-row-value muted">—</div>`;
-    } else if (golProg.error) {
-      kebutuhanRow = `<div class="pak-metric-row-value muted">${esc(golProg.error)}</div>`;
-      perkiraanRow = `<div class="pak-metric-row-value muted">—</div>`;
-    } else if (golProg.target_ak === null) {
-      kebutuhanRow = `<div class="pak-metric-row-value success">Sudah di puncak (IVe)</div>`;
+    } else if (subProg === null) {
+      // Sudah di puncak (sub-object null = puncak)
+      kebutuhanRow = `<div class="pak-metric-row-value success">${esc(puncakLabel)}</div>`;
       perkiraanRow = `<div class="pak-metric-row-value muted">Tidak ada</div>`;
-    } else if (golProg.can_promote_by_ak) {
+    } else if (subProg.can_promote) {
+      // AK sudah cukup
       kebutuhanRow = `<div class="pak-metric-row-value success">AK cukup</div>`;
       perkiraanRow = `<div class="pak-metric-row-value success">Siap diajukan</div>`;
     } else {
-      kebutuhanRow = `<div class="pak-metric-row-value warn">Kurang ${esc(fmtAK(golProg.sisa))}</div>`;
-      const est = estimasiTahunPromosi(golProg.sisa, akList);
+      // AK masih kurang — tampilkan sisa + perkiraan tahun
+      kebutuhanRow = `<div class="pak-metric-row-value warn">Kurang ${esc(fmtAK(subProg.sisa))}</div>`;
+      const est = estimasiTahunPromosi(subProg.sisa, akList);
       perkiraanRow = est
         ? `<div class="pak-metric-row-value">${esc(est)}</div>`
         : `<div class="pak-metric-row-value muted">Data belum cukup</div>`;
@@ -832,8 +832,8 @@ function renderPakCard() {
     return `
       <div class="pak-metric">
         <div class="pak-metric-icon-row">
-          <div class="pak-metric-icon">📈</div>
-          <div class="pak-metric-title">Naik Pangkat</div>
+          <div class="pak-metric-icon">${icon}</div>
+          <div class="pak-metric-title">${esc(title)}</div>
         </div>
         <div class="pak-metric-rows">
           <div class="pak-metric-row">
@@ -848,45 +848,17 @@ function renderPakCard() {
       </div>`;
   };
 
-  const buildJenjangPanel = () => {
-    let kebutuhanRow, perkiraanRow;
-    if (!jenjProg) {
-      kebutuhanRow = `<div class="pak-metric-row-value muted">Jenjang belum terdeteksi</div>`;
-      perkiraanRow = `<div class="pak-metric-row-value muted">—</div>`;
-    } else if (jenjProg.error) {
-      kebutuhanRow = `<div class="pak-metric-row-value muted">${esc(jenjProg.error)}</div>`;
-      perkiraanRow = `<div class="pak-metric-row-value muted">—</div>`;
-    } else if (jenjProg.target_ak === null) {
-      kebutuhanRow = `<div class="pak-metric-row-value success">Sudah di puncak</div>`;
-      perkiraanRow = `<div class="pak-metric-row-value muted">Tidak ada</div>`;
-    } else if (jenjProg.can_promote_by_ak) {
-      kebutuhanRow = `<div class="pak-metric-row-value success">AK cukup</div>`;
-      perkiraanRow = `<div class="pak-metric-row-value success">Siap diajukan</div>`;
-    } else {
-      kebutuhanRow = `<div class="pak-metric-row-value warn">Kurang ${esc(fmtAK(jenjProg.sisa))}</div>`;
-      const est = estimasiTahunPromosi(jenjProg.sisa, akList);
-      perkiraanRow = est
-        ? `<div class="pak-metric-row-value">${esc(est)}</div>`
-        : `<div class="pak-metric-row-value muted">Data belum cukup</div>`;
-    }
-    return `
-      <div class="pak-metric">
-        <div class="pak-metric-icon-row">
-          <div class="pak-metric-icon">🎯</div>
-          <div class="pak-metric-title">Naik Jenjang</div>
-        </div>
-        <div class="pak-metric-rows">
-          <div class="pak-metric-row">
-            <span class="pak-metric-row-label">Kebutuhan AK</span>
-            ${kebutuhanRow}
-          </div>
-          <div class="pak-metric-row">
-            <span class="pak-metric-row-label">Perkiraan</span>
-            ${perkiraanRow}
-          </div>
-        </div>
-      </div>`;
-  };
+  const buildPangkatPanel = () => buildPanel(
+    '📈', 'Naik Pangkat',
+    prog ? prog.pangkat : null,
+    'Sudah di puncak (IVe)'
+  );
+
+  const buildJenjangPanel = () => buildPanel(
+    '🎯', 'Naik Jenjang',
+    prog ? prog.jenjang : null,
+    'Sudah di puncak'
+  );
 
   // ─── Riwayat AK + pengajuan body (collapsible) ───
   const riwayatHtml = akList.length
