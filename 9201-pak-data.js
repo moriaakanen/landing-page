@@ -249,8 +249,8 @@ window.getNextGolongan = getNextGolongan;
  * Return jenjang object dari JENJANG_FUNGSIONAL atau null kalau tidak
  * cocok dengan jenjang manapun.
  *
- * Dipakai oleh halaman Profil Saya (index.html) dan Riwayat Kepegawaian
- * Admin (admin-riwayat.html) — pindah ke sini agar tidak duplikasi.
+ * Dipakai oleh halaman Profil Saya (index.html) dan Kepegawaian
+ * Admin (admin-kepegawaian.html — modal detail pegawai) — pindah ke sini agar tidak duplikasi.
  */
 function extractJenjangFromJabatan(jabatanText) {
   if (!jabatanText || typeof window.JENJANG_BY_KEY === 'undefined') return null;
@@ -602,7 +602,7 @@ window.buildPeriodsFromTMTs = buildPeriodsFromTMTs;
 
 /**
  * Format AK dengan 3 desimal, tapi buang trailing zero.
- * Konsisten dengan fmtAK() di admin-riwayat.html.
+ * Konsisten dengan fmtAK() di admin-kepegawaian.html.
  */
 function fmtAKNumber(v) {
   if (v == null || v === '') return '—';
