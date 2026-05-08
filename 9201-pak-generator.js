@@ -364,6 +364,19 @@
   // ═══════════════════════════════════════════════════════════════════
 
   /**
+   * Build Word XML untuk paragraf teks plain (tanpa strikethrough).
+   * Dipakai untuk kasus pegawai sudah di puncak — tag {@kep_*} di-output
+   * sebagai placeholder "—" agar tetap valid Word XML.
+   *
+   * Font/spacing match buildKepXml supaya tidak ada visual jump.
+   */
+  function buildPlainParagraphXml(text) {
+    const pPr = '<w:pPr><w:spacing w:after="0"/><w:rPr><w:rFonts w:ascii="Cambria" w:eastAsia="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>';
+    const rPrBase = '<w:rPr><w:rFonts w:ascii="Cambria" w:eastAsia="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr>';
+    return `<w:p>${pPr}<w:r>${rPrBase}<w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r></w:p>`;
+  }
+
+  /**
    * Build Word XML untuk tag {@kep_pangkat} / {@kep_jenjang}.
    *
    * PENTING: tag {@...} di docxtemplater menggantikan SELURUH paragraf
@@ -373,10 +386,10 @@
    * tapi error "trying to open the file" saat dibuka di Word.
    *
    * Format output: 1 paragraf yang isinya 4 kemungkinan kalimat:
-   *   - kep_pangkat, AK kurang  : "~Kelebihan~/Kekurangan*) Angka Kredit yang harus dipenuhi untuk kenaikan pangkat"
-   *   - kep_pangkat, AK cukup   : "Kelebihan/~Kekurangan~*) Angka Kredit yang harus dipenuhi untuk kenaikan pangkat"
-   *   - kep_jenjang, AK kurang  : "~Kelebihan~/Kekurangan*) Angka Kredit yang harus dipenuhi untuk kenaikan jenjang"
-   *   - kep_jenjang, AK cukup   : "Kelebihan/~Kekurangan~*) Angka Kredit yang harus dipenuhi untuk kenaikan jenjang"
+   *   - kep_pangkat, AK kurang  : "~Kelebihan~/Kekurangan Angka Kredit yang harus dipenuhi untuk kenaikan pangkat"
+   *   - kep_pangkat, AK cukup   : "Kelebihan/~Kekurangan~ Angka Kredit yang harus dipenuhi untuk kenaikan pangkat"
+   *   - kep_jenjang, AK kurang  : "~Kelebihan~/Kekurangan Angka Kredit yang harus dipenuhi untuk kenaikan jenjang"
+   *   - kep_jenjang, AK cukup   : "Kelebihan/~Kekurangan~ Angka Kredit yang harus dipenuhi untuk kenaikan jenjang"
    *
    * Font/spacing: Cambria 10pt, spacing after=0 — sesuai paragraf
    * asli di template supaya tidak ada visual jump.
@@ -391,12 +404,12 @@
     const rPrStrike = '<w:rPr><w:rFonts w:ascii="Cambria" w:eastAsia="Cambria" w:hAnsi="Cambria" w:cs="Cambria"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:strike w:val="true"/></w:rPr>';
 
     // Suffix kalimat berdasarkan jenis
-    const suffix = `*) Angka Kredit yang harus dipenuhi untuk kenaikan ${jenis}`;
+    const suffix = ` Angka Kredit yang harus dipenuhi untuk kenaikan ${jenis}`;
 
     // Build runs di dalam 1 paragraf:
     //   run 1: "Kelebihan" atau "Kelebihan/" (strike kalau perlu)
     //   run 2: "/Kekurangan" atau "Kekurangan" (strike kalau perlu)
-    //   run 3: "*) Angka Kredit yang harus dipenuhi untuk kenaikan pangkat/jenjang" (selalu normal)
+    //   run 3: " Angka Kredit yang harus dipenuhi untuk kenaikan pangkat/jenjang" (selalu normal)
     let runs;
     if (strikeKelebihan) {
       // "Kelebihan" di-strike, "/Kekurangan" normal, " Angka..." normal
@@ -419,17 +432,24 @@
   // ═══════════════════════════════════════════════════════════════════
 
   /**
-   * Build string {keputusan} berdasar 4 kondisi (rule dari task.txt user):
+   * Build string {keputusan} berdasar kondisi (rule dari task.txt user):
    *
+   * Aturan asli (saat pangkat_min DAN jenjang_min keduanya ada):
    *   IF kurang_lebih_p < 0:
    *     IF pangkat_min == jenjang_min: "BELUM... PANGKAT/JENJANG JABATAN ... JENJANG <jenjang+1> ..."
    *     ELSE:                          "BELUM... PANGKAT ... JENJANG <jenjang> ..."
    *   IF kurang_lebih_p >= 0:
    *     (sama, tapi awalnya "DAPAT...")
    *
+   * Edge cases:
+   *   - Both null (IVe puncak)           : "TIDAK ADA REKOMENDASI..."
+   *   - pangkat_min null saja            : tidak terjadi (kalau di IVe, jenjang juga null)
+   *   - jenjang_min null saja (IVd)      : pegawai di puncak jenjang (Ahli Utama) tapi
+   *                                        masih bisa naik pangkat. Output keputusan "PANGKAT" saja.
+   *
    * @param {object} args
-   *   - kurang_lebih_p: number (bisa negatif)
-   *   - pangkat_min, jenjang_min: number atau null
+   *   - kurang_lebih_p, kurang_lebih_j : number atau null
+   *   - pangkat_min, jenjang_min: number (delta) atau null
    *   - jabatan_aktif: string (mis. "Statistisi Ahli Pertama")
    *   - jenjang_aktif: object dari JENJANG_FUNGSIONAL (atau null)
    *   - golongan_aktif: object dari GOLONGAN_PNS (atau null)
@@ -437,10 +457,15 @@
    */
   function buildKeputusan({ kurang_lebih_p, pangkat_min, jenjang_min,
                             jabatan_aktif, jenjang_aktif, golongan_aktif }) {
-    // Defensive: kalau di puncak, pangkat_min/jenjang_min null. Generator
-    // tetap output sesuatu — admin bisa edit manual dokumen kalau salah.
-    if (pangkat_min == null || jenjang_min == null) {
-      return 'TIDAK ADA REKOMENDASI KENAIKAN — pegawai sudah di puncak pangkat/jenjang.';
+    // Both puncak — pegawai sudah di pangkat & jenjang tertinggi
+    if (pangkat_min == null && jenjang_min == null) {
+      return 'TIDAK ADA REKOMENDASI KENAIKAN — pegawai sudah di puncak pangkat dan jenjang.';
+    }
+    // Pangkat puncak tapi jenjang masih bisa — case ini tidak terjadi
+    // dalam data Indonesia PNS sekarang (kalau di IVe, jenjang juga puncak),
+    // tapi di-handle defensif.
+    if (pangkat_min == null) {
+      return 'TIDAK ADA REKOMENDASI KENAIKAN PANGKAT — pegawai sudah di pangkat tertinggi (IVe).';
     }
 
     const namaJabatan = extractNamaJabatanTanpaJenjang(jabatan_aktif || '');
@@ -451,10 +476,23 @@
       ? `${golNext.golongan}/${golNext.pangkat}`
       : '— (puncak)';
 
+    // Special case: Ahli Utama (jenjang_min null) — tidak ada naik
+    // jenjang, hanya naik pangkat. {keputusan} cuma bicarakan pangkat.
+    if (jenjang_min == null) {
+      const prefix = kurang_lebih_p < 0
+        ? 'BELUM DAPAT DIPERTIMBANGKAN UNTUK KENAIKAN'
+        : 'DAPAT DIPERTIMBANGKAN UNTUK KENAIKAN';
+      const jenjangStr = jenjang_aktif ? jenjang_aktif.nama.toUpperCase() : '—';
+      return `${prefix} PANGKAT SETINGKAT LEBIH TINGGI MENJADI `
+           + `${namaJabatan.toUpperCase()} JENJANG ${jenjangStr} `
+           + `PANGKAT/GOLONGAN RUANG ${golNextStr.toUpperCase()}`;
+    }
+
+    // Normal case: keduanya ada nilai
     // jenjang yang ditulis di keputusan:
     //   - kalau pangkat_min == jenjang_min → jenjang+1 (naik bareng)
     //   - kalau beda                       → jenjang sekarang (cuma naik pangkat)
-    const samaThreshold = pangkat_min === jenjang_min;
+    const samaThreshold = (pangkat_min === jenjang_min);
     const jenjangStr = samaThreshold
       ? (jenjangNext ? jenjangNext.nama.toUpperCase() : '— (puncak jenjang)')
       : (jenjang_aktif ? jenjang_aktif.nama.toUpperCase() : '—');
@@ -656,16 +694,38 @@
     const per2  = months2ndGroup.length ? formatBulanList(months2ndGroup) : '';
 
     // ─── Hitung {pangkat_min}, {jenjang_min}, {kurang_lebih_*} ─
-    const pangkat_min  = golonganAktif.kebutuhan_naik;   // dari pak-data.js (Kriteria.xlsx)
-    const jenjang_min  = jenjangAktif.kebutuhan_naik;
-    const kurang_lebih_p = (pangkat_min  != null) ? r3(ak_tot - pangkat_min)  : 0;
-    const kurang_lebih_j = (jenjang_min  != null) ? r3(ak_tot - jenjang_min)  : 0;
+    // pangkat_min & jenjang_min adalah DELTA AK dari AWAL JENJANG (bukan
+    // dari posisi golongan saat ini). Lihat dokumentasi GOLONGAN_PNS di
+    // pak-data.js untuk detail.
+    //
+    // Threshold absolut diambil langsung dari field golongan:
+    //   threshold_p = golongan.ak_naik          (AK kumulatif untuk naik pangkat)
+    //   threshold_j = golongan.ak_naik_jenjang  (AK kumulatif untuk naik jenjang)
+    //
+    // {kurang_lebih_p} = ak_total − threshold_p
+    // {kurang_lebih_j} = ak_total − threshold_j
+    //   Negatif = AK kurang, positif = lebih/cukup.
+    //
+    // Kalau threshold null → puncak. Tag display "—".
+    const pangkat_min  = golonganAktif.pangkat_min;       // delta dari awal jenjang, atau null kalau puncak (IVe)
+    const jenjang_min  = golonganAktif.jenjang_min;       // delta dari awal jenjang, atau null kalau puncak (IVd, IVe)
+    const ak_threshold_p = golonganAktif.ak_naik;         // threshold absolut, atau null
+    const ak_threshold_j = golonganAktif.ak_naik_jenjang; // threshold absolut, atau null
+
+    const kurang_lebih_p = (ak_threshold_p != null) ? r3(ak_tot - ak_threshold_p) : null;
+    const kurang_lebih_j = (ak_threshold_j != null) ? r3(ak_tot - ak_threshold_j) : null;
 
     // ─── Build {kep_pangkat}, {kep_jenjang} (raw XML) ────────
-    // Kalau kurang_lebih < 0 → strike "Kelebihan"
-    // Kalau kurang_lebih ≥ 0 → strike "Kekurangan"
-    const kep_pangkat_xml = buildKepXml(kurang_lebih_p < 0, 'pangkat');
-    const kep_jenjang_xml = buildKepXml(kurang_lebih_j < 0, 'jenjang');
+    // Kalau kurang_lebih < 0 → strike "Kelebihan" (AK kurang)
+    // Kalau kurang_lebih ≥ 0 → strike "Kekurangan" (AK cukup/lebih)
+    // Kalau pangkat_min/jenjang_min null (puncak) → output paragraf
+    // plain "—" (tidak ada strikethrough applicable).
+    const kep_pangkat_xml = (pangkat_min == null)
+      ? buildPlainParagraphXml('— (sudah di pangkat puncak)')
+      : buildKepXml(kurang_lebih_p < 0, 'pangkat');
+    const kep_jenjang_xml = (jenjang_min == null)
+      ? buildPlainParagraphXml('— (sudah di jenjang puncak)')
+      : buildKepXml(kurang_lebih_j < 0, 'jenjang');
 
     // ─── Build {keputusan} ──────────────────────────────────
     const keputusan = buildKeputusan({
@@ -744,10 +804,10 @@
 
       // Halaman 3
       akb:           fmt(akb),
-      pangkat_min:   pangkat_min != null ? fmt(pangkat_min) : '—',
-      jenjang_min:   jenjang_min != null ? fmt(jenjang_min) : '—',
-      kurang_lebih_p: fmt(kurang_lebih_p),
-      kurang_lebih_j: fmt(kurang_lebih_j),
+      pangkat_min:   pangkat_min   != null ? fmt(pangkat_min)   : '—',
+      jenjang_min:   jenjang_min   != null ? fmt(jenjang_min)   : '—',
+      kurang_lebih_p: kurang_lebih_p != null ? fmt(kurang_lebih_p) : '—',
+      kurang_lebih_j: kurang_lebih_j != null ? fmt(kurang_lebih_j) : '—',
       kep_pangkat:   kep_pangkat_xml,   // template harus pakai {@kep_pangkat}
       kep_jenjang:   kep_jenjang_xml,   // template harus pakai {@kep_jenjang}
       keputusan,
@@ -759,10 +819,10 @@
         ak_n1_num:    ak_n1,
         akb_num:      akb,
         ak_tot_num:   ak_tot,
-        pangkat_min_num: pangkat_min,
-        jenjang_min_num: jenjang_min,
-        kurang_lebih_p_num: kurang_lebih_p,
-        kurang_lebih_j_num: kurang_lebih_j,
+        pangkat_min_num: pangkat_min,        // delta atau null
+        jenjang_min_num: jenjang_min,        // delta atau null
+        kurang_lebih_p_num: kurang_lebih_p,  // signed, atau null
+        kurang_lebih_j_num: kurang_lebih_j,  // signed, atau null
         detail_predikat,
         // Snapshot identitas (buat caller display di preview)
         nama_display: nama,
