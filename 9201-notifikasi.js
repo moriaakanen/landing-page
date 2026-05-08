@@ -34,8 +34,8 @@
     refreshing: false,
     dropdownOpen: false,
     activeRole: null,
-    sessionId: null,
-    sessionNIP: null,      // jika user.nip ada (utk filter PAK milik user)
+    sessionId: null,       // users.id (bigint) — utk filter surat_tugas.user_id
+    sessionNIP: null,      // users.username (text) — utk filter pengajuan_pak.pegawai_nip
   };
 
   // ─── Utility ─────────────────────────────────────────────────────
@@ -97,19 +97,19 @@
    * - PAK miliknya yang sudah selesai
    * - Surat tugas miliknya yang sudah selesai
    *
-   * Filter PAK pakai pegawai_nip = session.nip (dari users.nip atau
-   * users.username, tergantung struktur DB). Frontend coba kedua dulu.
+   * Mapping users → pegawai (per struktur DB):
+   *   users.username    = NIP pegawai (string)  → filter pengajuan_pak.pegawai_nip
+   *   users.id          = bigint                → filter surat_tugas.user_id
    */
   function fetchUserNotifs() {
     var session = getSession();
     if (!session) return Promise.resolve([]);
 
-    // Filter NIP user — coba beberapa kemungkinan field di session
-    var nip = session.nip || session.NIP || session.username || null;
+    var nip = session.username || null;  // session.username adalah NIP
 
     var promises = [];
 
-    // PAK selesai untuk pegawai ini
+    // PAK selesai untuk pegawai ini (filter pakai NIP = users.username)
     if (nip) {
       var pakUrl = window.SUPABASE_URL + '/rest/v1/pengajuan_pak'
                  + '?pegawai_nip=eq.' + encodeURIComponent(nip)
@@ -125,7 +125,7 @@
       promises.push(Promise.resolve([]));
     }
 
-    // Surat tugas selesai untuk user_id ini
+    // Surat tugas selesai untuk user_id ini (filter pakai users.id, bigint)
     var stUrl = window.SUPABASE_URL + '/rest/v1/surat_tugas'
               + '?user_id=eq.' + encodeURIComponent(session.id)
               + '&status=eq.selesai'
