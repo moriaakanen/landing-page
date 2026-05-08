@@ -1704,6 +1704,14 @@ async function init() {
     location.href = 'index.html';
     return;
   }
+
+  // Set user info di topbar (avatar + username + dropdown name).
+  // Akan auto-fetch users.full_name dari DB kalau session.full_name kosong
+  // atau hasil fallback dari username.
+  if (window.Topbar9201 && typeof window.Topbar9201.setUser === 'function') {
+    window.Topbar9201.setUser(session);
+  }
+
   initRoleSwitcher(session, true);
 
   // ESC handler: close modal yang sedang terbuka (paling atas dulu)
