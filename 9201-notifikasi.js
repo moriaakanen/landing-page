@@ -427,31 +427,50 @@
       return;
     }
 
-    // Race condition mitigation: 9201-topbar.js render HTML di DOMContentLoaded,
-    // dan kita juga init di DOMContentLoaded. Urutan eksekusi tidak deterministik —
-    // kalau notifikasi.js jalan dulu, notif-btn belum ada di DOM. Retry sampai 10x
-    // dengan delay 50ms.
-    var attempts = 0;
-    var maxAttempts = 20;
-    function tryAttach() {
+    // Race condition mitigation: 9201-topbar.js sekarang men-dispatch event
+    // '9201:topbar:rendered' sesaat setelah topbar di-mount ke DOM. Kita
+    // listen event itu — kalau topbar sudah ter-render saat init dipanggil
+    // (kasus umum karena topbar.js sekarang render synchronous), attachHandlers
+    // langsung sukses. Kalau belum, retry + listener event memastikan
+    // attach terjadi segera setelah topbar muncul.
+
+    var attached = false;
+    function tryAttachOnce() {
+      if (attached) return true;
       if (attachHandlers()) {
-        // Initial fetch
+        attached = true;
+        // Initial fetch & polling
         refresh();
         startPolling();
         // Re-fetch saat tab kembali fokus
         document.addEventListener('visibilitychange', function () {
           if (!document.hidden) refresh();
         });
-        return;
+        return true;
       }
+      return false;
+    }
+
+    if (tryAttachOnce()) return;
+
+    // Listener: kalau topbar belum ada saat init, tunggu event ini
+    document.addEventListener('9201:topbar:rendered', tryAttachOnce);
+
+    // Fallback retry — total 1 detik (20×50ms). Defensif untuk halaman
+    // yang topbar.js-nya tidak men-dispatch event (versi lama / cache).
+    var attempts = 0;
+    var maxAttempts = 20;
+    function retryLoop() {
+      if (tryAttachOnce()) return;
       attempts++;
       if (attempts < maxAttempts) {
-        setTimeout(tryAttach, 50);
+        setTimeout(retryLoop, 50);
       } else {
-        console.warn('[notif] notif-btn element tidak ditemukan setelah ' + maxAttempts + ' percobaan. Notifikasi disabled.');
+        console.warn('[notif] notif-btn element tidak ditemukan setelah '
+          + maxAttempts + ' percobaan. Notifikasi disabled.');
       }
     }
-    tryAttach();
+    retryLoop();
   }
 
   // ─── Bootstrap ───────────────────────────────────────────────────
