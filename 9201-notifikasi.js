@@ -223,6 +223,107 @@
   }
 
   // ═══════════════════════════════════════════════════════════════════
+  // LOOKUP CACHES — pegawai (NIP→NAMA) & users (id→full_name)
+  // ─────────────────────────────────────────────────────────────────
+  // Admin notif tampilkan NAMA (bukan NIP atau user_id) — admin tidak
+  // hapal NIP 18-digit / user_id internal. Kita fetch dua tabel sekali
+  // dan cache mapping selama 5 menit:
+  //
+  //   - data_pegawai (NIP → NAMA)    → untuk pengajuan PAK
+  //   - users        (id → full_name) → untuk surat tugas
+  //
+  // Cache di-refresh otomatis kalau stale (>5 menit). `pendingPromise`
+  // dedupe concurrent fetches (kalau bell di-buka berulang cepat, tidak
+  // fire fetch berkali-kali). Fetch dijalankan parallel — total cost
+  // sama dengan satu request terlama, bukan dua sequential.
+  // ═══════════════════════════════════════════════════════════════════
+  var _lookupCache = {
+    pegawaiByNIP: null,   // { '199903302019121001': 'Joko Susilo', ... }
+    usersByID:    null,   // { 5: 'Jane Doe', 7: 'Budi Santoso', ... }
+    loadedAt: 0,
+    pendingPromise: null
+  };
+  var LOOKUP_CACHE_TTL_MS = 5 * 60 * 1000;
+
+  function fetchLookups() {
+    var url = resolveSupabaseUrl();
+    if (!url) return Promise.resolve({ pegawaiByNIP: {}, usersByID: {} });
+
+    if (_lookupCache.pendingPromise) return _lookupCache.pendingPromise;
+
+    var p = Promise.all([
+      fetch(url + '/rest/v1/data_pegawai?select=NIP,NAMA',
+            { headers: window.SUPABASE_HEADERS })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .catch(function () { return []; }),
+      fetch(url + '/rest/v1/users?select=id,full_name,username',
+            { headers: window.SUPABASE_HEADERS })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .catch(function () { return []; }),
+    ]).then(function (results) {
+      var pegawaiByNIP = {};
+      (results[0] || []).forEach(function (row) {
+        if (row && row.NIP) {
+          pegawaiByNIP[String(row.NIP)] = row.NAMA || String(row.NIP);
+        }
+      });
+      var usersByID = {};
+      (results[1] || []).forEach(function (u) {
+        if (u && u.id != null) {
+          // Fallback chain: full_name → cek pegawaiByNIP[username] → username → "User #id"
+          // Ini handle kasus where users.full_name belum terisi tapi data_pegawai.NAMA
+          // ada (mis. user lama yg tidak pernah update profile).
+          var nama = u.full_name;
+          if (!nama && u.username && pegawaiByNIP[String(u.username)]) {
+            nama = pegawaiByNIP[String(u.username)];
+          }
+          if (!nama) nama = u.username || ('User #' + u.id);
+          usersByID[u.id] = nama;
+        }
+      });
+      _lookupCache.pegawaiByNIP = pegawaiByNIP;
+      _lookupCache.usersByID    = usersByID;
+      _lookupCache.loadedAt     = Date.now();
+      _lookupCache.pendingPromise = null;
+      return _lookupCache;
+    }).catch(function (e) {
+      console.warn('[notif] fetchLookups error:', e);
+      _lookupCache.pendingPromise = null;
+      return _lookupCache;
+    });
+
+    _lookupCache.pendingPromise = p;
+    return p;
+  }
+
+  /** Pastikan cache fresh (<TTL). Re-fetch kalau stale/empty. */
+  function ensureLookups() {
+    var hasData = _lookupCache.pegawaiByNIP || _lookupCache.usersByID;
+    var stale   = (Date.now() - _lookupCache.loadedAt) > LOOKUP_CACHE_TTL_MS;
+    if (hasData && !stale) return Promise.resolve(_lookupCache);
+    return fetchLookups();
+  }
+
+  /** Sync lookup: NIP → NAMA. Fallback ke NIP kalau tidak ditemukan. */
+  function getPegawaiName(nip) {
+    if (!nip) return '—';
+    var key = String(nip);
+    if (_lookupCache.pegawaiByNIP && _lookupCache.pegawaiByNIP[key]) {
+      return _lookupCache.pegawaiByNIP[key];
+    }
+    return key; // fallback: tampilkan NIP daripada kosong
+  }
+
+  /** Sync lookup: user_id → full_name. Fallback ke "User #id" kalau tidak ada. */
+  function getUserName(userId) {
+    if (userId == null) return '—';
+    if (_lookupCache.usersByID && _lookupCache.usersByID[userId]) {
+      return _lookupCache.usersByID[userId];
+    }
+    return 'User #' + userId; // fallback informatif
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
   // FETCH (sumber: pengajuan_pak + surat_tugas)
   // ═══════════════════════════════════════════════════════════════════
 
@@ -322,30 +423,36 @@
     var url = resolveSupabaseUrl();
     if (!url) return Promise.resolve([]);
 
-    var pakUrl = url + '/rest/v1/pengajuan_pak'
-               + '?status=eq.menunggu'
-               + '&select=id,nomor_urut,tahun_periode,pegawai_nip,penandatangan_nama,ak_total,created_at'
-               + '&order=created_at.desc&limit=20';
-    var stUrl = url + '/rest/v1/surat_tugas'
-              + '?status=eq.menunggu'
-              + '&select=id,nomor_surat,tipe,perihal,user_id,created_at'
-              + '&order=created_at.desc&limit=20';
+    // Pre-fetch lookup caches (pegawai + users) supaya bisa lookup NAMA
+    // saat build notif title. Kalau cache fail, tetap lanjut — getter
+    // helpers akan fallback ke NIP / "User #id".
+    return ensureLookups().then(function () {
+      var pakUrl = url + '/rest/v1/pengajuan_pak'
+                 + '?status=eq.menunggu'
+                 + '&select=id,nomor_urut,tahun_periode,pegawai_nip,penandatangan_nama,ak_total,created_at'
+                 + '&order=created_at.desc&limit=20';
+      var stUrl = url + '/rest/v1/surat_tugas'
+                + '?status=eq.menunggu'
+                + '&select=id,nomor_surat,tipe,perihal,user_id,created_at'
+                + '&order=created_at.desc&limit=20';
 
-    return Promise.all([
-      fetch(pakUrl, { headers: window.SUPABASE_HEADERS }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
-      fetch(stUrl,  { headers: window.SUPABASE_HEADERS }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
-    ]).then(function (results) {
+      return Promise.all([
+        fetch(pakUrl, { headers: window.SUPABASE_HEADERS }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+        fetch(stUrl,  { headers: window.SUPABASE_HEADERS }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+      ]);
+    }).then(function (results) {
       var pakRows = results[0] || [];
       var stRows  = results[1] || [];
       var notifs = [];
 
       pakRows.forEach(function (p) {
+        var nama = getPegawaiName(p.pegawai_nip);
         notifs.push({
           id: 'pak-pending-' + p.id,
           type: 'pak-pending',
           icon: '⭐',
           iconCls: 'is-warn',
-          title: '<strong>NIP ' + escHTML(p.pegawai_nip || '—') + '</strong> mengajukan PAK '
+          title: '<strong>' + escHTML(nama) + '</strong> mengajukan PAK '
                + 'No. ' + String(p.nomor_urut).padStart(3,'0') + '/' + p.tahun_periode
                + ' (AK: ' + (p.ak_total || '—') + ').',
           time: p.created_at,
@@ -354,12 +461,13 @@
       });
 
       stRows.forEach(function (s) {
+        var nama = getUserName(s.user_id);
         notifs.push({
           id: 'st-pending-' + s.id,
           type: 'st-pending',
           icon: '📄',
           iconCls: 'is-info',
-          title: '<strong>Surat Tugas baru menunggu persetujuan</strong>'
+          title: '<strong>' + escHTML(nama) + '</strong> mengajukan Surat Tugas baru'
                + (s.nomor_surat ? ' (No. ' + escHTML(s.nomor_surat) + ')' : '')
                + (s.perihal ? ' — ' + escHTML(s.perihal.slice(0, 80)) : ''),
           time: s.created_at,
