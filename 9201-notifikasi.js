@@ -227,9 +227,11 @@
   // ═══════════════════════════════════════════════════════════════════
 
   function fetchLastReadAt(sessionId) {
-    var url = window.SUPABASE_URL + '/rest/v1/users?id=eq.' + encodeURIComponent(sessionId)
-            + '&select=notifikasi_last_read_at&limit=1';
-    return fetch(url, { headers: window.SUPABASE_HEADERS })
+    var url = resolveSupabaseUrl();
+    if (!url) return Promise.resolve('1970-01-01T00:00:00Z');
+    var u = url + '/rest/v1/users?id=eq.' + encodeURIComponent(sessionId)
+          + '&select=notifikasi_last_read_at&limit=1';
+    return fetch(u, { headers: window.SUPABASE_HEADERS })
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (rows) {
         if (rows && rows[0] && rows[0].notifikasi_last_read_at) {
@@ -244,6 +246,8 @@
   }
 
   function fetchUserNotifs() {
+    var url = resolveSupabaseUrl();
+    if (!url) return Promise.resolve([]);
     var session = getSession();
     if (!session) return Promise.resolve([]);
 
@@ -251,7 +255,7 @@
     var promises = [];
 
     if (nip) {
-      var pakUrl = window.SUPABASE_URL + '/rest/v1/pengajuan_pak'
+      var pakUrl = url + '/rest/v1/pengajuan_pak'
                  + '?pegawai_nip=eq.' + encodeURIComponent(nip)
                  + '&status=eq.selesai'
                  + '&select=id,nomor_urut,tahun_periode,tgl_pengajuan,ak_total,updated_at,created_at'
@@ -265,7 +269,7 @@
       promises.push(Promise.resolve([]));
     }
 
-    var stUrl = window.SUPABASE_URL + '/rest/v1/surat_tugas'
+    var stUrl = url + '/rest/v1/surat_tugas'
               + '?user_id=eq.' + encodeURIComponent(session.id)
               + '&status=eq.selesai'
               + '&select=id,nomor_surat,tipe,perihal,updated_at,created_at'
@@ -315,11 +319,14 @@
   }
 
   function fetchAdminNotifs() {
-    var pakUrl = window.SUPABASE_URL + '/rest/v1/pengajuan_pak'
+    var url = resolveSupabaseUrl();
+    if (!url) return Promise.resolve([]);
+
+    var pakUrl = url + '/rest/v1/pengajuan_pak'
                + '?status=eq.menunggu'
                + '&select=id,nomor_urut,tahun_periode,pegawai_nip,penandatangan_nama,ak_total,created_at'
                + '&order=created_at.desc&limit=20';
-    var stUrl = window.SUPABASE_URL + '/rest/v1/surat_tugas'
+    var stUrl = url + '/rest/v1/surat_tugas'
               + '?status=eq.menunggu'
               + '&select=id,nomor_surat,tipe,perihal,user_id,created_at'
               + '&order=created_at.desc&limit=20';
@@ -563,13 +570,15 @@
   function markAllRead() {
     var session = getSession();
     if (!session || !session.id) return;
+    var url = resolveSupabaseUrl();
+    if (!url) return;
 
     // Optimistic: update UI segera
     state.lastReadAt = new Date().toISOString();
     updateBadge();
     if (state.dropdownOpen) renderList();
 
-    fetch(window.SUPABASE_URL + '/rest/v1/rpc/mark_notifikasi_read', {
+    fetch(url + '/rest/v1/rpc/mark_notifikasi_read', {
       method: 'POST',
       headers: Object.assign({}, window.SUPABASE_HEADERS, { 'Content-Type': 'application/json' }),
       body: JSON.stringify({ p_caller_id: session.id }),
@@ -724,14 +733,73 @@
   // ═══════════════════════════════════════════════════════════════════
   // INIT
   // ═══════════════════════════════════════════════════════════════════
+
+  // Resolve SUPABASE_URL & SUPABASE_HEADERS dengan fallback ke bare
+  // identifier. Di classic script, top-level `const SUPABASE_URL` tidak
+  // attach ke window — hanya bisa diakses via bare reference. Shared.js
+  // versi baru sudah explicit set window.SUPABASE_URL, tapi kita defensive
+  // di sini supaya kalau shared.js cache lama, tetap bisa fallback.
+  function resolveSupabaseUrl() {
+    if (typeof window.SUPABASE_URL === 'string' && window.SUPABASE_URL) return window.SUPABASE_URL;
+    try {
+      // eslint-disable-next-line no-undef
+      if (typeof SUPABASE_URL === 'string' && SUPABASE_URL) {
+        // eslint-disable-next-line no-undef
+        window.SUPABASE_URL = SUPABASE_URL;
+        return SUPABASE_URL;
+      }
+    } catch (_) { /* ReferenceError → tidak ada di scope */ }
+    return null;
+  }
+
+  function resolveSupabaseAnonKey() {
+    if (typeof window.SUPABASE_ANON_KEY === 'string' && window.SUPABASE_ANON_KEY) return window.SUPABASE_ANON_KEY;
+    try {
+      // eslint-disable-next-line no-undef
+      if (typeof SUPABASE_ANON_KEY === 'string' && SUPABASE_ANON_KEY) {
+        // eslint-disable-next-line no-undef
+        window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+        return SUPABASE_ANON_KEY;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  function ensureHeaders() {
+    if (window.SUPABASE_HEADERS && window.SUPABASE_HEADERS.apikey) return true;
+    var key = resolveSupabaseAnonKey();
+    if (!key) return false;
+    window.SUPABASE_HEADERS = {
+      'apikey':        key,
+      'Authorization': 'Bearer ' + key,
+      'Content-Type':  'application/json',
+    };
+    return true;
+  }
+
   function init() {
-    if (!window.SUPABASE_URL || !window.SUPABASE_HEADERS) {
-      console.warn('[notif] SUPABASE_URL/HEADERS belum ter-load. Notifikasi disabled.');
-      return;
-    }
+    // CSS, dropdown element, dan listener click — ALWAYS setup, tidak
+    // tergantung Supabase. Tujuannya: tombol notifikasi PASTI buka dropdown
+    // walaupun config belum lengkap. Dropdown akan tampilkan empty state
+    // dengan pesan yang sesuai.
     injectCSS();
     ensureDropdownEl();
     setupGlobalListeners();
+
+    // Resolve Supabase config — kalau gagal, tetap jalan tapi skip fetch
+    // (dropdown tetap bisa dibuka, hanya saja list selalu kosong).
+    var url = resolveSupabaseUrl();
+    var hasHeaders = ensureHeaders();
+
+    if (!url || !hasHeaders) {
+      console.warn('[notif] SUPABASE_URL/HEADERS belum ter-load. '
+        + 'Pastikan urutan script: config.js → 9201-shared.js → 9201-notifikasi.js. '
+        + 'Polling disabled, tapi tombol tetap berfungsi (dropdown akan kosong).');
+      // Mark as fetched supaya dropdown tampilkan empty state, bukan loading
+      state.initialFetched = true;
+      return;
+    }
+
     refresh();          // initial fetch
     startPolling();     // 60s polling
     // Update badge sekali setelah topbar pasti sudah render
