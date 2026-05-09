@@ -71,42 +71,81 @@
   .filter-select:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
   .filter-info{margin-left:auto;font-size:12px;color:var(--muted);font-weight:500}
 
-  /* ════════ PEGAWAI CARDS GRID ════════ */
-  .pegawai-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px}
+  /* ════════ PEGAWAI CARDS GRID — REDESIGN 2026-05 ════════
+     Card baru: lebih clean & modern, dengan:
+       - Header berwarna gradient halus + accent gold strip di top
+       - Pangkat/jabatan ditampilkan sebagai chips visual
+       - Progress kebutuhan AK pakai "ring + chip" pattern (bukan bar
+         membosankan): lingkaran kecil dengan persen di dalam + label
+         singkat di samping. Lebih informatif & estetik.
+       - Footer compact dengan CTA jelas
+  ════════════════════════════════════════════════════════════════ */
+  .pegawai-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px}
 
-  .pg-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;display:flex;flex-direction:column}
-  .pg-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(13,35,64,.08);border-color:var(--border2)}
-  .pg-card.has-pending{border-left:4px solid var(--gold);background:linear-gradient(90deg,rgba(200,168,75,.04) 0%,var(--white) 60%)}
+  .pg-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s,border-color .18s;display:flex;flex-direction:column;position:relative}
+  .pg-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent 0%,var(--gold) 50%,transparent 100%);opacity:0;transition:opacity .2s}
+  .pg-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(13,35,64,.1);border-color:var(--gold)}
+  .pg-card:hover::before{opacity:.7}
+  .pg-card.has-pending{border-left:none;background:var(--white)}
+  .pg-card.has-pending::before{opacity:1;background:var(--gold);height:4px}
+  .pg-card.has-pending::after{content:'';position:absolute;top:14px;right:14px;width:8px;height:8px;background:var(--gold);border-radius:50%;box-shadow:0 0 0 4px rgba(200,168,75,.18);animation:pgPulse 2s infinite}
+  @keyframes pgPulse{0%,100%{box-shadow:0 0 0 4px rgba(200,168,75,.18)}50%{box-shadow:0 0 0 7px rgba(200,168,75,.05)}}
 
-  .pg-card-head{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
-  .pg-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:var(--gold);font-family:'Fraunces',serif;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:.5px}
-  .pg-name-wrap{flex:1;min-width:0}
-  .pg-name{font-size:14px;font-weight:600;color:var(--navy);line-height:1.3;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-  .pg-nip{font-size:11.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums;font-weight:500}
+  .pg-card-head{padding:16px 18px 14px;display:flex;align-items:center;gap:13px;background:linear-gradient(180deg,#fafaf6 0%,var(--white) 100%);border-bottom:1px solid var(--border)}
+  .pg-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:var(--gold);font-family:'Fraunces',serif;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:.5px;box-shadow:0 2px 6px rgba(13,35,64,.15)}
+  .pg-name-wrap{flex:1;min-width:0;padding-right:18px}
+  .pg-name{font-size:14.5px;font-weight:700;color:var(--navy);line-height:1.3;letter-spacing:-.1px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .pg-nip{font-size:11.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500;letter-spacing:.2px}
 
-  .pg-pill-pak{display:inline-flex;align-items:center;gap:3px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:100px;padding:2px 8px;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;flex-shrink:0}
+  .pg-pill-pak{display:inline-flex;align-items:center;gap:4px;background:var(--gold);color:#fff;border:none;border-radius:100px;padding:3px 9px;font-size:9.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;box-shadow:0 2px 6px rgba(200,168,75,.4)}
 
-  /* Card body — info utama */
-  .pg-card-body{padding:13px 16px 14px;display:flex;flex-direction:column;gap:9px}
-  .pg-row{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:baseline;font-size:12.5px;line-height:1.4}
-  .pg-row-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
-  .pg-row-value{color:var(--navy);font-weight:500;font-variant-numeric:tabular-nums;word-break:break-word}
-  .pg-row-value.empty{color:var(--muted);font-style:italic;font-weight:400}
-  .pg-row-value strong{font-weight:600}
-  .pg-row-value.warn{color:var(--warn)}
-  .pg-row-value.success{color:var(--success)}
+  /* Card body — info dengan chip-like presentation */
+  .pg-card-body{padding:14px 18px 6px;display:flex;flex-direction:column;gap:10px}
+  .pg-info-row{display:flex;align-items:center;gap:8px;font-size:12.5px;line-height:1.4;min-width:0}
+  .pg-info-icon{width:24px;height:24px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--muted)}
+  .pg-info-text{flex:1;min-width:0;color:var(--navy);font-weight:500;word-break:break-word}
+  .pg-info-text.empty{color:var(--muted);font-style:italic;font-weight:400}
+  .pg-info-text strong{font-weight:700;color:var(--navy)}
+  .pg-info-text .sep{color:var(--border2);margin:0 4px}
+  .pg-info-text .ak-num{font-family:'Fraunces',serif;font-size:14px;font-weight:600;color:var(--gold-dark);letter-spacing:-.2px}
 
-  /* Mini progress bar untuk kebutuhan AK */
-  .pg-mini-bar{height:4px;background:var(--bg);border-radius:100px;overflow:hidden;margin-top:4px}
-  .pg-mini-bar-fill{height:100%;border-radius:100px;transition:width .3s}
-  .pg-mini-bar-fill.is-low{background:#ef4444}
-  .pg-mini-bar-fill.is-mid{background:var(--gold)}
-  .pg-mini-bar-fill.is-high{background:#84cc16}
-  .pg-mini-bar-fill.is-ready{background:var(--success)}
+  /* ── Progress section — design baru: dual-ring chevron ──────────
+     Mengganti progress bar yang membosankan dengan layout ring +
+     label compact. Setiap baris kebutuhan (pangkat/jenjang) punya
+     ring kecil dengan persen di dalam, dan label deskriptif di
+     samping. Warna ring dynamic: red (low), gold (mid), green (ready). */
+  .pg-progress-block{margin-top:6px;padding:12px 14px;background:linear-gradient(180deg,#fafaf6 0%,#f4f1eb 100%);border-radius:10px;border:1px solid var(--border)}
+  .pg-progress-title{font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:5px}
+  .pg-progress-title::before{content:'';flex:0 0 14px;height:2px;background:var(--gold);border-radius:2px}
+  .pg-progress-grid{display:flex;flex-direction:column;gap:9px}
+
+  .pg-prog-item{display:flex;align-items:center;gap:11px;min-width:0}
+  .pg-ring{width:38px;height:38px;flex-shrink:0;position:relative}
+  .pg-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+  .pg-ring-bg{stroke:var(--border);stroke-width:4;fill:none}
+  .pg-ring-fg{stroke:var(--ring-c,var(--gold));stroke-width:4;fill:none;stroke-linecap:round;transition:stroke-dashoffset .5s cubic-bezier(.2,.7,.3,1),stroke .3s}
+  .pg-ring-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:var(--ring-c,var(--gold));font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+  .pg-ring-text.is-ready{font-size:13px}
+  .pg-ring.is-low    { --ring-c:#dc2626 }
+  .pg-ring.is-mid    { --ring-c:var(--gold) }
+  .pg-ring.is-high   { --ring-c:#65a30d }
+  .pg-ring.is-ready  { --ring-c:var(--success) }
+  .pg-ring.is-cap    { --ring-c:#6366f1 }
+
+  .pg-prog-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;line-height:1.35}
+  .pg-prog-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
+  .pg-prog-status{font-size:12.5px;font-weight:600;color:var(--navy)}
+  .pg-prog-status.is-warn{color:#92400e}
+  .pg-prog-status.is-ready{color:var(--success)}
+  .pg-prog-status.is-cap{color:#4338ca}
+  .pg-prog-est{font-size:10.5px;color:var(--muted);font-weight:500;font-style:italic}
 
   /* Footer card */
-  .pg-card-foot{padding:9px 16px;background:#fafaf6;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:var(--muted);font-weight:500}
-  .pg-card-foot-detail{display:inline-flex;align-items:center;gap:4px;color:var(--gold-dark);font-weight:600}
+  .pg-card-foot{margin-top:auto;padding:11px 18px;background:#fafaf6;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:var(--muted);font-weight:500}
+  .pg-card-foot-count{display:inline-flex;align-items:center;gap:5px}
+  .pg-card-foot-count strong{color:var(--navy);font-weight:700;font-variant-numeric:tabular-nums}
+  .pg-card-foot-detail{display:inline-flex;align-items:center;gap:4px;color:var(--gold-dark);font-weight:700;letter-spacing:.2px;transition:gap .15s}
+  .pg-card:hover .pg-card-foot-detail{gap:7px}
 
   /* ════════ EMPTY/LOADING STATES ════════ */
   .empty-state{padding:64px 22px;text-align:center;color:var(--muted);grid-column:1/-1}
@@ -181,6 +220,24 @@
   .btn-mini-approve:hover{background:rgba(26,122,74,.22)}
   .btn-mini-download{background:rgba(200,168,75,.12);color:var(--gold-dark);border-color:rgba(200,168,75,.32)}
   .btn-mini-download:hover{background:rgba(200,168,75,.22)}
+  .btn-mini-preview{background:rgba(13,35,64,.06);color:var(--navy);border-color:rgba(13,35,64,.18)}
+  .btn-mini-preview:hover{background:rgba(13,35,64,.12)}
+
+  /* ════════ MODAL PREVIEW PAK — pakai Office Online viewer ════════
+     Pola sama dengan admin-surat-tugas: upload .docx ke Supabase Storage,
+     dapat signed URL, embed via iframe. Modal lebih besar (max-width 860)
+     untuk reading experience yang nyaman. */
+  .modal.modal-preview-pak{max-width:880px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+  .modal-preview-pak .modal-body{padding:0;background:#ededed;flex:1;overflow-y:auto;min-height:60vh}
+  .pak-preview-container{padding:0;min-height:100%;display:flex;flex-direction:column}
+  .pak-preview-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--muted);gap:14px;background:#ededed;flex:1}
+  .pak-preview-spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:pgSpin .8s linear infinite}
+  @keyframes pgSpin{to{transform:rotate(360deg)}}
+  .pak-preview-error{padding:48px 24px;text-align:center;color:var(--red);background:#fff;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+  .pak-preview-error-icon{font-size:40px;opacity:.55}
+  .pak-preview-iframe{width:100%;flex:1;min-height:65vh;border:0;display:block;background:#fff}
+  .btn-preview-action{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .btn-preview-action:hover{background:var(--navy2)}
 
   /* Badge pangkat / golongan / status */
   .pgg-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--gold-light);color:var(--gold-dark);border:1px solid rgba(200,168,75,.3);border-radius:5px;font-weight:600;font-size:11.5px;letter-spacing:.2px}
@@ -414,6 +471,38 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeRiwayatModal()" type="button">Batal</button>
       <button class="btn btn-primary" id="btn-save-riwayat" onclick="saveRiwayat()" type="button">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL PREVIEW PAK — Office Online viewer iframe
+     ─────────────────────────────────────────────────────────────────
+     Mirroring pattern dari admin-surat-tugas.html (modal-preview).
+     Generate dokumen on-demand → upload ke Supabase Storage →
+     embed via Office Online viewer (view.officeapps.live.com).
+     File preview di-cleanup 60 detik setelah modal ditutup.
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="pak-preview-modal" onclick="if(event.target===this)closePakPreview()">
+  <div class="modal modal-preview-pak">
+    <div class="modal-header">
+      <div class="modal-title">👁 Preview <em>Pengajuan PAK</em> <span id="pak-preview-subtitle" style="font-size:12px;color:var(--muted);font-weight:500;font-family:'Plus Jakarta Sans',sans-serif;font-style:normal;margin-left:6px"></span></div>
+      <button class="modal-close" onclick="closePakPreview()" type="button">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="pak-preview-container" id="pak-preview-container">
+        <div class="pak-preview-loading">
+          <div class="pak-preview-spin"></div>
+          <div>Menyiapkan dokumen...</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">
+            Render via Microsoft Word Online (5–15 detik pertama kali)
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closePakPreview()" type="button">Tutup</button>
+      <button class="btn btn-preview-action" id="btn-pak-preview-download" type="button">📥 Download .docx</button>
     </div>
   </div>
 </div>
@@ -883,114 +972,187 @@ function renderGrid() {
 
 /**
  * Render satu card pegawai dengan summary lengkap.
+ * REDESIGN 2026-05: chip-style info rows + ring progress (bukan bar lagi).
  */
 function renderPegawaiCard(s) {
-  // Pill PAK menunggu
+  // Pill PAK menunggu (di header, sebelah nama)
   const pakPill = s.pakPending.length > 0
-    ? `<span class="pg-pill-pak" title="${s.pakPending.length} pengajuan PAK menunggu persetujuan">⏳ PAK Menunggu</span>`
+    ? `<span class="pg-pill-pak" title="${s.pakPending.length} pengajuan PAK menunggu persetujuan">⏳ ${s.pakPending.length} Menunggu</span>`
     : '';
 
-  // Card class — highlight kalau ada PAK menunggu
   const cardCls = s.pakPending.length > 0 ? 'pg-card has-pending' : 'pg-card';
 
-  // AK Terbaru row
-  const akRow = s.latestAK
-    ? `<strong>${esc(fmtAK(s.latestAK.angka_kredit))}</strong> <span style="color:var(--muted);font-weight:500">· per ${esc(fmtTglID(s.latestAK.tmt))}</span>`
-    : `<span class="empty">Belum ada</span>`;
-
-  // Jabatan & Pangkat
-  const jabatanRow = s.latestJabatan
+  // Jabatan row
+  const jabatanText = s.latestJabatan
     ? esc(s.latestJabatan.jabatan)
-    : `<span class="empty">Belum ada</span>`;
+    : `<span class="empty">Belum ada jabatan</span>`;
 
-  const pangkatRow = s.latestPangkat
-    ? `${esc(s.latestPangkat.pangkat || '—')} <span style="color:var(--muted)">/</span> ${esc(s.latestPangkat.golongan || '—')}`
-    : `<span class="empty">Belum ada</span>`;
+  // Pangkat row (gabung pangkat / golongan)
+  const pangkatText = s.latestPangkat
+    ? `${esc(s.latestPangkat.pangkat || '—')} <span class="sep">·</span> Gol. ${esc(s.latestPangkat.golongan || '—')}`
+    : `<span class="empty">Belum ada pangkat</span>`;
 
-  // Kebutuhan + perkiraan (gabungan, ringkas)
-  const kebutuhan = renderKebutuhanRow(s);
+  // AK Terbaru row
+  const akText = s.latestAK
+    ? `<span class="ak-num">${esc(fmtAK(s.latestAK.angka_kredit))}</span> <span style="color:var(--muted);font-weight:500">AK · per ${esc(fmtTglID(s.latestAK.tmt))}</span>`
+    : `<span class="empty">Belum ada riwayat AK</span>`;
+
+  // Progress block (ring-based, design baru)
+  const progress = renderProgressBlock(s);
+
+  // Footer count
+  const pakCount = s.pakList.length;
+  const footCount = pakCount > 0
+    ? `<strong>${pakCount}</strong> pengajuan PAK`
+    : 'Belum ada pengajuan PAK';
 
   return `
     <div class="${cardCls}" onclick="openDetail('${esc(s.nip)}')">
       <div class="pg-card-head">
         <div class="pg-avatar">${esc(initialsFromName(s.nama))}</div>
         <div class="pg-name-wrap">
-          <div class="pg-name">${esc(s.nama)} ${pakPill}</div>
-          <div class="pg-nip">${esc(s.nip || '— tanpa NIP —')}</div>
+          <div class="pg-name">${esc(s.nama)}</div>
+          <div class="pg-nip">${esc(s.nip || '— tanpa NIP —')} ${pakPill ? '· ' + pakPill : ''}</div>
         </div>
       </div>
       <div class="pg-card-body">
-        <div class="pg-row">
-          <span class="pg-row-label">Jabatan</span>
-          <span class="pg-row-value">${jabatanRow}</span>
+        <div class="pg-info-row">
+          <div class="pg-info-icon" title="Jabatan">💼</div>
+          <div class="pg-info-text">${jabatanText}</div>
         </div>
-        <div class="pg-row">
-          <span class="pg-row-label">Pangkat</span>
-          <span class="pg-row-value">${pangkatRow}</span>
+        <div class="pg-info-row">
+          <div class="pg-info-icon" title="Pangkat / Golongan">🎖️</div>
+          <div class="pg-info-text">${pangkatText}</div>
         </div>
-        <div class="pg-row">
-          <span class="pg-row-label">AK Terbaru</span>
-          <span class="pg-row-value">${akRow}</span>
+        <div class="pg-info-row">
+          <div class="pg-info-icon" title="Angka Kredit Terbaru">📊</div>
+          <div class="pg-info-text">${akText}</div>
         </div>
-        ${kebutuhan}
+        ${progress}
       </div>
       <div class="pg-card-foot">
-        <span>${s.pakList.length > 0 ? `${s.pakList.length} pengajuan PAK` : 'Belum ada pengajuan PAK'}</span>
+        <span class="pg-card-foot-count">${footCount}</span>
         <span class="pg-card-foot-detail">Lihat detail →</span>
       </div>
     </div>`;
 }
 
 /**
- * Render baris "Kebutuhan AK" di card — tampilkan info pangkat+jenjang
- * ringkas dengan mini progress bar.
+ * Render block "Kebutuhan AK" pakai ring progress (design baru).
+ * Mengganti progress bar lama yang membosankan.
+ *
+ * Setiap kebutuhan (pangkat/jenjang) di-render sebagai:
+ *   [ring 38px dengan persen di tengah]  Naik Pangkat / Naik Jenjang
+ *                                        Status: AK cukup / Kurang X / Sudah puncak
+ *                                        Estimasi: ~Bulan Tahun (kalau ada)
+ *
+ * Kalau pegawai belum ada data pangkat/jenjang, tampilkan empty state.
  */
-function renderKebutuhanRow(s) {
+function renderProgressBlock(s) {
   if (!s.prog) {
     return `
-      <div class="pg-row">
-        <span class="pg-row-label">Kebutuhan</span>
-        <span class="pg-row-value empty">Belum ada data pangkat/jabatan</span>
+      <div class="pg-progress-block">
+        <div class="pg-progress-title">Progres Kepangkatan</div>
+        <div style="font-size:12px;color:var(--muted);font-style:italic;text-align:center;padding:6px 0">
+          Belum ada data pangkat / jabatan
+        </div>
       </div>`;
   }
 
-  // Build status untuk pangkat & jenjang
-  const renderSubProg = (prog, label, perkiraanLabel) => {
+  // Build ring untuk satu kategori
+  const buildRing = (prog, label) => {
+    // Edge case: sudah di puncak (tidak ada target)
     if (prog === null) {
-      return `
-        <div style="font-size:11.5px;line-height:1.4">
-          <span style="color:var(--muted);font-weight:500">${esc(label)}:</span>
-          <span class="pg-row-value success" style="font-size:11.5px">Sudah di puncak</span>
-        </div>`;
+      // Ring penuh, warna ungu (cap state)
+      return ringRow({
+        cls: 'is-cap',
+        pct: 100,
+        labelTop: label,
+        statusText: 'Sudah di puncak',
+        statusCls: 'is-cap',
+        innerText: '★',
+        isReady: true,
+      });
     }
+    // Edge case: AK sudah cukup buat promosi
     if (prog.can_promote) {
-      return `
-        <div style="font-size:11.5px;line-height:1.4">
-          <span style="color:var(--muted);font-weight:500">${esc(label)}:</span>
-          <span class="pg-row-value success" style="font-size:11.5px">AK cukup ✓</span>
-        </div>`;
+      return ringRow({
+        cls: 'is-ready',
+        pct: 100,
+        labelTop: label,
+        statusText: 'AK cukup ✓',
+        statusCls: 'is-ready',
+        innerText: '✓',
+        isReady: true,
+      });
     }
-    // Mini progress bar — hitung persen sederhana
+    // Hitung persen progress
     const pct = Math.max(0, Math.min(100, ((s.akKumulatif) / prog.target_min) * 100));
-    const fillCls = pct >= 80 ? 'is-high' : pct >= 50 ? 'is-mid' : 'is-low';
+    const cls = pct >= 80 ? 'is-high' : pct >= 50 ? 'is-mid' : 'is-low';
     const est = estimasiTanggalPromosi(prog.sisa, s.akList);
-    return `
-      <div style="font-size:11.5px;line-height:1.4">
-        <span style="color:var(--muted);font-weight:500">${esc(label)}:</span>
-        <span class="pg-row-value warn" style="font-size:11.5px">Kurang ${esc(fmtAK(prog.sisa))}</span>
-        ${est ? `<span style="color:var(--muted);font-weight:500"> · ~${esc(est)}</span>` : ''}
-        <div class="pg-mini-bar"><div class="pg-mini-bar-fill ${fillCls}" style="width:${pct.toFixed(0)}%"></div></div>
-      </div>`;
+    const estLine = est ? `<div class="pg-prog-est">~${esc(est)}</div>` : '';
+    return ringRow({
+      cls,
+      pct,
+      labelTop: label,
+      statusText: `Kurang <strong>${esc(fmtAK(prog.sisa))}</strong> AK`,
+      statusCls: 'is-warn',
+      innerText: `${pct.toFixed(0)}%`,
+      isReady: false,
+      estLine,
+    });
   };
 
   return `
-    <div class="pg-row">
-      <span class="pg-row-label">Kebutuhan</span>
-      <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
-        ${renderSubProg(s.prog.pangkat, 'Naik Pangkat')}
-        ${renderSubProg(s.prog.jenjang, 'Naik Jenjang')}
+    <div class="pg-progress-block">
+      <div class="pg-progress-title">Progres Kepangkatan</div>
+      <div class="pg-progress-grid">
+        ${buildRing(s.prog.pangkat, 'Naik Pangkat')}
+        ${buildRing(s.prog.jenjang, 'Naik Jenjang')}
       </div>
     </div>`;
+}
+
+/**
+ * Helper: render satu baris ring progress.
+ *
+ * Implementasi ring pakai SVG circle dengan stroke-dasharray trick:
+ *   - Lingkaran penuh = 2πr ≈ 100.5 (untuk r=16)
+ *   - stroke-dashoffset = 100.5 × (1 - pct/100)
+ *   - rotate(-90deg) supaya start dari atas (jam 12)
+ */
+function ringRow(opts) {
+  const r = 16;
+  const c = 2 * Math.PI * r; // ≈ 100.53
+  const offset = c * (1 - (opts.pct || 0) / 100);
+  const innerCls = opts.isReady ? 'pg-ring-text is-ready' : 'pg-ring-text';
+  return `
+    <div class="pg-prog-item">
+      <div class="pg-ring ${opts.cls}">
+        <svg viewBox="0 0 40 40">
+          <circle class="pg-ring-bg" cx="20" cy="20" r="${r}"></circle>
+          <circle class="pg-ring-fg" cx="20" cy="20" r="${r}"
+                  stroke-dasharray="${c.toFixed(2)}"
+                  stroke-dashoffset="${offset.toFixed(2)}"></circle>
+        </svg>
+        <div class="${innerCls}">${opts.innerText}</div>
+      </div>
+      <div class="pg-prog-info">
+        <div class="pg-prog-label">${esc(opts.labelTop)}</div>
+        <div class="pg-prog-status ${opts.statusCls || ''}">${opts.statusText}</div>
+        ${opts.estLine || ''}
+      </div>
+    </div>`;
+}
+
+/**
+ * (DEPRECATED — disisakan untuk backward-compat / debugging)
+ * Render baris "Kebutuhan AK" versi lama dengan progress bar.
+ * Sudah diganti dengan renderProgressBlock() yang pakai ring.
+ */
+function renderKebutuhanRow(s) {
+  // Forward ke versi baru
+  return renderProgressBlock(s);
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -1122,9 +1284,10 @@ function renderTabPengajuan(s) {
     const akAng     = `<strong style="font-variant-numeric:tabular-nums">${esc(fmtAK(p.ak_total))}</strong>`;
 
     const actions = [];
-    actions.push(`<button class="btn-mini btn-mini-download" onclick="downloadPengajuan(${p.id})" type="button">⬇ Unduh</button>`);
+    actions.push(`<button class="btn-mini btn-mini-preview" onclick="event.stopPropagation();previewPengajuan(${p.id})" type="button" title="Preview dokumen pengajuan">👁 Preview</button>`);
+    actions.push(`<button class="btn-mini btn-mini-download" onclick="event.stopPropagation();downloadPengajuan(${p.id})" type="button" title="Unduh dokumen .docx">⬇ Unduh</button>`);
     if (p.status === 'menunggu') {
-      actions.push(`<button class="btn-mini btn-mini-approve" onclick="approvePengajuan(${p.id})" type="button">✓ Approve</button>`);
+      actions.push(`<button class="btn-mini btn-mini-approve" onclick="event.stopPropagation();approvePengajuan(${p.id})" type="button">✓ Approve</button>`);
     }
 
     return `
@@ -1479,6 +1642,123 @@ async function downloadPengajuan(pakId) {
   }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   PREVIEW PAK — pakai Office Online viewer (mirror admin-surat-tugas)
+   ─────────────────────────────────────────────────────────────────
+   Flow:
+     1. Generate dokumen via PakGenerator.generatePreviewUrl(opts)
+     2. Embed viewerUrl ke iframe di modal
+     3. Cache filename di _pakPreviewState supaya download bisa reuse
+     4. Saat modal ditutup, cleanup file di storage setelah 60 detik
+        (kalau user buka ulang cepat, tidak perlu re-upload)
+═══════════════════════════════════════════════════════════════════════ */
+let _pakPreviewState = {
+  uploadedFilename: null,    // filename di bucket (untuk cleanup)
+  currentBlob: null,         // blob siap-download (mengirit re-render)
+  currentPakId: null,        // pak.id yang sedang preview
+  currentPakNama: null,      // nama pegawai (untuk filename download)
+};
+
+async function previewPengajuan(pakId) {
+  const p = STATE.pengajuanPAK.find(x => x.id === pakId);
+  if (!p) { showToast('Pengajuan tidak ditemukan', 'error'); return; }
+
+  // Buka modal dengan loading state
+  const modal     = document.getElementById('pak-preview-modal');
+  const container = document.getElementById('pak-preview-container');
+  const subtitle  = document.getElementById('pak-preview-subtitle');
+  const btnDl     = document.getElementById('btn-pak-preview-download');
+
+  // Cleanup state preview sebelumnya
+  if (_pakPreviewState.uploadedFilename) {
+    PakGenerator.deletePreviewFile(_pakPreviewState.uploadedFilename);
+    _pakPreviewState.uploadedFilename = null;
+  }
+  _pakPreviewState.currentBlob = null;
+  _pakPreviewState.currentPakId = pakId;
+  _pakPreviewState.currentPakNama = STATE.pegawaiByNIP[p.pegawai_nip]?.NAMA || p.pegawai_nip;
+
+  // Subtitle: No. 003/2025 · Joko Susilo
+  const noStr = String(p.nomor_urut || '?').padStart(3, '0');
+  subtitle.textContent = `No. ${noStr}/${p.tahun_periode} · ${_pakPreviewState.currentPakNama}`;
+
+  // Setup tombol download di footer
+  btnDl.onclick = () => downloadFromPakPreview();
+  btnDl.disabled = true; // baru enable setelah blob siap
+
+  // Show modal & loading state
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  container.innerHTML = `
+    <div class="pak-preview-loading">
+      <div class="pak-preview-spin"></div>
+      <div>Menyiapkan dokumen...</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">
+        Render via Microsoft Word Online (5–15 detik pertama kali)
+      </div>
+    </div>`;
+
+  try {
+    const result = await PakGenerator.generatePreviewUrl({
+      pegawai_nip: p.pegawai_nip,
+      bulan_start: p.bulan_start,
+      bulan_end:   p.bulan_end,
+      tahun:       p.tahun_periode,
+      tgl_pengajuan: p.tgl_pengajuan,
+      penandatangan_nip: p.penandatangan_nip,
+      nomor_urut_preview: p.nomor_urut,
+      pakId: pakId,
+    });
+
+    _pakPreviewState.uploadedFilename = result.filename;
+    _pakPreviewState.currentBlob = result.blob;
+    btnDl.disabled = false;
+
+    container.innerHTML = `
+      <iframe class="pak-preview-iframe"
+              src="${esc(result.viewerUrl)}"
+              allow="fullscreen"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+  } catch (e) {
+    console.error('[admin-pak] preview error:', e);
+    container.innerHTML = `
+      <div class="pak-preview-error">
+        <div class="pak-preview-error-icon">⚠️</div>
+        <div><strong>Gagal memuat preview</strong></div>
+        <div style="font-size:12px;color:var(--muted);max-width:380px;line-height:1.5">${esc(e.message || String(e))}</div>
+      </div>`;
+  }
+}
+
+function closePakPreview() {
+  const modal = document.getElementById('pak-preview-modal');
+  modal.classList.remove('show');
+  document.body.style.overflow = '';
+
+  // Cleanup file di storage setelah 60 detik (kalau user re-open, masih cache)
+  if (_pakPreviewState.uploadedFilename) {
+    const fn = _pakPreviewState.uploadedFilename;
+    _pakPreviewState.uploadedFilename = null;
+    setTimeout(() => PakGenerator.deletePreviewFile(fn), 60000);
+  }
+
+  _pakPreviewState.currentBlob = null;
+  _pakPreviewState.currentPakId = null;
+  _pakPreviewState.currentPakNama = null;
+}
+
+/**
+ * Download dokumen dari modal preview (reuse blob yang sudah di-generate).
+ */
+function downloadFromPakPreview() {
+  if (!_pakPreviewState.currentBlob) {
+    showToast('Dokumen belum siap, tunggu preview selesai dimuat', 'error');
+    return;
+  }
+  const safeName = (_pakPreviewState.currentPakNama || 'Pegawai').replace(/[^\w\s-]/g, '_');
+  saveAs(_pakPreviewState.currentBlob, `Konversi PK ke AK — ${safeName}.docx`);
+}
+
 /**
  * Approve pengajuan PAK (admin only). Call RPC pengajuan_pak_approve.
  */
@@ -1717,7 +1997,9 @@ async function init() {
   // ESC handler: close modal yang sedang terbuka (paling atas dulu)
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    if (document.getElementById('riwayat-modal').classList.contains('show')) {
+    if (document.getElementById('pak-preview-modal').classList.contains('show')) {
+      closePakPreview();
+    } else if (document.getElementById('riwayat-modal').classList.contains('show')) {
       closeRiwayatModal();
     } else if (document.getElementById('pak-modal').classList.contains('show')) {
       closePakModal();
