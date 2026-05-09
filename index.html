@@ -159,8 +159,11 @@
   .pengajuan-main .sub{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px}
   .pengajuan-meta{font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
   .pengajuan-meta strong{color:var(--navy);font-weight:600;font-size:12.5px;display:block;margin-bottom:1px}
-  .pengajuan-download{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(200,168,75,.12);color:var(--gold-dark);border:1px solid rgba(200,168,75,.3);border-radius:5px;font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:4px;transition:background .15s}
+  .pengajuan-download{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(200,168,75,.12);color:var(--gold-dark);border:1px solid rgba(200,168,75,.3);border-radius:5px;font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .15s}
   .pengajuan-download:hover{background:rgba(200,168,75,.22)}
+  .pengajuan-preview{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(13,35,64,.06);color:var(--navy);border:1px solid rgba(13,35,64,.18);border-radius:5px;font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .15s}
+  .pengajuan-preview:hover{background:rgba(13,35,64,.12)}
+  .pengajuan-actions{display:flex;gap:5px;margin-top:5px;justify-content:flex-end;flex-wrap:wrap}
 
   @media(max-width:480px){
     .pak-metrics{grid-template-columns:1fr}
@@ -169,6 +172,7 @@
     .pak-hero-value{font-size:24px}
     .pengajuan-row{grid-template-columns:1fr;gap:6px}
     .pengajuan-meta{text-align:left}
+    .pengajuan-actions{justify-content:flex-start}
   }
 
   /* Skeleton states */
@@ -221,6 +225,17 @@
   .modal-overlay.show{display:flex}
   .modal{background:var(--white);border-radius:14px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,35,64,.25);animation:popIn .22s cubic-bezier(.175,.885,.32,1.275)}
   @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+  /* ════════ MODAL PREVIEW PAK — wider, document viewer ════════ */
+  .modal.modal-preview-pak{max-width:880px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+  .modal.modal-preview-pak .modal-body{padding:0;background:#ededed;flex:1;overflow-y:auto;min-height:60vh}
+  .pak-preview-container{padding:0;min-height:100%;display:flex;flex-direction:column}
+  .pak-preview-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--muted);gap:14px;background:#ededed;flex:1;font-size:13px;text-align:center}
+  .pak-preview-spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:pkSpin .8s linear infinite}
+  @keyframes pkSpin{to{transform:rotate(360deg)}}
+  .pak-preview-error{padding:48px 24px;text-align:center;color:var(--red);background:#fff;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+  .pak-preview-error-icon{font-size:40px;opacity:.55}
+  .pak-preview-iframe{width:100%;flex:1;min-height:65vh;border:0;display:block;background:#fff}
   .modal-header{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fafaf6}
   .modal-title{font-family:'Fraunces',serif;font-size:17px;font-weight:500;color:var(--navy)}
   .modal-title em{font-style:italic;color:var(--gold)}
@@ -509,6 +524,36 @@
       <button class="btn btn-primary" id="btn-submit-pak" onclick="submitPak()" type="button" disabled>
         Generate &amp; Kirim
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL PREVIEW PAK — Office Online viewer iframe
+     Generate dokumen on-demand → upload ke Supabase Storage →
+     embed via Office Online viewer. File preview di-cleanup 60 detik
+     setelah modal ditutup.
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="pak-preview-modal" onclick="if(event.target===this)closePakPreview()">
+  <div class="modal modal-preview-pak">
+    <div class="modal-header">
+      <div class="modal-title">👁 Preview <em>Pengajuan PAK</em> <span id="pak-preview-subtitle" style="font-size:12px;color:var(--muted);font-weight:500;font-family:'Plus Jakarta Sans',sans-serif;font-style:normal;margin-left:6px"></span></div>
+      <button class="modal-close" onclick="closePakPreview()" type="button">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;background:#ededed">
+      <div class="pak-preview-container" id="pak-preview-container">
+        <div class="pak-preview-loading">
+          <div class="pak-preview-spin"></div>
+          <div>Menyiapkan dokumen...</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">
+            Render via Microsoft Word Online (5–15 detik pertama kali)
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closePakPreview()" type="button">Tutup</button>
+      <button class="btn btn-primary" id="btn-pak-preview-download" type="button">📥 Download .docx</button>
     </div>
   </div>
 </div>
@@ -938,9 +983,14 @@ function pengajuanRow(p) {
       <div class="pengajuan-meta">
         <strong>${esc(fmtAK(p.ak_total))}</strong>
         <span>Total AK</span>
-        <button class="pengajuan-download" onclick="downloadPengajuan(${p.id})" title="Unduh dokumen .docx" type="button">
-          ⬇ Unduh
-        </button>
+        <div class="pengajuan-actions">
+          <button class="pengajuan-preview" onclick="previewPengajuan(${p.id})" title="Lihat preview dokumen" type="button">
+            👁 Preview
+          </button>
+          <button class="pengajuan-download" onclick="downloadPengajuan(${p.id})" title="Unduh dokumen .docx" type="button">
+            ⬇ Unduh
+          </button>
+        </div>
       </div>
     </div>`;
 }
@@ -1281,6 +1331,132 @@ async function downloadPengajuan(id) {
   }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   PREVIEW PAK (USER) — Office Online viewer iframe
+   ─────────────────────────────────────────────────────────────────
+   Pola sama dengan admin-kepegawaian.html. User bisa lihat preview
+   tanpa harus download dulu. Dokumen di-cleanup 60 detik setelah modal
+   ditutup.
+═══════════════════════════════════════════════════════════════════════ */
+let _pakPreviewState = {
+  uploadedFilename: null,
+  currentBlob: null,
+  currentPakId: null,
+  currentNamaDisplay: null,
+  currentPeriode: null,
+};
+
+async function previewPengajuan(id) {
+  const p = STATE_PROFIL.pengajuan.find(x => x.id === id);
+  if (!p) { alert('Pengajuan tidak ditemukan.'); return; }
+
+  const modal     = document.getElementById('pak-preview-modal');
+  const container = document.getElementById('pak-preview-container');
+  const subtitle  = document.getElementById('pak-preview-subtitle');
+  const btnDl     = document.getElementById('btn-pak-preview-download');
+
+  // Cleanup state preview sebelumnya
+  if (_pakPreviewState.uploadedFilename) {
+    PakGenerator.deletePreviewFile(_pakPreviewState.uploadedFilename);
+    _pakPreviewState.uploadedFilename = null;
+  }
+  _pakPreviewState.currentBlob = null;
+  _pakPreviewState.currentPakId = id;
+
+  // Subtitle: No. 003/2025
+  const noStr = String(p.nomor_urut || '?').padStart(3, '0');
+  subtitle.textContent = `No. ${noStr}/${p.tahun_periode}`;
+
+  // Setup tombol download
+  btnDl.onclick = () => downloadFromPakPreview();
+  btnDl.disabled = true;
+
+  // Show modal
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  container.innerHTML = `
+    <div class="pak-preview-loading">
+      <div class="pak-preview-spin"></div>
+      <div>Menyiapkan dokumen...</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">
+        Render via Microsoft Word Online (5–15 detik pertama kali)
+      </div>
+    </div>`;
+
+  try {
+    const result = await PakGenerator.generatePreviewUrl({
+      pegawai_nip:       p.pegawai_nip,
+      tahun_periode:     p.tahun_periode,
+      bulan_start:       p.bulan_start,
+      bulan_end:         p.bulan_end,
+      tgl_pengajuan:     p.tgl_pengajuan,
+      penandatangan_nip: p.penandatangan_nip,
+      nomor_urut:        p.nomor_urut,
+      pakId: id,
+    });
+
+    _pakPreviewState.uploadedFilename = result.filename;
+    _pakPreviewState.currentBlob = result.blob;
+    _pakPreviewState.currentNamaDisplay = (result.context._meta && result.context._meta.nama_display) || 'Pegawai';
+    _pakPreviewState.currentPeriode = result.context.periode || '';
+    btnDl.disabled = false;
+
+    container.innerHTML = `
+      <iframe class="pak-preview-iframe"
+              src="${esc(result.viewerUrl)}"
+              allow="fullscreen"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+  } catch (e) {
+    console.error('[PAK] previewPengajuan error:', e);
+    container.innerHTML = `
+      <div class="pak-preview-error">
+        <div class="pak-preview-error-icon">⚠️</div>
+        <div><strong>Gagal memuat preview</strong></div>
+        <div style="font-size:12px;color:var(--muted);max-width:380px;line-height:1.5">${esc(e.message || String(e))}</div>
+      </div>`;
+  }
+}
+
+function closePakPreview() {
+  const modal = document.getElementById('pak-preview-modal');
+  modal.classList.remove('show');
+  document.body.style.overflow = '';
+
+  // Cleanup file di storage setelah 60 detik
+  if (_pakPreviewState.uploadedFilename) {
+    const fn = _pakPreviewState.uploadedFilename;
+    _pakPreviewState.uploadedFilename = null;
+    setTimeout(() => PakGenerator.deletePreviewFile(fn), 60000);
+  }
+
+  _pakPreviewState.currentBlob = null;
+  _pakPreviewState.currentPakId = null;
+  _pakPreviewState.currentNamaDisplay = null;
+  _pakPreviewState.currentPeriode = null;
+}
+
+function downloadFromPakPreview() {
+  if (!_pakPreviewState.currentBlob) {
+    alert('Dokumen belum siap, tunggu preview selesai dimuat.');
+    return;
+  }
+  const nama = _pakPreviewState.currentNamaDisplay || 'Pegawai';
+  const per  = _pakPreviewState.currentPeriode || '';
+  const filename = `Konversi PK ke AK — ${nama}${per ? ' — ' + per : ''}.docx`;
+  if (typeof window.saveAs === 'function') {
+    window.saveAs(_pakPreviewState.currentBlob, filename);
+  }
+}
+
+// ESC handler: close preview modal kalau terbuka
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const previewModal = document.getElementById('pak-preview-modal');
+  if (previewModal && previewModal.classList.contains('show')) {
+    closePakPreview();
+  }
+});
+
 async function reloadPengajuan() {
   if (!STATE_PROFIL.nip) { STATE_PROFIL.pengajuan = []; return; }
   try {
@@ -1610,7 +1786,15 @@ async function init() {
   initRoleSwitcher(s, false);
   await initCalendar(s.id);
 }
-init();
+// PENTING: tunggu DOMContentLoaded supaya topbar sudah di-render
+// (9201-topbar.js sekarang render synchronous di IIFE, jadi sebenarnya
+// aman untuk panggil init() langsung — tapi pakai DOMContentLoaded sebagai
+// safety net kalau urutan script berubah / di-load via defer di masa depan).
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 </script>
 </body>
 </html>
