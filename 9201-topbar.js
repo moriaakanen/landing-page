@@ -35,11 +35,10 @@
   :where(.topbar-avatar){width:30px;height:30px;background:var(--navy2,#163358);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold,#c8a84b);flex-shrink:0}
   :where(.topbar-username){font-size:13px;color:rgba(255,255,255,.78);font-weight:500;white-space:nowrap}
 
-  /* ═══ NOTIFIKASI BELL ═══
-     CATATAN PENTING: jangan pakai :where() di sini. :where() punya
-     specificity 0 yang gampang di-override secara tidak sengaja oleh
-     CSS halaman. Pakai selector langsung supaya konsisten antar
-     halaman dan dropdown selalu muncul saat .open class ditambahkan. */
+  /* ═══ Lonceng notifikasi — TOMBOL SAJA
+     CSS dropdown (.notif-dropdown, .notif-item, dst.) di-inject oleh
+     9201-notifikasi.js karena dropdown sekarang body-level child
+     (position:fixed) untuk menghindari stacking context issues. */
   .notif-wrap{position:relative;display:flex;align-items:center}
   .notif-btn{background:transparent;border:none;cursor:pointer;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.7);transition:background .15s,color .15s;position:relative;font-size:17px;padding:0;font-family:inherit}
   .notif-btn:hover{background:rgba(255,255,255,.08);color:#fff}
@@ -49,36 +48,6 @@
   @keyframes bellShake{0%,100%{transform:rotate(0)}20%{transform:rotate(-12deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}}
   .notif-badge{position:absolute;top:5px;right:4px;min-width:17px;height:17px;padding:0 4px;background:#dc2626;color:#fff;border-radius:100px;font-size:9.5px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--navy,#0d2340);font-variant-numeric:tabular-nums;letter-spacing:-.2px;pointer-events:none}
   .notif-badge[hidden]{display:none !important}
-
-  /* Dropdown — pakai !important untuk display agar tidak ditiban CSS halaman */
-  .notif-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:360px;max-width:calc(100vw - 32px);background:#fff;border-radius:11px;box-shadow:0 14px 40px rgba(13,35,64,.22);border:1px solid rgba(13,35,64,.08);z-index:1000;display:none;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;color:#0d2340}
-  .notif-dropdown.open{display:block !important;animation:notifPop .18s cubic-bezier(.2,.7,.3,1) both}
-  @keyframes notifPop{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-  .notif-header{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border,#e2ddd6);background:#fafaf6;color:var(--navy,#0d2340);font-weight:700;font-size:13px;letter-spacing:.2px}
-  .notif-header-meta{font-size:11px;color:var(--muted,#6b7280);font-weight:500}
-  .notif-list{max-height:420px;overflow-y:auto;background:#fff}
-  .notif-empty{padding:36px 18px;text-align:center;color:var(--muted,#6b7280);font-size:13px;line-height:1.6}
-  .notif-empty-icon{font-size:30px;margin-bottom:8px;opacity:.45}
-  .notif-item{display:flex;gap:11px;padding:11px 14px;border-bottom:1px solid var(--border,#e2ddd6);cursor:pointer;transition:background .12s;text-decoration:none;color:inherit;align-items:flex-start}
-  .notif-item:hover{background:#fafaf6}
-  .notif-item:last-child{border-bottom:none}
-  .notif-item.unread{background:#fffbeb}
-  .notif-item.unread:hover{background:#fef3c7}
-  .notif-item-icon{flex-shrink:0;width:32px;height:32px;border-radius:8px;background:var(--bg,#f5f4f0);display:flex;align-items:center;justify-content:center;font-size:14px;border:1px solid var(--border,#e2ddd6)}
-  .notif-item-body{flex:1;min-width:0}
-  .notif-item-title{font-size:12.5px;font-weight:600;color:var(--navy,#0d2340);line-height:1.4;margin-bottom:2px}
-  .notif-item-desc{font-size:11.5px;color:var(--muted,#6b7280);line-height:1.5;margin-bottom:3px;word-wrap:break-word}
-  .notif-item-time{font-size:10.5px;color:var(--muted,#6b7280);font-weight:500;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:4px}
-  .notif-item.unread .notif-item-title{color:var(--navy,#0d2340);font-weight:700}
-  .notif-item-dot{width:7px;height:7px;border-radius:50%;background:#dc2626;flex-shrink:0;margin-top:7px;display:none}
-  .notif-item.unread .notif-item-dot{display:block}
-
-  .notif-footer{padding:9px 14px;border-top:1px solid var(--border,#e2ddd6);background:#fafaf6;text-align:center}
-  .notif-footer-link{background:transparent;border:none;color:var(--navy,#0d2340);font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;letter-spacing:.2px;padding:4px 10px;border-radius:5px;transition:background .15s}
-  .notif-footer-link:hover{background:rgba(13,35,64,.06)}
-  @media(max-width:480px){
-    .notif-dropdown{width:calc(100vw - 24px);right:-12px}
-  }
   :where(.menu-toggle){display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:6px;cursor:pointer;color:#fff;font-size:16px;margin-left:4px;font-family:inherit}
   :where(.menu-toggle:hover){background:rgba(255,255,255,.12)}
   @media(max-width:768px){:where(.topbar-time){display:none}}
@@ -121,21 +90,16 @@
     <div class="topbar-right">
       <span class="topbar-time" id="topbar-time"></span>
 
-      <!-- ═══ Lonceng notifikasi — di-handle oleh 9201-notifikasi.js ═══ -->
+      <!-- ═══ Lonceng notifikasi ═══
+           Dropdown HTML, CSS, dan handlers SEMUA di-handle oleh
+           9201-notifikasi.js (self-contained). Topbar ini hanya
+           render tombol-nya. notifikasi.js attach lewat event
+           delegation jadi tidak ada race condition. -->
       <div class="notif-wrap" id="notif-wrap">
         <button class="notif-btn" id="notif-btn" type="button" aria-label="Notifikasi" aria-expanded="false">
           <span class="notif-bell" aria-hidden="true">🔔</span>
           <span class="notif-badge" id="notif-badge" hidden>0</span>
         </button>
-        <div class="notif-dropdown" id="notif-dropdown" role="menu" aria-hidden="true">
-          <div class="notif-header">
-            <span>Notifikasi</span>
-            <span class="notif-header-meta" id="notif-header-meta">—</span>
-          </div>
-          <div class="notif-list" id="notif-list">
-            <div class="notif-empty"><div class="notif-empty-icon">🔕</div>Tidak ada notifikasi.</div>
-          </div>
-        </div>
       </div>
 
       <div class="user-switcher" id="user-switcher">
