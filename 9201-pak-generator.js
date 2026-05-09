@@ -944,6 +944,124 @@
   }
 
   // ═══════════════════════════════════════════════════════════════════
+  // PREVIEW HELPERS — pola sama dengan admin-surat-tugas.js
+  // ─────────────────────────────────────────────────────────────────
+  // Flow preview:
+  //   1. resolveContext(opts)  → context object
+  //   2. renderDoc(context)    → Blob .docx
+  //   3. uploadPreviewDocx(blob, pakId) → upload ke Supabase Storage
+  //                              return filename di bucket
+  //   4. getPreviewSignedUrl(filename) → URL temporary (1 jam expiry)
+  //   5. buildOfficeViewerUrl(signedUrl) → URL final iframe
+  //
+  // Bucket: dipakai sama dengan surat-tugas — 'surat-tugas-preview'.
+  // Filename pakai prefix 'pak_' supaya tidak bentrok dengan surat tugas.
+  // Cleanup logic admin-surat-tugas.js (regex /_(\d+)\.docx$/) tetap match
+  // file PAK karena timestamp ada di akhir.
+  //
+  // Convenience function: generatePreviewUrl(opts) — orchestrate semuanya
+  // sekaligus, return { signedUrl, viewerUrl, filename, blob, context }.
+  // ═══════════════════════════════════════════════════════════════════
+
+  // Bucket di Supabase Storage. Reuse bucket surat-tugas-preview supaya
+  // tidak butuh setup tambahan di Supabase Dashboard.
+  const PREVIEW_BUCKET = 'surat-tugas-preview';
+
+  /**
+   * Upload Blob .docx ke Supabase Storage, return filename.
+   * @param {Blob}        blob   - hasil dari renderDoc(context)
+   * @param {string|number} pakId  - id pengajuan_pak (untuk filename)
+   * @returns {Promise<string>}    filename yang dihasilkan
+   */
+  async function uploadPreviewDocx(blob, pakId) {
+    const filename = `pak_${pakId || 'tmp'}_${Date.now()}.docx`;
+    const url = `${SUPABASE_URL}/storage/v1/object/${PREVIEW_BUCKET}/${filename}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'x-upsert': 'true',
+      },
+      body: blob,
+    });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const err = await res.json(); msg = err.message || err.error || msg; } catch(_) {}
+      throw new Error(`Upload preview gagal: ${msg}`);
+    }
+    return filename;
+  }
+
+  /**
+   * Buat signed URL untuk file di bucket preview.
+   * @param {string} filename
+   * @param {number} [expiresInSec=3600]
+   * @returns {Promise<string>}  URL lengkap siap embed di iframe
+   */
+  async function getPreviewSignedUrl(filename, expiresInSec) {
+    const exp = expiresInSec || 3600;
+    const url = `${SUPABASE_URL}/storage/v1/object/sign/${PREVIEW_BUCKET}/${filename}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ expiresIn: exp }),
+    });
+    if (!res.ok) throw new Error(`Gagal membuat signed URL (HTTP ${res.status})`);
+    const data = await res.json();
+    return `${SUPABASE_URL}/storage/v1${data.signedURL}`;
+  }
+
+  /**
+   * Hapus file preview dari bucket. Fire-and-forget — tidak throw error.
+   */
+  async function deletePreviewFile(filename) {
+    if (!filename) return;
+    try {
+      await fetch(`${SUPABASE_URL}/storage/v1/object/${PREVIEW_BUCKET}/${filename}`, {
+        method: 'DELETE',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      });
+    } catch (e) {
+      console.warn('[PakGen] Cleanup preview file gagal:', e);
+    }
+  }
+
+  /**
+   * Bangun URL iframe Office Online viewer dari signed URL.
+   * Office Online butuh URL public/signed yang accessible dari Microsoft.
+   */
+  function buildOfficeViewerUrl(signedUrl) {
+    return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(signedUrl)}`;
+  }
+
+  /**
+   * Convenience: generate dokumen + upload + signed URL + viewer URL.
+   * Caller tinggal embed `viewerUrl` ke iframe.
+   *
+   * @param {object} opts  - same as resolveContext (pegawai_nip, bulan_*, dst.)
+   *                         + opts.pakId (untuk filename, optional)
+   * @returns {Promise<{viewerUrl, signedUrl, filename, blob, context}>}
+   */
+  async function generatePreviewUrl(opts) {
+    const context  = await resolveContext(opts);
+    const blob     = await renderDoc(context);
+    const pakId    = (opts && opts.pakId) || (opts && opts.id) || 'tmp';
+    const filename = await uploadPreviewDocx(blob, pakId);
+    const signedUrl = await getPreviewSignedUrl(filename, 3600);
+    const viewerUrl = buildOfficeViewerUrl(signedUrl);
+    return { viewerUrl, signedUrl, filename, blob, context };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
   // PUBLIC API
   // ═══════════════════════════════════════════════════════════════════
   window.PakGenerator = {
@@ -951,6 +1069,12 @@
     resolveContext,
     renderDoc,
     generateAndDownload,
+    // Preview API (mirror admin-surat-tugas.js):
+    uploadPreviewDocx,
+    getPreviewSignedUrl,
+    deletePreviewFile,
+    buildOfficeViewerUrl,
+    generatePreviewUrl,
     // Helpers expose untuk UI (mis. modal preview):
     resolvePeriodeText,
     resolveModeFromPeriode,
