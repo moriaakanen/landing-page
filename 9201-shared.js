@@ -126,6 +126,23 @@
   // ─── Headers Supabase ──────────────────────────────────────────
   // Pengganti pola `const H = { 'apikey': ..., 'Authorization': ..., ... }`
   // yang sebelumnya diduplikasi di setiap halaman.
+  //
+  // FIX 2026-05: SUPABASE_URL dan SUPABASE_ANON_KEY di config.js declare
+  // sebagai top-level `const`. Di classic script (non-module), top-level
+  // `const` TIDAK attach ke window. Bisa diakses via bare identifier
+  // (mis. `SUPABASE_URL`) dari script lain di realm yang sama, TAPI
+  // `window.SUPABASE_URL` adalah undefined.
+  //
+  // Banyak file (notifikasi.js, dst.) cek `window.SUPABASE_URL` sebelum
+  // init — jadi kita explicit attach di sini supaya semua code path bekerja
+  // baik pakai bare identifier MAUPUN window-prefix.
+  if (typeof SUPABASE_URL !== 'undefined') {
+    window.SUPABASE_URL = SUPABASE_URL;
+  }
+  if (typeof SUPABASE_ANON_KEY !== 'undefined') {
+    window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+  }
+
   window.SUPABASE_HEADERS = {
     'apikey':        typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : '',
     'Authorization': typeof SUPABASE_ANON_KEY !== 'undefined' ? `Bearer ${SUPABASE_ANON_KEY}` : '',
