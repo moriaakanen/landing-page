@@ -82,6 +82,12 @@
   .section-icon.job::after{left:5px;top:2px;width:5px;height:4px;border:1.6px solid currentColor;border-bottom:0;border-radius:2px 2px 0 0}
   .section-icon.rank::before{left:2px;top:2px;width:11px;height:11px;border:1.7px solid currentColor;border-radius:50%}
   .section-icon.rank::after{left:6px;top:5px;width:3px;height:6px;background:currentColor;box-shadow:-3px 5px 0 -1px currentColor,3px 5px 0 -1px currentColor}
+  .section-icon.calendar::before{left:2px;top:3px;width:11px;height:10px;border:1.7px solid currentColor;border-radius:2px}
+  .section-icon.calendar::after{left:4px;top:1px;width:2px;height:4px;background:currentColor;box-shadow:5px 0 0 currentColor,0 6px 0 -1px currentColor,4px 6px 0 -1px currentColor}
+  .section-icon.up::before{left:2px;top:3px;width:10px;height:10px;border-left:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg)}
+  .section-icon.up::after{left:6px;top:5px;width:2px;height:8px;background:currentColor}
+  .section-icon.target::before{left:1px;top:1px;width:13px;height:13px;border:1.7px solid currentColor;border-radius:50%;box-shadow:inset 0 0 0 3px rgba(13,35,64,.12)}
+  .section-icon.target::after{left:6px;top:6px;width:3px;height:3px;background:currentColor;border-radius:50%}
   .info-card-title{font-size:12px;font-weight:700;color:var(--navy);letter-spacing:.6px;text-transform:uppercase}
   .info-card-body{padding:6px 0}
   .info-row{display:grid;grid-template-columns:130px 1fr;gap:14px;padding:9px 18px;align-items:start;border-bottom:1px solid #f4f1e9;line-height:1.5}
@@ -140,7 +146,7 @@
   .pak-metric{padding:14px 18px;background:var(--white);border-right:1px solid var(--border);min-width:0}
   .pak-metric:last-child{border-right:none}
   .pak-metric-icon-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-  .pak-metric-icon{width:24px;height:24px;border-radius:6px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+  .pak-metric-icon{width:24px;height:24px;border-radius:6px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:var(--navy)}
   .pak-metric-title{font-size:10.5px;font-weight:700;color:var(--navy);letter-spacing:.5px;text-transform:uppercase;line-height:1.3}
   .pak-metric-rows{display:flex;flex-direction:column;gap:7px}
   .pak-metric-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12px;line-height:1.3}
@@ -200,7 +206,7 @@
   .cal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
   .cal-head-title{font-family:'Fraunces',serif;font-size:18px;font-weight:500;color:var(--navy);display:flex;align-items:center;gap:10px}
   .cal-head-title em{font-style:italic;color:var(--gold)}
-  .cal-head-icon{width:32px;height:32px;border-radius:8px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:15px}
+  .cal-head-icon{width:32px;height:32px;border-radius:8px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--navy)}
   .cal-nav{display:flex;align-items:center;gap:6px}
   .cal-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--navy);transition:all .15s;font-family:inherit}
   .cal-btn:hover{background:var(--gold-light);border-color:var(--gold)}
@@ -424,7 +430,7 @@
       <div class="calendar-card fade-in" id="calendar-card" style="animation-delay:.15s">
         <div class="cal-head">
           <div class="cal-head-title">
-            <div class="cal-head-icon"></div>
+            <div class="cal-head-icon"><span class="section-icon calendar"></span></div>
             <span>Kalender <em>Kegiatan</em></span>
           </div>
           <div class="cal-nav">
@@ -953,11 +959,12 @@ function renderPakCard() {
       perkiraanRow = `<div class="pak-metric-row-value muted">Tidak ada</div>`;
     } else if (subProg.can_promote) {
       // AK sudah cukup
-      kebutuhanRow = `<div class="pak-metric-row-value success">AK cukup</div>`;
+      const surplus = Math.max(0, akKumulatif - (Number(subProg.target_min) || 0));
+      kebutuhanRow = `<div class="pak-metric-row-value success">+${esc(fmtAK(surplus))}</div>`;
       perkiraanRow = `<div class="pak-metric-row-value success">Siap diajukan</div>`;
     } else {
       // AK masih kurang - tampilkan sisa + perkiraan tahun
-      kebutuhanRow = `<div class="pak-metric-row-value warn">Kurang ${esc(fmtAK(subProg.sisa))}</div>`;
+      kebutuhanRow = `<div class="pak-metric-row-value warn">-${esc(fmtAK(subProg.sisa))}</div>`;
       const est = estimasiTahunPromosi(subProg.sisa, akList);
       perkiraanRow = est
         ? `<div class="pak-metric-row-value">${esc(est)}</div>`
@@ -983,13 +990,13 @@ function renderPakCard() {
   };
 
   const buildPangkatPanel = () => buildPanel(
-    '', 'Naik Pangkat',
+    '<span class="section-icon up"></span>', 'Naik Pangkat',
     prog ? prog.pangkat : null,
     'Sudah di puncak (IVe)'
   );
 
   const buildJenjangPanel = () => buildPanel(
-    '', 'Naik Jenjang',
+    '<span class="section-icon target"></span>', 'Naik Jenjang',
     prog ? prog.jenjang : null,
     'Sudah di puncak'
   );
@@ -1131,6 +1138,7 @@ function pakISODate(year, month, day){ return `${year}-${String(month).padStart(
 function pakMonthLabel(year, month){ return `${BULAN[month-1]} ${year}`; }
 function pakRangeLabel(start,end){ if(!start||!end)return 'Belum dipilih'; if(start.year===end.year&&start.month===end.month)return pakMonthLabel(start.year,start.month); return `${BULAN[start.month-1]} s.d ${BULAN[end.month-1]} ${start.year}`; }
 function pakDraftRangeLabel(start,end){ if(start&&!end)return pakMonthLabel(start.year,start.month); return pakRangeLabel(start,end); }
+function pakMonthFromISO(iso){ const m=String(iso||'').match(/^(\d{4})-(\d{2})/); if(!m)return null; return {year:Number(m[1]),month:Number(m[2])}; }
 function getPakDefaultPeriod(){
   const periods = Array.isArray(STATE_PROFIL.pengajuan) ? STATE_PROFIL.pengajuan : [];
   let latestKey = null, latest = null;
@@ -1140,8 +1148,13 @@ function getPakDefaultPeriod(){
     const key=pakMonthKey(y,end);
     if(latestKey==null || key>latestKey){ latestKey=key; latest=p; }
   });
-  const today=new Date();
   if(latestKey==null){
+    const latestAKMonth=pakMonthFromISO(STATE_PROFIL.latestAK && STATE_PROFIL.latestAK.tmt);
+    if(latestAKMonth){
+      const start=pakNextMonth(latestAKMonth.year,latestAKMonth.month);
+      const disabledBefore=pakMonthKey(latestAKMonth.year,latestAKMonth.month);
+      return {start,disabledBefore,latestEnd:latestAKMonth,latestEndDate:pakLastDayDate(latestAKMonth.year,latestAKMonth.month),label:`PAK terakhir per ${fmtTglID(STATE_PROFIL.latestAK.tmt)}`};
+    }
     const maxFallback=pakMonthFromKey(pakMaxPeriodKey());
     const start={year:maxFallback.year,month:maxFallback.month};
     return {start,disabledBefore:pakMonthKey(start.year,start.month)-1,latestEnd:null,latestEndDate:null,label:'Belum ada pengajuan PAK sebelumnya.'};

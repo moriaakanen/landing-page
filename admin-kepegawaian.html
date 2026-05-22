@@ -1174,7 +1174,7 @@ function renderPegawaiCard(s) {
  *
  * Setiap kebutuhan (pangkat/jenjang) di-render sebagai:
  *   [ring 38px dengan persen di tengah]  Naik Pangkat / Naik Jenjang
- *                                        Status: AK cukup / Kurang X / Sudah puncak
+ *                                        Status: AK cukup / -X / Sudah puncak
  *                                        Estimasi: ~Bulan Tahun (kalau ada)
  *
  * Kalau pegawai belum ada data pangkat/jenjang, tampilkan empty state.
@@ -1207,11 +1207,12 @@ function renderProgressBlock(s) {
     }
     // Edge case: AK sudah cukup buat promosi
     if (prog.can_promote) {
+      const surplus = Math.max(0, (Number(s.akKumulatif) || 0) - (Number(prog.target_min) || 0));
       return ringRow({
         cls: 'is-ready',
         pct: 100,
         labelTop: label,
-        statusText: 'AK cukup ✓',
+        statusText: `+<strong>${esc(fmtAK(surplus))}</strong> AK`,
         statusCls: 'is-ready',
         innerText: '✓',
         isReady: true,
@@ -1226,7 +1227,7 @@ function renderProgressBlock(s) {
       cls,
       pct,
       labelTop: label,
-      statusText: `Kurang <strong>${esc(fmtAK(prog.sisa))}</strong> AK`,
+      statusText: `-<strong>${esc(fmtAK(prog.sisa))}</strong> AK`,
       statusCls: 'is-warn',
       innerText: `${pct.toFixed(0)}%`,
       isReady: false,
@@ -1598,6 +1599,12 @@ function pakDraftRangeLabel(start, end) {
   return pakRangeLabel(start, end);
 }
 
+function pakMonthFromISO(iso) {
+  const m = String(iso || '').match(/^(\d{4})-(\d{2})/);
+  if (!m) return null;
+  return { year: Number(m[1]), month: Number(m[2]) };
+}
+
 function getCurrentPakSummary() {
   const s = STATE.pegawaiSummary.find(x => String(x.nip ?? '') === String(STATE.pakModalNIP ?? ''));
   return s || null;
@@ -1620,10 +1627,20 @@ function getPakDefaultPeriod() {
     }
   });
 
-  const today = new Date();
   const maxFallback = pakMonthFromKey(pakMaxPeriodKey());
   const fallback = { year: maxFallback.year, month: maxFallback.month };
   if (latestKey == null) {
+    const latestAKMonth = pakMonthFromISO(s?.latestAK?.tmt);
+    if (latestAKMonth) {
+      const start = pakNextMonth(latestAKMonth.year, latestAKMonth.month);
+      return {
+        start,
+        disabledBefore: pakMonthKey(latestAKMonth.year, latestAKMonth.month),
+        latestEnd: latestAKMonth,
+        label: `PAK terakhir per ${fmtTglID(s.latestAK.tmt)}`,
+        latestEndDate: pakLastDayDate(latestAKMonth.year, latestAKMonth.month),
+      };
+    }
     return {
       start: fallback,
       disabledBefore: pakMonthKey(fallback.year, fallback.month) - 1,
