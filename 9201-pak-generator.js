@@ -57,11 +57,16 @@
   // admin-surat-tugas.js. Kalau halaman pemanggil sudah include
   // <script> CDN-nya statis di HTML, ini tinggal short-circuit.
 
-  function loadScript(src) {
+  function loadScript(asset) {
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
+      const src = typeof asset === 'string' ? asset : asset.src;
       s.src = src;
       s.async = false;
+      if (asset && asset.integrity) {
+        s.integrity = asset.integrity;
+        s.crossOrigin = 'anonymous';
+      }
       s.onload  = () => resolve();
       s.onerror = () => reject(new Error(`Gagal load ${src}`));
       document.head.appendChild(s);
@@ -75,15 +80,12 @@
     if (hasDxt && hasPzz && hasFs) return true;
 
     const CDNS = [
-      { dxt: 'https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js',
-        pzz: 'https://unpkg.com/pizzip@3.2.0/dist/pizzip.js',
-        fs:  'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js' },
-      { dxt: 'https://cdn.jsdelivr.net/npm/docxtemplater@3.68.5/build/docxtemplater.js',
-        pzz: 'https://cdn.jsdelivr.net/npm/pizzip@3.2.0/dist/pizzip.js',
-        fs:  'https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js' },
-      { dxt: 'https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.68.5/docxtemplater.js',
-        pzz: 'https://cdn.jsdelivr.net/npm/pizzip@3.2.0/dist/pizzip.js',
-        fs:  'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js' },
+      { dxt: { src: 'https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js', integrity: 'sha384-iFfWkkwxgayOORmVuUa4qEjdYyil2iKW0E2D1CgOQvaVkeKHJO1I8jc3OOhsRrX5' },
+        pzz: { src: 'https://unpkg.com/pizzip@3.2.0/dist/pizzip.js', integrity: 'sha384-EKMdeygnsgFUPocowqWjGXhnzFAiDXk3KuOx8g8lsB5/JNEQYTWaADHxmioDiFU8' },
+        fs:  { src: 'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js', integrity: 'sha384-PlRSzpewlarQuj5alIadXwjNUX+2eNMKwr0f07ShWYLy8B6TjEbm7ZlcN/ScSbwy' } },
+      { dxt: { src: 'https://cdn.jsdelivr.net/npm/docxtemplater@3.68.5/build/docxtemplater.js', integrity: 'sha384-iFfWkkwxgayOORmVuUa4qEjdYyil2iKW0E2D1CgOQvaVkeKHJO1I8jc3OOhsRrX5' },
+        pzz: { src: 'https://cdn.jsdelivr.net/npm/pizzip@3.2.0/dist/pizzip.js', integrity: 'sha384-EKMdeygnsgFUPocowqWjGXhnzFAiDXk3KuOx8g8lsB5/JNEQYTWaADHxmioDiFU8' },
+        fs:  { src: 'https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js', integrity: 'sha384-PlRSzpewlarQuj5alIadXwjNUX+2eNMKwr0f07ShWYLy8B6TjEbm7ZlcN/ScSbwy' } },
     ];
 
     for (const cdn of CDNS) {

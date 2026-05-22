@@ -4967,11 +4967,16 @@ const PPK_NAMA_DEFAULT = 'Abdillah Humam, SST';
 ════════════════════════════════════════════════════════════════════ */
 
 /* Helper untuk load script dinamis kalau belum ada di window */
-function loadScript(src) {
+function loadScript(asset) {
   return new Promise((resolve, reject) => {
     const s = document.createElement('script');
+    const src = typeof asset === 'string' ? asset : asset.src;
     s.src = src;
     s.async = false;
+    if (asset && asset.integrity) {
+      s.integrity = asset.integrity;
+      s.crossOrigin = 'anonymous';
+    }
     s.onload = () => { console.log('[9201] Loaded:', src); resolve(); };
     s.onerror = () => reject(new Error(`Gagal load ${src}`));
     document.head.appendChild(s);
@@ -4985,12 +4990,10 @@ async function ensureDocxtemplaterLoaded() {
   }
   // Coba load dinamis dengan multiple CDN fallback
   const CDNS = [
-    { dxt: 'https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js',
-      pzz: 'https://unpkg.com/pizzip@3.2.0/dist/pizzip.js' },
-    { dxt: 'https://cdn.jsdelivr.net/npm/docxtemplater@3.68.5/build/docxtemplater.js',
-      pzz: 'https://cdn.jsdelivr.net/npm/pizzip@3.2.0/dist/pizzip.js' },
-    { dxt: 'https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.68.5/docxtemplater.js',
-      pzz: 'https://cdn.jsdelivr.net/npm/pizzip@3.2.0/dist/pizzip.js' },
+    { dxt: { src: 'https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js', integrity: 'sha384-iFfWkkwxgayOORmVuUa4qEjdYyil2iKW0E2D1CgOQvaVkeKHJO1I8jc3OOhsRrX5' },
+      pzz: { src: 'https://unpkg.com/pizzip@3.2.0/dist/pizzip.js', integrity: 'sha384-EKMdeygnsgFUPocowqWjGXhnzFAiDXk3KuOx8g8lsB5/JNEQYTWaADHxmioDiFU8' } },
+    { dxt: { src: 'https://cdn.jsdelivr.net/npm/docxtemplater@3.68.5/build/docxtemplater.js', integrity: 'sha384-iFfWkkwxgayOORmVuUa4qEjdYyil2iKW0E2D1CgOQvaVkeKHJO1I8jc3OOhsRrX5' },
+      pzz: { src: 'https://cdn.jsdelivr.net/npm/pizzip@3.2.0/dist/pizzip.js', integrity: 'sha384-EKMdeygnsgFUPocowqWjGXhnzFAiDXk3KuOx8g8lsB5/JNEQYTWaADHxmioDiFU8' } },
   ];
   for (const cdn of CDNS) {
     try {
