@@ -2109,7 +2109,7 @@ function makAcRenderList() {
     <div class="mak-ac-item${i === makACState.focusIdx ? ' focused' : ''}"
          data-idx="${i}"
          onmousedown="event.preventDefault()"
-         onclick="pickMAK('${escAttr(s.mak)}')">
+         onclick="pickMAK(${jsArg(s.mak)})">
       <div class="mak-ac-item-code">${esc(s.mak)}<span class="mak-ac-item-count">${s.count}×</span></div>
       ${s.ringkasan ? `<div class="mak-ac-item-desc">${esc(s.ringkasan)}</div>` : ''}
     </div>
@@ -2317,7 +2317,7 @@ function tpAcRender() {
       o.value === currentVal ? 'selected' : '',
       i === tpState.focusIdx ? 'focused' : '',
     ].filter(Boolean).join(' ');
-    return `<div class="${cls}" data-idx="${i}" onmousedown="event.preventDefault()" onclick="pickTipe('${escAttr(o.value)}')">${esc(o.label)}</div>`;
+    return `<div class="${cls}" data-idx="${i}" onmousedown="event.preventDefault()" onclick="pickTipe(${jsArg(o.value)})">${esc(o.label)}</div>`;
   }).join('');
 }
 
@@ -5693,8 +5693,10 @@ async function buildSuratTugasDoc(data, opts) {
 /* ════════════════════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════════════════════ */
-function init() {
+async function init() {
   SESSION = novaCheckSession({ requireAdmin: true });
+  if (!SESSION) return;
+  SESSION = await novaVerifyAdminSession(SESSION);
   if (!SESSION) return;
   Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION, true);

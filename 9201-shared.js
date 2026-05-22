@@ -156,6 +156,15 @@
     );
   }
   window.esc = esc;
+  function jsArg(v) {
+    return JSON.stringify(v == null ? '' : String(v))
+      .replace(/</g, '\\u003C')
+      .replace(/>/g, '\\u003E')
+      .replace(/&/g, '\\u0026')
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029');
+  }
+  window.jsArg = jsArg;
   // Alias backward-compat: beberapa file lama pakai escAttr() — sama persis.
   window.escAttr = esc;
 
@@ -248,6 +257,57 @@
     return s;
   }
   window.novaCheckSession = novaCheckSession;
+
+  async function novaVerifyAdminSession(session) {
+    if (!session || !session.id) {
+      localStorage.removeItem('nova_user');
+      window.location.replace('login.html');
+      return null;
+    }
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(session.id)}&select=id,username,full_name,must_change_password,role,roles&limit=1`,
+        { headers: window.SUPABASE_HEADERS }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const rows = await res.json();
+      const fresh = rows && rows[0];
+      if (!fresh || fresh.username !== session.username) {
+        throw new Error('Session tidak cocok dengan data pengguna.');
+      }
+
+      const roles = (typeof getUserRoles === 'function') ? getUserRoles(fresh) : [];
+      if (fresh.must_change_password) {
+        session.must_change_password = true;
+        localStorage.setItem('nova_user', JSON.stringify(session));
+        window.location.replace('ganti-password.html');
+        return null;
+      }
+      if (!roles.includes('admin')) {
+        session.role = fresh.role || null;
+        session.roles = roles.length ? roles : ['user'];
+        session.active_role = 'user';
+        localStorage.setItem('nova_user', JSON.stringify(session));
+        window.location.replace('index.html');
+        return null;
+      }
+
+      session.full_name = fresh.full_name || session.full_name || null;
+      session.must_change_password = !!fresh.must_change_password;
+      session.role = fresh.role || null;
+      session.roles = roles;
+      session.active_role = 'admin';
+      localStorage.setItem('nova_user', JSON.stringify(session));
+      return session;
+    } catch (e) {
+      console.error('[novaVerifyAdminSession] gagal verifikasi admin:', e);
+      localStorage.removeItem('nova_user');
+      window.location.replace('login.html');
+      return null;
+    }
+  }
+  window.novaVerifyAdminSession = novaVerifyAdminSession;
 
   // ─── novaRpc ───────────────────────────────────────────────────
   /**

@@ -17,7 +17,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // kali sebagai admin). Setelah sistem berjalan, array ini boleh
 // dikosongkan: `const ADMIN_USERS = [];`
 // ─────────────────────────────────────────────────────────────
-const ADMIN_USERS = ['rizal.akbar'];
+const ADMIN_USERS = [];
 
 /**
  * Helper universal untuk mengecek role dari object session.
