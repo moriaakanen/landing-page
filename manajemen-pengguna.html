@@ -184,7 +184,6 @@
     .role-selector{flex-direction:column}
   }
 </style>
-<link rel="stylesheet" href="9201-clean-saas.css">
 </head>
 <body>
 
@@ -713,7 +712,6 @@
       const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buat_pengguna`,{
         method:'POST', headers:H,
         body:JSON.stringify({
-          p_caller_id: SESSION && SESSION.id,
           p_username:username, p_full_name:nama, p_password:password,
           p_must_change:mustChange, p_role:newUserRoles[0], p_roles:newUserRoles
         })
@@ -753,7 +751,7 @@
     try {
       const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/reset_password_admin`,{
         method:'POST', headers:H,
-        body:JSON.stringify({p_caller_id: SESSION && SESSION.id, p_user_id:selectedUserId, p_new_password:newPass})
+        body:JSON.stringify({p_user_id:selectedUserId, p_new_password:newPass})
       });
       if (!rpcRes.ok) {
         let errMsg = `HTTP ${rpcRes.status}`;

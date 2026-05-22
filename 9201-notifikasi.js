@@ -181,10 +181,6 @@
     });
   }
 
-  function strongText(s) {
-    return '<strong>' + escHTML(s) + '</strong>';
-  }
-
   /** Format timestamp ke Facebook-style relative ("8 jam", "Kemarin", dst.) */
   function fmtRelativeTime(iso) {
     if (!iso) return '—';
@@ -397,9 +393,9 @@
           type: 'pak-done',
           icon: '✓',
           iconCls: 'is-success',
-          title: strongText('Pengajuan PAK No. ' + String(p.nomor_urut).padStart(3,'0') + '/'
-               + (p.tahun_periode || '')) + ' telah disetujui. AK total: '
-               + escHTML(p.ak_total || '—'),
+          title: '<strong>Pengajuan PAK No. ' + String(p.nomor_urut).padStart(3,'0') + '/'
+               + p.tahun_periode + '</strong> telah disetujui. AK total: '
+               + (p.ak_total || '—'),
           time: ts,
           href: 'index.html',
         });
@@ -412,7 +408,7 @@
           type: 'st-done',
           icon: '📄',
           iconCls: 'is-info',
-          title: strongText('Surat Tugas ' + (s.nomor_surat || ''))
+          title: '<strong>Surat Tugas ' + escHTML(s.nomor_surat || '') + '</strong>'
                + (s.perihal ? ' — ' + escHTML(s.perihal.slice(0, 80)) : '') + ' telah selesai diproses.',
           time: ts,
           href: 'surat-tugas.html',
@@ -456,9 +452,9 @@
           type: 'pak-pending',
           icon: '⭐',
           iconCls: 'is-warn',
-          title: strongText(nama) + ' mengajukan PAK '
-               + 'No. ' + escHTML(String(p.nomor_urut).padStart(3,'0')) + '/' + escHTML(p.tahun_periode || '')
-               + ' (AK: ' + escHTML(p.ak_total || '—') + ').',
+          title: '<strong>' + escHTML(nama) + '</strong> mengajukan PAK '
+               + 'No. ' + String(p.nomor_urut).padStart(3,'0') + '/' + p.tahun_periode
+               + ' (AK: ' + (p.ak_total || '—') + ').',
           time: p.created_at,
           href: 'admin-kepegawaian.html?nip=' + encodeURIComponent(p.pegawai_nip || ''),
         });
@@ -471,7 +467,7 @@
           type: 'st-pending',
           icon: '📄',
           iconCls: 'is-info',
-          title: strongText(nama) + ' mengajukan Surat Tugas baru'
+          title: '<strong>' + escHTML(nama) + '</strong> mengajukan Surat Tugas baru'
                + (s.nomor_surat ? ' (No. ' + escHTML(s.nomor_surat) + ')' : '')
                + (s.perihal ? ' — ' + escHTML(s.perihal.slice(0, 80)) : ''),
           time: s.created_at,
@@ -543,8 +539,8 @@
     var iconCls = n.iconCls || '';
     var timeCls = unread ? '' : ' is-old';
     return ''
-      + '<a class="' + escHTML(cls) + '" href="' + escHTML(n.href || '#') + '" data-id="' + escHTML(n.id) + '">'
-      +   '<div class="notif-fb-item-icon ' + escHTML(iconCls) + '">' + escHTML(n.icon || '🔔') + '</div>'
+      + '<a class="' + cls + '" href="' + escHTML(n.href || '#') + '" data-id="' + escHTML(n.id) + '">'
+      +   '<div class="notif-fb-item-icon ' + iconCls + '">' + (n.icon || '🔔') + '</div>'
       +   '<div class="notif-fb-item-body">'
       +     '<div class="notif-fb-item-title">' + (n.title || '') + '</div>'
       +     '<div class="notif-fb-item-time' + timeCls + '">' + escHTML(fmtRelativeTime(n.time)) + '</div>'
