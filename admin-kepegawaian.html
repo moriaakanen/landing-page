@@ -9,9 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
 
 <!-- Library docx — untuk re-generate dokumen pengajuan PAK -->
-<script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip.js"></script>
-<script src="https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip.js" integrity="sha384-EKMdeygnsgFUPocowqWjGXhnzFAiDXk3KuOx8g8lsB5/JNEQYTWaADHxmioDiFU8" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/docxtemplater@3.68.5/build/docxtemplater.js" integrity="sha384-iFfWkkwxgayOORmVuUa4qEjdYyil2iKW0E2D1CgOQvaVkeKHJO1I8jc3OOhsRrX5" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" integrity="sha384-PlRSzpewlarQuj5alIadXwjNUX+2eNMKwr0f07ShWYLy8B6TjEbm7ZlcN/ScSbwy" crossorigin="anonymous"></script>
 
 <style>
   :root{
@@ -1007,7 +1007,7 @@ function renderPegawaiCard(s) {
     : 'Belum ada pengajuan PAK';
 
   return `
-    <div class="${cardCls}" onclick="openDetail('${esc(s.nip)}')">
+    <div class="${cardCls}" onclick="openDetail(${jsArg(s.nip)})">
       <div class="pg-card-head">
         <div class="pg-avatar">${esc(initialsFromName(s.nama))}</div>
         <div class="pg-name-wrap">
@@ -1978,12 +1978,12 @@ function showToast(msg, type = '') {
    ──────────────────────────────────────────────────────────────────── */
 
 async function init() {
-  // Cek role admin via initRoleSwitcher
-  const session = JSON.parse(localStorage.getItem('nova_user') || 'null');
+  let session = novaCheckSession({ requireAdmin: true });
   if (!session) {
-    location.href = 'index.html';
     return;
   }
+  session = await novaVerifyAdminSession(session);
+  if (!session) return;
 
   // Set user info di topbar (avatar + username + dropdown name).
   // Akan auto-fetch users.full_name dari DB kalau session.full_name kosong

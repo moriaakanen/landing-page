@@ -505,9 +505,10 @@
         ? `<span class="badge ganti-sandi"><span class="badge-dot"></span>Harus Ganti Sandi</span>`
         : `<span class="badge aktif"><span class="badge-dot"></span>Aktif</span>`;
       const tanggal = u.created_at ? new Date(u.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}) : '—';
+      const nameArg = jsArg(name);
       const hapusBtn = isProtected
         ? `<button class="btn-sm" disabled style="opacity:.4;cursor:not-allowed" title="Akun administrator utama tidak dapat dihapus">🗑</button>`
-        : `<button class="btn-sm danger" onclick="openHapus(${u.id},'${esc(name)}')">🗑 Hapus</button>`;
+        : `<button class="btn-sm danger" onclick="openHapus(${u.id},${nameArg})">🗑 Hapus</button>`;
       return `<tr>
         <td>
           <div class="user-cell">
@@ -524,7 +525,7 @@
         <td style="text-align:right">
           <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
             <button class="btn-sm" onclick="openEdit(${u.id})">✏️ Role</button>
-            <button class="btn-sm warn" onclick="openReset(${u.id},'${esc(name)}')">🔑 Reset Sandi</button>
+            <button class="btn-sm warn" onclick="openReset(${u.id},${nameArg})">🔑 Reset Sandi</button>
             ${hapusBtn}
           </div>
         </td>
@@ -838,8 +839,10 @@
     document.getElementById(errId).classList.add('show');
   }
 
-  function init() {
+  async function init() {
     SESSION = novaCheckSession({ requireAdmin: true });
+    if (!SESSION) return;
+    SESSION = await novaVerifyAdminSession(SESSION);
     if (!SESSION) return;
     Topbar9201.setUser(SESSION);
     initRoleSwitcher(SESSION, true);
