@@ -321,6 +321,7 @@
   .toast.success{background:var(--success)}
   .toast.error{background:var(--red)}
 </style>
+<link rel="stylesheet" href="9201-clean-saas.css">
 </head>
 <body>
 
@@ -1007,7 +1008,7 @@ function renderPegawaiCard(s) {
     : 'Belum ada pengajuan PAK';
 
   return `
-    <div class="${cardCls}" onclick="openDetail(${jsArg(s.nip)})">
+    <div class="${cardCls}" data-nip="${escAttr(s.nip)}" role="button" tabindex="0" aria-label="Lihat detail ${escAttr(s.nama)}">
       <div class="pg-card-head">
         <div class="pg-avatar">${esc(initialsFromName(s.nama))}</div>
         <div class="pg-name-wrap">
@@ -1168,12 +1169,13 @@ function renderKebutuhanRow(s) {
  * Render: header + tabs nav + tab content (default = Pengajuan PAK).
  */
 function openDetail(nip) {
-  const s = STATE.pegawaiSummary.find(x => x.nip === nip);
+  const targetNIP = String(nip ?? '');
+  const s = STATE.pegawaiSummary.find(x => String(x.nip ?? '') === targetNIP);
   if (!s) {
     showToast('Data pegawai tidak ditemukan', 'error');
     return;
   }
-  STATE.detailOpenNIP = nip;
+  STATE.detailOpenNIP = s.nip;
   // Default tab: Pengajuan PAK kalau ada yang menunggu, kalau tidak ke AK
   STATE.detailActiveTab = (s.pakPending.length > 0) ? 'pengajuan' : 'ak';
 
@@ -1203,6 +1205,26 @@ function closeDetail() {
   STATE.detailOpenNIP = null;
   document.getElementById('detail-modal').classList.remove('show');
   document.body.style.overflow = '';
+}
+
+function bindPegawaiCardEvents() {
+  const grid = document.getElementById('grid-pegawai');
+  if (!grid || grid.dataset.boundDetail === '1') return;
+  grid.dataset.boundDetail = '1';
+
+  grid.addEventListener('click', (e) => {
+    const card = e.target.closest('.pg-card[data-nip]');
+    if (!card || !grid.contains(card)) return;
+    openDetail(card.dataset.nip);
+  });
+
+  grid.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const card = e.target.closest('.pg-card[data-nip]');
+    if (!card || !grid.contains(card)) return;
+    e.preventDefault();
+    openDetail(card.dataset.nip);
+  });
 }
 
 /**
@@ -1993,6 +2015,7 @@ async function init() {
   }
 
   initRoleSwitcher(session, true);
+  bindPegawaiCardEvents();
 
   // ESC handler: close modal yang sedang terbuka (paling atas dulu)
   document.addEventListener('keydown', (e) => {
@@ -2015,7 +2038,7 @@ async function init() {
   try {
     const params = new URLSearchParams(location.search);
     const targetNIP = params.get('nip');
-    if (targetNIP && STATE.pegawaiSummary.find(s => s.nip === targetNIP)) {
+    if (targetNIP && STATE.pegawaiSummary.find(s => String(s.nip ?? '') === String(targetNIP))) {
       openDetail(targetNIP);
     }
   } catch (_) { /* ignore */ }
