@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230d2340'/><g fill='%23c8a84b' transform='translate(0,1)'><path d='M 5 15 C 2 13, 1 9, 3 4 C 4 8, 6 11, 9 13 Z' opacity='0.55'/><path d='M 6 18 C 3 16, 2 11, 4 7 C 5 10, 7 14, 10 16 Z' opacity='0.85'/><path d='M 8 18 Q 8 12, 13 11 L 19 11 Q 23 12, 23 16 Q 23 20, 19 21 L 14 22 Q 8 22, 8 18 Z'/><circle cx='20' cy='11' r='3.2'/><path d='M 18 8 Q 18 6, 19 6 Q 19 5, 20 5.5 Q 20 4.5, 21 5 Q 21 6, 22 6.5 L 22 8 Z'/><path d='M 23 11 L 25.5 10.5 L 23 12.5 Z'/><path d='M 22 12.5 Q 22.5 14.5, 21.5 14.5 L 21 12.5 Z'/><circle cx='20.2' cy='10.5' r='0.65' fill='white'/><rect x='13' y='22' width='1' height='4' rx='0.3'/><rect x='17.5' y='22' width='1' height='4' rx='0.3'/></g></svg>">
-<title>9201 — Profil Saya</title>
+<title>9201 â€” Profil Saya</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
   html{height:100%}
   body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;height:100%;display:flex;flex-direction:column;overflow-x:hidden}
 
-  /* ════════ LAYOUT ════════ */
+  /* â•â•â•â•â•â•â•â• LAYOUT â•â•â•â•â•â•â•â• */
   .layout{display:flex;flex:1;min-height:0}
   .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
   .sidebar-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:20px 20px 8px}
@@ -38,7 +38,7 @@
 
   .main{flex:1;overflow-y:auto;padding:32px 40px 60px}
 
-  /* ════════ PAGE HEADER ════════ */
+  /* â•â•â•â•â•â•â•â• PAGE HEADER â•â•â•â•â•â•â•â• */
   .page-header{margin-bottom:24px}
   .page-eyebrow{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
@@ -46,11 +46,11 @@
   .page-title em{font-style:italic;color:var(--gold);font-weight:400}
   .page-desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6}
 
-  /* ════════ 2-COLUMN GRID ════════ */
+  /* â•â•â•â•â•â•â•â• 2-COLUMN GRID â•â•â•â•â•â•â•â• */
   .profile-grid{display:grid;grid-template-columns:minmax(380px,440px) 1fr;gap:24px;align-items:start}
   @media(max-width:1100px){.profile-grid{grid-template-columns:1fr;gap:20px}}
 
-  /* ════════ HERO CARD ════════ */
+  /* â•â•â•â•â•â•â•â• HERO CARD â•â•â•â•â•â•â•â• */
   .hero-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.06)}
   .hero-banner{height:96px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);position:relative;overflow:hidden}
   .hero-banner::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(200,168,75,.12) 1px,transparent 1px);background-size:22px 22px}
@@ -69,7 +69,7 @@
   .hero-stat-value{font-family:'Fraunces',serif;font-size:14px;font-weight:600;color:var(--navy);line-height:1.25;word-break:break-word;hyphens:auto;margin:0}
   .hero-stat-label{font-size:9.5px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;font-weight:600;margin:0}
 
-  /* ════════ INFO SECTIONS ════════ */
+  /* â•â•â•â•â•â•â•â• INFO SECTIONS â•â•â•â•â•â•â•â• */
   .info-stack{display:flex;flex-direction:column;gap:14px;margin-top:14px}
   .info-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(13,35,64,.04)}
   .info-card-head{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--border);background:#fafaf6}
@@ -83,7 +83,7 @@
   .info-value.empty{color:var(--muted);font-weight:400;font-style:italic}
   .info-value.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12.5px;letter-spacing:.3px}
 
-  /* ──── Riwayat rows: nilai utama di kiri, TMT di kanan ──── */
+  /* â”€â”€â”€â”€ Riwayat rows: nilai utama di kiri, TMT di kanan â”€â”€â”€â”€ */
   .riwayat-row{display:grid;grid-template-columns:1fr auto;gap:14px;padding:11px 18px;align-items:center;border-bottom:1px solid #f4f1e9;line-height:1.4}
   .riwayat-row:last-child{border-bottom:none}
   .riwayat-main{font-size:13px;color:var(--navy);font-weight:600;word-break:break-word}
@@ -92,18 +92,18 @@
   .riwayat-tmt-label{font-size:9px;color:var(--border2);letter-spacing:.6px;text-transform:uppercase;font-weight:600;display:block;margin-bottom:1px;text-align:right}
   .riwayat-empty{padding:18px;text-align:center;font-size:12px;color:var(--muted);font-style:italic}
 
-  /* ════════ PAK CARD (baru — summary + collapsible) ════════ */
+  /* â•â•â•â•â•â•â•â• PAK CARD (baru â€” summary + collapsible) â•â•â•â•â•â•â•â• */
   /* Card khusus untuk Riwayat PAK. Strukturnya berbeda dari info-card biasa
-  /* ════════ PAK CARD — REDESIGN: clean, modern, professional ════════
+  /* â•â•â•â•â•â•â•â• PAK CARD â€” REDESIGN: clean, modern, professional â•â•â•â•â•â•â•â•
      Tujuan desain:
-       - Header tetap punya tombol "Ajukan PAK" — tapi accent gold untuk
+       - Header tetap punya tombol "Ajukan PAK" â€” tapi accent gold untuk
          visibility tinggi (ini CTA utama).
-       - Hero metric tunggal: PAK Terakhir (besar, fraunces) — dominan.
+       - Hero metric tunggal: PAK Terakhir (besar, fraunces) â€” dominan.
        - 4 metric cards di bawahnya: Naik Pangkat / Naik Jenjang dengan
          dual info (kebutuhan AK + perkiraan tahun). Ringkas & terorganisir.
-       - Soft border + subtle hover state — mirroring desain card lain
+       - Soft border + subtle hover state â€” mirroring desain card lain
          tapi dengan warna gold sebagai accent untuk hirarki visual.
-     ────────────────────────────────────────────────────────────── */
+     â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .pak-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.06)}
   .pak-card-head{display:flex;align-items:center;gap:12px;padding:14px 18px 13px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fafaf6 0%,#f5f4ef 100%)}
   .pak-card-head .info-card-icon{flex-shrink:0;background:rgba(200,168,75,.18)}
@@ -137,11 +137,11 @@
   .pak-metric-row-label{color:var(--muted);font-weight:500;font-size:11px;flex-shrink:0}
   .pak-metric-row-value{color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;text-align:right;min-width:0;word-break:break-word}
   .pak-metric-row-value.success{color:var(--success);display:inline-flex;align-items:center;gap:4px}
-  .pak-metric-row-value.success::before{content:'✓';font-size:11px}
+  .pak-metric-row-value.success::before{content:'âœ“';font-size:11px}
   .pak-metric-row-value.muted{color:var(--muted);font-weight:500;font-style:italic;font-size:11px}
   .pak-metric-row-value.warn{color:#92400e;font-weight:600}
 
-  /* Body collapsible — riwayat AK + pengajuan */
+  /* Body collapsible â€” riwayat AK + pengajuan */
   .pak-body{display:none;background:var(--white)}
   .pak-body.show{display:block}
   .pak-body-section-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:14px 18px 6px;display:flex;align-items:center;gap:6px}
@@ -152,7 +152,7 @@
   .status-pill.menunggu{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
   .status-pill.selesai{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
 
-  /* Pengajuan list item — dua kolom: info kiri, periode/AK kanan */
+  /* Pengajuan list item â€” dua kolom: info kiri, periode/AK kanan */
   .pengajuan-row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:11px 18px;align-items:center;border-bottom:1px solid #f4f1e9;line-height:1.4}
   .pengajuan-row:last-child{border-bottom:none}
   .pengajuan-main{font-size:13px;color:var(--navy);font-weight:600;min-width:0}
@@ -185,7 +185,7 @@
   .state-title{font-family:'Fraunces',serif;font-size:18px;font-weight:500;color:var(--navy);margin-bottom:6px}
   .state-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:380px;margin:0 auto}
 
-  /* ════════ CALENDAR (preserved + ringan retouch) ════════ */
+  /* â•â•â•â•â•â•â•â• CALENDAR (preserved + ringan retouch) â•â•â•â•â•â•â•â• */
   .calendar-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.06)}
   .cal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
   .cal-head-title{font-family:'Fraunces',serif;font-size:18px;font-weight:500;color:var(--navy);display:flex;align-items:center;gap:10px}
@@ -220,13 +220,13 @@
     .cal-day.has-events::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:5px;height:5px;background:var(--gold);border-radius:50%}
   }
 
-  /* ════════ MODAL KEGIATAN ════════ */
+  /* â•â•â•â•â•â•â•â• MODAL KEGIATAN â•â•â•â•â•â•â•â• */
   .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,.4);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
   .modal-overlay.show{display:flex}
   .modal{background:var(--white);border-radius:14px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,35,64,.25);animation:popIn .22s cubic-bezier(.175,.885,.32,1.275)}
   @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 
-  /* ════════ MODAL PREVIEW PAK — wider, document viewer ════════ */
+  /* â•â•â•â•â•â•â•â• MODAL PREVIEW PAK â€” wider, document viewer â•â•â•â•â•â•â•â• */
   .modal.modal-preview-pak{max-width:880px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
   .modal.modal-preview-pak .modal-body{padding:0;background:#ededed;flex:1;overflow-y:auto;min-height:60vh}
   .pak-preview-container{padding:0;min-height:100%;display:flex;flex-direction:column}
@@ -259,14 +259,14 @@
   .btn-danger:hover{background:#fee2e2}
   .btn-primary{background:var(--navy);color:#fff}
 
-  /* ════════ MODAL PENGAJUAN PAK — wider, structured layout ════════
+  /* â•â•â•â•â•â•â•â• MODAL PENGAJUAN PAK â€” wider, structured layout â•â•â•â•â•â•â•â•
      Modal pengajuan PAK butuh space lebih besar karena:
        - Periode picker (3 dropdown side-by-side: bulan_start, bulan_end, tahun)
        - Penandatangan picker (autocomplete pegawai)
        - Preview pane: tampilan calculated values (ak_n1, akb, ak_tot)
      Modal ini share .modal-overlay & .modal base style, tapi punya
      class extra .modal-pak untuk override max-width dan layout. */
-  .modal.modal-pak{max-width:680px;max-height:calc(100vh - 36px)}
+  .modal.modal-pak{max-width:760px;max-height:calc(100vh - 24px);overflow:visible}
   .modal-pak .modal-body{overflow:visible}
   .modal-pak .form-row-3col{display:grid;grid-template-columns:1fr 1fr 110px;gap:10px}
   .modal-pak .form-row-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -288,7 +288,7 @@
   .pak-period-trigger:focus,.pak-person-trigger:focus,.pak-date-trigger:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
   .pak-period-trigger.has-value,.pak-person-trigger.has-value,.pak-date-trigger.has-value{border-color:rgba(200,168,75,.6);background:#fffdf6}
   .pak-period-trigger span:first-child,.pak-person-trigger span:first-child,.pak-date-trigger span:first-child{display:flex;align-items:center;min-height:20px}
-  .pak-period-trigger-icon{width:18px;height:18px;color:var(--muted);font-size:15px;line-height:18px;display:inline-flex;align-items:center;justify-content:center;transition:transform .15s;flex-shrink:0}
+  .pak-period-trigger-icon{display:none}
   .pak-period-picker-wrap.open .pak-period-trigger-icon,.pak-person-picker-wrap.open .pak-period-trigger-icon,.pak-date-picker-wrap.open .pak-period-trigger-icon{transform:rotate(180deg)}
   .pak-month-popover,.pak-person-popover,.pak-date-popover{position:absolute;left:0;top:calc(100% + 8px);z-index:650;width:min(100%,380px);background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 18px 48px rgba(13,35,64,.22);overflow:hidden;display:none}
   .pak-period-picker-wrap.open .pak-month-popover,.pak-person-picker-wrap.open .pak-person-popover,.pak-date-picker-wrap.open .pak-date-popover{display:block;animation:popIn .16s ease}
@@ -319,7 +319,7 @@
   .pak-person-main{min-width:0;flex:1}.pak-person-name{font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pak-person-nip{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}.pak-person-empty{padding:20px 12px;text-align:center;color:var(--muted);font-size:12px;line-height:1.5}
   .pak-date-popover{width:300px}.pak-date-weekdays,.pak-date-grid{display:grid;grid-template-columns:repeat(7,1fr)}.pak-date-weekdays{padding:10px 12px 4px;background:#fff;color:var(--muted);font-size:10px;font-weight:800;text-align:center}.pak-date-grid{gap:4px;padding:8px 12px 12px;background:#fff}.pak-date-day{height:32px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--navy);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}.pak-date-day:hover:not(:disabled){background:var(--gold-light);border-color:rgba(200,168,75,.45)}.pak-date-day.is-selected{background:var(--gold);color:#fff;box-shadow:0 5px 14px rgba(200,168,75,.25)}.pak-date-day.is-today:not(.is-selected){border-color:var(--gold);color:var(--gold-dark)}.pak-date-day.is-muted{color:#b8b8b8;font-weight:500}.pak-date-day:disabled{cursor:not-allowed;color:#d4d4d4;background:#f8f8f8;text-decoration:line-through}
 
-  /* Preview pane di dalam modal — tampilkan calculated values realtime */
+  /* Preview pane di dalam modal â€” tampilkan calculated values realtime */
   .pak-preview{background:#fafaf6;border:1px solid var(--border);border-radius:9px;padding:14px 16px;margin-bottom:14px}
   .pak-preview-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
   .pak-preview-head-icon{width:22px;height:22px;background:var(--gold-light);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
@@ -348,7 +348,7 @@
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .fade-in{animation:fadeUp .5s cubic-bezier(.2,.7,.3,1) both}
 
-  /* ════════ RESPONSIVE ════════ */
+  /* â•â•â•â•â•â•â•â• RESPONSIVE â•â•â•â•â•â•â•â• */
   @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 20px 60px}.info-row{grid-template-columns:1fr;gap:2px;padding:10px 16px}.info-label{font-size:10.5px;letter-spacing:.5px;text-transform:uppercase}}
   @media(max-width:600px){
     .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
@@ -377,7 +377,7 @@
     </div>
 
     <div class="profile-grid">
-      <!-- ─── KOLOM KIRI: HERO + INFO CARDS ─── -->
+      <!-- â”€â”€â”€ KOLOM KIRI: HERO + INFO CARDS â”€â”€â”€ -->
       <div>
         <!-- Hero card (loading skeleton awal) -->
         <div id="hero-mount" class="fade-in" style="animation-delay:.05s">
@@ -400,7 +400,7 @@
         <!-- Info cards mount -->
         <div id="info-mount" class="info-stack fade-in" style="animation-delay:.1s">
           <div class="info-card">
-            <div class="info-card-head"><div class="info-card-icon">🪪</div><div class="info-card-title">Identitas</div></div>
+            <div class="info-card-head"><div class="info-card-icon">ðŸªª</div><div class="info-card-title">Identitas</div></div>
             <div class="info-card-body">
               <div class="info-row"><div class="info-label">Memuat...</div><div class="skel" style="height:14px;width:60%"></div></div>
               <div class="info-row"><div class="info-label">Memuat...</div><div class="skel" style="height:14px;width:80%"></div></div>
@@ -410,17 +410,17 @@
         </div>
       </div>
 
-      <!-- ─── KOLOM KANAN: KALENDER ─── -->
+      <!-- â”€â”€â”€ KOLOM KANAN: KALENDER â”€â”€â”€ -->
       <div class="calendar-card fade-in" id="calendar-card" style="animation-delay:.15s">
         <div class="cal-head">
           <div class="cal-head-title">
-            <div class="cal-head-icon">📅</div>
+            <div class="cal-head-icon">ðŸ“…</div>
             <span>Kalender <em>Kegiatan</em></span>
           </div>
           <div class="cal-nav">
-            <button class="cal-btn" onclick="changeMonth(-1)" title="Bulan sebelumnya">‹</button>
-            <span class="cal-month-label" id="cal-month-label">—</span>
-            <button class="cal-btn" onclick="changeMonth(1)" title="Bulan berikutnya">›</button>
+            <button class="cal-btn" onclick="changeMonth(-1)" title="Bulan sebelumnya">â€¹</button>
+            <span class="cal-month-label" id="cal-month-label">â€”</span>
+            <button class="cal-btn" onclick="changeMonth(1)" title="Bulan berikutnya">â€º</button>
             <button class="cal-btn cal-btn-primary" onclick="openModalForToday()">+ Tambah</button>
           </div>
         </div>
@@ -441,12 +441,12 @@
   </main>
 </div>
 
-<!-- ════════ MODAL KEGIATAN ════════ -->
+<!-- â•â•â•â•â•â•â•â• MODAL KEGIATAN â•â•â•â•â•â•â•â• -->
 <div class="modal-overlay" id="event-modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modal-title">Tambah <em>Kegiatan</em></div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()">âœ•</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
@@ -488,19 +488,19 @@
   </div>
 </div>
 
-<!-- ════════ MODAL PENGAJUAN PAK ════════ -->
-<!-- ─── MODAL PENGAJUAN PAK ─────────────────────────────────────
+<!-- â•â•â•â•â•â•â•â• MODAL PENGAJUAN PAK â•â•â•â•â•â•â•â• -->
+<!-- â”€â”€â”€ MODAL PENGAJUAN PAK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
      Flow:
        1. User pilih periode (bulan_start, bulan_end, tahun) + tgl_pengajuan + penandatangan
        2. Realtime preview: nama, NIP, pangkat/gol/TMT, jabatan/TMT, AK n-1, akb, total
-       3. Tombol "Generate & Submit" → call RPC pengajuan_pak_create + render docx + saveAs
-     Tag user input: {periode}, {tgl_pengajuan}, {penandatangan} — sisanya
+       3. Tombol "Generate & Submit" â†’ call RPC pengajuan_pak_create + render docx + saveAs
+     Tag user input: {periode}, {tgl_pengajuan}, {penandatangan} â€” sisanya
      auto-resolve dari Supabase. -->
 <div class="modal-overlay" id="pak-modal" onclick="if(event.target===this)closePakModal()">
   <div class="modal modal-pak">
     <div class="modal-header">
       <div class="modal-title">Ajukan <em>PAK</em> Baru</div>
-      <button class="modal-close" onclick="closePakModal()" type="button">✕</button>
+      <button class="modal-close" onclick="closePakModal()" type="button">âœ•</button>
     </div>
     <div class="modal-body">
       <p style="font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:14px;background:#fafaf6;padding:10px 12px;border-radius:7px;border:1px solid var(--border)">
@@ -509,7 +509,7 @@
         siap ditandatangani.
       </p>
 
-      <!-- ─── INPUT: Periode ───────────────────────────────── -->
+      <!-- â”€â”€â”€ INPUT: Periode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <div class="form-group">
         <label>Periode Pengajuan</label>
         <input type="hidden" id="pak-input-bulan-start">
@@ -519,14 +519,14 @@
         <div class="pak-period-picker-wrap">
           <button class="pak-period-trigger" id="pak-period-trigger" type="button" onclick="togglePakPeriodPicker()">
             <span id="pak-period-trigger-text">Pilih rentang bulan</span>
-            <span class="pak-period-trigger-icon">⌄</span>
+            <span class="pak-period-trigger-icon">âŒ„</span>
           </button>
           <div class="pak-month-popover" id="pak-month-popover" aria-hidden="true">
             <div class="pak-month-selected"><span>Periode terpilih</span><strong id="pak-month-selected-text">Belum dipilih</strong></div>
             <div class="pak-month-nav">
-              <button type="button" class="pak-month-nav-btn" onclick="shiftPakMonthYear(-1)" aria-label="Tahun sebelumnya">‹</button>
+              <button type="button" class="pak-month-nav-btn" onclick="shiftPakMonthYear(-1)" aria-label="Tahun sebelumnya">â€¹</button>
               <strong id="pak-month-year-label">2026</strong>
-              <button type="button" class="pak-month-nav-btn" onclick="shiftPakMonthYear(1)" aria-label="Tahun berikutnya">›</button>
+              <button type="button" class="pak-month-nav-btn" onclick="shiftPakMonthYear(1)" aria-label="Tahun berikutnya">â€º</button>
             </div>
             <div class="pak-month-grid" id="pak-month-grid"></div>
             <div class="pak-month-actions">
@@ -538,21 +538,21 @@
         <div class="form-help" id="pak-period-help">Pilih bulan awal dan bulan akhir pada tahun yang sama.</div>
       </div>
 
-      <!-- ─── INPUT: Tanggal Pengajuan ─────────────────────── -->
+      <!-- â”€â”€â”€ INPUT: Tanggal Pengajuan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <div class="form-group">
         <label>Tanggal Pengajuan</label>
         <input type="hidden" id="pak-input-tgl">
         <div class="pak-date-picker-wrap">
           <button class="pak-date-trigger" id="pak-date-trigger" type="button" onclick="togglePakDatePicker()">
             <span id="pak-date-trigger-text">Pilih tanggal</span>
-            <span class="pak-period-trigger-icon">⌄</span>
+            <span class="pak-period-trigger-icon">âŒ„</span>
           </button>
           <div class="pak-date-popover" id="pak-date-popover" aria-hidden="true">
             <div class="pak-date-head"><span>Tanggal pengajuan</span><strong id="pak-date-selected-text">Belum dipilih</strong></div>
             <div class="pak-date-nav">
-              <button type="button" class="pak-date-nav-btn" onclick="shiftPakDateMonth(-1)" aria-label="Bulan sebelumnya">‹</button>
+              <button type="button" class="pak-date-nav-btn" onclick="shiftPakDateMonth(-1)" aria-label="Bulan sebelumnya">â€¹</button>
               <strong id="pak-date-month-label">Desember 2025</strong>
-              <button type="button" class="pak-date-nav-btn" onclick="shiftPakDateMonth(1)" aria-label="Bulan berikutnya">›</button>
+              <button type="button" class="pak-date-nav-btn" onclick="shiftPakDateMonth(1)" aria-label="Bulan berikutnya">â€º</button>
             </div>
             <div class="pak-date-weekdays"><span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span></div>
             <div class="pak-date-grid" id="pak-date-grid"></div>
@@ -561,21 +561,21 @@
         </div>
         <div class="form-help">
           Default hari ini. Minimal harus lebih dari akhir periode (mis.
-          periode Jan s.d Mar 2025 → tanggal pengajuan minimal 1 April 2025).
+          periode Jan s.d Mar 2025 â†’ tanggal pengajuan minimal 1 April 2025).
         </div>
       </div>
 
-      <!-- ─── INPUT: Penandatangan ─────────────────────────── -->
+      <!-- â”€â”€â”€ INPUT: Penandatangan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <div class="form-group">
         <label>Penandatangan</label>
         <input type="hidden" id="pak-input-penandatangan">
         <div class="pak-person-picker-wrap">
           <button class="pak-person-trigger" id="pak-person-trigger" type="button" onclick="togglePakPersonPicker()">
             <span id="pak-person-trigger-text">Pilih pegawai...</span>
-            <span class="pak-period-trigger-icon">⌄</span>
+            <span class="pak-period-trigger-icon">âŒ„</span>
           </button>
           <div class="pak-person-popover" id="pak-person-popover" aria-hidden="true">
-            <div class="pak-person-search"><span>🔍</span><input id="pak-person-search-input" type="text" placeholder="Cari nama atau NIP..." oninput="renderPakPersonOptions()"></div>
+            <div class="pak-person-search"><span>ðŸ”</span><input id="pak-person-search-input" type="text" placeholder="Cari nama atau NIP..." oninput="renderPakPersonOptions()"></div>
             <div class="pak-person-list" id="pak-person-list"></div>
           </div>
         </div>
@@ -585,14 +585,14 @@
         </div>
       </div>
 
-      <!-- ─── PREVIEW: Calculated values (real-time) ──────── -->
+      <!-- â”€â”€â”€ PREVIEW: Calculated values (real-time) â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <div class="pak-preview" id="pak-preview" style="display:none">
         <div class="pak-preview-head">
-          <div class="pak-preview-head-icon">📊</div>
+          <div class="pak-preview-head-icon">ðŸ“Š</div>
           <div class="pak-preview-head-title">Ringkasan Perhitungan</div>
         </div>
         <div id="pak-preview-content">
-          <div class="pak-preview-loading">Menghitung…</div>
+          <div class="pak-preview-loading">Menghitungâ€¦</div>
         </div>
       </div>
     </div>
@@ -605,17 +605,17 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     MODAL PREVIEW PAK — Office Online viewer iframe
-     Generate dokumen on-demand → upload ke Supabase Storage →
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     MODAL PREVIEW PAK â€” Office Online viewer iframe
+     Generate dokumen on-demand â†’ upload ke Supabase Storage â†’
      embed via Office Online viewer. File preview di-cleanup 60 detik
      setelah modal ditutup.
-     ═══════════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="modal-overlay" id="pak-preview-modal" onclick="if(event.target===this)closePakPreview()">
   <div class="modal modal-preview-pak">
     <div class="modal-header">
-      <div class="modal-title">👁 Preview <em>Pengajuan PAK</em> <span id="pak-preview-subtitle" style="font-size:12px;color:var(--muted);font-weight:500;font-family:'Plus Jakarta Sans',sans-serif;font-style:normal;margin-left:6px"></span></div>
-      <button class="modal-close" onclick="closePakPreview()" type="button">✕</button>
+      <div class="modal-title">ðŸ‘ Preview <em>Pengajuan PAK</em> <span id="pak-preview-subtitle" style="font-size:12px;color:var(--muted);font-weight:500;font-family:'Plus Jakarta Sans',sans-serif;font-style:normal;margin-left:6px"></span></div>
+      <button class="modal-close" onclick="closePakPreview()" type="button">âœ•</button>
     </div>
     <div class="modal-body" style="padding:0;background:#ededed">
       <div class="pak-preview-container" id="pak-preview-container">
@@ -623,20 +623,20 @@
           <div class="pak-preview-spin"></div>
           <div>Menyiapkan dokumen...</div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px">
-            Render via Microsoft Word Online (5–15 detik pertama kali)
+            Render via Microsoft Word Online (5â€“15 detik pertama kali)
           </div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closePakPreview()" type="button">Tutup</button>
-      <button class="btn btn-primary" id="btn-pak-preview-download" type="button">📥 Download .docx</button>
+      <button class="btn btn-primary" id="btn-pak-preview-download" type="button">ðŸ“¥ Download .docx</button>
     </div>
   </div>
 </div>
 
-<!-- ─── DOCX RENDER LIBS — untuk fitur Ajukan PAK ──────────────────
-     Urutan critical: PizZip → docxtemplater → FileSaver. Generator
+<!-- â”€â”€â”€ DOCX RENDER LIBS â€” untuk fitur Ajukan PAK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     Urutan critical: PizZip â†’ docxtemplater â†’ FileSaver. Generator
      juga punya fallback CDN dynamic loader (lihat 9201-pak-generator.js)
      kalau salah satu CDN gagal. -->
 <script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip.js" integrity="sha384-EKMdeygnsgFUPocowqWjGXhnzFAiDXk3KuOx8g8lsB5/JNEQYTWaADHxmioDiFU8" crossorigin="anonymous"></script>
@@ -652,20 +652,20 @@
 <script src="9201-pak-data.js"></script>
 <script src="9201-pak-generator.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════════════
-// PROFIL SAYA — versi modern. Logika fetch profil dirombak menjadi
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// PROFIL SAYA â€” versi modern. Logika fetch profil dirombak menjadi
 // info cards berkategori; logika kalender dipertahankan apa adanya
 // (DB-backed via 3 RPC: kalender_list / kalender_upsert / kalender_delete)
 //
 // Helpers umum (esc, logout, novaRpc, novaCheckSession, SUPABASE_HEADERS)
-// di-load dari 9201-shared.js — tidak lagi dideklarasi ulang di sini.
+// di-load dari 9201-shared.js â€” tidak lagi dideklarasi ulang di sini.
 //
 // PAK helpers (progressGolongan, getNextJenjang/Golongan,
 // extractJenjangFromJabatan, getGolonganByName) di-load dari
-// 9201-pak-data.js — dipakai untuk render card Riwayat PAK.
-// ═══════════════════════════════════════════════════════════════
+// 9201-pak-data.js â€” dipakai untuk render card Riwayat PAK.
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ─── HELPERS LOKAL ──────────────────────────────────────────────
+// â”€â”€â”€ HELPERS LOKAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // `esc` & `logout` di-handle 9201-shared.js. Di sini hanya helper
 // spesifik halaman profil.
 function clean(v) {
@@ -675,12 +675,12 @@ function clean(v) {
 }
 function initialsOf(name) {
   return (name || 'Pengguna').split(' ').filter(Boolean)
-    .map(w => w[0]).join('').toUpperCase().slice(0,2) || '—';
+    .map(w => w[0]).join('').toUpperCase().slice(0,2) || 'â€”';
 }
 
 // Format tanggal ISO (yyyy-mm-dd) ke "5 Mei 2026". Aman untuk null.
 function fmtTglRiwayat(iso) {
-  if (!iso) return '—';
+  if (!iso) return 'â€”';
   const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!m) return iso;
   const d = parseInt(m[3], 10);
@@ -689,35 +689,35 @@ function fmtTglRiwayat(iso) {
 }
 const fmtTglID = fmtTglRiwayat;
 
-// Format angka kredit: 22.792 → "22,792" (Indonesian-style decimal).
+// Format angka kredit: 22.792 â†’ "22,792" (Indonesian-style decimal).
 // Kalau nilai bilangan bulat, tampilkan tanpa pemisah desimal.
 function fmtAK(v) {
-  if (v == null || v === '') return '—';
+  if (v == null || v === '') return 'â€”';
   const n = Number(v);
   if (!isFinite(n)) return String(v);
-  // Tampilkan apa adanya tanpa pemaksaan decimal places — biarkan DB yang menentukan.
+  // Tampilkan apa adanya tanpa pemaksaan decimal places â€” biarkan DB yang menentukan.
   return n.toString().replace('.', ',');
 }
 
-// Hitung masa kerja dari NIP (digit 9–14 = yyyymm CPNS).
-// Contoh: NIP 199003302019121001 → 2019-12 → "6 tahun 5 bulan" (per Mei 2026).
-// Return string siap-tampil, atau '—' kalau NIP invalid.
+// Hitung masa kerja dari NIP (digit 9â€“14 = yyyymm CPNS).
+// Contoh: NIP 199003302019121001 â†’ 2019-12 â†’ "6 tahun 5 bulan" (per Mei 2026).
+// Return string siap-tampil, atau 'â€”' kalau NIP invalid.
 function hitungMasaKerjaDariNIP(nip) {
-  if (!nip) return '—';
+  if (!nip) return 'â€”';
   const s = String(nip).replace(/\D/g, '');
-  if (s.length < 14) return '—';
-  const yyyy = parseInt(s.substring(8, 12), 10);  // digit 9–12 (0-indexed: 8–11)
-  const mm   = parseInt(s.substring(12, 14), 10); // digit 13–14 (0-indexed: 12–13)
-  if (!yyyy || !mm || mm < 1 || mm > 12) return '—';
+  if (s.length < 14) return 'â€”';
+  const yyyy = parseInt(s.substring(8, 12), 10);  // digit 9â€“12 (0-indexed: 8â€“11)
+  const mm   = parseInt(s.substring(12, 14), 10); // digit 13â€“14 (0-indexed: 12â€“13)
+  if (!yyyy || !mm || mm < 1 || mm > 12) return 'â€”';
 
   const now = new Date();
   const cy = now.getFullYear();
-  const cm = now.getMonth() + 1; // 1–12
+  const cm = now.getMonth() + 1; // 1â€“12
 
   let years = cy - yyyy;
   let months = cm - mm;
   if (months < 0) { years -= 1; months += 12; }
-  if (years < 0) return '—'; // tanggal CPNS di masa depan? data invalid
+  if (years < 0) return 'â€”'; // tanggal CPNS di masa depan? data invalid
 
   if (years === 0 && months === 0) return '< 1 bulan';
   const parts = [];
@@ -726,11 +726,11 @@ function hitungMasaKerjaDariNIP(nip) {
   return parts.join(' ');
 }
 
-// ─── RENDER PROFIL ──────────────────────────────────────────────
+// â”€â”€â”€ RENDER PROFIL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderProfilNotFound() {
   document.getElementById('hero-mount').innerHTML = `
     <div class="state-card">
-      <div class="state-icon">🗂</div>
+      <div class="state-icon">ðŸ—‚</div>
       <div class="state-title">Data Tidak Ditemukan</div>
       <div class="state-desc">Data pegawai untuk akun ini belum tersedia di sistem. Hubungi administrator untuk pendaftaran.</div>
     </div>`;
@@ -740,7 +740,7 @@ function renderProfilNotFound() {
 function renderProfilError() {
   document.getElementById('hero-mount').innerHTML = `
     <div class="state-card">
-      <div class="state-icon">⚠️</div>
+      <div class="state-icon">âš ï¸</div>
       <div class="state-title">Gagal Memuat Data</div>
       <div class="state-desc">Terjadi kesalahan saat menghubungi server. Silakan muat ulang halaman atau coba lagi nanti.</div>
     </div>`;
@@ -782,10 +782,10 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
   const jabatanText = (latestJabatan && clean(latestJabatan.jabatan)) || 'Belum ada jabatan';
 
   const pangkatGol = latestPangkat
-    ? `${clean(latestPangkat.pangkat) || '—'} / ${clean(latestPangkat.golongan) || '—'}`
-    : '—';
+    ? `${clean(latestPangkat.pangkat) || 'â€”'} / ${clean(latestPangkat.golongan) || 'â€”'}`
+    : 'â€”';
 
-  const akText = latestAK ? fmtAK(latestAK.angka_kredit) : '—';
+  const akText = latestAK ? fmtAK(latestAK.angka_kredit) : 'â€”';
 
   const masaKerja = hitungMasaKerjaDariNIP(nip);
 
@@ -798,7 +798,7 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
   STATE_PROFIL.latestPangkat = latestPangkat;
   STATE_PROFIL.latestAK      = latestAK;
 
-  // ─── HERO CARD ───
+  // â”€â”€â”€ HERO CARD â”€â”€â”€
   document.getElementById('hero-mount').innerHTML = `
     <div class="hero-card">
       <div class="hero-banner"></div>
@@ -824,28 +824,28 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
       </div>
     </div>`;
 
-  // ─── INFO CARDS: PAK (baru), Jabatan, Pangkat & Golongan ───
-  // Card PAK punya struktur khusus (summary + collapsible) — di-render
+  // â”€â”€â”€ INFO CARDS: PAK (baru), Jabatan, Pangkat & Golongan â”€â”€â”€
+  // Card PAK punya struktur khusus (summary + collapsible) â€” di-render
   // oleh renderPakCard() supaya logikanya terpisah.
   const cardPAK = renderPakCard();
 
   const cardJabatan = `
     <div class="info-card">
-      <div class="info-card-head"><div class="info-card-icon">💼</div><div class="info-card-title">Riwayat Jabatan</div></div>
+      <div class="info-card-head"><div class="info-card-icon">ðŸ’¼</div><div class="info-card-title">Riwayat Jabatan</div></div>
       <div class="info-card-body">
         ${(jabatan && jabatan.length)
-          ? jabatan.map(r => riwayatRow(esc(clean(r.jabatan) || '—'), r.tmt)).join('')
+          ? jabatan.map(r => riwayatRow(esc(clean(r.jabatan) || 'â€”'), r.tmt)).join('')
           : riwayatEmpty()}
       </div>
     </div>`;
 
   const cardPangkat = `
     <div class="info-card">
-      <div class="info-card-head"><div class="info-card-icon">📈</div><div class="info-card-title">Riwayat Pangkat &amp; Golongan</div></div>
+      <div class="info-card-head"><div class="info-card-icon">ðŸ“ˆ</div><div class="info-card-title">Riwayat Pangkat &amp; Golongan</div></div>
       <div class="info-card-body">
         ${(pangkat && pangkat.length)
           ? pangkat.map(r => riwayatRow(
-              `${esc(clean(r.pangkat) || '—')} <span class="sub">Golongan ${esc(clean(r.golongan) || '—')}</span>`,
+              `${esc(clean(r.pangkat) || 'â€”')} <span class="sub">Golongan ${esc(clean(r.golongan) || 'â€”')}</span>`,
               r.tmt
             )).join('')
           : riwayatEmpty()}
@@ -855,7 +855,7 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
   document.getElementById('info-mount').innerHTML = cardPAK + cardJabatan + cardPangkat;
 }
 
-// ════════ PAK CARD — SUMMARY + COLLAPSIBLE RIWAYAT ════════
+// â•â•â•â•â•â•â•â• PAK CARD â€” SUMMARY + COLLAPSIBLE RIWAYAT â•â•â•â•â•â•â•â•
 //
 // State terpisah untuk card PAK (di-share dengan modal pengajuan, tombol
 // expand/collapse, dan handler cancel). Diisi oleh renderProfil().
@@ -873,8 +873,8 @@ const STATE_PROFIL = {
  * Hitung perkiraan TANGGAL naik jenjang/pangkat berdasarkan laju AK
  * historis. Output diformat sebagai "Nama-Bulan YYYY" (mis. "Maret 2027").
  *
- * Asumsi sederhana: laju AK tahunan = (AK_terbaru − AK_terlama) / (tahun_terlama..tahun_terbaru).
- * Kalau tidak cukup data (kurang dari 2 entri AK), return null — UI akan
+ * Asumsi sederhana: laju AK tahunan = (AK_terbaru âˆ’ AK_terlama) / (tahun_terlama..tahun_terbaru).
+ * Kalau tidak cukup data (kurang dari 2 entri AK), return null â€” UI akan
  * menampilkan placeholder.
  *
  * @param {number} sisa     - berapa AK lagi yang dibutuhkan
@@ -919,11 +919,11 @@ function renderPakCard() {
   const latestJab = STATE_PROFIL.latestJabatan;
   const latestPgg = STATE_PROFIL.latestPangkat;
 
-  // ─── Hero metric: PAK Terakhir ───
+  // â”€â”€â”€ Hero metric: PAK Terakhir â”€â”€â”€
   const pakTerakhir = latestAK ? fmtAK(latestAK.angka_kredit) : null;
   const akKumulatif = latestAK ? Number(latestAK.angka_kredit) || 0 : 0;
 
-  // ─── Threshold pangkat & jenjang dari golongan saat ini ───
+  // â”€â”€â”€ Threshold pangkat & jenjang dari golongan saat ini â”€â”€â”€
   // Pakai progressGolongan() yang return {pangkat, jenjang} sekaligus.
   // Pangkat & jenjang sub-object null kalau pegawai sudah di puncak
   // masing-masing.
@@ -936,7 +936,7 @@ function renderPakCard() {
     if (!golongan || !prog) {
       // Data golongan tidak ada / tidak dikenali
       kebutuhanRow = `<div class="pak-metric-row-value muted">Data golongan belum ada</div>`;
-      perkiraanRow = `<div class="pak-metric-row-value muted">—</div>`;
+      perkiraanRow = `<div class="pak-metric-row-value muted">â€”</div>`;
     } else if (subProg === null) {
       // Sudah di puncak (sub-object null = puncak)
       kebutuhanRow = `<div class="pak-metric-row-value success">${esc(puncakLabel)}</div>`;
@@ -946,7 +946,7 @@ function renderPakCard() {
       kebutuhanRow = `<div class="pak-metric-row-value success">AK cukup</div>`;
       perkiraanRow = `<div class="pak-metric-row-value success">Siap diajukan</div>`;
     } else {
-      // AK masih kurang — tampilkan sisa + perkiraan tahun
+      // AK masih kurang â€” tampilkan sisa + perkiraan tahun
       kebutuhanRow = `<div class="pak-metric-row-value warn">Kurang ${esc(fmtAK(subProg.sisa))}</div>`;
       const est = estimasiTahunPromosi(subProg.sisa, akList);
       perkiraanRow = est
@@ -973,18 +973,18 @@ function renderPakCard() {
   };
 
   const buildPangkatPanel = () => buildPanel(
-    '📈', 'Naik Pangkat',
+    'ðŸ“ˆ', 'Naik Pangkat',
     prog ? prog.pangkat : null,
     'Sudah di puncak (IVe)'
   );
 
   const buildJenjangPanel = () => buildPanel(
-    '🎯', 'Naik Jenjang',
+    'ðŸŽ¯', 'Naik Jenjang',
     prog ? prog.jenjang : null,
     'Sudah di puncak'
   );
 
-  // ─── Riwayat AK + pengajuan body (collapsible) ───
+  // â”€â”€â”€ Riwayat AK + pengajuan body (collapsible) â”€â”€â”€
   const riwayatHtml = akList.length
     ? akList.map(r => riwayatRow(`<strong>${esc(fmtAK(r.angka_kredit))}</strong>`, r.tmt)).join('')
     : riwayatEmpty();
@@ -999,7 +999,7 @@ function renderPakCard() {
   return `
     <div class="info-card pak-card">
       <div class="pak-card-head">
-        <div class="info-card-icon">⭐</div>
+        <div class="info-card-icon">â­</div>
         <div class="pak-card-title">Riwayat PAK</div>
         <button class="pak-card-action" onclick="event.stopPropagation();openPakModal()" title="Ajukan PAK baru" type="button">
           <span>+</span> Ajukan PAK
@@ -1012,7 +1012,7 @@ function renderPakCard() {
             ${pakTerakhir ? esc(pakTerakhir) : 'Belum ada'}
           </div>
         </div>
-        <div class="pak-hero-caret">▼</div>
+        <div class="pak-hero-caret">â–¼</div>
       </div>
       <div class="pak-metrics">
         ${buildPangkatPanel()}
@@ -1031,7 +1031,7 @@ function renderPakCard() {
  * Render satu baris pengajuan PAK (schema BARU: tahun_periode,
  * bulan_start, bulan_end, ak_total, mode_hitung, status, nomor_urut).
  *
- * Tombol "Unduh Dokumen" tampil untuk semua status — generate-on-demand
+ * Tombol "Unduh Dokumen" tampil untuk semua status â€” generate-on-demand
  * dari row data (tidak butuh dokumen_url tersimpan).
  */
 function pengajuanRow(p) {
@@ -1039,7 +1039,7 @@ function pengajuanRow(p) {
   const statusLabel = status === 'menunggu' ? 'Menunggu' : 'Selesai';
 
   // Format periode: "Mei 2025" atau "Januari s.d Maret 2025"
-  let periodeStr = '—';
+  let periodeStr = 'â€”';
   if (p.bulan_start && p.bulan_end && p.tahun_periode) {
     if (p.bulan_start === p.bulan_end) {
       periodeStr = `${BULAN[p.bulan_start - 1]} ${p.tahun_periode}`;
@@ -1049,24 +1049,24 @@ function pengajuanRow(p) {
   }
 
   // Nomor surat (3 digit, padded)
-  const noStr = p.nomor_urut ? String(p.nomor_urut).padStart(3, '0') : '—';
+  const noStr = p.nomor_urut ? String(p.nomor_urut).padStart(3, '0') : 'â€”';
 
   return `
     <div class="pengajuan-row">
       <div class="pengajuan-main">
         <strong>${esc(periodeStr)}</strong>
         <span class="status-pill ${esc(status)}" style="margin-left:6px">${esc(statusLabel)}</span>
-        <span class="sub">No. ${esc(noStr)} · ${esc(p.mode_hitung || '—')} · AK didapat ${esc(fmtAK(p.ak_didapat))}</span>
+        <span class="sub">No. ${esc(noStr)} Â· ${esc(p.mode_hitung || 'â€”')} Â· AK didapat ${esc(fmtAK(p.ak_didapat))}</span>
       </div>
       <div class="pengajuan-meta">
         <strong>${esc(fmtAK(p.ak_total))}</strong>
         <span>Total AK</span>
         <div class="pengajuan-actions">
           <button class="pengajuan-preview" onclick="previewPengajuan(${p.id})" title="Lihat preview dokumen" type="button">
-            👁 Preview
+            ðŸ‘ Preview
           </button>
           <button class="pengajuan-download" onclick="downloadPengajuan(${p.id})" title="Unduh dokumen .docx" type="button">
-            ⬇ Unduh
+            â¬‡ Unduh
           </button>
         </div>
       </div>
@@ -1081,9 +1081,9 @@ function togglePakExpanded() {
   if (bodyEl) bodyEl.classList.toggle('show', STATE_PROFIL.pakExpanded);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// PENGAJUAN PAK — modal baru (periode + tgl_pengajuan + penandatangan)
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// PENGAJUAN PAK â€” modal baru (periode + tgl_pengajuan + penandatangan)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 // Cache list pegawai (untuk dropdown penandatangan). Di-fetch sekali
 // saat modal dibuka, di-cache untuk session.
@@ -1114,6 +1114,8 @@ function pakMonthKey(year, month){ return (Number(year) * 12) + Number(month); }
 function pakMonthFromKey(key){ const year=Math.floor((key-1)/12); const month=((key-1)%12)+1; return {year,month}; }
 function pakNextMonth(year, month){ return month >= 12 ? {year:year+1,month:1} : {year,month:month+1}; }
 function pakPeriodEndDate(year, month){ const next=pakNextMonth(Number(year), Number(month)); return `${next.year}-${String(next.month).padStart(2,'0')}-01`; }
+function pakMaxPeriodKey(){ const today=new Date(); const prev=new Date(today.getFullYear(), today.getMonth()-1, 1); return pakMonthKey(prev.getFullYear(), prev.getMonth()+1); }
+function pakTodayISO(){ const today=new Date(); return pakISODate(today.getFullYear(), today.getMonth()+1, today.getDate()); }
 function pakLastDayDate(year, month){ const day=new Date(Number(year), Number(month), 0).getDate(); return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }
 function pakISODate(year, month, day){ return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }
 function pakMonthLabel(year, month){ return `${BULAN[month-1]} ${year}`; }
@@ -1129,7 +1131,8 @@ function getPakDefaultPeriod(){
   });
   const today=new Date();
   if(latestKey==null){
-    const start={year:today.getFullYear(),month:today.getMonth()+1};
+    const maxFallback=pakMonthFromKey(pakMaxPeriodKey());
+    const start={year:maxFallback.year,month:maxFallback.month};
     return {start,disabledBefore:pakMonthKey(start.year,start.month)-1,latestEnd:null,latestEndDate:null,label:'Belum ada pengajuan PAK sebelumnya.'};
   }
   const latestEnd=pakMonthFromKey(latestKey);
@@ -1173,15 +1176,15 @@ function initPakPeriodPicker(){
 function togglePakPeriodPicker(force){ const w=document.querySelector('.pak-period-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-month-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPersonPicker();closePakDatePicker();renderPakMonthPicker();} }
 function closePakPeriodPicker(){ togglePakPeriodPicker(false); }
 function shiftPakMonthYear(delta){ PAK_PERIOD_PICKER.year+=delta; PAK_PERIOD_PICKER.start=null; PAK_PERIOD_PICKER.end=null; renderPakMonthPicker(); }
-function selectPakMonth(month){ const item={year:PAK_PERIOD_PICKER.year,month}; if(pakMonthKey(item.year,item.month)<=PAK_PERIOD_PICKER.disabledBefore)return; if(!PAK_PERIOD_PICKER.start || (PAK_PERIOD_PICKER.start&&PAK_PERIOD_PICKER.end)){ PAK_PERIOD_PICKER.start=item; PAK_PERIOD_PICKER.end=null; } else if(pakMonthKey(item.year,item.month)<pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month)){ PAK_PERIOD_PICKER.end=PAK_PERIOD_PICKER.start; PAK_PERIOD_PICKER.start=item; } else { PAK_PERIOD_PICKER.end=item; } renderPakMonthPicker(); }
+function selectPakMonth(month){ const item={year:PAK_PERIOD_PICKER.year,month}, itemKey=pakMonthKey(item.year,item.month); if(itemKey<=PAK_PERIOD_PICKER.disabledBefore||itemKey>pakMaxPeriodKey())return; if(!PAK_PERIOD_PICKER.start || (PAK_PERIOD_PICKER.start&&PAK_PERIOD_PICKER.end)){ PAK_PERIOD_PICKER.start=item; PAK_PERIOD_PICKER.end=null; } else { const startKey=pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month); if(itemKey===startKey){ PAK_PERIOD_PICKER.end={...PAK_PERIOD_PICKER.start}; renderPakMonthPicker(); applyPakPeriodSelection(); return; } if(item.year!==PAK_PERIOD_PICKER.start.year){ alert('Periode tidak boleh berbeda tahun'); return; } if(itemKey<startKey){ PAK_PERIOD_PICKER.end=PAK_PERIOD_PICKER.start; PAK_PERIOD_PICKER.start=item; } else { PAK_PERIOD_PICKER.end=item; } renderPakMonthPicker(); applyPakPeriodSelection(); return; } renderPakMonthPicker(); }
 function renderPakMonthPicker(){
   const label=document.getElementById('pak-month-year-label'); if(!label)return;
   label.textContent=PAK_PERIOD_PICKER.year;
   document.getElementById('pak-month-selected-text').textContent=pakRangeLabel(PAK_PERIOD_PICKER.start,PAK_PERIOD_PICKER.end);
-  document.getElementById('pak-month-grid').innerHTML=BULAN.map((name,idx)=>{ const month=idx+1,key=pakMonthKey(PAK_PERIOD_PICKER.year,month),sk=PAK_PERIOD_PICKER.start?pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month):null,ek=PAK_PERIOD_PICKER.end?pakMonthKey(PAK_PERIOD_PICKER.end.year,PAK_PERIOD_PICKER.end.month):null,disabled=key<=PAK_PERIOD_PICKER.disabledBefore,isStart=sk===key,isEnd=ek===key,isRange=sk!=null&&ek!=null&&key>sk&&key<ek; const cls=['pak-month-btn',isRange?'is-range':'',isStart?'is-start is-selected':'',isEnd?'is-end is-selected':''].filter(Boolean).join(' '); return `<button type="button" class="${cls}" onclick="selectPakMonth(${month})" ${disabled?'disabled':''}>${esc(name.slice(0,3))}</button>`; }).join('');
+  document.getElementById('pak-month-grid').innerHTML=BULAN.map((name,idx)=>{ const month=idx+1,key=pakMonthKey(PAK_PERIOD_PICKER.year,month),sk=PAK_PERIOD_PICKER.start?pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month):null,ek=PAK_PERIOD_PICKER.end?pakMonthKey(PAK_PERIOD_PICKER.end.year,PAK_PERIOD_PICKER.end.month):null,disabled=key<=PAK_PERIOD_PICKER.disabledBefore||key>pakMaxPeriodKey(),isStart=sk===key,isEnd=ek===key,isRange=sk!=null&&ek!=null&&key>sk&&key<ek; const cls=['pak-month-btn',isRange?'is-range':'',isStart?'is-start is-selected':'',isEnd?'is-end is-selected':''].filter(Boolean).join(' '); return `<button type="button" class="${cls}" onclick="selectPakMonth(${month})" ${disabled?'disabled':''}>${esc(name.slice(0,3))}</button>`; }).join('');
 }
 function clearPakPeriodSelection(){ Object.assign(PAK_PERIOD_PICKER,{start:null,end:null,appliedStart:null,appliedEnd:null}); setPakPeriodInputs(null,null); renderPakMonthPicker(); onPakInputChange(); }
-function applyPakPeriodSelection(){ if(!PAK_PERIOD_PICKER.start){ alert('Pilih bulan awal periode'); return; } if(!PAK_PERIOD_PICKER.end) PAK_PERIOD_PICKER.end={...PAK_PERIOD_PICKER.start}; PAK_PERIOD_PICKER.appliedStart={...PAK_PERIOD_PICKER.start}; PAK_PERIOD_PICKER.appliedEnd={...PAK_PERIOD_PICKER.end}; setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart,PAK_PERIOD_PICKER.appliedEnd); closePakPeriodPicker(); onPakInputChange(); }
+function applyPakPeriodSelection(){ if(!PAK_PERIOD_PICKER.start){ alert('Pilih bulan awal periode'); return; } if(!PAK_PERIOD_PICKER.end) PAK_PERIOD_PICKER.end={...PAK_PERIOD_PICKER.start}; if(PAK_PERIOD_PICKER.start.year!==PAK_PERIOD_PICKER.end.year){ alert('Periode tidak boleh berbeda tahun'); return; } if(pakMonthKey(PAK_PERIOD_PICKER.end.year,PAK_PERIOD_PICKER.end.month)>pakMaxPeriodKey()){ alert('Periode tidak boleh melewati bulan sebelum bulan berjalan'); return; } PAK_PERIOD_PICKER.appliedStart={...PAK_PERIOD_PICKER.start}; PAK_PERIOD_PICKER.appliedEnd={...PAK_PERIOD_PICKER.end}; setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart,PAK_PERIOD_PICKER.appliedEnd); closePakPeriodPicker(); onPakInputChange(); }
 function togglePakDatePicker(force){ const w=document.querySelector('.pak-date-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-date-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPeriodPicker();closePakPersonPicker();renderPakDatePicker();} }
 function closePakDatePicker(){ togglePakDatePicker(false); }
 function shiftPakDateMonth(delta){ const d=new Date(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month-1+delta,1); PAK_DATE_PICKER.year=d.getFullYear(); PAK_DATE_PICKER.month=d.getMonth()+1; renderPakDatePicker(); }
@@ -1193,14 +1196,14 @@ function renderPakDatePicker(){
   for(let i=off-1;i>=0;i--) cells.push({day:prev-i,muted:true,iso:''});
   for(let d=1;d<=dim;d++) cells.push({day:d,muted:false,iso:pakISODate(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month,d)});
   while(cells.length%7!==0||cells.length<42) cells.push({day:cells.length-off-dim+1,muted:true,iso:''});
-  grid.innerHTML=cells.map(c=>{ const disabled=!c.iso||(PAK_DATE_PICKER.min&&c.iso<PAK_DATE_PICKER.min), cls=['pak-date-day',c.muted?'is-muted':'',c.iso===PAK_DATE_PICKER.selected?'is-selected':'',c.iso===todayISO?'is-today':''].filter(Boolean).join(' '); return `<button type="button" class="${cls}" onclick="selectPakDate(${jsArg(c.iso)})" ${disabled?'disabled':''}>${c.day}</button>`; }).join('');
+  grid.innerHTML=cells.map(c=>{ const disabled=!c.iso||(PAK_DATE_PICKER.min&&c.iso<PAK_DATE_PICKER.min)||c.iso>pakTodayISO(), cls=['pak-date-day',c.muted?'is-muted':'',c.iso===PAK_DATE_PICKER.selected?'is-selected':'',c.iso===todayISO?'is-today':''].filter(Boolean).join(' '); return `<button type="button" class="${cls}" onclick="selectPakDate(${jsArg(c.iso)})" ${disabled?'disabled':''}>${c.day}</button>`; }).join('');
 }
-function selectPakDate(iso){ if(!iso||(PAK_DATE_PICKER.min&&iso<PAK_DATE_PICKER.min))return; setPakDateValue(iso,PAK_DATE_PICKER.min); closePakDatePicker(); onPakInputChange(); }
-function selectPakDateToday(){ const t=new Date(), iso=pakISODate(t.getFullYear(),t.getMonth()+1,t.getDate()); selectPakDate((PAK_DATE_PICKER.min&&iso<PAK_DATE_PICKER.min)?PAK_DATE_PICKER.min:iso); }
+function selectPakDate(iso){ if(!iso||(PAK_DATE_PICKER.min&&iso<PAK_DATE_PICKER.min)||iso>pakTodayISO())return; const shouldClose=PAK_DATE_PICKER.selected===iso; setPakDateValue(iso,PAK_DATE_PICKER.min); if(shouldClose) closePakDatePicker(); onPakInputChange(); }
+function selectPakDateToday(){ const t=new Date(), iso=pakISODate(t.getFullYear(),t.getMonth()+1,t.getDate()), fallback=(PAK_DATE_PICKER.min&&iso<PAK_DATE_PICKER.min)?PAK_DATE_PICKER.min:iso; if(fallback>iso)return; selectPakDate(fallback); }
 function initPakPersonPicker(){ document.getElementById('pak-input-penandatangan').value=''; document.getElementById('pak-person-trigger-text').textContent='Pilih pegawai...'; document.getElementById('pak-person-trigger').classList.remove('has-value'); document.getElementById('pak-person-search-input').value=''; renderPakPersonOptions(); }
 function togglePakPersonPicker(force){ const w=document.querySelector('.pak-person-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-person-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPeriodPicker();closePakDatePicker();renderPakPersonOptions();setTimeout(()=>document.getElementById('pak-person-search-input').focus(),0);} }
 function closePakPersonPicker(){ togglePakPersonPicker(false); }
-function renderPakPersonOptions(){ const input=document.getElementById('pak-person-search-input'); if(!input)return; const q=input.value.toLowerCase().trim(), selected=document.getElementById('pak-input-penandatangan').value, rows=(_pegawaiListCache||[]).filter(p=>p.NIP).filter(p=>!q||`${p.NAMA||''} ${p.NIP||''}`.toLowerCase().includes(q)).slice(0,80), list=document.getElementById('pak-person-list'); if(!rows.length){list.innerHTML='<div class="pak-person-empty">Tidak ada pegawai yang cocok.</div>';return;} list.innerHTML=rows.map(p=>`<button type="button" class="pak-person-option ${String(p.NIP)===String(selected)?'active':''}" onclick="selectPakPerson(${jsArg(p.NIP)}, ${jsArg(p.NAMA||p.NIP)})"><span class="pak-person-avatar">${esc(initialsOf(p.NAMA||p.NIP))}</span><span class="pak-person-main"><span class="pak-person-name">${esc(p.NAMA||p.NIP)}</span><span class="pak-person-nip">${esc(p.NIP)}</span></span></button>`).join(''); }
+function renderPakPersonOptions(){ const input=document.getElementById('pak-person-search-input'); if(!input)return; const q=input.value.toLowerCase().trim(), selected=document.getElementById('pak-input-penandatangan').value, rows=(_pegawaiListCache||[]).filter(p=>p.NIP).filter(p=>!q||`${p.NAMA||''} ${p.NIP||''}`.toLowerCase().includes(q)).slice(0,80), list=document.getElementById('pak-person-list'); if(!rows.length){list.innerHTML='<div class="pak-person-empty">Tidak ada pegawai yang cocok.</div>';return;} list.innerHTML=rows.map(p=>`<button type="button" class="pak-person-option ${String(p.NIP)===String(selected)?'active':''}" onclick="event.stopPropagation();selectPakPerson(${jsArg(p.NIP)}, ${jsArg(p.NAMA||p.NIP)})"><span class="pak-person-avatar">${esc(initialsOf(p.NAMA||p.NIP))}</span><span class="pak-person-main"><span class="pak-person-name">${esc(p.NAMA||p.NIP)}</span><span class="pak-person-nip">${esc(p.NIP)}</span></span></button>`).join(''); }
 function selectPakPerson(nip,nama){ document.getElementById('pak-input-penandatangan').value=nip; document.getElementById('pak-person-trigger-text').textContent=nama; document.getElementById('pak-person-trigger').classList.add('has-value'); closePakPersonPicker(); onPakInputChange(); }
 
 function populateBulanSelect(selectEl, placeholder) {
@@ -1216,7 +1219,7 @@ function populateTahunSelect(selectEl) {
   for (let y = now + 1; y >= now - 5; y--) {
     opts.push(`<option value="${y}">${y}</option>`);
   }
-  selectEl.innerHTML = `<option value="">Tahun…</option>` + opts.join('');
+  selectEl.innerHTML = `<option value="">Tahunâ€¦</option>` + opts.join('');
 }
 
 async function openPakModal() {
@@ -1247,10 +1250,10 @@ function closePakModal() {
  * Trigger compute preview saat user ubah input.
  *
  * Validasi step-by-step:
- *   1. Periode lengkap (start, end, tahun, start ≤ end)
- *   2. tgl_pengajuan ≥ akhir periode + 1 bulan
+ *   1. Periode lengkap (start, end, tahun, start â‰¤ end)
+ *   2. tgl_pengajuan â‰¥ akhir periode + 1 bulan
  *   3. Penandatangan dipilih
- * Kalau lengkap → call PakGenerator.resolveContext + tampilkan preview.
+ * Kalau lengkap â†’ call PakGenerator.resolveContext + tampilkan preview.
  *
  * Debounced supaya tidak fetch berulang saat user ngetik tanggal.
  */
@@ -1274,19 +1277,19 @@ async function computePakPreview() {
   const tgl          = document.getElementById('pak-input-tgl').value;
   const penandatangan_nip = document.getElementById('pak-input-penandatangan').value;
 
-  // Validasi minimal — kalau belum lengkap, hide preview
+  // Validasi minimal â€” kalau belum lengkap, hide preview
   if (!bulan_start || !bulan_end || !tahun || !tgl || !penandatangan_nip) {
     previewEl.style.display = 'none';
     return;
   }
   if (bulan_start > bulan_end) {
     previewEl.style.display = 'block';
-    contentEl.innerHTML = `<div class="pak-preview-error">Bulan awal harus ≤ bulan akhir.</div>`;
+    contentEl.innerHTML = `<div class="pak-preview-error">Bulan awal harus â‰¤ bulan akhir.</div>`;
     return;
   }
 
-  // Validasi tgl_pengajuan ≥ akhir periode + 1 bulan
-  // Mis. periode Jan-Mar 2025 → minimal 1 April 2025
+  // Validasi tgl_pengajuan â‰¥ akhir periode + 1 bulan
+  // Mis. periode Jan-Mar 2025 â†’ minimal 1 April 2025
   const minDate = pakPeriodEndDate(tahun, bulan_end);
   if (tgl < minDate) {
     previewEl.style.display = 'block';
@@ -1296,10 +1299,15 @@ async function computePakPreview() {
     </div>`;
     return;
   }
+  if (tgl > pakTodayISO()) {
+    previewEl.style.display = 'block';
+    contentEl.innerHTML = `<div class="pak-preview-error">Tanggal pengajuan tidak boleh lebih dari hari ini.</div>`;
+    return;
+  }
 
   // Show loading
   previewEl.style.display = 'block';
-  contentEl.innerHTML = `<div class="pak-preview-loading">Menghitung…</div>`;
+  contentEl.innerHTML = `<div class="pak-preview-loading">Menghitungâ€¦</div>`;
 
   // Track request id supaya kalau user cepat ganti input, hasil lama
   // tidak overwrite hasil baru
@@ -1333,13 +1341,13 @@ async function computePakPreview() {
         <div class="pak-preview-divider"></div>
         <div class="pak-preview-item">
           <div class="pak-preview-label">Predikat</div>
-          <div class="pak-preview-value">${esc(ctx.predikat || '—')}${
+          <div class="pak-preview-value">${esc(ctx.predikat || 'â€”')}${
             ctx.predikat_2 ? ` <span class="pak-preview-value muted">(+ ${esc(ctx.predikat_2)})</span>` : ''
           }</div>
         </div>
         <div class="pak-preview-item">
           <div class="pak-preview-label">Penandatangan</div>
-          <div class="pak-preview-value">${esc(m.penandatangan_nama || '—')}</div>
+          <div class="pak-preview-value">${esc(m.penandatangan_nama || 'â€”')}</div>
         </div>
         <div class="pak-preview-divider"></div>
         <div class="pak-preview-item">
@@ -1389,20 +1397,20 @@ async function submitPak() {
   const tgl         = document.getElementById('pak-input-tgl').value;
   const ttdNip      = document.getElementById('pak-input-penandatangan').value;
   const minTgl      = pakPeriodEndDate(tahun, bulan_end);
-  if (!bulan_start || !bulan_end || !tahun || !tgl || !ttdNip || tgl < minTgl) {
-    alert(`Tanggal pengajuan minimal ${fmtTglID(minTgl)}.`);
+  if (!bulan_start || !bulan_end || !tahun || !tgl || !ttdNip || tgl < minTgl || tgl > pakTodayISO()) {
+    alert(tgl > pakTodayISO() ? 'Tanggal pengajuan tidak boleh lebih dari hari ini.' : `Tanggal pengajuan minimal ${fmtTglID(minTgl)}.`);
     return;
   }
 
   const btn = document.getElementById('btn-submit-pak');
   btn.disabled = true;
   const oldText = btn.textContent;
-  btn.textContent = 'Mengirim…';
+  btn.textContent = 'Mengirimâ€¦';
 
   try {
     const callerId = (JSON.parse(localStorage.getItem('nova_user') || '{}') || {}).id;
 
-    // ─── 1. Insert ke DB (atomic nomor_urut) ───
+    // â”€â”€â”€ 1. Insert ke DB (atomic nomor_urut) â”€â”€â”€
     const inserted = await novaRpc('pengajuan_pak_create', {
       p_caller_id:           callerId,
       p_pegawai_nip:         STATE_PROFIL.nip,
@@ -1423,8 +1431,8 @@ async function submitPak() {
     const row = Array.isArray(inserted) ? inserted[0] : inserted;
     const nomor_urut = row && row.nomor_urut;
 
-    // ─── 2. Resolve context ulang dengan nomor_urut final ───
-    btn.textContent = 'Membuat dokumen…';
+    // â”€â”€â”€ 2. Resolve context ulang dengan nomor_urut final â”€â”€â”€
+    btn.textContent = 'Membuat dokumenâ€¦';
     const ctxFinal = await PakGenerator.resolveContext({
       pegawai_nip:        STATE_PROFIL.nip,
       tahun_periode:      tahun,
@@ -1434,15 +1442,15 @@ async function submitPak() {
       nomor_urut,
     });
 
-    // ─── 3. Render & download ───
+    // â”€â”€â”€ 3. Render & download â”€â”€â”€
     const blob = await PakGenerator.renderDoc(ctxFinal);
-    const filename = `Konversi PK ke AK — ${ctxFinal._meta.nama_display} — ${ctxFinal.periode}.docx`;
+    const filename = `Konversi PK ke AK â€” ${ctxFinal._meta.nama_display} â€” ${ctxFinal.periode}.docx`;
     if (typeof window.saveAs === 'function') {
       window.saveAs(blob, filename);
     }
 
     closePakModal();
-    // ─── 4. Reload & re-render ───
+    // â”€â”€â”€ 4. Reload & re-render â”€â”€â”€
     await reloadPengajuan();
     refreshPakCardOnly();
     if (!STATE_PROFIL.pakExpanded) togglePakExpanded();
@@ -1474,7 +1482,7 @@ async function downloadPengajuan(id) {
       nomor_urut:        p.nomor_urut,
     });
     const blob = await PakGenerator.renderDoc(ctx);
-    const filename = `Konversi PK ke AK — ${ctx._meta.nama_display} — ${ctx.periode}.docx`;
+    const filename = `Konversi PK ke AK â€” ${ctx._meta.nama_display} â€” ${ctx.periode}.docx`;
     if (typeof window.saveAs === 'function') {
       window.saveAs(blob, filename);
     }
@@ -1484,13 +1492,13 @@ async function downloadPengajuan(id) {
   }
 }
 
-/* ════════════════════════════════════════════════════════════════════
-   PREVIEW PAK (USER) — Office Online viewer iframe
-   ─────────────────────────────────────────────────────────────────
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PREVIEW PAK (USER) â€” Office Online viewer iframe
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Pola sama dengan admin-kepegawaian.html. User bisa lihat preview
    tanpa harus download dulu. Dokumen di-cleanup 60 detik setelah modal
    ditutup.
-═══════════════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 let _pakPreviewState = {
   uploadedFilename: null,
   currentBlob: null,
@@ -1532,7 +1540,7 @@ async function previewPengajuan(id) {
       <div class="pak-preview-spin"></div>
       <div>Menyiapkan dokumen...</div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px">
-        Render via Microsoft Word Online (5–15 detik pertama kali)
+        Render via Microsoft Word Online (5â€“15 detik pertama kali)
       </div>
     </div>`;
 
@@ -1563,7 +1571,7 @@ async function previewPengajuan(id) {
     console.error('[PAK] previewPengajuan error:', e);
     container.innerHTML = `
       <div class="pak-preview-error">
-        <div class="pak-preview-error-icon">⚠️</div>
+        <div class="pak-preview-error-icon">âš ï¸</div>
         <div><strong>Gagal memuat preview</strong></div>
         <div style="font-size:12px;color:var(--muted);max-width:380px;line-height:1.5">${esc(e.message || String(e))}</div>
       </div>`;
@@ -1595,7 +1603,7 @@ function downloadFromPakPreview() {
   }
   const nama = _pakPreviewState.currentNamaDisplay || 'Pegawai';
   const per  = _pakPreviewState.currentPeriode || '';
-  const filename = `Konversi PK ke AK — ${nama}${per ? ' — ' + per : ''}.docx`;
+  const filename = `Konversi PK ke AK â€” ${nama}${per ? ' â€” ' + per : ''}.docx`;
   if (typeof window.saveAs === 'function') {
     window.saveAs(_pakPreviewState.currentBlob, filename);
   }
@@ -1635,7 +1643,7 @@ async function reloadPengajuan() {
 
 /**
  * Render ulang HANYA card PAK (tanpa re-fetch profil/jabatan/pangkat).
- * Dipakai setelah submit pengajuan / cancel — biar instant tanpa
+ * Dipakai setelah submit pengajuan / cancel â€” biar instant tanpa
  * full reload dari server.
  */
 function refreshPakCardOnly() {
@@ -1655,7 +1663,7 @@ function refreshPakCardOnly() {
 /**
  * Fetch profil + 3 tabel riwayat + pengajuan PAK secara paralel.
  * Alur:
- *   1. data_pegawai by id → ambil NIP & NAMA
+ *   1. data_pegawai by id â†’ ambil NIP & NAMA
  *   2. Pakai NIP untuk query 3 tabel riwayat (order tmt desc) +
  *      pengajuan_pak (order created_at desc)
  *   3. Render setelah semua selesai
@@ -1672,7 +1680,7 @@ async function fetchProfil(userId) {
     const pegawai = pegRows[0];
     const nip = pegawai.NIP;
 
-    // Tanpa NIP, query riwayat tidak mungkin — render dengan card kosong saja.
+    // Tanpa NIP, query riwayat tidak mungkin â€” render dengan card kosong saja.
     if (!nip) {
       renderProfil(pegawai, [], [], [], []);
       return;
@@ -1683,7 +1691,7 @@ async function fetchProfil(userId) {
       fetch(`${SUPABASE_URL}/rest/v1/riwayat_angka_kredit?pegawai_nip=eq.${nipParam}&select=angka_kredit,tmt&order=tmt.desc`, { headers: SUPABASE_HEADERS }),
       fetch(`${SUPABASE_URL}/rest/v1/riwayat_jabatan?pegawai_nip=eq.${nipParam}&select=jabatan,tmt&order=tmt.desc`,            { headers: SUPABASE_HEADERS }),
       fetch(`${SUPABASE_URL}/rest/v1/riwayat_pangkat_golongan?pegawai_nip=eq.${nipParam}&select=pangkat,golongan,tmt&order=tmt.desc`, { headers: SUPABASE_HEADERS }),
-      // Pengajuan PAK milik user. Tabel ini opsional — kalau belum dibuat
+      // Pengajuan PAK milik user. Tabel ini opsional â€” kalau belum dibuat
       // di DB, kita catch error dan render dengan array kosong (card tetap
       // berfungsi, tombol "Ajukan PAK" akan error di RPC saat ditekan).
       fetch(`${SUPABASE_URL}/rest/v1/pengajuan_pak?pegawai_nip=eq.${nipParam}&select=*&order=created_at.desc`, { headers: SUPABASE_HEADERS }),
@@ -1701,10 +1709,10 @@ async function fetchProfil(userId) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// KALENDER KEGIATAN — preserved dari versi sebelumnya
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// KALENDER KEGIATAN â€” preserved dari versi sebelumnya
 // (DB-backed via RPC kalender_list / kalender_upsert / kalender_delete)
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 var calCurrentDate = new Date();
 var calSelectedDate = null;
 var calEditingEventId = null;
@@ -1721,7 +1729,7 @@ var EVENT_COLORS = {
   '#6b7280': {bg:'rgba(107,114,128,.12)', text:'#374151'},
 };
 
-// Helper RPC kalender — pakai novaRpc dari 9201-shared.js
+// Helper RPC kalender â€” pakai novaRpc dari 9201-shared.js
 const rpcListEvents   = (uid, cid) => novaRpc('kalender_list',   { p_user_id: uid, p_caller_id: cid });
 const rpcUpsertEvent  = (ev,  cid) => novaRpc('kalender_upsert', {
   p_caller_id:cid, p_id:ev.id||null, p_tanggal:ev.tanggal,
@@ -1809,7 +1817,7 @@ function openModalForDate(dateKey) {
   document.getElementById('evt-title').value = '';
   document.getElementById('evt-time').value = '';
   document.getElementById('evt-desc').value = '';
-  document.getElementById('modal-title').innerHTML = 'Tambah <em>Kegiatan</em> — ' + formatDateId(dateKey);
+  document.getElementById('modal-title').innerHTML = 'Tambah <em>Kegiatan</em> â€” ' + formatDateId(dateKey);
   document.getElementById('btn-delete-event').style.display = 'none';
   document.getElementById('btn-save-event').textContent = 'Simpan';
   selectColor(document.querySelector('.color-opt[data-color="#c8a84b"]'));
@@ -1834,7 +1842,7 @@ function resetEventForm(dateKey) {
   document.getElementById('evt-title').value = '';
   document.getElementById('evt-time').value = '';
   document.getElementById('evt-desc').value = '';
-  document.getElementById('modal-title').innerHTML = 'Tambah <em>Kegiatan</em> — ' + formatDateId(dateKey);
+  document.getElementById('modal-title').innerHTML = 'Tambah <em>Kegiatan</em> â€” ' + formatDateId(dateKey);
   document.getElementById('btn-delete-event').style.display = 'none';
   document.getElementById('btn-save-event').textContent = 'Simpan';
   selectColor(document.querySelector('.color-opt[data-color="#c8a84b"]'));
@@ -1874,7 +1882,7 @@ function editEvent(id) {
   document.getElementById('evt-title').value = ev.judul || '';
   document.getElementById('evt-time').value  = fmtWaktu(ev.waktu);
   document.getElementById('evt-desc').value  = ev.keterangan || '';
-  document.getElementById('modal-title').innerHTML = 'Edit <em>Kegiatan</em> — ' + formatDateId(ev.tanggal);
+  document.getElementById('modal-title').innerHTML = 'Edit <em>Kegiatan</em> â€” ' + formatDateId(ev.tanggal);
   document.getElementById('btn-delete-event').style.display = '';
   document.getElementById('btn-save-event').textContent = 'Perbarui';
   var colorOpt = document.querySelector('.color-opt[data-color="' + ev.warna + '"]');
@@ -1910,7 +1918,7 @@ function renderDayEventList(dateKey) {
     html += '<div class="event-list-color" style="background:' + ev.warna + '"></div>';
     html += '<div class="event-list-info">';
     html += '<div class="event-list-title">' + escapeHtml(ev.judul) + '</div>';
-    html += '<div class="event-list-time">' + (waktuStr ? waktuStr + ' · ' : '') + (ev.keterangan ? escapeHtml(ev.keterangan) : 'Tanpa keterangan') + '</div>';
+    html += '<div class="event-list-time">' + (waktuStr ? waktuStr + ' Â· ' : '') + (ev.keterangan ? escapeHtml(ev.keterangan) : 'Tanpa keterangan') + '</div>';
     html += '</div>';
     html += '<div class="event-list-actions">';
     html += '<button class="ela-edit" onclick="editEvent(' + ev.id + ')">Edit</button>';
@@ -1938,7 +1946,7 @@ async function initCalendar(userId) {
   renderCalendar();
 }
 
-// ─── INIT ──────────────────────────────────────────────────────
+// â”€â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function init() {
   const s = novaCheckSession({ requireAdmin: false });
   if (!s) return;
@@ -1949,7 +1957,7 @@ async function init() {
 }
 // PENTING: tunggu DOMContentLoaded supaya topbar sudah di-render
 // (9201-topbar.js sekarang render synchronous di IIFE, jadi sebenarnya
-// aman untuk panggil init() langsung — tapi pakai DOMContentLoaded sebagai
+// aman untuk panggil init() langsung â€” tapi pakai DOMContentLoaded sebagai
 // safety net kalau urutan script berubah / di-load via defer di masa depan).
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
