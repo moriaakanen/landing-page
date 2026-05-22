@@ -58,15 +58,3 @@ $$;
 ```
 
 For stronger security, migrate to Supabase Auth and enforce policies with `auth.uid()` instead of a browser-managed localStorage session.
-
-## Auditing The Live Supabase Project
-
-Run `supabase-audit.sql` in the Supabase SQL Editor and review the result sets. The queries are read-only and are designed to expose:
-
-- RLS status for tables used by this frontend
-- policies on those tables
-- direct grants to `anon` and `authenticated`
-- security mode and definitions of RPC functions used by the app
-- storage bucket visibility and policies
-
-Do not paste service-role keys into chat or commit them to this repository.
