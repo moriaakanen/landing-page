@@ -501,7 +501,7 @@
         <div class="pak-period-picker-wrap">
           <button class="pak-period-trigger" id="pak-period-trigger" type="button" onclick="togglePakPeriodPicker()">
             <span id="pak-period-trigger-text">Pilih rentang bulan</span>
-            <span class="pak-period-trigger-icon">⌄</span>
+            <span class="pak-period-trigger-icon"></span>
           </button>
           <div class="pak-month-popover" id="pak-month-popover" aria-hidden="true">
             <div class="pak-month-selected">
@@ -528,7 +528,7 @@
         <div class="pak-date-picker-wrap">
           <button class="pak-date-trigger" id="pak-date-trigger" type="button" onclick="togglePakDatePicker()">
             <span id="pak-date-trigger-text">Pilih tanggal</span>
-            <span class="pak-period-trigger-icon">⌄</span>
+            <span class="pak-period-trigger-icon"></span>
           </button>
           <div class="pak-date-popover" id="pak-date-popover" aria-hidden="true">
             <div class="pak-date-head">
@@ -558,7 +558,7 @@
         <div class="pak-person-picker-wrap">
           <button class="pak-person-trigger" id="pak-person-trigger" type="button" onclick="togglePakPersonPicker()">
             <span id="pak-person-trigger-text">Pilih pegawai...</span>
-            <span class="pak-period-trigger-icon">⌄</span>
+            <span class="pak-period-trigger-icon"></span>
           </button>
           <div class="pak-person-popover" id="pak-person-popover" aria-hidden="true">
             <div class="pak-person-search">
@@ -1534,12 +1534,14 @@ const PAK_PERIOD_PICKER = {
   disabledBefore: null,
   latestEnd: null,
   label: '',
+  pendingEndConfirm: false,
 };
 const PAK_DATE_PICKER = {
   year: new Date().getFullYear(),
   month: new Date().getMonth() + 1,
   selected: '',
   min: '',
+  lastClicked: '',
 };
 
 function pakMonthKey(year, month) {
@@ -1589,6 +1591,11 @@ function pakRangeLabel(start, end) {
   if (!start || !end) return 'Belum dipilih';
   if (start.year === end.year && start.month === end.month) return pakMonthLabel(start.year, start.month);
   return `${BULAN[start.month - 1]} s.d ${BULAN[end.month - 1]} ${start.year}`;
+}
+
+function pakDraftRangeLabel(start, end) {
+  if (start && !end) return pakMonthLabel(start.year, start.month);
+  return pakRangeLabel(start, end);
 }
 
 function getCurrentPakSummary() {
@@ -1682,6 +1689,7 @@ function togglePakDatePicker(force) {
   wrap.classList.toggle('open', shouldOpen);
   document.getElementById('pak-date-popover').setAttribute('aria-hidden', String(!shouldOpen));
   if (shouldOpen) {
+    PAK_DATE_PICKER.lastClicked = '';
     closePakPeriodPicker();
     closePakPersonPicker();
     renderPakDatePicker();
@@ -1696,6 +1704,7 @@ function shiftPakDateMonth(delta) {
   const date = new Date(PAK_DATE_PICKER.year, PAK_DATE_PICKER.month - 1 + delta, 1);
   PAK_DATE_PICKER.year = date.getFullYear();
   PAK_DATE_PICKER.month = date.getMonth() + 1;
+  PAK_DATE_PICKER.lastClicked = '';
   renderPakDatePicker();
 }
 
@@ -1726,14 +1735,16 @@ function renderPakDatePicker() {
   grid.innerHTML = cells.map(c => {
     const disabled = !c.iso || (PAK_DATE_PICKER.min && c.iso < PAK_DATE_PICKER.min) || c.iso > pakTodayISO();
     const cls = ['pak-date-day', c.muted ? 'is-muted' : '', c.iso === PAK_DATE_PICKER.selected ? 'is-selected' : '', c.iso === todayISO ? 'is-today' : ''].filter(Boolean).join(' ');
-    return `<button type="button" class="${cls}" onclick="selectPakDate(${jsArg(c.iso)})" ${disabled ? 'disabled' : ''}>${c.day}</button>`;
+    const handler = escAttr(`event.stopPropagation();selectPakDate(${jsArg(c.iso)})`);
+    return `<button type="button" class="${cls}" onclick="${handler}" ${disabled ? 'disabled' : ''}>${c.day}</button>`;
   }).join('');
 }
 
 function selectPakDate(iso) {
   if (!iso || (PAK_DATE_PICKER.min && iso < PAK_DATE_PICKER.min) || iso > pakTodayISO()) return;
-  const shouldClose = PAK_DATE_PICKER.selected === iso;
+  const shouldClose = PAK_DATE_PICKER.lastClicked === iso;
   setPakDateValue(iso, PAK_DATE_PICKER.min);
+  PAK_DATE_PICKER.lastClicked = shouldClose ? '' : iso;
   if (shouldClose) closePakDatePicker();
   onPakInputChange();
 }
@@ -1757,6 +1768,7 @@ function initPakPeriodPicker() {
   PAK_PERIOD_PICKER.disabledBefore = defaults.disabledBefore;
   PAK_PERIOD_PICKER.latestEnd = defaults.latestEnd;
   PAK_PERIOD_PICKER.label = defaults.label;
+  PAK_PERIOD_PICKER.pendingEndConfirm = false;
 
   const note = document.getElementById('pak-period-note');
   note.innerHTML = defaults.latestEnd
@@ -1776,6 +1788,7 @@ function togglePakPeriodPicker(force) {
   document.getElementById('pak-month-popover').setAttribute('aria-hidden', String(!shouldOpen));
   if (shouldOpen) {
     closePakPersonPicker();
+    closePakDatePicker();
     renderPakMonthPicker();
   }
 }
@@ -1788,6 +1801,7 @@ function shiftPakMonthYear(delta) {
   PAK_PERIOD_PICKER.year += delta;
   PAK_PERIOD_PICKER.start = null;
   PAK_PERIOD_PICKER.end = null;
+  PAK_PERIOD_PICKER.pendingEndConfirm = false;
   renderPakMonthPicker();
 }
 
@@ -1796,13 +1810,11 @@ function selectPakMonth(month) {
   const itemKey = pakMonthKey(item.year, item.month);
   if (itemKey <= PAK_PERIOD_PICKER.disabledBefore || itemKey > pakMaxPeriodKey()) return;
 
-  if (!PAK_PERIOD_PICKER.start || (PAK_PERIOD_PICKER.start && PAK_PERIOD_PICKER.end)) {
-    PAK_PERIOD_PICKER.start = item;
-    PAK_PERIOD_PICKER.end = null;
-  } else {
+  if (PAK_PERIOD_PICKER.pendingEndConfirm && PAK_PERIOD_PICKER.start && PAK_PERIOD_PICKER.end) {
     const startKey = pakMonthKey(PAK_PERIOD_PICKER.start.year, PAK_PERIOD_PICKER.start.month);
-    if (itemKey === startKey) {
-      PAK_PERIOD_PICKER.end = { ...PAK_PERIOD_PICKER.start };
+    const endKey = pakMonthKey(PAK_PERIOD_PICKER.end.year, PAK_PERIOD_PICKER.end.month);
+    if (itemKey === endKey) {
+      PAK_PERIOD_PICKER.pendingEndConfirm = false;
       renderPakMonthPicker();
       applyPakPeriodSelection();
       return;
@@ -1818,7 +1830,34 @@ function selectPakMonth(month) {
       PAK_PERIOD_PICKER.end = item;
     }
     renderPakMonthPicker();
-    applyPakPeriodSelection();
+    return;
+  }
+
+  if (!PAK_PERIOD_PICKER.start || (PAK_PERIOD_PICKER.start && PAK_PERIOD_PICKER.end)) {
+    PAK_PERIOD_PICKER.start = item;
+    PAK_PERIOD_PICKER.end = null;
+    PAK_PERIOD_PICKER.pendingEndConfirm = false;
+  } else {
+    const startKey = pakMonthKey(PAK_PERIOD_PICKER.start.year, PAK_PERIOD_PICKER.start.month);
+    if (itemKey === startKey) {
+      PAK_PERIOD_PICKER.end = { ...PAK_PERIOD_PICKER.start };
+      PAK_PERIOD_PICKER.pendingEndConfirm = false;
+      renderPakMonthPicker();
+      applyPakPeriodSelection();
+      return;
+    }
+    if (item.year !== PAK_PERIOD_PICKER.start.year) {
+      showToast('Periode tidak boleh berbeda tahun', 'error');
+      return;
+    }
+    if (itemKey < startKey) {
+      PAK_PERIOD_PICKER.end = PAK_PERIOD_PICKER.start;
+      PAK_PERIOD_PICKER.start = item;
+    } else {
+      PAK_PERIOD_PICKER.end = item;
+    }
+    PAK_PERIOD_PICKER.pendingEndConfirm = true;
+    renderPakMonthPicker();
     return;
   }
   renderPakMonthPicker();
@@ -1826,7 +1865,7 @@ function selectPakMonth(month) {
 
 function renderPakMonthPicker() {
   document.getElementById('pak-month-year-label').textContent = PAK_PERIOD_PICKER.year;
-  document.getElementById('pak-month-selected-text').textContent = pakRangeLabel(PAK_PERIOD_PICKER.start, PAK_PERIOD_PICKER.end);
+  document.getElementById('pak-month-selected-text').textContent = pakDraftRangeLabel(PAK_PERIOD_PICKER.start, PAK_PERIOD_PICKER.end);
 
   const grid = document.getElementById('pak-month-grid');
   grid.innerHTML = BULAN.map((name, idx) => {
@@ -1840,7 +1879,7 @@ function renderPakMonthPicker() {
     const isRange = startKey != null && endKey != null && key > startKey && key < endKey;
     const cls = ['pak-month-btn', isRange ? 'is-range' : '', isStart ? 'is-start is-selected' : '', isEnd ? 'is-end is-selected' : ''].filter(Boolean).join(' ');
     const title = disabled ? 'Bulan ini sudah masuk periode PAK sebelumnya atau sudah diajukan' : `Pilih ${name} ${PAK_PERIOD_PICKER.year}`;
-    return `<button type="button" class="${cls}" onclick="selectPakMonth(${month})" ${disabled ? 'disabled' : ''} title="${escAttr(title)}">${esc(name.slice(0, 3))}</button>`;
+    return `<button type="button" class="${cls}" onclick="event.stopPropagation();selectPakMonth(${month})" ${disabled ? 'disabled' : ''} title="${escAttr(title)}">${esc(name.slice(0, 3))}</button>`;
   }).join('');
 }
 
@@ -1849,6 +1888,7 @@ function clearPakPeriodSelection() {
   PAK_PERIOD_PICKER.end = null;
   PAK_PERIOD_PICKER.appliedStart = null;
   PAK_PERIOD_PICKER.appliedEnd = null;
+  PAK_PERIOD_PICKER.pendingEndConfirm = false;
   setPakPeriodInputs(null, null);
   renderPakMonthPicker();
   onPakInputChange();
@@ -1870,6 +1910,7 @@ function applyPakPeriodSelection() {
     showToast('Periode tidak boleh melewati bulan sebelum bulan berjalan', 'error');
     return;
   }
+  PAK_PERIOD_PICKER.pendingEndConfirm = false;
   PAK_PERIOD_PICKER.appliedStart = { ...PAK_PERIOD_PICKER.start };
   PAK_PERIOD_PICKER.appliedEnd = { ...PAK_PERIOD_PICKER.end };
   setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart, PAK_PERIOD_PICKER.appliedEnd);
@@ -1893,6 +1934,7 @@ function togglePakPersonPicker(force) {
   document.getElementById('pak-person-popover').setAttribute('aria-hidden', String(!shouldOpen));
   if (shouldOpen) {
     closePakPeriodPicker();
+    closePakDatePicker();
     renderPakPersonOptions();
     setTimeout(() => document.getElementById('pak-person-search-input').focus(), 0);
   }
@@ -1919,7 +1961,7 @@ function renderPakPersonOptions() {
   list.innerHTML = rows.map(p => {
     const active = String(p.NIP) === String(selected);
     return `
-      <button type="button" class="pak-person-option ${active ? 'active' : ''}" onclick="event.stopPropagation();selectPakPerson(${jsArg(p.NIP)}, ${jsArg(p.NAMA || p.NIP)})">
+      <button type="button" class="pak-person-option ${active ? 'active' : ''}" onclick="${escAttr(`event.stopPropagation();selectPakPerson(${jsArg(p.NIP)}, ${jsArg(p.NAMA || p.NIP)})`)}">
         <span class="pak-person-avatar">${esc(initialsFromName(p.NAMA || p.NIP))}</span>
         <span class="pak-person-main">
           <span class="pak-person-name">${esc(p.NAMA || p.NIP)}</span>

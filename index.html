@@ -1108,8 +1108,8 @@ async function ensurePegawaiList() {
   return _pegawaiListCache;
 }
 
-const PAK_PERIOD_PICKER = { year:new Date().getFullYear(), start:null, end:null, appliedStart:null, appliedEnd:null, disabledBefore:null, latestEnd:null };
-const PAK_DATE_PICKER = { year:new Date().getFullYear(), month:new Date().getMonth()+1, selected:'', min:'' };
+const PAK_PERIOD_PICKER = { year:new Date().getFullYear(), start:null, end:null, appliedStart:null, appliedEnd:null, disabledBefore:null, latestEnd:null, pendingEndConfirm:false };
+const PAK_DATE_PICKER = { year:new Date().getFullYear(), month:new Date().getMonth()+1, selected:'', min:'', lastClicked:'' };
 function pakMonthKey(year, month){ return (Number(year) * 12) + Number(month); }
 function pakMonthFromKey(key){ const year=Math.floor((key-1)/12); const month=((key-1)%12)+1; return {year,month}; }
 function pakNextMonth(year, month){ return month >= 12 ? {year:year+1,month:1} : {year,month:month+1}; }
@@ -1120,6 +1120,7 @@ function pakLastDayDate(year, month){ const day=new Date(Number(year), Number(mo
 function pakISODate(year, month, day){ return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }
 function pakMonthLabel(year, month){ return `${BULAN[month-1]} ${year}`; }
 function pakRangeLabel(start,end){ if(!start||!end)return 'Belum dipilih'; if(start.year===end.year&&start.month===end.month)return pakMonthLabel(start.year,start.month); return `${BULAN[start.month-1]} s.d ${BULAN[end.month-1]} ${start.year}`; }
+function pakDraftRangeLabel(start,end){ if(start&&!end)return pakMonthLabel(start.year,start.month); return pakRangeLabel(start,end); }
 function getPakDefaultPeriod(){
   const periods = Array.isArray(STATE_PROFIL.pengajuan) ? STATE_PROFIL.pengajuan : [];
   let latestKey = null, latest = null;
@@ -1166,7 +1167,7 @@ function setPakDateValue(value,minValue){
 }
 function initPakPeriodPicker(){
   const d=getPakDefaultPeriod(), start=d.start;
-  Object.assign(PAK_PERIOD_PICKER,{year:start.year,start:{...start},end:{...start},appliedStart:{...start},appliedEnd:{...start},disabledBefore:d.disabledBefore,latestEnd:d.latestEnd});
+  Object.assign(PAK_PERIOD_PICKER,{year:start.year,start:{...start},end:{...start},appliedStart:{...start},appliedEnd:{...start},disabledBefore:d.disabledBefore,latestEnd:d.latestEnd,pendingEndConfirm:false});
   const note=document.getElementById('pak-period-note');
   note.innerHTML=d.latestEnd?`<strong>Pengajuan terakhir: ${esc(fmtTglID(d.latestEndDate))}</strong><br>${esc(d.label)}. Bulan yang sudah punya PAK atau sudah diajukan tidak bisa dipilih.`:'Belum ada riwayat pengajuan PAK. Pilih periode awal pengajuan.';
   note.classList.add('show');
@@ -1175,19 +1176,49 @@ function initPakPeriodPicker(){
 }
 function togglePakPeriodPicker(force){ const w=document.querySelector('.pak-period-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-month-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPersonPicker();closePakDatePicker();renderPakMonthPicker();} }
 function closePakPeriodPicker(){ togglePakPeriodPicker(false); }
-function shiftPakMonthYear(delta){ PAK_PERIOD_PICKER.year+=delta; PAK_PERIOD_PICKER.start=null; PAK_PERIOD_PICKER.end=null; renderPakMonthPicker(); }
-function selectPakMonth(month){ const item={year:PAK_PERIOD_PICKER.year,month}, itemKey=pakMonthKey(item.year,item.month); if(itemKey<=PAK_PERIOD_PICKER.disabledBefore||itemKey>pakMaxPeriodKey())return; if(!PAK_PERIOD_PICKER.start || (PAK_PERIOD_PICKER.start&&PAK_PERIOD_PICKER.end)){ PAK_PERIOD_PICKER.start=item; PAK_PERIOD_PICKER.end=null; } else { const startKey=pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month); if(itemKey===startKey){ PAK_PERIOD_PICKER.end={...PAK_PERIOD_PICKER.start}; renderPakMonthPicker(); applyPakPeriodSelection(); return; } if(item.year!==PAK_PERIOD_PICKER.start.year){ alert('Periode tidak boleh berbeda tahun'); return; } if(itemKey<startKey){ PAK_PERIOD_PICKER.end=PAK_PERIOD_PICKER.start; PAK_PERIOD_PICKER.start=item; } else { PAK_PERIOD_PICKER.end=item; } renderPakMonthPicker(); applyPakPeriodSelection(); return; } renderPakMonthPicker(); }
+function shiftPakMonthYear(delta){ PAK_PERIOD_PICKER.year+=delta; PAK_PERIOD_PICKER.start=null; PAK_PERIOD_PICKER.end=null; PAK_PERIOD_PICKER.pendingEndConfirm=false; renderPakMonthPicker(); }
+function selectPakMonth(month){
+  const item={year:PAK_PERIOD_PICKER.year,month}, itemKey=pakMonthKey(item.year,item.month);
+  if(itemKey<=PAK_PERIOD_PICKER.disabledBefore||itemKey>pakMaxPeriodKey())return;
+
+  if(PAK_PERIOD_PICKER.pendingEndConfirm&&PAK_PERIOD_PICKER.start&&PAK_PERIOD_PICKER.end){
+    const startKey=pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month);
+    const endKey=pakMonthKey(PAK_PERIOD_PICKER.end.year,PAK_PERIOD_PICKER.end.month);
+    if(itemKey===endKey){ PAK_PERIOD_PICKER.pendingEndConfirm=false; renderPakMonthPicker(); applyPakPeriodSelection(); return; }
+    if(item.year!==PAK_PERIOD_PICKER.start.year){ alert('Periode tidak boleh berbeda tahun'); return; }
+    if(itemKey<startKey){ PAK_PERIOD_PICKER.end=PAK_PERIOD_PICKER.start; PAK_PERIOD_PICKER.start=item; }
+    else { PAK_PERIOD_PICKER.end=item; }
+    renderPakMonthPicker();
+    return;
+  }
+
+  if(!PAK_PERIOD_PICKER.start || (PAK_PERIOD_PICKER.start&&PAK_PERIOD_PICKER.end)){
+    PAK_PERIOD_PICKER.start=item;
+    PAK_PERIOD_PICKER.end=null;
+    PAK_PERIOD_PICKER.pendingEndConfirm=false;
+  } else {
+    const startKey=pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month);
+    if(itemKey===startKey){ PAK_PERIOD_PICKER.end={...PAK_PERIOD_PICKER.start}; PAK_PERIOD_PICKER.pendingEndConfirm=false; renderPakMonthPicker(); applyPakPeriodSelection(); return; }
+    if(item.year!==PAK_PERIOD_PICKER.start.year){ alert('Periode tidak boleh berbeda tahun'); return; }
+    if(itemKey<startKey){ PAK_PERIOD_PICKER.end=PAK_PERIOD_PICKER.start; PAK_PERIOD_PICKER.start=item; }
+    else { PAK_PERIOD_PICKER.end=item; }
+    PAK_PERIOD_PICKER.pendingEndConfirm=true;
+    renderPakMonthPicker();
+    return;
+  }
+  renderPakMonthPicker();
+}
 function renderPakMonthPicker(){
   const label=document.getElementById('pak-month-year-label'); if(!label)return;
   label.textContent=PAK_PERIOD_PICKER.year;
-  document.getElementById('pak-month-selected-text').textContent=pakRangeLabel(PAK_PERIOD_PICKER.start,PAK_PERIOD_PICKER.end);
-  document.getElementById('pak-month-grid').innerHTML=BULAN.map((name,idx)=>{ const month=idx+1,key=pakMonthKey(PAK_PERIOD_PICKER.year,month),sk=PAK_PERIOD_PICKER.start?pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month):null,ek=PAK_PERIOD_PICKER.end?pakMonthKey(PAK_PERIOD_PICKER.end.year,PAK_PERIOD_PICKER.end.month):null,disabled=key<=PAK_PERIOD_PICKER.disabledBefore||key>pakMaxPeriodKey(),isStart=sk===key,isEnd=ek===key,isRange=sk!=null&&ek!=null&&key>sk&&key<ek; const cls=['pak-month-btn',isRange?'is-range':'',isStart?'is-start is-selected':'',isEnd?'is-end is-selected':''].filter(Boolean).join(' '); return `<button type="button" class="${cls}" onclick="selectPakMonth(${month})" ${disabled?'disabled':''}>${esc(name.slice(0,3))}</button>`; }).join('');
+  document.getElementById('pak-month-selected-text').textContent=pakDraftRangeLabel(PAK_PERIOD_PICKER.start,PAK_PERIOD_PICKER.end);
+  document.getElementById('pak-month-grid').innerHTML=BULAN.map((name,idx)=>{ const month=idx+1,key=pakMonthKey(PAK_PERIOD_PICKER.year,month),sk=PAK_PERIOD_PICKER.start?pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month):null,ek=PAK_PERIOD_PICKER.end?pakMonthKey(PAK_PERIOD_PICKER.end.year,PAK_PERIOD_PICKER.end.month):null,disabled=key<=PAK_PERIOD_PICKER.disabledBefore||key>pakMaxPeriodKey(),isStart=sk===key,isEnd=ek===key,isRange=sk!=null&&ek!=null&&key>sk&&key<ek; const cls=['pak-month-btn',isRange?'is-range':'',isStart?'is-start is-selected':'',isEnd?'is-end is-selected':''].filter(Boolean).join(' '); return `<button type="button" class="${cls}" onclick="event.stopPropagation();selectPakMonth(${month})" ${disabled?'disabled':''}>${esc(name.slice(0,3))}</button>`; }).join('');
 }
-function clearPakPeriodSelection(){ Object.assign(PAK_PERIOD_PICKER,{start:null,end:null,appliedStart:null,appliedEnd:null}); setPakPeriodInputs(null,null); renderPakMonthPicker(); onPakInputChange(); }
-function applyPakPeriodSelection(){ if(!PAK_PERIOD_PICKER.start){ alert('Pilih bulan awal periode'); return; } if(!PAK_PERIOD_PICKER.end) PAK_PERIOD_PICKER.end={...PAK_PERIOD_PICKER.start}; if(PAK_PERIOD_PICKER.start.year!==PAK_PERIOD_PICKER.end.year){ alert('Periode tidak boleh berbeda tahun'); return; } if(pakMonthKey(PAK_PERIOD_PICKER.end.year,PAK_PERIOD_PICKER.end.month)>pakMaxPeriodKey()){ alert('Periode tidak boleh melewati bulan sebelum bulan berjalan'); return; } PAK_PERIOD_PICKER.appliedStart={...PAK_PERIOD_PICKER.start}; PAK_PERIOD_PICKER.appliedEnd={...PAK_PERIOD_PICKER.end}; setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart,PAK_PERIOD_PICKER.appliedEnd); closePakPeriodPicker(); onPakInputChange(); }
-function togglePakDatePicker(force){ const w=document.querySelector('.pak-date-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-date-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPeriodPicker();closePakPersonPicker();renderPakDatePicker();} }
+function clearPakPeriodSelection(){ Object.assign(PAK_PERIOD_PICKER,{start:null,end:null,appliedStart:null,appliedEnd:null,pendingEndConfirm:false}); setPakPeriodInputs(null,null); renderPakMonthPicker(); onPakInputChange(); }
+function applyPakPeriodSelection(){ if(!PAK_PERIOD_PICKER.start){ alert('Pilih bulan awal periode'); return; } if(!PAK_PERIOD_PICKER.end) PAK_PERIOD_PICKER.end={...PAK_PERIOD_PICKER.start}; if(PAK_PERIOD_PICKER.start.year!==PAK_PERIOD_PICKER.end.year){ alert('Periode tidak boleh berbeda tahun'); return; } if(pakMonthKey(PAK_PERIOD_PICKER.end.year,PAK_PERIOD_PICKER.end.month)>pakMaxPeriodKey()){ alert('Periode tidak boleh melewati bulan sebelum bulan berjalan'); return; } PAK_PERIOD_PICKER.pendingEndConfirm=false; PAK_PERIOD_PICKER.appliedStart={...PAK_PERIOD_PICKER.start}; PAK_PERIOD_PICKER.appliedEnd={...PAK_PERIOD_PICKER.end}; setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart,PAK_PERIOD_PICKER.appliedEnd); closePakPeriodPicker(); onPakInputChange(); }
+function togglePakDatePicker(force){ const w=document.querySelector('.pak-date-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-date-popover').setAttribute('aria-hidden',String(!open)); if(open){PAK_DATE_PICKER.lastClicked='';closePakPeriodPicker();closePakPersonPicker();renderPakDatePicker();} }
 function closePakDatePicker(){ togglePakDatePicker(false); }
-function shiftPakDateMonth(delta){ const d=new Date(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month-1+delta,1); PAK_DATE_PICKER.year=d.getFullYear(); PAK_DATE_PICKER.month=d.getMonth()+1; renderPakDatePicker(); }
+function shiftPakDateMonth(delta){ const d=new Date(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month-1+delta,1); PAK_DATE_PICKER.year=d.getFullYear(); PAK_DATE_PICKER.month=d.getMonth()+1; PAK_DATE_PICKER.lastClicked=''; renderPakDatePicker(); }
 function renderPakDatePicker(){
   const grid=document.getElementById('pak-date-grid'); if(!grid)return;
   document.getElementById('pak-date-month-label').textContent=pakMonthLabel(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month);
@@ -1196,14 +1227,14 @@ function renderPakDatePicker(){
   for(let i=off-1;i>=0;i--) cells.push({day:prev-i,muted:true,iso:''});
   for(let d=1;d<=dim;d++) cells.push({day:d,muted:false,iso:pakISODate(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month,d)});
   while(cells.length%7!==0||cells.length<42) cells.push({day:cells.length-off-dim+1,muted:true,iso:''});
-  grid.innerHTML=cells.map(c=>{ const disabled=!c.iso||(PAK_DATE_PICKER.min&&c.iso<PAK_DATE_PICKER.min)||c.iso>pakTodayISO(), cls=['pak-date-day',c.muted?'is-muted':'',c.iso===PAK_DATE_PICKER.selected?'is-selected':'',c.iso===todayISO?'is-today':''].filter(Boolean).join(' '); return `<button type="button" class="${cls}" onclick="selectPakDate(${jsArg(c.iso)})" ${disabled?'disabled':''}>${c.day}</button>`; }).join('');
+  grid.innerHTML=cells.map(c=>{ const disabled=!c.iso||(PAK_DATE_PICKER.min&&c.iso<PAK_DATE_PICKER.min)||c.iso>pakTodayISO(), cls=['pak-date-day',c.muted?'is-muted':'',c.iso===PAK_DATE_PICKER.selected?'is-selected':'',c.iso===todayISO?'is-today':''].filter(Boolean).join(' '), handler=esc('event.stopPropagation();selectPakDate('+jsArg(c.iso)+')'); return `<button type="button" class="${cls}" onclick="${handler}" ${disabled?'disabled':''}>${c.day}</button>`; }).join('');
 }
-function selectPakDate(iso){ if(!iso||(PAK_DATE_PICKER.min&&iso<PAK_DATE_PICKER.min)||iso>pakTodayISO())return; const shouldClose=PAK_DATE_PICKER.selected===iso; setPakDateValue(iso,PAK_DATE_PICKER.min); if(shouldClose) closePakDatePicker(); onPakInputChange(); }
+function selectPakDate(iso){ if(!iso||(PAK_DATE_PICKER.min&&iso<PAK_DATE_PICKER.min)||iso>pakTodayISO())return; const shouldClose=PAK_DATE_PICKER.lastClicked===iso; setPakDateValue(iso,PAK_DATE_PICKER.min); PAK_DATE_PICKER.lastClicked=shouldClose?'':iso; if(shouldClose) closePakDatePicker(); onPakInputChange(); }
 function selectPakDateToday(){ const t=new Date(), iso=pakISODate(t.getFullYear(),t.getMonth()+1,t.getDate()), fallback=(PAK_DATE_PICKER.min&&iso<PAK_DATE_PICKER.min)?PAK_DATE_PICKER.min:iso; if(fallback>iso)return; selectPakDate(fallback); }
 function initPakPersonPicker(){ document.getElementById('pak-input-penandatangan').value=''; document.getElementById('pak-person-trigger-text').textContent='Pilih pegawai...'; document.getElementById('pak-person-trigger').classList.remove('has-value'); document.getElementById('pak-person-search-input').value=''; renderPakPersonOptions(); }
 function togglePakPersonPicker(force){ const w=document.querySelector('.pak-person-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-person-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPeriodPicker();closePakDatePicker();renderPakPersonOptions();setTimeout(()=>document.getElementById('pak-person-search-input').focus(),0);} }
 function closePakPersonPicker(){ togglePakPersonPicker(false); }
-function renderPakPersonOptions(){ const input=document.getElementById('pak-person-search-input'); if(!input)return; const q=input.value.toLowerCase().trim(), selected=document.getElementById('pak-input-penandatangan').value, rows=(_pegawaiListCache||[]).filter(p=>p.NIP).filter(p=>!q||`${p.NAMA||''} ${p.NIP||''}`.toLowerCase().includes(q)).slice(0,80), list=document.getElementById('pak-person-list'); if(!rows.length){list.innerHTML='<div class="pak-person-empty">Tidak ada pegawai yang cocok.</div>';return;} list.innerHTML=rows.map(p=>`<button type="button" class="pak-person-option ${String(p.NIP)===String(selected)?'active':''}" onclick="event.stopPropagation();selectPakPerson(${jsArg(p.NIP)}, ${jsArg(p.NAMA||p.NIP)})"><span class="pak-person-avatar">${esc(initialsOf(p.NAMA||p.NIP))}</span><span class="pak-person-main"><span class="pak-person-name">${esc(p.NAMA||p.NIP)}</span><span class="pak-person-nip">${esc(p.NIP)}</span></span></button>`).join(''); }
+function renderPakPersonOptions(){ const input=document.getElementById('pak-person-search-input'); if(!input)return; const q=input.value.toLowerCase().trim(), selected=document.getElementById('pak-input-penandatangan').value, rows=(_pegawaiListCache||[]).filter(p=>p.NIP).filter(p=>!q||`${p.NAMA||''} ${p.NIP||''}`.toLowerCase().includes(q)).slice(0,80), list=document.getElementById('pak-person-list'); if(!rows.length){list.innerHTML='<div class="pak-person-empty">Tidak ada pegawai yang cocok.</div>';return;} list.innerHTML=rows.map(p=>{ const handler=esc('event.stopPropagation();selectPakPerson('+jsArg(p.NIP)+', '+jsArg(p.NAMA||p.NIP)+')'); return `<button type="button" class="pak-person-option ${String(p.NIP)===String(selected)?'active':''}" onclick="${handler}"><span class="pak-person-avatar">${esc(initialsOf(p.NAMA||p.NIP))}</span><span class="pak-person-main"><span class="pak-person-name">${esc(p.NAMA||p.NIP)}</span><span class="pak-person-nip">${esc(p.NIP)}</span></span></button>`; }).join(''); }
 function selectPakPerson(nip,nama){ document.getElementById('pak-input-penandatangan').value=nip; document.getElementById('pak-person-trigger-text').textContent=nama; document.getElementById('pak-person-trigger').classList.add('has-value'); closePakPersonPicker(); onPakInputChange(); }
 
 function populateBulanSelect(selectEl, placeholder) {
