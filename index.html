@@ -266,7 +266,8 @@
        - Preview pane: tampilan calculated values (ak_n1, akb, ak_tot)
      Modal ini share .modal-overlay & .modal base style, tapi punya
      class extra .modal-pak untuk override max-width dan layout. */
-  .modal.modal-pak{max-width:580px}
+  .modal.modal-pak{max-width:680px;max-height:calc(100vh - 36px)}
+  .modal-pak .modal-body{overflow:visible}
   .modal-pak .form-row-3col{display:grid;grid-template-columns:1fr 1fr 110px;gap:10px}
   .modal-pak .form-row-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   @media(max-width:560px){
@@ -276,6 +277,47 @@
   .form-help{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.45}
   .form-help.warn{color:#92400e}
   .form-help.success{color:var(--success)}
+
+  /* Custom PAK pickers */
+  .pak-period-note{display:none;margin-bottom:10px;padding:10px 12px;border-left:3px solid var(--navy);background:#eff6ff;border-radius:6px;color:var(--navy);font-size:12px;line-height:1.45}
+  .pak-period-note.show{display:block}
+  .pak-period-note strong{font-weight:700}
+  .pak-period-picker-wrap,.pak-person-picker-wrap,.pak-date-picker-wrap{position:relative}
+  .pak-period-trigger,.pak-person-trigger,.pak-date-trigger{width:100%;min-height:42px;padding:10px 12px;border:1.5px solid var(--border2);border-radius:8px;background:linear-gradient(180deg,#fff,#fbfaf7);color:var(--navy);font-family:inherit;font-size:13px;font-weight:500;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s;line-height:1.35}
+  .pak-period-trigger:hover,.pak-person-trigger:hover,.pak-date-trigger:hover{border-color:var(--gold);background:#fff}
+  .pak-period-trigger:focus,.pak-person-trigger:focus,.pak-date-trigger:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
+  .pak-period-trigger.has-value,.pak-person-trigger.has-value,.pak-date-trigger.has-value{border-color:rgba(200,168,75,.6);background:#fffdf6}
+  .pak-period-trigger span:first-child,.pak-person-trigger span:first-child,.pak-date-trigger span:first-child{display:flex;align-items:center;min-height:20px}
+  .pak-period-trigger-icon{width:18px;height:18px;color:var(--muted);font-size:15px;line-height:18px;display:inline-flex;align-items:center;justify-content:center;transition:transform .15s;flex-shrink:0}
+  .pak-period-picker-wrap.open .pak-period-trigger-icon,.pak-person-picker-wrap.open .pak-period-trigger-icon,.pak-date-picker-wrap.open .pak-period-trigger-icon{transform:rotate(180deg)}
+  .pak-month-popover,.pak-person-popover,.pak-date-popover{position:absolute;left:0;top:calc(100% + 8px);z-index:650;width:min(100%,380px);background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 18px 48px rgba(13,35,64,.22);overflow:hidden;display:none}
+  .pak-period-picker-wrap.open .pak-month-popover,.pak-person-picker-wrap.open .pak-person-popover,.pak-date-picker-wrap.open .pak-date-popover{display:block;animation:popIn .16s ease}
+  .pak-month-selected,.pak-date-head{padding:12px 14px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff}
+  .pak-month-selected span,.pak-date-head span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.72);font-weight:700;margin-bottom:4px}
+  .pak-month-selected strong,.pak-date-head strong{display:block;font-size:16px;line-height:1.25;font-weight:700}
+  .pak-month-nav,.pak-date-nav{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#fafaf6;border-bottom:1px solid var(--border)}
+  .pak-month-nav strong{font-family:'Fraunces',serif;font-size:21px;color:var(--navy);font-weight:500}
+  .pak-date-nav strong{font-family:'Fraunces',serif;font-size:17px;color:var(--navy);font-weight:600}
+  .pak-month-nav-btn,.pak-date-nav-btn{width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,168,75,.35);background:var(--gold);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .pak-month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:12px;background:#fff}
+  .pak-month-btn{min-height:42px;border:1px solid transparent;border-radius:9px;background:#f8f7f3;color:#64748b;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;transition:background .15s,border-color .15s,color .15s,box-shadow .15s}
+  .pak-month-btn:hover:not(:disabled){background:#fff7e1;border-color:var(--gold);color:var(--gold-dark)}
+  .pak-month-btn.is-range,.pak-month-btn.is-selected{background:var(--gold-light);color:var(--navy);border-color:rgba(200,168,75,.45)}
+  .pak-month-btn.is-start,.pak-month-btn.is-end{background:var(--gold);color:#fff;border-color:var(--gold);box-shadow:0 6px 16px rgba(200,168,75,.28)}
+  .pak-month-btn:disabled{cursor:not-allowed;color:#c7c7c7;background:#f7f7f7;opacity:.62;text-decoration:line-through}
+  .pak-month-actions,.pak-date-actions{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;background:#fafaf6;border-top:1px solid var(--border)}
+  .pak-month-clear,.pak-month-apply,.pak-date-actions button{padding:8px 12px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border)}
+  .pak-month-clear,.pak-date-actions button{background:#fff;color:var(--muted)}
+  .pak-month-apply,.pak-date-actions button:last-child{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .pak-person-popover{width:100%;max-height:330px}
+  .pak-person-search{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fafaf6;border-bottom:1px solid var(--border)}
+  .pak-person-search input{width:100%;border:none!important;box-shadow:none!important;outline:none!important;background:transparent!important;padding:6px 0!important;font-family:inherit;font-size:13px;color:var(--navy)}
+  .pak-person-list{max-height:260px;overflow-y:auto;padding:6px}
+  .pak-person-option{width:100%;display:flex;align-items:center;gap:10px;padding:10px;border:none;border-radius:9px;background:transparent;text-align:left;cursor:pointer;font-family:inherit;transition:background .15s}
+  .pak-person-option:hover,.pak-person-option.active{background:#faf4e3}
+  .pak-person-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);font-family:'Fraunces',serif;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+  .pak-person-main{min-width:0;flex:1}.pak-person-name{font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pak-person-nip{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}.pak-person-empty{padding:20px 12px;text-align:center;color:var(--muted);font-size:12px;line-height:1.5}
+  .pak-date-popover{width:300px}.pak-date-weekdays,.pak-date-grid{display:grid;grid-template-columns:repeat(7,1fr)}.pak-date-weekdays{padding:10px 12px 4px;background:#fff;color:var(--muted);font-size:10px;font-weight:800;text-align:center}.pak-date-grid{gap:4px;padding:8px 12px 12px;background:#fff}.pak-date-day{height:32px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--navy);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}.pak-date-day:hover:not(:disabled){background:var(--gold-light);border-color:rgba(200,168,75,.45)}.pak-date-day.is-selected{background:var(--gold);color:#fff;box-shadow:0 5px 14px rgba(200,168,75,.25)}.pak-date-day.is-today:not(.is-selected){border-color:var(--gold);color:var(--gold-dark)}.pak-date-day.is-muted{color:#b8b8b8;font-weight:500}.pak-date-day:disabled{cursor:not-allowed;color:#d4d4d4;background:#f8f8f8;text-decoration:line-through}
 
   /* Preview pane di dalam modal — tampilkan calculated values realtime */
   .pak-preview{background:#fafaf6;border:1px solid var(--border);border-radius:9px;padding:14px 16px;margin-bottom:14px}
@@ -470,26 +512,53 @@
       <!-- ─── INPUT: Periode ───────────────────────────────── -->
       <div class="form-group">
         <label>Periode Pengajuan</label>
-        <div class="form-row-3col">
-          <select id="pak-input-bulan-start" onchange="onPakInputChange()">
-            <option value="">Bulan awal…</option>
-          </select>
-          <select id="pak-input-bulan-end" onchange="onPakInputChange()">
-            <option value="">Bulan akhir…</option>
-          </select>
-          <select id="pak-input-tahun" onchange="onPakInputChange()">
-            <option value="">Tahun…</option>
-          </select>
+        <input type="hidden" id="pak-input-bulan-start">
+        <input type="hidden" id="pak-input-bulan-end">
+        <input type="hidden" id="pak-input-tahun">
+        <div class="pak-period-note" id="pak-period-note"></div>
+        <div class="pak-period-picker-wrap">
+          <button class="pak-period-trigger" id="pak-period-trigger" type="button" onclick="togglePakPeriodPicker()">
+            <span id="pak-period-trigger-text">Pilih rentang bulan</span>
+            <span class="pak-period-trigger-icon">⌄</span>
+          </button>
+          <div class="pak-month-popover" id="pak-month-popover" aria-hidden="true">
+            <div class="pak-month-selected"><span>Periode terpilih</span><strong id="pak-month-selected-text">Belum dipilih</strong></div>
+            <div class="pak-month-nav">
+              <button type="button" class="pak-month-nav-btn" onclick="shiftPakMonthYear(-1)" aria-label="Tahun sebelumnya">‹</button>
+              <strong id="pak-month-year-label">2026</strong>
+              <button type="button" class="pak-month-nav-btn" onclick="shiftPakMonthYear(1)" aria-label="Tahun berikutnya">›</button>
+            </div>
+            <div class="pak-month-grid" id="pak-month-grid"></div>
+            <div class="pak-month-actions">
+              <button type="button" class="pak-month-clear" onclick="clearPakPeriodSelection()">Hapus</button>
+              <button type="button" class="pak-month-apply" onclick="applyPakPeriodSelection()">Terapkan</button>
+            </div>
+          </div>
         </div>
-        <div class="form-help">
-          Untuk pengajuan tahunan, pilih Januari s.d Desember pada tahun yang sama.
-        </div>
+        <div class="form-help" id="pak-period-help">Pilih bulan awal dan bulan akhir pada tahun yang sama.</div>
       </div>
 
       <!-- ─── INPUT: Tanggal Pengajuan ─────────────────────── -->
       <div class="form-group">
         <label>Tanggal Pengajuan</label>
-        <input type="date" id="pak-input-tgl" onchange="onPakInputChange()">
+        <input type="hidden" id="pak-input-tgl">
+        <div class="pak-date-picker-wrap">
+          <button class="pak-date-trigger" id="pak-date-trigger" type="button" onclick="togglePakDatePicker()">
+            <span id="pak-date-trigger-text">Pilih tanggal</span>
+            <span class="pak-period-trigger-icon">⌄</span>
+          </button>
+          <div class="pak-date-popover" id="pak-date-popover" aria-hidden="true">
+            <div class="pak-date-head"><span>Tanggal pengajuan</span><strong id="pak-date-selected-text">Belum dipilih</strong></div>
+            <div class="pak-date-nav">
+              <button type="button" class="pak-date-nav-btn" onclick="shiftPakDateMonth(-1)" aria-label="Bulan sebelumnya">‹</button>
+              <strong id="pak-date-month-label">Desember 2025</strong>
+              <button type="button" class="pak-date-nav-btn" onclick="shiftPakDateMonth(1)" aria-label="Bulan berikutnya">›</button>
+            </div>
+            <div class="pak-date-weekdays"><span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span></div>
+            <div class="pak-date-grid" id="pak-date-grid"></div>
+            <div class="pak-date-actions"><button type="button" onclick="selectPakDateToday()">Hari ini</button><button type="button" onclick="closePakDatePicker()">Terapkan</button></div>
+          </div>
+        </div>
         <div class="form-help">
           Default hari ini. Minimal harus lebih dari akhir periode (mis.
           periode Jan s.d Mar 2025 → tanggal pengajuan minimal 1 April 2025).
@@ -499,9 +568,17 @@
       <!-- ─── INPUT: Penandatangan ─────────────────────────── -->
       <div class="form-group">
         <label>Penandatangan</label>
-        <select id="pak-input-penandatangan" onchange="onPakInputChange()">
-          <option value="">Memuat daftar pegawai…</option>
-        </select>
+        <input type="hidden" id="pak-input-penandatangan">
+        <div class="pak-person-picker-wrap">
+          <button class="pak-person-trigger" id="pak-person-trigger" type="button" onclick="togglePakPersonPicker()">
+            <span id="pak-person-trigger-text">Pilih pegawai...</span>
+            <span class="pak-period-trigger-icon">⌄</span>
+          </button>
+          <div class="pak-person-popover" id="pak-person-popover" aria-hidden="true">
+            <div class="pak-person-search"><span>🔍</span><input id="pak-person-search-input" type="text" placeholder="Cari nama atau NIP..." oninput="renderPakPersonOptions()"></div>
+            <div class="pak-person-list" id="pak-person-list"></div>
+          </div>
+        </div>
         <div class="form-help">
           Pilih pegawai yang akan menandatangani surat. Jabatan akan
           otomatis diambil dari riwayat jabatan terbaru.
@@ -610,6 +687,7 @@ function fmtTglRiwayat(iso) {
   const mo = parseInt(m[2], 10) - 1;
   return `${d} ${BULAN[mo]} ${m[1]}`;
 }
+const fmtTglID = fmtTglRiwayat;
 
 // Format angka kredit: 22.792 → "22,792" (Indonesian-style decimal).
 // Kalau nilai bilangan bulat, tampilkan tanpa pemisah desimal.
@@ -1030,6 +1108,101 @@ async function ensurePegawaiList() {
   return _pegawaiListCache;
 }
 
+const PAK_PERIOD_PICKER = { year:new Date().getFullYear(), start:null, end:null, appliedStart:null, appliedEnd:null, disabledBefore:null, latestEnd:null };
+const PAK_DATE_PICKER = { year:new Date().getFullYear(), month:new Date().getMonth()+1, selected:'', min:'' };
+function pakMonthKey(year, month){ return (Number(year) * 12) + Number(month); }
+function pakMonthFromKey(key){ const year=Math.floor((key-1)/12); const month=((key-1)%12)+1; return {year,month}; }
+function pakNextMonth(year, month){ return month >= 12 ? {year:year+1,month:1} : {year,month:month+1}; }
+function pakPeriodEndDate(year, month){ const next=pakNextMonth(Number(year), Number(month)); return `${next.year}-${String(next.month).padStart(2,'0')}-01`; }
+function pakLastDayDate(year, month){ const day=new Date(Number(year), Number(month), 0).getDate(); return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }
+function pakISODate(year, month, day){ return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }
+function pakMonthLabel(year, month){ return `${BULAN[month-1]} ${year}`; }
+function pakRangeLabel(start,end){ if(!start||!end)return 'Belum dipilih'; if(start.year===end.year&&start.month===end.month)return pakMonthLabel(start.year,start.month); return `${BULAN[start.month-1]} s.d ${BULAN[end.month-1]} ${start.year}`; }
+function getPakDefaultPeriod(){
+  const periods = Array.isArray(STATE_PROFIL.pengajuan) ? STATE_PROFIL.pengajuan : [];
+  let latestKey = null, latest = null;
+  periods.forEach(p => {
+    const y=Number(p.tahun_periode), end=Number(p.bulan_end || p.bulan_start);
+    if(!y||!end)return;
+    const key=pakMonthKey(y,end);
+    if(latestKey==null || key>latestKey){ latestKey=key; latest=p; }
+  });
+  const today=new Date();
+  if(latestKey==null){
+    const start={year:today.getFullYear(),month:today.getMonth()+1};
+    return {start,disabledBefore:pakMonthKey(start.year,start.month)-1,latestEnd:null,latestEndDate:null,label:'Belum ada pengajuan PAK sebelumnya.'};
+  }
+  const latestEnd=pakMonthFromKey(latestKey);
+  return {
+    start:pakNextMonth(latestEnd.year, latestEnd.month),
+    disabledBefore:latestKey,
+    latestEnd,
+    latestEndDate:pakLastDayDate(latestEnd.year, latestEnd.month),
+    label:pakRangeLabel({year:Number(latest.tahun_periode),month:Number(latest.bulan_start || latest.bulan_end)}, latestEnd)
+  };
+}
+function setPakPeriodInputs(start,end){
+  document.getElementById('pak-input-bulan-start').value=start?start.month:'';
+  document.getElementById('pak-input-bulan-end').value=end?end.month:'';
+  document.getElementById('pak-input-tahun').value=start?start.year:'';
+  const text=pakRangeLabel(start,end);
+  document.getElementById('pak-period-trigger-text').textContent=text==='Belum dipilih'?'Pilih rentang bulan':text;
+  document.getElementById('pak-period-trigger').classList.toggle('has-value',!!(start&&end));
+  if(start&&end) setPakDateValue(pakPeriodEndDate(end.year,end.month), pakPeriodEndDate(end.year,end.month));
+  else setPakDateValue('', '');
+}
+function setPakDateValue(value,minValue){
+  document.getElementById('pak-input-tgl').value=value||'';
+  PAK_DATE_PICKER.selected=value||'';
+  PAK_DATE_PICKER.min=minValue||PAK_DATE_PICKER.min||'';
+  if(value){ const [y,m]=value.split('-').map(Number); PAK_DATE_PICKER.year=y; PAK_DATE_PICKER.month=m; }
+  document.getElementById('pak-date-trigger-text').textContent=value?fmtTglID(value):'Pilih tanggal';
+  document.getElementById('pak-date-selected-text').textContent=value?fmtTglID(value):'Belum dipilih';
+  document.getElementById('pak-date-trigger').classList.toggle('has-value',!!value);
+  renderPakDatePicker();
+}
+function initPakPeriodPicker(){
+  const d=getPakDefaultPeriod(), start=d.start;
+  Object.assign(PAK_PERIOD_PICKER,{year:start.year,start:{...start},end:{...start},appliedStart:{...start},appliedEnd:{...start},disabledBefore:d.disabledBefore,latestEnd:d.latestEnd});
+  const note=document.getElementById('pak-period-note');
+  note.innerHTML=d.latestEnd?`<strong>Pengajuan terakhir: ${esc(fmtTglID(d.latestEndDate))}</strong><br>${esc(d.label)}. Bulan yang sudah punya PAK atau sudah diajukan tidak bisa dipilih.`:'Belum ada riwayat pengajuan PAK. Pilih periode awal pengajuan.';
+  note.classList.add('show');
+  setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart, PAK_PERIOD_PICKER.appliedEnd);
+  renderPakMonthPicker();
+}
+function togglePakPeriodPicker(force){ const w=document.querySelector('.pak-period-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-month-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPersonPicker();closePakDatePicker();renderPakMonthPicker();} }
+function closePakPeriodPicker(){ togglePakPeriodPicker(false); }
+function shiftPakMonthYear(delta){ PAK_PERIOD_PICKER.year+=delta; PAK_PERIOD_PICKER.start=null; PAK_PERIOD_PICKER.end=null; renderPakMonthPicker(); }
+function selectPakMonth(month){ const item={year:PAK_PERIOD_PICKER.year,month}; if(pakMonthKey(item.year,item.month)<=PAK_PERIOD_PICKER.disabledBefore)return; if(!PAK_PERIOD_PICKER.start || (PAK_PERIOD_PICKER.start&&PAK_PERIOD_PICKER.end)){ PAK_PERIOD_PICKER.start=item; PAK_PERIOD_PICKER.end=null; } else if(pakMonthKey(item.year,item.month)<pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month)){ PAK_PERIOD_PICKER.end=PAK_PERIOD_PICKER.start; PAK_PERIOD_PICKER.start=item; } else { PAK_PERIOD_PICKER.end=item; } renderPakMonthPicker(); }
+function renderPakMonthPicker(){
+  const label=document.getElementById('pak-month-year-label'); if(!label)return;
+  label.textContent=PAK_PERIOD_PICKER.year;
+  document.getElementById('pak-month-selected-text').textContent=pakRangeLabel(PAK_PERIOD_PICKER.start,PAK_PERIOD_PICKER.end);
+  document.getElementById('pak-month-grid').innerHTML=BULAN.map((name,idx)=>{ const month=idx+1,key=pakMonthKey(PAK_PERIOD_PICKER.year,month),sk=PAK_PERIOD_PICKER.start?pakMonthKey(PAK_PERIOD_PICKER.start.year,PAK_PERIOD_PICKER.start.month):null,ek=PAK_PERIOD_PICKER.end?pakMonthKey(PAK_PERIOD_PICKER.end.year,PAK_PERIOD_PICKER.end.month):null,disabled=key<=PAK_PERIOD_PICKER.disabledBefore,isStart=sk===key,isEnd=ek===key,isRange=sk!=null&&ek!=null&&key>sk&&key<ek; const cls=['pak-month-btn',isRange?'is-range':'',isStart?'is-start is-selected':'',isEnd?'is-end is-selected':''].filter(Boolean).join(' '); return `<button type="button" class="${cls}" onclick="selectPakMonth(${month})" ${disabled?'disabled':''}>${esc(name.slice(0,3))}</button>`; }).join('');
+}
+function clearPakPeriodSelection(){ Object.assign(PAK_PERIOD_PICKER,{start:null,end:null,appliedStart:null,appliedEnd:null}); setPakPeriodInputs(null,null); renderPakMonthPicker(); onPakInputChange(); }
+function applyPakPeriodSelection(){ if(!PAK_PERIOD_PICKER.start){ alert('Pilih bulan awal periode'); return; } if(!PAK_PERIOD_PICKER.end) PAK_PERIOD_PICKER.end={...PAK_PERIOD_PICKER.start}; PAK_PERIOD_PICKER.appliedStart={...PAK_PERIOD_PICKER.start}; PAK_PERIOD_PICKER.appliedEnd={...PAK_PERIOD_PICKER.end}; setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart,PAK_PERIOD_PICKER.appliedEnd); closePakPeriodPicker(); onPakInputChange(); }
+function togglePakDatePicker(force){ const w=document.querySelector('.pak-date-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-date-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPeriodPicker();closePakPersonPicker();renderPakDatePicker();} }
+function closePakDatePicker(){ togglePakDatePicker(false); }
+function shiftPakDateMonth(delta){ const d=new Date(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month-1+delta,1); PAK_DATE_PICKER.year=d.getFullYear(); PAK_DATE_PICKER.month=d.getMonth()+1; renderPakDatePicker(); }
+function renderPakDatePicker(){
+  const grid=document.getElementById('pak-date-grid'); if(!grid)return;
+  document.getElementById('pak-date-month-label').textContent=pakMonthLabel(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month);
+  document.getElementById('pak-date-selected-text').textContent=PAK_DATE_PICKER.selected?fmtTglID(PAK_DATE_PICKER.selected):'Belum dipilih';
+  const first=new Date(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month-1,1), off=first.getDay(), dim=new Date(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month,0).getDate(), prev=new Date(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month-1,0).getDate(), today=new Date(), todayISO=pakISODate(today.getFullYear(),today.getMonth()+1,today.getDate()), cells=[];
+  for(let i=off-1;i>=0;i--) cells.push({day:prev-i,muted:true,iso:''});
+  for(let d=1;d<=dim;d++) cells.push({day:d,muted:false,iso:pakISODate(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month,d)});
+  while(cells.length%7!==0||cells.length<42) cells.push({day:cells.length-off-dim+1,muted:true,iso:''});
+  grid.innerHTML=cells.map(c=>{ const disabled=!c.iso||(PAK_DATE_PICKER.min&&c.iso<PAK_DATE_PICKER.min), cls=['pak-date-day',c.muted?'is-muted':'',c.iso===PAK_DATE_PICKER.selected?'is-selected':'',c.iso===todayISO?'is-today':''].filter(Boolean).join(' '); return `<button type="button" class="${cls}" onclick="selectPakDate(${jsArg(c.iso)})" ${disabled?'disabled':''}>${c.day}</button>`; }).join('');
+}
+function selectPakDate(iso){ if(!iso||(PAK_DATE_PICKER.min&&iso<PAK_DATE_PICKER.min))return; setPakDateValue(iso,PAK_DATE_PICKER.min); closePakDatePicker(); onPakInputChange(); }
+function selectPakDateToday(){ const t=new Date(), iso=pakISODate(t.getFullYear(),t.getMonth()+1,t.getDate()); selectPakDate((PAK_DATE_PICKER.min&&iso<PAK_DATE_PICKER.min)?PAK_DATE_PICKER.min:iso); }
+function initPakPersonPicker(){ document.getElementById('pak-input-penandatangan').value=''; document.getElementById('pak-person-trigger-text').textContent='Pilih pegawai...'; document.getElementById('pak-person-trigger').classList.remove('has-value'); document.getElementById('pak-person-search-input').value=''; renderPakPersonOptions(); }
+function togglePakPersonPicker(force){ const w=document.querySelector('.pak-person-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-person-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPeriodPicker();closePakDatePicker();renderPakPersonOptions();setTimeout(()=>document.getElementById('pak-person-search-input').focus(),0);} }
+function closePakPersonPicker(){ togglePakPersonPicker(false); }
+function renderPakPersonOptions(){ const input=document.getElementById('pak-person-search-input'); if(!input)return; const q=input.value.toLowerCase().trim(), selected=document.getElementById('pak-input-penandatangan').value, rows=(_pegawaiListCache||[]).filter(p=>p.NIP).filter(p=>!q||`${p.NAMA||''} ${p.NIP||''}`.toLowerCase().includes(q)).slice(0,80), list=document.getElementById('pak-person-list'); if(!rows.length){list.innerHTML='<div class="pak-person-empty">Tidak ada pegawai yang cocok.</div>';return;} list.innerHTML=rows.map(p=>`<button type="button" class="pak-person-option ${String(p.NIP)===String(selected)?'active':''}" onclick="selectPakPerson(${jsArg(p.NIP)}, ${jsArg(p.NAMA||p.NIP)})"><span class="pak-person-avatar">${esc(initialsOf(p.NAMA||p.NIP))}</span><span class="pak-person-main"><span class="pak-person-name">${esc(p.NAMA||p.NIP)}</span><span class="pak-person-nip">${esc(p.NIP)}</span></span></button>`).join(''); }
+function selectPakPerson(nip,nama){ document.getElementById('pak-input-penandatangan').value=nip; document.getElementById('pak-person-trigger-text').textContent=nama; document.getElementById('pak-person-trigger').classList.add('has-value'); closePakPersonPicker(); onPakInputChange(); }
+
 function populateBulanSelect(selectEl, placeholder) {
   selectEl.innerHTML = `<option value="">${placeholder}</option>` +
     BULAN.map((nm, i) => `<option value="${i + 1}">${esc(nm)}</option>`).join('');
@@ -1051,46 +1224,23 @@ async function openPakModal() {
     alert('NIP belum tersedia. Tidak bisa mengajukan PAK.');
     return;
   }
-  // Reset & populate dropdowns
-  const selStart = document.getElementById('pak-input-bulan-start');
-  const selEnd   = document.getElementById('pak-input-bulan-end');
-  const selTahun = document.getElementById('pak-input-tahun');
-  const inputTgl = document.getElementById('pak-input-tgl');
-  const selTtd   = document.getElementById('pak-input-penandatangan');
-
-  populateBulanSelect(selStart, 'Bulan awal…');
-  populateBulanSelect(selEnd,   'Bulan akhir…');
-  populateTahunSelect(selTahun);
-
-  // Default tgl_pengajuan = hari ini
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  inputTgl.value = `${yyyy}-${mm}-${dd}`;
-
   // Reset preview & button
   document.getElementById('pak-preview').style.display = 'none';
   document.getElementById('btn-submit-pak').disabled   = true;
 
   // Show modal sekarang (sebelum fetch pegawai supaya tidak laggy)
   document.getElementById('pak-modal').classList.add('show');
+  initPakPeriodPicker();
 
-  // Populate dropdown penandatangan async
-  selTtd.innerHTML = `<option value="">Memuat daftar pegawai…</option>`;
-  const pegawaiList = await ensurePegawaiList();
-  if (pegawaiList.length) {
-    selTtd.innerHTML = `<option value="">Pilih pegawai…</option>` +
-      pegawaiList.map(p =>
-        `<option value="${esc(p.NIP)}">${esc(p.NAMA || p.NIP)}</option>`
-      ).join('');
-  } else {
-    selTtd.innerHTML = `<option value="">(Gagal memuat daftar pegawai)</option>`;
-  }
+  await ensurePegawaiList();
+  initPakPersonPicker();
 }
 
 function closePakModal() {
   document.getElementById('pak-modal').classList.remove('show');
+  closePakPeriodPicker();
+  closePakPersonPicker();
+  closePakDatePicker();
 }
 
 /**
@@ -1137,13 +1287,11 @@ async function computePakPreview() {
 
   // Validasi tgl_pengajuan ≥ akhir periode + 1 bulan
   // Mis. periode Jan-Mar 2025 → minimal 1 April 2025
-  const minDate = new Date(tahun, bulan_end, 1); // bulan_end (1-12) → index 0-11, bulan setelahnya = bulan_end (because months are 0-indexed)
-  const tglDate = new Date(tgl);
-  if (tglDate < minDate) {
-    const minStr = `1 ${BULAN[bulan_end % 12]} ${bulan_end === 12 ? tahun + 1 : tahun}`;
+  const minDate = pakPeriodEndDate(tahun, bulan_end);
+  if (tgl < minDate) {
     previewEl.style.display = 'block';
     contentEl.innerHTML = `<div class="pak-preview-error">
-      Tanggal pengajuan minimal <strong>${esc(minStr)}</strong>
+      Tanggal pengajuan minimal <strong>${esc(fmtTglID(minDate))}</strong>
       (lebih dari akhir periode).
     </div>`;
     return;
@@ -1240,6 +1388,11 @@ async function submitPak() {
   const tahun       = parseInt(document.getElementById('pak-input-tahun').value, 10);
   const tgl         = document.getElementById('pak-input-tgl').value;
   const ttdNip      = document.getElementById('pak-input-penandatangan').value;
+  const minTgl      = pakPeriodEndDate(tahun, bulan_end);
+  if (!bulan_start || !bulan_end || !tahun || !tgl || !ttdNip || tgl < minTgl) {
+    alert(`Tanggal pengajuan minimal ${fmtTglID(minTgl)}.`);
+    return;
+  }
 
   const btn = document.getElementById('btn-submit-pak');
   btn.disabled = true;
@@ -1454,7 +1607,15 @@ document.addEventListener('keydown', (e) => {
   const previewModal = document.getElementById('pak-preview-modal');
   if (previewModal && previewModal.classList.contains('show')) {
     closePakPreview();
+  } else if (document.getElementById('pak-modal').classList.contains('show')) {
+    closePakModal();
   }
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.pak-period-picker-wrap')) closePakPeriodPicker();
+  if (!e.target.closest('.pak-person-picker-wrap')) closePakPersonPicker();
+  if (!e.target.closest('.pak-date-picker-wrap')) closePakDatePicker();
 });
 
 async function reloadPengajuan() {
