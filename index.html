@@ -73,7 +73,15 @@
   .info-stack{display:flex;flex-direction:column;gap:14px;margin-top:14px}
   .info-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(13,35,64,.04)}
   .info-card-head{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--border);background:#fafaf6}
-  .info-card-icon{width:28px;height:28px;border-radius:7px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+  .info-card-icon{width:28px;height:28px;border-radius:7px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;color:var(--navy);position:relative}
+  .section-icon{width:15px;height:15px;display:block;position:relative;color:var(--navy)}
+  .section-icon::before,.section-icon::after{content:'';position:absolute;box-sizing:border-box}
+  .section-icon.pak::before{left:3px;top:1px;width:9px;height:12px;border:1.7px solid currentColor;border-radius:2px;background:rgba(255,255,255,.35)}
+  .section-icon.pak::after{left:5px;top:5px;width:5px;height:1.6px;background:currentColor;box-shadow:0 3px 0 currentColor}
+  .section-icon.job::before{left:1px;top:5px;width:13px;height:8px;border:1.7px solid currentColor;border-radius:2px}
+  .section-icon.job::after{left:5px;top:2px;width:5px;height:4px;border:1.6px solid currentColor;border-bottom:0;border-radius:2px 2px 0 0}
+  .section-icon.rank::before{left:2px;top:2px;width:11px;height:11px;border:1.7px solid currentColor;border-radius:50%}
+  .section-icon.rank::after{left:6px;top:5px;width:3px;height:6px;background:currentColor;box-shadow:-3px 5px 0 -1px currentColor,3px 5px 0 -1px currentColor}
   .info-card-title{font-size:12px;font-weight:700;color:var(--navy);letter-spacing:.6px;text-transform:uppercase}
   .info-card-body{padding:6px 0}
   .info-row{display:grid;grid-template-columns:130px 1fr;gap:14px;padding:9px 18px;align-items:start;border-bottom:1px solid #f4f1e9;line-height:1.5}
@@ -121,7 +129,9 @@
   .pak-hero-label{font-size:10px;font-weight:600;color:var(--gold-dark);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:4px}
   .pak-hero-value{font-family:'Fraunces',serif;font-size:30px;font-weight:500;color:var(--navy);line-height:1;letter-spacing:-.5px}
   .pak-hero-value.muted{color:var(--muted);font-style:italic;font-size:18px;font-weight:400}
-  .pak-hero-caret{font-size:11px;color:var(--muted);transition:transform .2s;flex-shrink:0;align-self:center}
+  .pak-hero-caret{width:28px;height:28px;border-radius:50%;border:1px solid rgba(13,35,64,.12);background:#fff;display:flex;align-items:center;justify-content:center;color:var(--navy);transition:transform .2s,background .15s,border-color .15s;flex-shrink:0;align-self:center}
+  .pak-hero-caret::before{content:'';width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-top:-3px}
+  .pak-hero:hover .pak-hero-caret{background:#faf4e3;border-color:rgba(200,168,75,.38)}
   .pak-hero.expanded .pak-hero-caret{transform:rotate(180deg)}
 
   /* Metric cards grid (Naik Pangkat / Naik Jenjang) */
@@ -317,7 +327,7 @@
   .pak-person-option:hover,.pak-person-option.active{background:#faf4e3}
   .pak-person-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);font-family:'Fraunces',serif;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
   .pak-person-main{min-width:0;flex:1}.pak-person-name{font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pak-person-nip{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}.pak-person-empty{padding:20px 12px;text-align:center;color:var(--muted);font-size:12px;line-height:1.5}
-  .pak-date-popover{width:300px}.pak-date-weekdays,.pak-date-grid{display:grid;grid-template-columns:repeat(7,1fr)}.pak-date-weekdays{padding:10px 12px 4px;background:#fff;color:var(--muted);font-size:10px;font-weight:800;text-align:center}.pak-date-grid{gap:4px;padding:8px 12px 12px;background:#fff}.pak-date-day{height:32px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--navy);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}.pak-date-day:hover:not(:disabled){background:var(--gold-light);border-color:rgba(200,168,75,.45)}.pak-date-day.is-selected{background:var(--gold);color:#fff;box-shadow:0 5px 14px rgba(200,168,75,.25)}.pak-date-day.is-today:not(.is-selected){border-color:var(--gold);color:var(--gold-dark)}.pak-date-day.is-muted{color:#b8b8b8;font-weight:500}.pak-date-day:disabled{cursor:not-allowed;color:#d4d4d4;background:#f8f8f8;text-decoration:line-through}
+  .pak-date-popover{width:292px;top:auto;bottom:calc(100% + 8px)}.pak-date-popover .pak-date-head{padding:10px 12px}.pak-date-popover .pak-date-head strong{font-size:15px}.pak-date-popover .pak-date-nav{height:40px}.pak-date-popover .pak-date-nav-btn{width:28px;height:28px}.pak-date-weekdays,.pak-date-grid{display:grid;grid-template-columns:repeat(7,1fr)}.pak-date-weekdays{padding:8px 10px 3px;background:#fff;color:var(--muted);font-size:10px;font-weight:800;text-align:center}.pak-date-grid{gap:3px;padding:6px 10px 8px;background:#fff}.pak-date-day{height:27px;border-radius:7px;border:1px solid transparent;background:transparent;color:var(--navy);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}.pak-date-actions{padding:8px 10px}.pak-date-day:hover:not(:disabled){background:var(--gold-light);border-color:rgba(200,168,75,.45)}.pak-date-day.is-selected{background:var(--gold);color:#fff;box-shadow:0 5px 14px rgba(200,168,75,.25)}.pak-date-day.is-today:not(.is-selected){border-color:var(--gold);color:var(--gold-dark)}.pak-date-day.is-muted{color:#b8b8b8;font-weight:500}.pak-date-day:disabled{cursor:not-allowed;color:#d4d4d4;background:#f8f8f8;text-decoration:line-through}
 
   /* Preview pane di dalam modal - tampilkan calculated values realtime */
   .pak-preview{background:#fafaf6;border:1px solid var(--border);border-radius:9px;padding:14px 16px;margin-bottom:14px}
@@ -831,7 +841,7 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
 
   const cardJabatan = `
     <div class="info-card">
-      <div class="info-card-head"><div class="info-card-icon"></div><div class="info-card-title">Riwayat Jabatan</div></div>
+      <div class="info-card-head"><div class="info-card-icon"><span class="section-icon job"></span></div><div class="info-card-title">Riwayat Jabatan</div></div>
       <div class="info-card-body">
         ${(jabatan && jabatan.length)
           ? jabatan.map(r => riwayatRow(esc(clean(r.jabatan) || '-'), r.tmt)).join('')
@@ -841,7 +851,7 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
 
   const cardPangkat = `
     <div class="info-card">
-      <div class="info-card-head"><div class="info-card-icon"></div><div class="info-card-title">Riwayat Pangkat &amp; Golongan</div></div>
+      <div class="info-card-head"><div class="info-card-icon"><span class="section-icon rank"></span></div><div class="info-card-title">Riwayat Pangkat &amp; Golongan</div></div>
       <div class="info-card-body">
         ${(pangkat && pangkat.length)
           ? pangkat.map(r => riwayatRow(
@@ -999,7 +1009,7 @@ function renderPakCard() {
   return `
     <div class="info-card pak-card">
       <div class="pak-card-head">
-        <div class="info-card-icon">*</div>
+        <div class="info-card-icon"><span class="section-icon pak"></span></div>
         <div class="pak-card-title">Riwayat PAK</div>
         <button class="pak-card-action" onclick="event.stopPropagation();openPakModal()" title="Ajukan PAK baru" type="button">
           <span>+</span> Ajukan PAK
@@ -1012,7 +1022,7 @@ function renderPakCard() {
             ${pakTerakhir ? esc(pakTerakhir) : 'Belum ada'}
           </div>
         </div>
-        <div class="pak-hero-caret">v</div>
+        <div class="pak-hero-caret" aria-hidden="true"></div>
       </div>
       <div class="pak-metrics">
         ${buildPangkatPanel()}
