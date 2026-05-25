@@ -1,66 +1,14 @@
 -- RPC untuk edit dan membatalkan pengajuan PAK.
--- Jalankan file ini di Supabase SQL Editor.
+-- Jalankan seluruh file ini di Supabase SQL Editor.
 --
--- Kenapa perlu RPC?
--- Aplikasi memakai sistem login custom (session di localStorage), bukan Supabase Auth.
--- Karena itu request REST UPDATE/DELETE langsung ke tabel pengajuan_pak tidak punya
--- konteks auth.uid(), sehingga RLS bisa mengembalikan sukses kosong: tidak ada row
--- yang berubah. RPC SECURITY DEFINER ini mengikuti pola pengajuan_pak_create.
+-- Catatan:
+-- 1. Jangan tambahkan perintah ALTER TABLE apa pun di tengah function.
+-- 2. File ini sengaja tidak memakai variabel composite seperti
+--    "v_row public.pengajuan_pak" agar tidak mengundang helper Supabase
+--    menambahkan RLS ke nama variabel secara keliru.
 
-create or replace function public.pengajuan_pak_caller_is_admin(p_caller_id bigint)
-returns boolean
-language sql
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1
-    from public.users u
-    where u.id = p_caller_id
-      and (
-        u.role = 'admin'
-        or coalesce(u.roles, array[]::text[]) @> array['admin']::text[]
-      )
-  );
-$$;
-
-create or replace function public.pengajuan_pak_caller_nip(p_caller_id bigint)
-returns text
-language sql
-security definer
-set search_path = public
-as $$
-  select dp."NIP"
-  from public.data_pegawai dp
-  where dp.id = p_caller_id
-  limit 1;
-$$;
-
-create or replace function public.pengajuan_pak_can_mutate(
-  p_caller_id bigint,
-  p_pengajuan public.pengajuan_pak
-)
-returns boolean
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_caller_nip text;
-begin
-  if p_caller_id is null then
-    return false;
-  end if;
-
-  if public.pengajuan_pak_caller_is_admin(p_caller_id) then
-    return true;
-  end if;
-
-  v_caller_nip := public.pengajuan_pak_caller_nip(p_caller_id);
-  return v_caller_nip is not null
-     and v_caller_nip = p_pengajuan.pegawai_nip;
-end;
-$$;
+drop function if exists public.pengajuan_pak_update(bigint, bigint, integer, integer, integer, text, numeric, numeric, numeric, jsonb, date, text, text);
+drop function if exists public.pengajuan_pak_delete(bigint, bigint);
 
 create or replace function public.pengajuan_pak_update(
   p_caller_id bigint,
@@ -77,29 +25,49 @@ create or replace function public.pengajuan_pak_update(
   p_penandatangan_nip text,
   p_penandatangan_nama text default null
 )
-returns setof public.pengajuan_pak
+returns jsonb
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 declare
-  v_row public.pengajuan_pak;
-  v_updated public.pengajuan_pak;
+  v_pegawai_nip text;
+  v_status text;
+  v_caller_nip text;
+  v_is_admin boolean;
+  v_result jsonb;
 begin
-  select *
-  into v_row
-  from public.pengajuan_pak
-  where id = p_pengajuan_id;
+  select p.pegawai_nip, coalesce(p.status, 'menunggu')
+    into v_pegawai_nip, v_status
+  from public.pengajuan_pak p
+  where p.id = p_pengajuan_id;
 
-  if not found then
+  if v_pegawai_nip is null then
     raise exception 'Pengajuan PAK tidak ditemukan';
   end if;
 
-  if coalesce(v_row.status, 'menunggu') <> 'menunggu' then
+  if v_status <> 'menunggu' then
     raise exception 'Pengajuan yang sudah selesai tidak bisa diedit';
   end if;
 
-  if not public.pengajuan_pak_can_mutate(p_caller_id, v_row) then
+  select exists (
+    select 1
+    from public.users u
+    where u.id = p_caller_id
+      and (
+        u.role = 'admin'
+        or coalesce(u.roles, array[]::text[]) @> array['admin']::text[]
+      )
+  ) into v_is_admin;
+
+  select dp."NIP"
+    into v_caller_nip
+  from public.data_pegawai dp
+  where dp.id = p_caller_id
+  limit 1;
+
+  if not coalesce(v_is_admin, false)
+     and (v_caller_nip is null or v_caller_nip <> v_pegawai_nip) then
     raise exception 'Anda tidak berhak mengubah pengajuan ini';
   end if;
 
@@ -130,7 +98,7 @@ begin
     raise exception 'Penandatangan wajib';
   end if;
 
-  update public.pengajuan_pak
+  update public.pengajuan_pak p
   set tahun_periode = p_tahun_periode,
       bulan_start = p_bulan_start,
       bulan_end = p_bulan_end,
@@ -142,53 +110,71 @@ begin
       tgl_pengajuan = p_tgl_pengajuan,
       penandatangan_nip = p_penandatangan_nip,
       penandatangan_nama = p_penandatangan_nama
-  where id = p_pengajuan_id
-  returning * into v_updated;
+  where p.id = p_pengajuan_id
+  returning to_jsonb(p.*) into v_result;
 
-  return next v_updated;
+  return v_result;
 end;
-$$;
+$function$;
 
 create or replace function public.pengajuan_pak_delete(
   p_caller_id bigint,
   p_pengajuan_id bigint
 )
-returns setof public.pengajuan_pak
+returns jsonb
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $function$
 declare
-  v_row public.pengajuan_pak;
+  v_pegawai_nip text;
+  v_status text;
+  v_caller_nip text;
+  v_is_admin boolean;
+  v_result jsonb;
 begin
-  select *
-  into v_row
-  from public.pengajuan_pak
-  where id = p_pengajuan_id;
+  select p.pegawai_nip, coalesce(p.status, 'menunggu')
+    into v_pegawai_nip, v_status
+  from public.pengajuan_pak p
+  where p.id = p_pengajuan_id;
 
-  if not found then
+  if v_pegawai_nip is null then
     raise exception 'Pengajuan PAK tidak ditemukan';
   end if;
 
-  if coalesce(v_row.status, 'menunggu') <> 'menunggu' then
+  if v_status <> 'menunggu' then
     raise exception 'Pengajuan yang sudah selesai tidak bisa dibatalkan';
   end if;
 
-  if not public.pengajuan_pak_can_mutate(p_caller_id, v_row) then
+  select exists (
+    select 1
+    from public.users u
+    where u.id = p_caller_id
+      and (
+        u.role = 'admin'
+        or coalesce(u.roles, array[]::text[]) @> array['admin']::text[]
+      )
+  ) into v_is_admin;
+
+  select dp."NIP"
+    into v_caller_nip
+  from public.data_pegawai dp
+  where dp.id = p_caller_id
+  limit 1;
+
+  if not coalesce(v_is_admin, false)
+     and (v_caller_nip is null or v_caller_nip <> v_pegawai_nip) then
     raise exception 'Anda tidak berhak membatalkan pengajuan ini';
   end if;
 
-  delete from public.pengajuan_pak
-  where id = p_pengajuan_id
-  returning * into v_row;
+  delete from public.pengajuan_pak p
+  where p.id = p_pengajuan_id
+  returning to_jsonb(p.*) into v_result;
 
-  return next v_row;
+  return v_result;
 end;
-$$;
+$function$;
 
-revoke all on function public.pengajuan_pak_caller_is_admin(bigint) from public;
-revoke all on function public.pengajuan_pak_caller_nip(bigint) from public;
-revoke all on function public.pengajuan_pak_can_mutate(bigint, public.pengajuan_pak) from public;
 revoke all on function public.pengajuan_pak_update(bigint, bigint, integer, integer, integer, text, numeric, numeric, numeric, jsonb, date, text, text) from public;
 revoke all on function public.pengajuan_pak_delete(bigint, bigint) from public;
 
