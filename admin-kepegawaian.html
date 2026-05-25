@@ -1222,7 +1222,7 @@ function renderProgressBlock(s) {
       statusCls: p.can_promote ? 'is-ready' : 'is-warn',
       innerText: p.can_promote ? '✓' : `${pct.toFixed(0)}%`,
       isReady: p.can_promote,
-      estLine: `<div class="pg-prog-est">TMT ${esc(tmt)} → ${esc(due)}</div>`,
+      estLine: `<div class="pg-prog-est">${esc(tmt)} &rarr; ${esc(due)}</div>`,
     });
     const jabatanRow = ringRow({
       cls: 'is-cap',
