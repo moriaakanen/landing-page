@@ -1729,21 +1729,38 @@ function pakDisabledBeforeForEdit(row) {
 }
 
 async function mutatePengajuanRow(method, id, payload) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/pengajuan_pak?id=eq.${encodeURIComponent(id)}`, {
-    method,
-    headers: { ...SUPABASE_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-    body: payload ? JSON.stringify(payload) : undefined,
-  });
-  const text = await res.text();
-  let rows = [];
-  if (text) {
-    try { rows = JSON.parse(text); } catch (_) { rows = []; }
+  const callerId = (JSON.parse(localStorage.getItem('nova_user') || '{}') || {}).id;
+  if (!callerId) throw new Error('Sesi login tidak ditemukan. Silakan login ulang.');
+
+  let result;
+  if (method === 'DELETE') {
+    result = await novaRpc('pengajuan_pak_delete', {
+      p_caller_id: callerId,
+      p_pengajuan_id: id,
+    });
+  } else if (method === 'PATCH') {
+    result = await novaRpc('pengajuan_pak_update', {
+      p_caller_id: callerId,
+      p_pengajuan_id: id,
+      p_tahun_periode: payload.tahun_periode,
+      p_bulan_start: payload.bulan_start,
+      p_bulan_end: payload.bulan_end,
+      p_mode_hitung: payload.mode_hitung,
+      p_ak_didapat: payload.ak_didapat,
+      p_ak_n1: payload.ak_n1,
+      p_ak_total: payload.ak_total,
+      p_detail_predikat: payload.detail_predikat,
+      p_tgl_pengajuan: payload.tgl_pengajuan,
+      p_penandatangan_nip: payload.penandatangan_nip,
+      p_penandatangan_nama: payload.penandatangan_nama,
+    });
+  } else {
+    throw new Error(`Metode pengajuan tidak didukung: ${method}`);
   }
-  if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
-  if (!Array.isArray(rows) || rows.length === 0) {
-    throw new Error('Supabase tidak mengubah data. Kemungkinan policy RLS belum mengizinkan update/delete pengajuan_pak untuk user ini.');
-  }
-  return rows[0];
+
+  const row = Array.isArray(result) ? result[0] : result;
+  if (!row) throw new Error('RPC tidak mengembalikan data pengajuan.');
+  return row;
 }
 
 function pakDraftRangeLabel(start, end) {
