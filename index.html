@@ -944,47 +944,33 @@ function openMyProfilePhotoEditor() {
   });
 }
 
+function akPeriodEndFromRow(row) {
+  if (row && row.periode_tahun && row.periode_bulan_akhir) {
+    return { year: Number(row.periode_tahun), month: Number(row.periode_bulan_akhir) };
+  }
+  const m = String(row && row.tmt || '').slice(0, 10).match(/^(\d{4})-(\d{2})/);
+  return m ? { year: Number(m[1]), month: Number(m[2]) } : null;
+}
+
+function addMonthsToMonth(year, month, addMonths) {
+  const d = new Date(Number(year), Number(month) - 1 + Number(addMonths || 0), 1);
+  return { year: d.getFullYear(), month: d.getMonth() + 1 };
+}
+
 /**
- * Hitung perkiraan TANGGAL naik jenjang/pangkat berdasarkan laju AK
- * historis. Output diformat sebagai "Nama-Bulan YYYY" (mis. "Maret 2027").
- *
- * Asumsi sederhana: laju AK tahunan = (AK_terbaru - AK_terlama) / (tahun_terlama..tahun_terbaru).
- * Kalau tidak cukup data (kurang dari 2 entri AK), return null - UI akan
- * menampilkan placeholder.
- *
- * @param {number} sisa     - berapa AK lagi yang dibutuhkan
- * @param {Array}  akList   - riwayat AK pegawai (desc by tmt)
- * @returns {string|null}   - mis. "Maret 2027" atau null
+ * Estimasi promosi = ceil(kekurangan AK / AK bulanan).
+ * AK bulanan memakai koefisien jenjang aktif pada predikat 100%: koef / 12.
+ * Bulan dasar adalah bulan akhir periode AK terakhir.
  */
-function estimasiTahunPromosi(sisa, akList) {
+function estimasiTahunPromosi(sisa, latestAK, jenjangAktif) {
   if (sisa == null || sisa <= 0) return null;
-  if (!Array.isArray(akList) || akList.length < 2) return null;
-
-  // Sortir asc by tmt untuk hitung delta
-  const sorted = [...akList].slice().sort((a,b) => String(a.tmt).localeCompare(String(b.tmt)));
-  const earliest = sorted[0];
-  const latest   = sorted[sorted.length - 1];
-
-  const akEarliest = Number(earliest.angka_kredit) || 0;
-  const akLatest   = Number(latest.angka_kredit) || 0;
-  const delta      = akLatest - akEarliest;
-  if (delta <= 0) return null;
-
-  // Hitung tahun terlewat (bisa fractional, lebih akurat dari int year-only)
-  const dEarliest = new Date(earliest.tmt);
-  const dLatest   = new Date(latest.tmt);
-  const yearGap   = (dLatest - dEarliest) / (1000 * 60 * 60 * 24 * 365.25);
-  if (yearGap <= 0) return null;
-
-  const lajuPerTahun = delta / yearGap;
-  if (lajuPerTahun <= 0) return null;
-
-  // Tahun fractional yang dibutuhkan
-  const tahunLagi = sisa / lajuPerTahun;
-  // Convert ke perkiraan tanggal absolut
-  const target = new Date();
-  target.setMonth(target.getMonth() + Math.ceil(tahunLagi * 12));
-  return `${BULAN[target.getMonth()]} ${target.getFullYear()}`;
+  const koef = Number(jenjangAktif && jenjangAktif.koefisien);
+  const akBulanan = koef / 12;
+  const base = akPeriodEndFromRow(latestAK);
+  if (!koef || akBulanan <= 0 || !base) return null;
+  const bulanLagi = Math.max(1, Math.ceil(Number(sisa) / akBulanan));
+  const target = addMonthsToMonth(base.year, base.month, bulanLagi);
+  return `${BULAN[target.month - 1]} ${target.year}`;
 }
 
 function renderPakCard() {
@@ -1038,7 +1024,7 @@ function renderPakCard() {
     } else {
       // AK masih kurang - tampilkan sisa + perkiraan tahun
       kebutuhanRow = `<div class="pak-metric-row-value warn">-${esc(fmtAK(subProg.sisa))}</div>`;
-      const est = estimasiTahunPromosi(subProg.sisa, akList);
+      const est = estimasiTahunPromosi(subProg.sisa, latestAK, window.extractJenjangFromJabatan(latestJab && latestJab.jabatan));
       perkiraanRow = est
         ? `<div class="pak-metric-row-value">${esc(est)}</div>`
         : `<div class="pak-metric-row-value muted">Data belum cukup</div>`;
