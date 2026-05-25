@@ -42,7 +42,10 @@
   function renderAvatar(row, name, className, attrs) {
     const url = getPhotoUrl(row);
     const label = name || row?.NAMA || row?.full_name || row?.username || 'Pengguna';
-    const extra = attrs ? ' ' + attrs : '';
+    const viewerAttrs = url
+      ? ` data-avatar-full="${escAttr(url)}" data-avatar-name="${escAttr(label)}" role="button" tabindex="0" title="Lihat foto ${escAttr(label)}"`
+      : '';
+    const extra = (attrs ? ' ' + attrs : '') + viewerAttrs;
     if (url) {
       return `<span class="${escAttr(className || 'avatar-photo')}"${extra}><img src="${escAttr(url)}" alt="${escAttr(label)}" loading="lazy" decoding="async"></span>`;
     }
@@ -54,8 +57,18 @@
     const url = getPhotoUrl(row);
     const label = name || row?.NAMA || row?.full_name || row?.username || 'Pengguna';
     el.innerHTML = '';
+    el.removeAttribute('data-avatar-full');
+    el.removeAttribute('data-avatar-name');
+    el.removeAttribute('role');
+    el.removeAttribute('tabindex');
+    el.removeAttribute('title');
     el.classList.toggle('has-photo', !!url);
     if (url) {
+      el.dataset.avatarFull = url;
+      el.dataset.avatarName = label;
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      el.title = `Lihat foto ${label}`;
       const img = document.createElement('img');
       img.src = url;
       img.alt = label;
@@ -125,6 +138,7 @@
     style.id = '9201-avatar-css';
     style.textContent = `
       .topbar-avatar img,.hero-avatar img,.pg-avatar img,.pg-detail-avatar img,.pak-person-avatar img,.user-avatar-sm img,.profil-modal-avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+      [data-avatar-full]{cursor:pointer}
       .avatar-edit-wrap{position:relative;display:inline-flex}
       .avatar-edit-btn{position:absolute;right:2px;bottom:2px;width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:var(--gold,#c8a84b);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(13,35,64,.22);font-size:0;transition:transform .15s,background .15s}
       .avatar-edit-btn::before{content:'';width:14px;height:10px;border:1.8px solid currentColor;border-radius:3px;display:block;box-sizing:border-box}
@@ -167,6 +181,13 @@
       .avatar-btn{padding:9px 15px;border-radius:8px;border:1px solid var(--border,#e2ddd6);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;background:#fff;color:var(--navy,#0d2340)}
       .avatar-btn.primary{background:var(--navy,#0d2340);border-color:var(--navy,#0d2340);color:#fff}
       .avatar-btn:disabled{opacity:.55;cursor:not-allowed}
+      .avatar-viewer-overlay{position:fixed;inset:0;z-index:920;background:rgba(13,35,64,.72);display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)}
+      .avatar-viewer-overlay.show{display:flex}
+      .avatar-viewer{position:relative;width:min(520px,90vw);display:flex;flex-direction:column;align-items:center;gap:14px}
+      .avatar-viewer-photo{width:min(420px,82vw);aspect-ratio:1;border-radius:50%;overflow:hidden;background:var(--navy,#0d2340);border:5px solid #fff;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+      .avatar-viewer-photo img{width:100%;height:100%;object-fit:cover;display:block}
+      .avatar-viewer-name{font-family:'Fraunces',serif;color:#fff;font-size:20px;text-align:center;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+      .avatar-viewer-close{position:absolute;right:0;top:0;width:36px;height:36px;border-radius:50%;border:none;background:#fff;color:var(--navy,#0d2340);font-size:18px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25)}
       @media(max-width:680px){.avatar-modal-body{grid-template-columns:1fr}.avatar-modal-foot{align-items:stretch;flex-direction:column}.avatar-actions{justify-content:flex-end}}
     `;
     document.head.appendChild(style);
@@ -469,6 +490,58 @@
     }
   }
 
+  function ensureViewer() {
+    ensureCss();
+    let overlay = document.getElementById('avatar-viewer');
+    if (overlay) return overlay;
+    overlay = document.createElement('div');
+    overlay.id = 'avatar-viewer';
+    overlay.className = 'avatar-viewer-overlay';
+    overlay.innerHTML = `
+      <div class="avatar-viewer" role="dialog" aria-modal="true" aria-label="Foto profil">
+        <button type="button" class="avatar-viewer-close" aria-label="Tutup">x</button>
+        <div class="avatar-viewer-photo"><img id="avatar-viewer-img" alt=""></div>
+        <div class="avatar-viewer-name" id="avatar-viewer-name"></div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closePhotoViewer(); });
+    overlay.querySelector('.avatar-viewer-close').addEventListener('click', closePhotoViewer);
+    return overlay;
+  }
+
+  function openPhotoViewer(url, name) {
+    if (!url) return;
+    const overlay = ensureViewer();
+    const img = overlay.querySelector('#avatar-viewer-img');
+    const title = overlay.querySelector('#avatar-viewer-name');
+    img.src = url;
+    img.alt = name || 'Foto profil';
+    title.textContent = name || '';
+    overlay.classList.add('show');
+  }
+
+  function closePhotoViewer() {
+    const overlay = document.getElementById('avatar-viewer');
+    if (!overlay) return;
+    overlay.classList.remove('show');
+  }
+
+  document.addEventListener('click', e => {
+    const target = e.target.closest('[data-avatar-full]');
+    if (!target || e.target.closest('.avatar-edit-btn')) return;
+    openPhotoViewer(target.dataset.avatarFull, target.dataset.avatarName);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePhotoViewer();
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const target = e.target.closest && e.target.closest('[data-avatar-full]');
+    if (!target) return;
+    e.preventDefault();
+    openPhotoViewer(target.dataset.avatarFull, target.dataset.avatarName);
+  });
+
   window.Avatar9201 = {
     bucket: BUCKET,
     outputSize: OUTPUT_SIZE,
@@ -479,6 +552,8 @@
     hydrateTopbar,
     resolveSessionPhoto,
     openEditor,
+    openPhotoViewer,
+    closePhotoViewer,
   };
 
   ensureCss();

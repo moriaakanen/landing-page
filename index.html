@@ -975,12 +975,26 @@ function renderPakCard() {
   const pakTerakhir = latestAK ? fmtAK(latestAK.angka_kredit) : null;
   const akKumulatif = latestAK ? Number(latestAK.angka_kredit) || 0 : 0;
 
-  // --- Threshold pangkat & jenjang dari golongan saat ini ---
-  // Pakai progressGolongan() yang return {pangkat, jenjang} sekaligus.
-  // Pangkat & jenjang sub-object null kalau pegawai sudah di puncak
-  // masing-masing.
   const golongan = latestPgg ? window.getGolonganByName(latestPgg.golongan) : null;
-  const prog     = golongan ? window.progressGolongan(akKumulatif, golongan) : null;
+  const isStruktural = latestJab ? window.isJabatanStruktural(latestJab.jabatan) : false;
+  const prog = isStruktural
+    ? window.progressStruktural(latestPgg)
+    : (golongan ? window.progressGolongan(akKumulatif, golongan) : null);
+
+  const buildStaticPanel = (icon, title, rows) => `
+      <div class="pak-metric">
+        <div class="pak-metric-icon-row">
+          <div class="pak-metric-icon">${icon}</div>
+          <div class="pak-metric-title">${esc(title)}</div>
+        </div>
+        <div class="pak-metric-rows">
+          ${rows.map(row => `
+          <div class="pak-metric-row">
+            <span class="pak-metric-row-label">${esc(row.label)}</span>
+            <div class="pak-metric-row-value ${row.cls || ''}">${row.value}</div>
+          </div>`).join('')}
+        </div>
+      </div>`;
 
   // Helper: build sub-panel (Naik Pangkat ATAU Naik Jenjang)
   const buildPanel = (icon, title, subProg, puncakLabel) => {
@@ -1025,17 +1039,34 @@ function renderPakCard() {
       </div>`;
   };
 
-  const buildPangkatPanel = () => buildPanel(
-    '<span class="section-icon up"></span>', 'Naik Pangkat',
-    prog ? prog.pangkat : null,
-    'Sudah di puncak (IVe)'
-  );
+  const buildPangkatPanel = () => {
+    if (isStruktural) {
+      const p = prog && prog.pangkat ? prog.pangkat : null;
+      return buildStaticPanel('<span class="section-icon up"></span>', 'Naik Pangkat', [
+        { label: 'Sistem', value: 'Berkala 4 tahun' },
+        { label: 'Perkiraan', value: p && p.dueDate ? esc(fmtTglID(p.dueDate)) : '-' },
+      ]);
+    }
+    return buildPanel(
+      '<span class="section-icon up"></span>', 'Naik Pangkat',
+      prog ? prog.pangkat : null,
+      'Sudah di puncak (IVe)'
+    );
+  };
 
-  const buildJenjangPanel = () => buildPanel(
-    '<span class="section-icon target"></span>', 'Naik Jenjang',
-    prog ? prog.jenjang : null,
-    'Sudah di puncak'
-  );
+  const buildJenjangPanel = () => {
+    if (isStruktural) {
+      return buildStaticPanel('<span class="section-icon target"></span>', 'Naik Jabatan', [
+        { label: 'Status', value: 'Tidak bisa', cls: 'muted' },
+        { label: 'Syarat', value: 'Pindah ke fungsional', cls: 'muted' },
+      ]);
+    }
+    return buildPanel(
+      '<span class="section-icon target"></span>', 'Naik Jenjang',
+      prog ? prog.jenjang : null,
+      'Sudah di puncak'
+    );
+  };
 
   // --- Riwayat AK + pengajuan body (collapsible) ---
   const riwayatHtml = akList.length

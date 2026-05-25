@@ -307,6 +307,80 @@ function extractNamaJabatanTanpaJenjang(jabatanText) {
 }
 window.extractNamaJabatanTanpaJenjang = extractNamaJabatanTanpaJenjang;
 
+/**
+ * Jabatan struktural tidak memakai angka kredit untuk naik pangkat.
+ * Rule saat ini:
+ *   - Kepala BPS
+ *   - Kepala Subbagian Umum
+ *   - Pelaksana, tepat 1 kata
+ *
+ * "Statistisi Pelaksana", "Pranata Komputer Pelaksana", dst. tetap
+ * fungsional karena terdiri dari nama jabatan + jenjang Pelaksana.
+ */
+function isJabatanStruktural(jabatanText) {
+  const t = String(jabatanText || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  return /^kepala bps\b/.test(t)
+      || /^kepala subbagian umum\b/.test(t)
+      || t === 'pelaksana';
+}
+window.isJabatanStruktural = isJabatanStruktural;
+
+function addYearsISO(iso, years) {
+  if (!iso) return null;
+  const m = String(iso).slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const y = Number(m[1]) + Number(years || 0);
+  return `${y}-${m[2]}-${m[3]}`;
+}
+window.addYearsISO = addYearsISO;
+
+function progressStruktural(latestPangkat, todayInput) {
+  const tmt = latestPangkat && latestPangkat.tmt ? String(latestPangkat.tmt).slice(0, 10) : '';
+  const dueDate = addYearsISO(tmt, 4);
+  if (!dueDate) {
+    return {
+      mode: 'struktural',
+      pangkat: {
+        can_promote: false,
+        pct: 0,
+        tmt: null,
+        dueDate: null,
+        blocker: 'TMT pangkat terakhir belum tersedia.',
+      },
+      jenjang: {
+        blocked: true,
+        blocker: 'Pegawai struktural tidak bisa naik jabatan. Jika ingin naik jabatan, pegawai harus pindah ke jabatan fungsional.',
+      },
+    };
+  }
+
+  const start = new Date(tmt + 'T00:00:00');
+  const due = new Date(dueDate + 'T00:00:00');
+  const today = todayInput ? new Date(todayInput) : new Date();
+  const total = Math.max(1, due - start);
+  const elapsed = Math.max(0, today - start);
+  const pct = Math.max(0, Math.min(100, (elapsed / total) * 100));
+  const remainingDays = Math.max(0, Math.ceil((due - today) / 86400000));
+
+  return {
+    mode: 'struktural',
+    pangkat: {
+      can_promote: today >= due,
+      pct: Number(pct.toFixed(1)),
+      tmt,
+      dueDate,
+      remainingDays,
+      yearsRequired: 4,
+      blocker: today >= due ? null : 'Belum mencapai masa 4 tahun dari TMT pangkat terakhir.',
+    },
+    jenjang: {
+      blocked: true,
+      blocker: 'Pegawai struktural tidak bisa naik jabatan. Jika ingin naik jabatan, pegawai harus pindah ke jabatan fungsional.',
+    },
+  };
+}
+window.progressStruktural = progressStruktural;
+
 // ─── PROGRESSI / GAP ANALYSIS ─────────────────────────────────────────
 
 /**
