@@ -32,7 +32,8 @@
   :where(.brand-tag){font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;line-height:1.4;margin-top:2px}
   :where(.topbar-right){display:flex;align-items:center;gap:14px;padding-right:0}
   :where(.topbar-time){font-size:11px;color:rgba(255,255,255,.45);font-variant-numeric:tabular-nums;white-space:nowrap}
-  :where(.topbar-avatar){width:30px;height:30px;background:var(--navy2,#163358);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold,#c8a84b);flex-shrink:0}
+  :where(.topbar-avatar){width:30px;height:30px;background:var(--navy2,#163358);border:1.5px solid rgba(200,168,75,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold,#c8a84b);flex-shrink:0;overflow:hidden}
+  :where(.topbar-avatar img){width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
   :where(.topbar-username){font-size:13px;color:rgba(255,255,255,.78);font-weight:500;white-space:nowrap}
 
   /* ═══ Lonceng notifikasi — TOMBOL SAJA
@@ -187,7 +188,12 @@
 
     var avatarEl = document.getElementById('topbar-avatar');
     var unameEl  = document.getElementById('topbar-username');
-    if (avatarEl) avatarEl.textContent = initials;
+    if (avatarEl && window.Avatar9201) {
+      window.Avatar9201.setAvatarElement(avatarEl, session, name || 'Pengguna');
+      window.Avatar9201.hydrateTopbar(session);
+    } else if (avatarEl) {
+      avatarEl.textContent = initials;
+    }
     if (unameEl)  unameEl.textContent  = name || 'Pengguna';
 
     if (skipEnsure) return;
