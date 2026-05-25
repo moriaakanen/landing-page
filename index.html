@@ -809,8 +809,8 @@ function akRiwayatRow(row) {
  * @param {array}  pengajuan    - rows pengajuan_pak (desc by created_at)
  */
 function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
-  const nama = clean(pegawai['NAMA']) || 'Pegawai';
-  const nip  = clean(pegawai['NIP'])  || '-';
+  const nama = clean(pegawaiNama(pegawai)) || 'Pegawai';
+  const nip  = clean(pegawaiNip(pegawai))  || '-';
 
   // Ambil entri terbaru dari masing-masing tabel riwayat (index 0 karena sudah desc).
   const latestJabatan = (jabatan && jabatan[0]) || null;
@@ -926,12 +926,12 @@ function openMyProfilePhotoEditor() {
   const pegawai = STATE_PROFIL.pegawai;
   window.Avatar9201.openEditor({
     person: pegawai,
-    nip: STATE_PROFIL.nip || pegawai.NIP,
-    name: pegawai.NAMA || 'Pegawai',
+    nip: STATE_PROFIL.nip || pegawaiNip(pegawai),
+    name: pegawaiNama(pegawai) || 'Pegawai',
     onSaved(row, url) {
       STATE_PROFIL.pegawai = { ...STATE_PROFIL.pegawai, ...row, foto_url: url };
       const hero = document.querySelector('.hero-avatar');
-      window.Avatar9201.setAvatarElement(hero, STATE_PROFIL.pegawai, STATE_PROFIL.pegawai.NAMA);
+      window.Avatar9201.setAvatarElement(hero, STATE_PROFIL.pegawai, pegawaiNama(STATE_PROFIL.pegawai));
       try {
         const session = JSON.parse(localStorage.getItem('nova_user') || 'null');
         if (session) {
@@ -1189,7 +1189,7 @@ async function ensurePegawaiList() {
   if (_pegawaiListCache) return _pegawaiListCache;
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/data_pegawai?select=*&order=NAMA.asc`,
+      `${SUPABASE_URL}/rest/v1/data_pegawai?select=*&order=nama.asc`,
       { headers: SUPABASE_HEADERS }
     );
     if (res.ok) {
@@ -1430,7 +1430,7 @@ function selectPakDateToday(){ const t=new Date(), iso=pakISODate(t.getFullYear(
 function initPakPersonPicker(){ document.getElementById('pak-input-penandatangan').value=''; document.getElementById('pak-person-trigger-text').textContent='Pilih pegawai...'; document.getElementById('pak-person-trigger').classList.remove('has-value'); document.getElementById('pak-person-search-input').value=''; renderPakPersonOptions(); }
 function togglePakPersonPicker(force){ const w=document.querySelector('.pak-person-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-person-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPeriodPicker();closePakDatePicker();renderPakPersonOptions();setTimeout(()=>document.getElementById('pak-person-search-input').focus(),0);} }
 function closePakPersonPicker(){ togglePakPersonPicker(false); }
-function renderPakPersonOptions(){ const input=document.getElementById('pak-person-search-input'); if(!input)return; const q=input.value.toLowerCase().trim(), selected=document.getElementById('pak-input-penandatangan').value, rows=(_pegawaiListCache||[]).filter(p=>p.NIP).filter(p=>!q||`${p.NAMA||''} ${p.NIP||''}`.toLowerCase().includes(q)).slice(0,80), list=document.getElementById('pak-person-list'); if(!rows.length){list.innerHTML='<div class="pak-person-empty">Tidak ada pegawai yang cocok.</div>';return;} list.innerHTML=rows.map(p=>{ const handler=esc('event.stopPropagation();selectPakPerson('+jsArg(p.NIP)+', '+jsArg(p.NAMA||p.NIP)+')'); const avatar=window.Avatar9201?window.Avatar9201.renderAvatar(p,p.NAMA||p.NIP,'pak-person-avatar'):`<span class="pak-person-avatar">${esc(initialsOf(p.NAMA||p.NIP))}</span>`; return `<button type="button" class="pak-person-option ${String(p.NIP)===String(selected)?'active':''}" onclick="${handler}">${avatar}<span class="pak-person-main"><span class="pak-person-name">${esc(p.NAMA||p.NIP)}</span><span class="pak-person-nip">${esc(p.NIP)}</span></span></button>`; }).join(''); }
+function renderPakPersonOptions(){ const input=document.getElementById('pak-person-search-input'); if(!input)return; const q=input.value.toLowerCase().trim(), selected=document.getElementById('pak-input-penandatangan').value, rows=(_pegawaiListCache||[]).filter(p=>pegawaiNip(p)).filter(p=>!q||`${pegawaiNama(p)||''} ${pegawaiNip(p)||''}`.toLowerCase().includes(q)).slice(0,80), list=document.getElementById('pak-person-list'); if(!rows.length){list.innerHTML='<div class="pak-person-empty">Tidak ada pegawai yang cocok.</div>';return;} list.innerHTML=rows.map(p=>{ const nip=pegawaiNip(p), nama=pegawaiNama(p)||nip; const handler=esc('event.stopPropagation();selectPakPerson('+jsArg(nip)+', '+jsArg(nama)+')'); const avatar=window.Avatar9201?window.Avatar9201.renderAvatar(p,nama,'pak-person-avatar'):`<span class="pak-person-avatar">${esc(initialsOf(nama))}</span>`; return `<button type="button" class="pak-person-option ${String(nip)===String(selected)?'active':''}" onclick="${handler}">${avatar}<span class="pak-person-main"><span class="pak-person-name">${esc(nama)}</span><span class="pak-person-nip">${esc(nip)}</span></span></button>`; }).join(''); }
 function selectPakPerson(nip,nama){ document.getElementById('pak-input-penandatangan').value=nip; document.getElementById('pak-person-trigger-text').textContent=nama; document.getElementById('pak-person-trigger').classList.add('has-value'); closePakPersonPicker(); onPakInputChange(); }
 
 function pakPeriodFromRow(p) {
@@ -1544,8 +1544,8 @@ async function openPakModal(editRow = null) {
     });
     setPakPeriodInputs(start, end);
     setPakDateValue(PAK_EDIT_ROW.tgl_pengajuan || pakPeriodEndDate(end.year, end.month), pakPeriodEndDate(end.year, end.month));
-    const signer = (_pegawaiListCache || []).find(x => String(x.NIP) === String(PAK_EDIT_ROW.penandatangan_nip));
-    selectPakPerson(PAK_EDIT_ROW.penandatangan_nip || '', PAK_EDIT_ROW.penandatangan_nama || signer?.NAMA || PAK_EDIT_ROW.penandatangan_nip || 'Pilih pegawai...');
+    const signer = (_pegawaiListCache || []).find(x => String(pegawaiNip(x)) === String(PAK_EDIT_ROW.penandatangan_nip));
+    selectPakPerson(PAK_EDIT_ROW.penandatangan_nip || '', PAK_EDIT_ROW.penandatangan_nama || pegawaiNama(signer) || PAK_EDIT_ROW.penandatangan_nip || 'Pilih pegawai...');
     onPakInputChange();
   }
 }
@@ -2013,7 +2013,7 @@ async function fetchProfil(userId) {
     const pegRows = await resPeg.json();
     if (!pegRows || !pegRows.length) { renderProfilNotFound(); return; }
     const pegawai = pegRows[0];
-    const nip = pegawai.NIP;
+    const nip = pegawaiNip(pegawai);
 
     // Tanpa NIP, query riwayat tidak mungkin - render dengan card kosong saja.
     if (!nip) {

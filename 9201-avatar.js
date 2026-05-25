@@ -41,7 +41,7 @@
 
   function renderAvatar(row, name, className, attrs) {
     const url = getPhotoUrl(row);
-    const label = name || row?.NAMA || row?.full_name || row?.username || 'Pengguna';
+    const label = name || (window.pegawaiNama && window.pegawaiNama(row)) || row?.full_name || row?.username || 'Pengguna';
     const viewerAttrs = url
       ? ` data-avatar-full="${escAttr(url)}" data-avatar-name="${escAttr(label)}" role="button" tabindex="0" title="Lihat foto ${escAttr(label)}"`
       : '';
@@ -55,7 +55,7 @@
   function setAvatarElement(el, row, name) {
     if (!el) return;
     const url = getPhotoUrl(row);
-    const label = name || row?.NAMA || row?.full_name || row?.username || 'Pengguna';
+    const label = name || (window.pegawaiNama && window.pegawaiNama(row)) || row?.full_name || row?.username || 'Pengguna';
     el.innerHTML = '';
     el.removeAttribute('data-avatar-full');
     el.removeAttribute('data-avatar-name');
@@ -113,7 +113,7 @@
 
     let row = null;
     if (session.id != null) row = await tryFetch(`id=eq.${encodeURIComponent(session.id)}`);
-    if (!row && session.username) row = await tryFetch(`NIP=eq.${encodeURIComponent(session.username)}`);
+    if (!row && session.username) row = await tryFetch(`pegawai_nip=eq.${encodeURIComponent(session.username)}`);
     if (!row) return null;
 
     const url = getPhotoUrl(row);
@@ -129,7 +129,7 @@
     if (!el || !session) return;
     setAvatarElement(el, session, session.full_name || session.username || 'Pengguna');
     const row = await resolveSessionPhoto(session).catch(() => null);
-    if (row) setAvatarElement(el, row, session.full_name || row.NAMA || session.username || 'Pengguna');
+    if (row) setAvatarElement(el, row, session.full_name || (window.pegawaiNama && window.pegawaiNama(row)) || session.username || 'Pengguna');
   }
 
   function ensureCss() {
@@ -270,9 +270,9 @@
   function openEditor(opts) {
     const overlay = ensureModal();
     const person = opts?.person || {};
-    const name = opts?.name || person.NAMA || person.full_name || person.username || 'Pegawai';
+    const name = opts?.name || (window.pegawaiNama && window.pegawaiNama(person)) || person.full_name || person.username || 'Pegawai';
     editorState = {
-      nip: opts?.nip || person.NIP || person.username || '',
+      nip: opts?.nip || (window.pegawaiNip && window.pegawaiNip(person)) || person.username || '',
       name,
       person,
       onSaved: typeof opts?.onSaved === 'function' ? opts.onSaved : null,
@@ -454,19 +454,19 @@
     }).catch(() => null);
     if (rpcRes && rpcRes.ok) {
       const payload = await rpcRes.json().catch(() => null);
-      if (Array.isArray(payload)) return payload[0] || { NIP: nip, foto_url: url };
-      return payload || { NIP: nip, foto_url: url };
+      if (Array.isArray(payload)) return payload[0] || { pegawai_nip: nip, foto_url: url };
+      return payload || { pegawai_nip: nip, foto_url: url };
     }
 
     const rows = await fetchJson(
-      `${SUPABASE_URL}/rest/v1/data_pegawai?NIP=eq.${encodeURIComponent(nip)}&select=*`,
+      `${SUPABASE_URL}/rest/v1/data_pegawai?pegawai_nip=eq.${encodeURIComponent(nip)}&select=*`,
       {
         method: 'PATCH',
         headers: { ...SUPABASE_HEADERS, Prefer: 'return=representation' },
         body: JSON.stringify({ foto_url: url }),
       }
     );
-    return Array.isArray(rows) && rows.length ? rows[0] : { NIP: nip, foto_url: url };
+    return Array.isArray(rows) && rows.length ? rows[0] : { pegawai_nip: nip, foto_url: url };
   }
 
   async function saveEditor() {

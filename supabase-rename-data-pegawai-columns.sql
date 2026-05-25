@@ -1,12 +1,126 @@
--- RPC untuk edit dan membatalkan pengajuan PAK.
+-- Rename kolom data_pegawai ke format snake_case.
 -- Jalankan seluruh file ini di Supabase SQL Editor.
 --
--- Catatan:
--- 1. Jangan tambahkan perintah ALTER TABLE apa pun di tengah function.
--- 2. File ini sengaja tidak memakai variabel composite seperti
---    "v_row public.pengajuan_pak" agar tidak mengundang helper Supabase
---    menambahkan RLS ke nama variabel secara keliru.
+-- Setelah file ini dijalankan, kode aplikasi memakai:
+-- nama, pegawai_nip, karpeg, ttl, jk, unit_kerja, pendidikan_terakhir.
 
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'NAMA'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'nama'
+  ) then
+    alter table public.data_pegawai rename column "NAMA" to nama;
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'NIP'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'pegawai_nip'
+  ) then
+    alter table public.data_pegawai rename column "NIP" to pegawai_nip;
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'NOMOR SERI KARPEG'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'karpeg'
+  ) then
+    alter table public.data_pegawai rename column "NOMOR SERI KARPEG" to karpeg;
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'TEMPAT/TANGGAL LAHIR'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'ttl'
+  ) then
+    alter table public.data_pegawai rename column "TEMPAT/TANGGAL LAHIR" to ttl;
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'JENIS KELAMIN'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'jk'
+  ) then
+    alter table public.data_pegawai rename column "JENIS KELAMIN" to jk;
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'UNIT KERJA'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'unit_kerja'
+  ) then
+    alter table public.data_pegawai rename column "UNIT KERJA" to unit_kerja;
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'PENDIDIKAN TERAKHIR'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'data_pegawai' and column_name = 'pendidikan_terakhir'
+  ) then
+    alter table public.data_pegawai rename column "PENDIDIKAN TERAKHIR" to pendidikan_terakhir;
+  end if;
+end $$;
+
+create index if not exists data_pegawai_pegawai_nip_idx
+  on public.data_pegawai (pegawai_nip);
+
+create index if not exists data_pegawai_nama_idx
+  on public.data_pegawai (nama);
+
+comment on column public.data_pegawai.nama is 'Nama pegawai.';
+comment on column public.data_pegawai.pegawai_nip is 'NIP pegawai. Dipakai sebagai referensi ke tabel riwayat dan dokumen.';
+comment on column public.data_pegawai.karpeg is 'Nomor Seri KARPEG.';
+comment on column public.data_pegawai.ttl is 'Tempat/tanggal lahir.';
+comment on column public.data_pegawai.jk is 'Jenis kelamin.';
+comment on column public.data_pegawai.unit_kerja is 'Unit kerja.';
+comment on column public.data_pegawai.pendidikan_terakhir is 'Pendidikan terakhir.';
+
+-- Refresh RPC foto profil agar memakai kolom pegawai_nip.
+create or replace function public.update_pegawai_foto(
+  p_nip text,
+  p_foto_url text
+)
+returns public.data_pegawai
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row public.data_pegawai;
+begin
+  update public.data_pegawai
+     set foto_url = p_foto_url
+   where pegawai_nip = p_nip
+   returning * into v_row;
+
+  if not found then
+    raise exception 'Pegawai dengan NIP % tidak ditemukan', p_nip
+      using errcode = 'P0002';
+  end if;
+
+  return v_row;
+end;
+$$;
+
+grant execute on function public.update_pegawai_foto(text, text) to anon, authenticated;
+
+-- Refresh RPC edit/delete PAK agar cek pemilik memakai data_pegawai.pegawai_nip.
 drop function if exists public.pengajuan_pak_update(bigint, bigint, integer, integer, integer, text, numeric, numeric, numeric, jsonb, date, text, text);
 drop function if exists public.pengajuan_pak_delete(bigint, bigint);
 
