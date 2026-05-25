@@ -780,6 +780,21 @@ function riwayatEmpty() {
   return `<div class="riwayat-empty">Belum ada riwayat</div>`;
 }
 
+function akPeriodText(row) {
+  if (!row) return '-';
+  return row.periode_label || (row.tmt ? fmtTglRiwayat(row.tmt) : '-');
+}
+
+function akRiwayatRow(row) {
+  return `<div class="riwayat-row">
+    <div class="riwayat-main"><strong>${esc(fmtAK(row.angka_kredit))}</strong></div>
+    <div>
+      <span class="riwayat-tmt-label">Periode</span>
+      <span class="riwayat-tmt">${esc(akPeriodText(row))}</span>
+    </div>
+  </div>`;
+}
+
 /**
  * Render seluruh halaman profil.
  * @param {object} pegawai      - row dari data_pegawai (untuk NAMA, NIP)
@@ -796,6 +811,7 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
   const latestJabatan = (jabatan && jabatan[0]) || null;
   const latestPangkat = (pangkat && pangkat[0]) || null;
   const latestAK      = (ak      && ak[0])      || null;
+  const isStruktural  = latestJabatan ? window.isJabatanStruktural(latestJabatan.jabatan) : false;
 
   const jabatanText = (latestJabatan && clean(latestJabatan.jabatan)) || 'Belum ada jabatan';
 
@@ -804,6 +820,7 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
     : '-';
 
   const akText = latestAK ? fmtAK(latestAK.angka_kredit) : '-';
+  const akPeriod = latestAK ? akPeriodText(latestAK) : 'PAK';
 
   const masaKerja = hitungMasaKerjaDariNIP(nip);
 
@@ -818,6 +835,7 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
   STATE_PROFIL.latestJabatan = latestJabatan;
   STATE_PROFIL.latestPangkat = latestPangkat;
   STATE_PROFIL.latestAK      = latestAK;
+  STATE_PROFIL.isStruktural  = isStruktural;
 
   // --- HERO CARD ---
   document.getElementById('hero-mount').innerHTML = `
@@ -841,7 +859,7 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
         </div>
         <div class="hero-stat">
           <div class="hero-stat-value">${esc(akText)}</div>
-          <div class="hero-stat-label">PAK</div>
+          <div class="hero-stat-label">${esc(akPeriod)}</div>
         </div>
         <div class="hero-stat">
           <div class="hero-stat-value">${esc(masaKerja)}</div>
@@ -895,6 +913,7 @@ const STATE_PROFIL = {
   latestJabatan: null, // untuk extract jenjang (perkiraan naik jenjang)
   latestPangkat: null, // untuk extract golongan (perkiraan naik pangkat)
   latestAK: null,
+  isStruktural: false,
   pakExpanded: false,  // toggle collapse/expand riwayat
 };
 
@@ -1070,7 +1089,7 @@ function renderPakCard() {
 
   // --- Riwayat AK + pengajuan body (collapsible) ---
   const riwayatHtml = akList.length
-    ? akList.map(r => riwayatRow(`<strong>${esc(fmtAK(r.angka_kredit))}</strong>`, r.tmt)).join('')
+    ? akList.map(r => akRiwayatRow(r)).join('')
     : riwayatEmpty();
 
   const pengajuanHtml = pengajuan.length
@@ -1085,7 +1104,7 @@ function renderPakCard() {
       <div class="pak-card-head">
         <div class="info-card-icon"><span class="section-icon pak"></span></div>
         <div class="pak-card-title">Riwayat PAK</div>
-        <button class="pak-card-action" onclick="event.stopPropagation();openPakModal()" title="Ajukan PAK baru" type="button">
+        <button class="pak-card-action" onclick="event.stopPropagation();openPakModal()" title="Ajukan PAK baru" type="button" ${STATE_PROFIL.isStruktural ? 'disabled' : ''}>
           <span>+</span> Ajukan PAK
         </button>
       </div>
@@ -1146,6 +1165,9 @@ function pengajuanRow(p) {
         <strong>${esc(fmtAK(p.ak_total))}</strong>
         <span>Total AK</span>
         <div class="pengajuan-actions">
+          <button class="pengajuan-preview" onclick="openPengajuanSummary(${p.id})" title="Lihat ringkasan pengajuan" type="button">
+             Ringkasan
+          </button>
           <button class="pengajuan-preview" onclick="previewPengajuan(${p.id})" title="Lihat preview dokumen" type="button">
              Preview
           </button>
@@ -1206,6 +1228,7 @@ function pakMonthLabel(year, month){ return `${BULAN[month-1]} ${year}`; }
 function pakRangeLabel(start,end){ if(!start||!end)return 'Belum dipilih'; if(start.year===end.year&&start.month===end.month)return pakMonthLabel(start.year,start.month); return `${BULAN[start.month-1]} s.d ${BULAN[end.month-1]} ${start.year}`; }
 function pakDraftRangeLabel(start,end){ if(start&&!end)return pakMonthLabel(start.year,start.month); return pakRangeLabel(start,end); }
 function pakMonthFromISO(iso){ const m=String(iso||'').match(/^(\d{4})-(\d{2})/); if(!m)return null; return {year:Number(m[1]),month:Number(m[2])}; }
+function pakMonthFromAK(row){ if(row&&row.periode_tahun&&row.periode_bulan_akhir)return {year:Number(row.periode_tahun),month:Number(row.periode_bulan_akhir)}; return pakMonthFromISO(row&&row.tmt); }
 function getPakDefaultPeriod(){
   const periods = Array.isArray(STATE_PROFIL.pengajuan) ? STATE_PROFIL.pengajuan : [];
   let latestKey = null, latest = null;
@@ -1216,11 +1239,11 @@ function getPakDefaultPeriod(){
     if(latestKey==null || key>latestKey){ latestKey=key; latest=p; }
   });
   if(latestKey==null){
-    const latestAKMonth=pakMonthFromISO(STATE_PROFIL.latestAK && STATE_PROFIL.latestAK.tmt);
+    const latestAKMonth=pakMonthFromAK(STATE_PROFIL.latestAK);
     if(latestAKMonth){
       const start=pakNextMonth(latestAKMonth.year,latestAKMonth.month);
       const disabledBefore=pakMonthKey(latestAKMonth.year,latestAKMonth.month);
-      return {start,disabledBefore,latestEnd:latestAKMonth,latestEndDate:pakLastDayDate(latestAKMonth.year,latestAKMonth.month),label:`PAK terakhir per ${fmtTglID(STATE_PROFIL.latestAK.tmt)}`};
+      return {start,disabledBefore,latestEnd:latestAKMonth,latestEndDate:pakLastDayDate(latestAKMonth.year,latestAKMonth.month),label:`PAK terakhir: ${akPeriodText(STATE_PROFIL.latestAK)}`};
     }
     const maxFallback=pakMonthFromKey(pakMaxPeriodKey());
     const start={year:maxFallback.year,month:maxFallback.month};
@@ -1298,6 +1321,96 @@ function selectPakMonth(month){
   }
   renderPakMonthPicker();
 }
+
+function ensurePengajuanSummaryModal() {
+  let el = document.getElementById('pengajuan-summary-modal');
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = 'pengajuan-summary-modal';
+  el.className = 'modal-overlay';
+  el.onclick = e => { if (e.target === el) closePengajuanSummary(); };
+  el.innerHTML = `<div class="modal modal-pak" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title">Ringkasan <em>Pengajuan PAK</em></div>
+      <button class="modal-close" onclick="closePengajuanSummary()" type="button">x</button>
+    </div>
+    <div class="modal-body" id="pengajuan-summary-body"></div>
+    <div class="modal-footer" id="pengajuan-summary-footer"></div>
+  </div>`;
+  document.body.appendChild(el);
+  return el;
+}
+
+function closePengajuanSummary() {
+  const el = document.getElementById('pengajuan-summary-modal');
+  if (el) el.classList.remove('show');
+}
+
+async function openPengajuanSummary(id) {
+  const p = STATE_PROFIL.pengajuan.find(x => x.id === id);
+  if (!p) return alert('Pengajuan tidak ditemukan.');
+  await ensurePegawaiList();
+  const modal = ensurePengajuanSummaryModal();
+  const isPending = (p.status || 'menunggu') === 'menunggu';
+  const personOpts = (_pegawaiListCache || []).map(x => `<option value="${esc(x.NIP || '')}" ${String(x.NIP)===String(p.penandatangan_nip)?'selected':''}>${esc(x.NAMA || x.NIP || '')}</option>`).join('');
+  document.getElementById('pengajuan-summary-body').innerHTML = `
+    <div class="pak-preview-grid">
+      <div class="pak-preview-item"><div class="pak-preview-label">Nomor</div><div class="pak-preview-value">${esc(String(p.nomor_urut || '-').padStart(3,'0'))}</div></div>
+      <div class="pak-preview-item"><div class="pak-preview-label">Status</div><div class="pak-preview-value">${esc(p.status || 'menunggu')}</div></div>
+      <div class="pak-preview-item"><div class="pak-preview-label">AK Didapat</div><div class="pak-preview-value">+ ${esc(fmtAK(p.ak_didapat))}</div></div>
+      <div class="pak-preview-item"><div class="pak-preview-label">AK Total</div><div class="pak-preview-value big">${esc(fmtAK(p.ak_total))}</div></div>
+    </div>
+    <div style="margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <div class="form-group"><label>Bulan Awal</label><select id="sum-bulan-start" ${isPending?'':'disabled'}>${BULAN.map((b,i)=>`<option value="${i+1}" ${Number(p.bulan_start)===i+1?'selected':''}>${esc(b)}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Bulan Akhir</label><select id="sum-bulan-end" ${isPending?'':'disabled'}>${BULAN.map((b,i)=>`<option value="${i+1}" ${Number(p.bulan_end)===i+1?'selected':''}>${esc(b)}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Tahun</label><input id="sum-tahun" type="number" value="${esc(p.tahun_periode || '')}" ${isPending?'':'disabled'}></div>
+    </div>
+    <div class="form-group"><label>Tanggal Pengajuan</label><input id="sum-tgl" type="date" value="${esc(p.tgl_pengajuan || '')}" ${isPending?'':'disabled'}></div>
+    <div class="form-group"><label>Penandatangan</label><select id="sum-ttd" ${isPending?'':'disabled'}>${personOpts}</select></div>
+    ${isPending ? '' : '<div class="form-help warn">Pengajuan yang sudah selesai tidak bisa diedit atau dihapus.</div>'}`;
+  document.getElementById('pengajuan-summary-footer').innerHTML = `
+    <button class="btn btn-secondary" onclick="closePengajuanSummary()" type="button">Tutup</button>
+    <button class="btn btn-secondary" onclick="previewPengajuan(${id})" type="button">Preview Dokumen</button>
+    ${isPending ? `<button class="btn btn-danger" onclick="deletePengajuan(${id})" type="button">Hapus</button><button class="btn btn-primary" onclick="savePengajuanSummary(${id})" type="button">Simpan</button>` : ''}`;
+  modal.classList.add('show');
+}
+
+async function savePengajuanSummary(id) {
+  const p = STATE_PROFIL.pengajuan.find(x => x.id === id);
+  if (!p || (p.status || 'menunggu') !== 'menunggu') return;
+  const tahun = Number(document.getElementById('sum-tahun').value);
+  const bulan_start = Number(document.getElementById('sum-bulan-start').value);
+  const bulan_end = Number(document.getElementById('sum-bulan-end').value);
+  const tgl = document.getElementById('sum-tgl').value;
+  const ttd = document.getElementById('sum-ttd').value;
+  if (!tahun || !bulan_start || !bulan_end || bulan_start > bulan_end || !tgl || !ttd) return alert('Lengkapi periode, tanggal, dan penandatangan dengan benar.');
+  try {
+    const ctx = await PakGenerator.resolveContext({ pegawai_nip: p.pegawai_nip, tahun_periode: tahun, bulan_start, bulan_end, tgl_pengajuan: tgl, penandatangan_nip: ttd, nomor_urut: p.nomor_urut });
+    const m = ctx._meta;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/pengajuan_pak?id=eq.${encodeURIComponent(id)}`, {
+      method:'PATCH',
+      headers:{...SUPABASE_HEADERS,'Prefer':'return=representation'},
+      body:JSON.stringify({tahun_periode:tahun,bulan_start,bulan_end,mode_hitung:m.mode_hitung,ak_didapat:m.ak_didapat,ak_n1:m.ak_n1_num,ak_total:m.ak_tot_num,detail_predikat:m.detail_predikat,tgl_pengajuan:tgl,penandatangan_nip:ttd,penandatangan_nama:m.penandatangan_nama || null})
+    });
+    if (!res.ok) throw new Error(await res.text());
+    await reloadPengajuan();
+    refreshPakCardOnly();
+    openPengajuanSummary(id);
+  } catch(e) { alert('Gagal menyimpan pengajuan: ' + (e.message || e)); }
+}
+
+async function deletePengajuan(id) {
+  const p = STATE_PROFIL.pengajuan.find(x => x.id === id);
+  if (!p || (p.status || 'menunggu') !== 'menunggu') return alert('Hanya pengajuan menunggu yang bisa dihapus.');
+  if (!confirm('Hapus pengajuan PAK ini?')) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/pengajuan_pak?id=eq.${encodeURIComponent(id)}`, { method:'DELETE', headers:SUPABASE_HEADERS });
+    if (!res.ok) throw new Error(await res.text());
+    closePengajuanSummary();
+    await reloadPengajuan();
+    refreshPakCardOnly();
+  } catch(e) { alert('Gagal menghapus pengajuan: ' + (e.message || e)); }
+}
 function renderPakMonthPicker(){
   const label=document.getElementById('pak-month-year-label'); if(!label)return;
   label.textContent=PAK_PERIOD_PICKER.year;
@@ -1344,6 +1457,10 @@ function populateTahunSelect(selectEl) {
 }
 
 async function openPakModal() {
+  if (STATE_PROFIL.isStruktural) {
+    alert('Pegawai struktural tidak bisa mengajukan PAK. Kenaikan pangkat dihitung berkala 4 tahun dari TMT pangkat terakhir.');
+    return;
+  }
   if (!STATE_PROFIL.nip) {
     alert('NIP belum tersedia. Tidak bisa mengajukan PAK.');
     return;
@@ -1809,7 +1926,7 @@ async function fetchProfil(userId) {
 
     const nipParam = encodeURIComponent(nip);
     const [resAK, resJab, resPgg, resPjn] = await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/riwayat_angka_kredit?pegawai_nip=eq.${nipParam}&select=angka_kredit,tmt&order=tmt.desc`, { headers: SUPABASE_HEADERS }),
+      fetch(`${SUPABASE_URL}/rest/v1/riwayat_angka_kredit?pegawai_nip=eq.${nipParam}&select=angka_kredit,tmt,periode_label,periode_tahun,periode_bulan_awal,periode_bulan_akhir&order=tmt.desc`, { headers: SUPABASE_HEADERS }),
       fetch(`${SUPABASE_URL}/rest/v1/riwayat_jabatan?pegawai_nip=eq.${nipParam}&select=jabatan,tmt&order=tmt.desc`,            { headers: SUPABASE_HEADERS }),
       fetch(`${SUPABASE_URL}/rest/v1/riwayat_pangkat_golongan?pegawai_nip=eq.${nipParam}&select=pangkat,golongan,tmt&order=tmt.desc`, { headers: SUPABASE_HEADERS }),
       // Pengajuan PAK milik user. Tabel ini opsional - kalau belum dibuat

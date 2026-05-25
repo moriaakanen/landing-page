@@ -57,7 +57,7 @@
   /* ════════ STATS ROW ════════ */
   .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
   .stat-pill{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 16px;box-shadow:0 1px 3px rgba(13,35,64,.04)}
-  .stat-pill-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+  .stat-pill-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;font-weight:900;letter-spacing:.4px;color:var(--navy);border:1px solid rgba(13,35,64,.08)}
   .stat-pill-num{font-family:'Fraunces',serif;font-size:21px;font-weight:500;color:var(--navy);line-height:1.1}
   .stat-pill-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-top:2px}
 
@@ -103,7 +103,12 @@
   /* Card body — info dengan chip-like presentation */
   .pg-card-body{padding:14px 18px 6px;display:flex;flex-direction:column;gap:10px}
   .pg-info-row{display:flex;align-items:center;gap:8px;font-size:12.5px;line-height:1.4;min-width:0}
-  .pg-info-icon{width:24px;height:24px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--muted)}
+  .pg-info-icon{width:24px;height:24px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--muted);position:relative;font-weight:800}
+  .pg-info-icon.ak{background:linear-gradient(135deg,var(--gold-light),#fff8e4);color:var(--gold-dark);border:1px solid rgba(200,168,75,.25);font-size:10px;letter-spacing:.2px}
+  .pg-info-icon.job::before{content:'';width:12px;height:8px;border:1.7px solid currentColor;border-radius:2px}
+  .pg-info-icon.job::after{content:'';position:absolute;top:6px;width:6px;height:4px;border:1.5px solid currentColor;border-bottom:0;border-radius:2px 2px 0 0}
+  .pg-info-icon.rank::before{content:'';width:12px;height:12px;border:1.7px solid currentColor;border-radius:50%}
+  .pg-info-icon.rank::after{content:'';position:absolute;width:3px;height:6px;background:currentColor;bottom:4px}
   .pg-info-text{flex:1;min-width:0;color:var(--navy);font-weight:500;word-break:break-word}
   .pg-info-text.empty{color:var(--muted);font-style:italic;font-weight:400}
   .pg-info-text strong{font-weight:700;color:var(--navy)}
@@ -413,10 +418,10 @@
 
     <!-- ─── STATS ────────────────────────────────────────────────── -->
     <div class="stats-row fade-in" style="animation-delay:.06s">
-      <div class="stat-pill"><div class="stat-pill-icon" style="background:#e8f0fe">👥</div><div><div class="stat-pill-num" id="st-total">—</div><div class="stat-pill-label">Total Pegawai</div></div></div>
-      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef3c7">⏳</div><div><div class="stat-pill-num" id="st-pak-pending">—</div><div class="stat-pill-label">PAK Menunggu</div></div></div>
-      <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">✓</div><div><div class="stat-pill-num" id="st-ready-pangkat">—</div><div class="stat-pill-label">Siap Naik Pangkat</div></div></div>
-      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fdf4ff">🎯</div><div><div class="stat-pill-num" id="st-ready-jenjang">—</div><div class="stat-pill-label">Siap Naik Jenjang</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#e8f0fe">PG</div><div><div class="stat-pill-num" id="st-total">—</div><div class="stat-pill-label">Total Pegawai</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef3c7">PAK</div><div><div class="stat-pill-num" id="st-pak-pending">—</div><div class="stat-pill-label">PAK Menunggu</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">NP</div><div><div class="stat-pill-num" id="st-ready-pangkat">—</div><div class="stat-pill-label">Siap Naik Pangkat</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#fdf4ff">NJ</div><div><div class="stat-pill-num" id="st-ready-jenjang">—</div><div class="stat-pill-label">Siap Naik Jenjang</div></div></div>
     </div>
 
     <!-- ─── FILTER BAR ───────────────────────────────────────────── -->
@@ -720,7 +725,7 @@ const TAB_CONFIG = {
     titleEdit: 'Edit Riwayat Angka Kredit',
     columns: [
       { key:'ak',  label:'Angka Kredit', render: r => `<strong>${esc(fmtAK(r.angka_kredit))}</strong>` },
-      { key:'tmt', label:'TMT', cls:'col-tmt', render: r => esc(fmtTglID(r.tmt)) },
+      { key:'periode', label:'Periode', cls:'col-tmt', render: r => esc(akPeriodText(r)) },
     ],
     fields: [
       { name:'angka_kredit', label:'Angka Kredit', type:'number', required:true,
@@ -1131,7 +1136,7 @@ function renderPegawaiCard(s) {
 
   // AK Terbaru row
   const akText = s.latestAK
-    ? `<span class="ak-num">${esc(fmtAK(s.latestAK.angka_kredit))}</span> <span style="color:var(--muted);font-weight:500">AK · per ${esc(fmtTglID(s.latestAK.tmt))}</span>`
+    ? `<span class="ak-num">${esc(fmtAK(s.latestAK.angka_kredit))}</span> <span style="color:var(--muted);font-weight:500">${esc(akPeriodText(s.latestAK))}</span>`
     : `<span class="empty">Belum ada riwayat AK</span>`;
 
   // Progress block (ring-based, design baru)
@@ -1156,15 +1161,15 @@ function renderPegawaiCard(s) {
       </div>
       <div class="pg-card-body">
         <div class="pg-info-row">
-          <div class="pg-info-icon" title="Jabatan">💼</div>
+          <div class="pg-info-icon job" title="Jabatan"></div>
           <div class="pg-info-text">${jabatanText}</div>
         </div>
         <div class="pg-info-row">
-          <div class="pg-info-icon" title="Pangkat / Golongan">🎖️</div>
+          <div class="pg-info-icon rank" title="Pangkat / Golongan"></div>
           <div class="pg-info-text">${pangkatText}</div>
         </div>
         <div class="pg-info-row">
-          <div class="pg-info-icon" title="Angka Kredit Terbaru">📊</div>
+          <div class="pg-info-icon ak" title="Angka Kredit">AK</div>
           <div class="pg-info-text">${akText}</div>
         </div>
         ${progress}
@@ -1503,8 +1508,15 @@ function renderTabPengajuan(s) {
   const header = `
     <div class="pg-tab-actions">
       <h3>Pengajuan Penilaian Angka Kredit</h3>
-      <button class="btn btn-gold" type="button" onclick="openPakModal()">+ Ajukan PAK</button>
+      <button class="btn btn-gold" type="button" onclick="openPakModal()" ${s.isStruktural ? 'disabled title="Pegawai struktural tidak bisa mengajukan PAK"' : ''}>+ Ajukan PAK</button>
     </div>`;
+
+  if (s.isStruktural) {
+    return header + `
+      <div style="padding:22px 20px;color:var(--navy);font-size:13px;background:#eff6ff;border-radius:9px;border:1px solid #bfdbfe;line-height:1.7">
+        Pegawai ini menempati jabatan struktural. Kenaikan pangkat dihitung berkala 4 tahun dari TMT pangkat terakhir, sehingga tidak bisa mengajukan PAK.
+      </div>`;
+  }
 
   if (!items.length) {
     return header + `
@@ -1521,6 +1533,7 @@ function renderTabPengajuan(s) {
     const akAng     = `<strong style="font-variant-numeric:tabular-nums">${esc(fmtAK(p.ak_total))}</strong>`;
 
     const actions = [];
+    actions.push(`<button class="btn-mini btn-mini-preview" onclick="event.stopPropagation();openPengajuanSummary(${p.id})" type="button" title="Ringkasan pengajuan">Ringkasan</button>`);
     actions.push(`<button class="btn-mini btn-mini-preview" onclick="event.stopPropagation();previewPengajuan(${p.id})" type="button" title="Preview dokumen pengajuan">👁 Preview</button>`);
     actions.push(`<button class="btn-mini btn-mini-download" onclick="event.stopPropagation();downloadPengajuan(${p.id})" type="button" title="Unduh dokumen .docx">⬇ Unduh</button>`);
     if (p.status === 'menunggu') {
@@ -1621,6 +1634,11 @@ const PAK_PERIOD_PICKER = {
   label: '',
   pendingEndConfirm: false,
 };
+
+function akPeriodText(row) {
+  if (!row) return '-';
+  return row.periode_label || (row.tmt ? fmtTglID(row.tmt) : '-');
+}
 const PAK_DATE_PICKER = {
   year: new Date().getFullYear(),
   month: new Date().getMonth() + 1,
@@ -1688,6 +1706,12 @@ function pakMonthFromISO(iso) {
   if (!m) return null;
   return { year: Number(m[1]), month: Number(m[2]) };
 }
+function pakMonthFromAK(row) {
+  if (row && row.periode_tahun && row.periode_bulan_akhir) {
+    return { year: Number(row.periode_tahun), month: Number(row.periode_bulan_akhir) };
+  }
+  return pakMonthFromISO(row && row.tmt);
+}
 
 function getCurrentPakSummary() {
   const s = STATE.pegawaiSummary.find(x => String(x.nip ?? '') === String(STATE.pakModalNIP ?? ''));
@@ -1714,14 +1738,14 @@ function getPakDefaultPeriod() {
   const maxFallback = pakMonthFromKey(pakMaxPeriodKey());
   const fallback = { year: maxFallback.year, month: maxFallback.month };
   if (latestKey == null) {
-    const latestAKMonth = pakMonthFromISO(s?.latestAK?.tmt);
+    const latestAKMonth = pakMonthFromAK(s?.latestAK);
     if (latestAKMonth) {
       const start = pakNextMonth(latestAKMonth.year, latestAKMonth.month);
       return {
         start,
         disabledBefore: pakMonthKey(latestAKMonth.year, latestAKMonth.month),
         latestEnd: latestAKMonth,
-        label: `PAK terakhir per ${fmtTglID(s.latestAK.tmt)}`,
+        label: `PAK terakhir: ${akPeriodText(s.latestAK)}`,
         latestEndDate: pakLastDayDate(latestAKMonth.year, latestAKMonth.month),
       };
     }
@@ -2088,6 +2112,11 @@ function selectPakPerson(nip, nama) {
 async function openPakModal() {
   if (!STATE.detailOpenNIP) {
     showToast('Buka detail pegawai dulu', 'error');
+    return;
+  }
+  const summary = STATE.pegawaiSummary.find(x => String(x.nip ?? '') === String(STATE.detailOpenNIP ?? ''));
+  if (summary && summary.isStruktural) {
+    showToast('Pegawai struktural tidak bisa mengajukan PAK', 'error');
     return;
   }
   STATE.pakModalNIP = STATE.detailOpenNIP;
@@ -2499,6 +2528,94 @@ async function approvePengajuan(pakId) {
 /* ════════════════════════════════════════════════════════════════════
    ADD/EDIT/DELETE RIWAYAT — generic untuk ak/pangkat/jabatan/gelar
    ──────────────────────────────────────────────────────────────────── */
+
+function ensurePengajuanSummaryModal() {
+  let el = document.getElementById('pengajuan-summary-modal');
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = 'pengajuan-summary-modal';
+  el.className = 'modal-overlay';
+  el.onclick = e => { if (e.target === el) closePengajuanSummary(); };
+  el.innerHTML = `<div class="modal modal-narrow" style="max-width:640px">
+    <div class="modal-header"><div class="modal-title">Ringkasan <em>Pengajuan PAK</em></div><button class="modal-close" onclick="closePengajuanSummary()" type="button">x</button></div>
+    <div class="modal-body" id="pengajuan-summary-body"></div>
+    <div class="modal-footer" id="pengajuan-summary-footer"></div>
+  </div>`;
+  document.body.appendChild(el);
+  return el;
+}
+
+function closePengajuanSummary() {
+  const el = document.getElementById('pengajuan-summary-modal');
+  if (el) el.classList.remove('show');
+}
+
+function openPengajuanSummary(id) {
+  const p = STATE.pengajuanPAK.find(x => x.id === id);
+  if (!p) return showToast('Pengajuan tidak ditemukan', 'error');
+  const modal = ensurePengajuanSummaryModal();
+  const isPending = (p.status || 'menunggu') === 'menunggu';
+  const personOpts = (STATE.pegawaiList || []).map(x => `<option value="${esc(x.NIP || '')}" ${String(x.NIP)===String(p.penandatangan_nip)?'selected':''}>${esc(x.NAMA || x.NIP || '')}</option>`).join('');
+  document.getElementById('pengajuan-summary-body').innerHTML = `
+    <div class="pak-preview-grid">
+      <div class="pak-preview-item"><div class="pak-preview-label">Pegawai</div><div class="pak-preview-value">${esc(STATE.pegawaiByNIP[p.pegawai_nip]?.NAMA || p.pegawai_nip)}</div></div>
+      <div class="pak-preview-item"><div class="pak-preview-label">Status</div><div class="pak-preview-value">${esc(p.status || 'menunggu')}</div></div>
+      <div class="pak-preview-item"><div class="pak-preview-label">AK Didapat</div><div class="pak-preview-value">+ ${esc(fmtAK(p.ak_didapat))}</div></div>
+      <div class="pak-preview-item"><div class="pak-preview-label">AK Total</div><div class="pak-preview-value big">${esc(fmtAK(p.ak_total))}</div></div>
+    </div>
+    <div style="margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <div class="form-group"><label>Bulan Awal</label><select id="sum-bulan-start" ${isPending?'':'disabled'}>${BULAN.map((b,i)=>`<option value="${i+1}" ${Number(p.bulan_start)===i+1?'selected':''}>${esc(b)}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Bulan Akhir</label><select id="sum-bulan-end" ${isPending?'':'disabled'}>${BULAN.map((b,i)=>`<option value="${i+1}" ${Number(p.bulan_end)===i+1?'selected':''}>${esc(b)}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Tahun</label><input id="sum-tahun" type="number" value="${esc(p.tahun_periode || '')}" ${isPending?'':'disabled'}></div>
+    </div>
+    <div class="form-group"><label>Tanggal Pengajuan</label><input id="sum-tgl" type="date" value="${esc(p.tgl_pengajuan || '')}" ${isPending?'':'disabled'}></div>
+    <div class="form-group"><label>Penandatangan</label><select id="sum-ttd" ${isPending?'':'disabled'}>${personOpts}</select></div>
+    ${isPending ? '' : '<div class="form-help warn">Pengajuan yang sudah selesai tidak bisa diedit atau dihapus.</div>'}`;
+  document.getElementById('pengajuan-summary-footer').innerHTML = `
+    <button class="btn btn-secondary" onclick="closePengajuanSummary()" type="button">Tutup</button>
+    <button class="btn btn-secondary" onclick="previewPengajuan(${id})" type="button">Preview Dokumen</button>
+    ${isPending ? `<button class="btn btn-danger" onclick="deletePengajuan(${id})" type="button">Hapus</button><button class="btn btn-primary" onclick="savePengajuanSummary(${id})" type="button">Simpan</button>` : ''}`;
+  modal.classList.add('show');
+}
+
+async function savePengajuanSummary(id) {
+  const p = STATE.pengajuanPAK.find(x => x.id === id);
+  if (!p || (p.status || 'menunggu') !== 'menunggu') return;
+  const tahun = Number(document.getElementById('sum-tahun').value);
+  const bulan_start = Number(document.getElementById('sum-bulan-start').value);
+  const bulan_end = Number(document.getElementById('sum-bulan-end').value);
+  const tgl = document.getElementById('sum-tgl').value;
+  const ttd = document.getElementById('sum-ttd').value;
+  if (!tahun || !bulan_start || !bulan_end || bulan_start > bulan_end || !tgl || !ttd) return showToast('Lengkapi input pengajuan dengan benar', 'error');
+  try {
+    const ctx = await PakGenerator.resolveContext({ pegawai_nip:p.pegawai_nip, tahun_periode:tahun, bulan_start, bulan_end, tgl_pengajuan:tgl, penandatangan_nip:ttd, nomor_urut:p.nomor_urut });
+    const m = ctx._meta;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/pengajuan_pak?id=eq.${encodeURIComponent(id)}`, {
+      method:'PATCH',
+      headers:{...SUPABASE_HEADERS,'Prefer':'return=representation'},
+      body:JSON.stringify({tahun_periode:tahun,bulan_start,bulan_end,mode_hitung:m.mode_hitung,ak_didapat:m.ak_didapat,ak_n1:m.ak_n1_num,ak_total:m.ak_tot_num,detail_predikat:m.detail_predikat,tgl_pengajuan:tgl,penandatangan_nip:ttd,penandatangan_nama:m.penandatangan_nama || null})
+    });
+    if (!res.ok) throw new Error(await res.text());
+    showToast('Pengajuan diperbarui', 'success');
+    closePengajuanSummary();
+    await loadAll();
+    if (STATE.detailOpenNIP) { const nip=STATE.detailOpenNIP; closeDetail(); openDetail(nip); switchTab('pengajuan'); }
+  } catch(e) { showToast(`Gagal menyimpan: ${e.message || e}`, 'error'); }
+}
+
+async function deletePengajuan(id) {
+  const p = STATE.pengajuanPAK.find(x => x.id === id);
+  if (!p || (p.status || 'menunggu') !== 'menunggu') return showToast('Hanya pengajuan menunggu yang bisa dihapus', 'error');
+  if (!confirm('Hapus pengajuan PAK ini?')) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/pengajuan_pak?id=eq.${encodeURIComponent(id)}`, {method:'DELETE', headers:SUPABASE_HEADERS});
+    if (!res.ok) throw new Error(await res.text());
+    showToast('Pengajuan dihapus', 'success');
+    closePengajuanSummary();
+    await loadAll();
+    if (STATE.detailOpenNIP) { const nip=STATE.detailOpenNIP; closeDetail(); openDetail(nip); switchTab('pengajuan'); }
+  } catch(e) { showToast(`Gagal menghapus: ${e.message || e}`, 'error'); }
+}
 
 function openRiwayatModal(tabKey, rowId) {
   const cfg = TAB_CONFIG[tabKey];
