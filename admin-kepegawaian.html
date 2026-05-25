@@ -796,14 +796,23 @@ const TAB_CONFIG = {
     columns: [
       { key:'jabatan', label:'Jabatan',
         render: r => `<span style="font-weight:600">${esc(r.jabatan || '-')}</span>` },
+      { key:'jenis', label:'Jenis', cls:'col-tmt',
+        render: r => `<span style="color:var(--muted);font-size:11px;text-transform:capitalize">${esc(r.jenis || 'utama')}</span>` },
       { key:'tmt', label:'TMT', cls:'col-tmt', render: r => esc(fmtTglID(r.tmt)) },
+      { key:'tmt_selesai', label:'Selesai', cls:'col-tmt',
+        render: r => r.tmt_selesai ? esc(fmtTglID(r.tmt_selesai)) : '<span style="color:var(--muted)">Aktif</span>' },
       { key:'tmt_pak', label:'TMT Ikut PAK', cls:'col-tmt',
         render: r => r.tmt_ikut_pak ? esc(fmtTglID(r.tmt_ikut_pak)) : '<span style="color:var(--muted)">—</span>' },
     ],
     fields: [
       { name:'jabatan', label:'Jabatan', type:'text', required:true,
         placeholder:'mis. Statistisi Pelaksana', maxLength:200 },
+      { name:'jenis', label:'Jenis Jabatan', type:'select', required:true,
+        options:[{value:'utama',label:'Utama'}, {value:'lainnya',label:'Lainnya'}],
+        help:'Gunakan jabatan lainnya untuk Plt. Kepala BPS, Bendahara, PPK, dan jabatan tambahan sejenis.' },
       { name:'tmt', label:'TMT', type:'date', required:true },
+      { name:'tmt_selesai', label:'TMT Selesai', type:'date', required:false,
+        help:'Opsional. Isi untuk jabatan lainnya yang sudah tidak berlaku.' },
       { name:'tmt_ikut_pak', label:'TMT Ikut PAK', type:'date', required:false,
         help:'Opsional. Dapat dikosongkan jika belum diketahui.' },
     ],
@@ -813,17 +822,22 @@ const TAB_CONFIG = {
         pegawai_nip:  nip,
         nama:         peg ? (peg.NAMA || '') : '',
         jabatan:      (form.jabatan || '').trim(),
+        jenis:        form.jenis || 'utama',
         tmt:          form.tmt,
         tmt_ikut_pak: form.tmt_ikut_pak || null,
+        ...(form.tmt_selesai || (STATE.riwayatJabatan[0] && 'tmt_selesai' in STATE.riwayatJabatan[0])
+          ? { tmt_selesai: form.tmt_selesai || null }
+          : {}),
       };
     },
     rowToForm: r => ({
       jabatan:      r.jabatan || '',
+      jenis:        r.jenis || 'utama',
       tmt:          r.tmt || '',
+      tmt_selesai:  r.tmt_selesai || '',
       tmt_ikut_pak: r.tmt_ikut_pak || '',
     }),
   },
-
   gelar: {
     table:     'riwayat_gelar',
     label:     'Gelar',
@@ -2798,6 +2812,15 @@ function renderRiwayatForm(cfg, vals) {
       </select>`;
     } else if (f.type === 'date') {
       inputHTML = `<input type="date" id="rf-${f.name}" value="${esc(cur)}" ${f.required?'required':''}>`;
+    } else if (f.type === 'select') {
+      const opts = (f.options || []).map(o => {
+        const sel = String(cur) === String(o.value) ? ' selected' : '';
+        return `<option value="${esc(o.value)}"${sel}>${esc(o.label)}</option>`;
+      }).join('');
+      inputHTML = `<select id="rf-${f.name}" ${f.required?'required':''}>
+        <option value="">Pilih...</option>
+        ${opts}
+      </select>`;
     } else if (f.type === 'number') {
       inputHTML = `<input type="number" id="rf-${f.name}" value="${esc(cur)}"
         ${f.step?`step="${f.step}"`:''} ${f.min?`min="${f.min}"`:''}

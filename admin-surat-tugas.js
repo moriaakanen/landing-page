@@ -180,6 +180,7 @@ let mitraByNip  = {};             // index NIP placeholder → object mitra
                                   //   contoh: MITRA-2026-042
 let riwayatJabatan = [];          // dari "riwayat_jabatan"
 let riwayatPangkatGolongan = [];  // dari "riwayat_pangkat_golongan"
+let riwayatGelar = [];            // dari "riwayat_gelar"
 let userMap = {};                 // id → { full_name, username } — untuk tampilkan nama pengaju surat
 let selectedId = null;
 
@@ -257,6 +258,29 @@ function badgeHTML(status) {
   const m = { menunggu:['menunggu','⏳ Menunggu'], selesai:['selesai','✅ Selesai'] };
   const [cls, lbl] = m[status] || ['menunggu', status];
   return `<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;
+}
+
+function normalizeStatusKepegawaian(p) {
+  return String(p && (p.status_kepegawaian || p.status_pegawai || '') || 'aktif').trim().toLowerCase();
+}
+
+function tanggalPensiunPegawai(p) {
+  return String(p && (p.tanggal_pensiun || p.tmt_pensiun || '') || '').slice(0, 10);
+}
+
+function isPegawaiPensiunAt(p, isoRef) {
+  if (!p || p._isMitra) return false;
+  const status = normalizeStatusKepegawaian(p);
+  if (status !== 'pensiun') return false;
+  const tglPensiun = tanggalPensiunPegawai(p);
+  if (!tglPensiun) return true;
+  return String(isoRef || todayISO()).slice(0, 10) >= tglPensiun;
+}
+
+function statusPegawaiLabel(p, isoRef) {
+  if (!isPegawaiPensiunAt(p, isoRef)) return '';
+  const tglPensiun = tanggalPensiunPegawai(p);
+  return tglPensiun ? `Pensiun per ${fmtTgl(tglPensiun)}` : 'Pensiun';
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -350,9 +374,9 @@ function parseFlexRange(input) {
 ═══════════════════════════════════════════════════════════════════════ */
 async function loadPegawai() {
   try {
-    // Sertakan "UNIT KERJA" untuk tag {skerja_p} di template docx.
-    // Perlu di-encode karena kolom punya spasi.
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=NIP,NAMA,"UNIT KERJA"&order=NAMA.asc`, { headers: H });
+    // Ambil semua kolom supaya status_kepegawaian/tanggal_pensiun ikut
+    // tersedia setelah migration dijalankan, tanpa perlu ubah select lagi.
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=*&order=NAMA.asc`, { headers: H });
     if (!res.ok) return;
     pegawaiList = await res.json();
     pegawaiByNIP = {};
@@ -430,6 +454,14 @@ async function loadRiwayatPangkatGolongan() {
     if (!res.ok) return;
     riwayatPangkatGolongan = await res.json();
   } catch(e) { console.warn('Gagal load riwayat_pangkat_golongan:', e); }
+}
+
+async function loadRiwayatGelar() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/riwayat_gelar?select=*&order=tmt.desc`, { headers: H });
+    if (!res.ok) return;
+    riwayatGelar = await res.json();
+  } catch(e) { console.warn('Gagal load riwayat_gelar:', e); }
 }
 
 // Load daftar user → dipakai untuk tampilkan nama pengaju di kolom "Diajukan oleh"
@@ -1739,9 +1771,16 @@ function closeAc() {
   acState.focusIdx = -1;
 }
 
+function getRowTanggalSuratForCell(cellEl) {
+  const tr = cellEl ? cellEl.closest('tr[data-surat-id]') : null;
+  const el = tr ? tr.querySelector('[data-field="tanggal_surat"]') : null;
+  return (el && el.dataset && el.dataset.iso) ? el.dataset.iso : todayISO();
+}
+
 function acFilter(q) {
   q = (q || '').toLowerCase().trim();
   const cellEl = acState.cellEl;
+  const refDate = getRowTanggalSuratForCell(cellEl);
   let selectedNips = [];
   if (cellEl) {
     if (acState.isSingle) {
@@ -1765,7 +1804,11 @@ function acFilter(q) {
   // acState.isSingle = true → cell adalah penandatangan; false → pegawai_multi.
   let combinedPool;
   if (acState.isSingle) {
-    combinedPool = pegawaiList;
+    combinedPool = pegawaiList.map(p => ({
+      ...p,
+      _disabled: isPegawaiPensiunAt(p, refDate),
+      _disabledReason: statusPegawaiLabel(p, refDate),
+    }));
   } else {
     const tahunAktif = new Date().getFullYear();
     const mitraPool = mitraList
@@ -1776,7 +1819,12 @@ function acFilter(q) {
         _isMitra: true,
         _mitraTahun: m.tahun,
       }));
-    combinedPool = pegawaiList.concat(mitraPool);
+    const pegawaiPool = pegawaiList.map(p => ({
+      ...p,
+      _disabled: isPegawaiPensiunAt(p, refDate),
+      _disabledReason: statusPegawaiLabel(p, refDate),
+    }));
+    combinedPool = pegawaiPool.concat(mitraPool);
   }
 
   acState.filtered = combinedPool.filter(p => {
@@ -1808,14 +1856,16 @@ function acRenderList(selectedNips) {
     // Untuk pegawai biasa, tampilkan badge "Pegawai" supaya konsisten —
     // user-side tidak perlu nebak mana mitra mana bukan.
     const badge = p._isMitra
-      ? `<span style="display:inline-block;margin-left:6px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:100px;padding:1px 7px;font-size:9.5px;font-weight:600;letter-spacing:.3px;vertical-align:middle">MITRA</span>`
-      : `<span style="display:inline-block;margin-left:6px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:100px;padding:1px 7px;font-size:9.5px;font-weight:600;letter-spacing:.3px;vertical-align:middle">PEGAWAI</span>`;
+      ? `<span class="ac-badge mitra">MITRA</span>`
+      : (p._disabled
+          ? `<span class="ac-badge pensiun">PENSIUN</span>`
+          : `<span class="ac-badge pegawai">PEGAWAI</span>`);
     // Untuk mitra: tampilkan "Mitra Tahun YYYY" di tempat NIP (NIP placeholder
     // tidak menarik untuk admin — tahunnya lebih informatif).
     const subLine = p._isMitra
       ? `Mitra Tahun ${p._mitraTahun}`
-      : `NIP ${nip || '—'}`;
-    return `<div class="ac-item${isSel ? ' selected' : ''}${i === acState.focusIdx ? ' focused' : ''}"
+      : (p._disabledReason || `NIP ${nip || '-'}`);
+    return `<div class="ac-item${isSel ? ' selected' : ''}${i === acState.focusIdx ? ' focused' : ''}${p._disabled ? ' disabled' : ''}"
       data-nip="${escAttr(nip)}" data-idx="${i}"
       onmousedown="event.preventDefault();acPick(${i})">
       <div class="ac-check">${isSel ? '✓' : ''}</div>
@@ -1838,6 +1888,10 @@ function acRenderFocus() {
 function acPick(idx) {
   const p = acState.filtered[idx];
   if (!p || !acState.cellEl) return;
+  if (p._disabled) {
+    showPageAlert(p._disabledReason || 'Pegawai ini tidak bisa dipilih untuk tanggal surat tersebut.', 'error');
+    return;
+  }
   pickPegawai(acState.cellEl, String(p.NIP).trim(), p.NAMA || '');
   if (acState.inputEl) {
     acState.inputEl.value = '';
@@ -2819,6 +2873,46 @@ function validateApproveFields(values) {
     errors.push('Format POK tidak valid (contoh: 054.01.GG.2910.BMA.006.054.A.524119)');
     if (!errFields.includes('pembebanan')) errFields.push('pembebanan');
   }
+  const availability = validatePegawaiAvailability(values);
+  availability.errors.forEach(msg => errors.push(msg));
+  availability.errFields.forEach(f => {
+    if (!errFields.includes(f)) errFields.push(f);
+  });
+  return { errors, errFields };
+}
+
+function validatePegawaiAvailability(values) {
+  const errors = [];
+  const errFields = [];
+  const tglSurat = values.tanggal_surat || '';
+  const tugasMulai = values.tanggal_berangkat || '';
+  const tugasSelesai = values.tanggal_kembali || values.tanggal_berangkat || '';
+
+  const addField = (f) => {
+    if (!errFields.includes(f)) errFields.push(f);
+  };
+  const checkPegawai = (nip, nama, field) => {
+    if (!nip || isMitraNip(nip)) return;
+    const p = pegawaiByNIP[String(nip).trim()];
+    if (!p) return;
+    const tglPensiun = tanggalPensiunPegawai(p);
+    if (isPegawaiPensiunAt(p, tglSurat)) {
+      errors.push(`${nama || p.NAMA || nip} sudah pensiun pada tanggal surat${tglPensiun ? ` (${fmtTgl(tglPensiun)})` : ''}.`);
+      addField(field);
+      return;
+    }
+    if (normalizeStatusKepegawaian(p) === 'pensiun' && tglPensiun && tugasMulai && tugasMulai >= tglPensiun) {
+      errors.push(`${nama || p.NAMA || nip} tidak bisa ditugaskan karena waktu pelaksanaan dimulai setelah pensiun.`);
+      addField(field);
+    } else if (normalizeStatusKepegawaian(p) === 'pensiun' && tglPensiun && tugasSelesai && tugasSelesai >= tglPensiun) {
+      errors.push(`${nama || p.NAMA || nip} pensiun per ${fmtTgl(tglPensiun)}, sedangkan waktu pelaksanaan melewati tanggal tersebut.`);
+      addField(field);
+    }
+  };
+
+  (values.pegawai_nip || []).forEach((nip, idx) => checkPegawai(nip, (values.pegawai_list || [])[idx], 'pegawai_multi'));
+  checkPegawai(values.penandatangan_nip, values.penandatangan_nama, 'penandatangan');
+
   return { errors, errFields };
 }
 
@@ -3623,6 +3717,7 @@ function lookupJabatanLainnya(jabatanLainnya, tglSuratIso) {
     .filter(r => (r.jenis || '') === 'lainnya')
     .filter(r => (r.jabatan || '') === jabatanLainnya)
     .filter(r => r.tmt && r.tmt <= tglSuratIso)
+    .filter(r => !r.tmt_selesai || r.tmt_selesai >= tglSuratIso)
     .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
   return candidates[0] || null;
 }
@@ -3642,6 +3737,15 @@ function lookupPangkatGolongan(nip, tglSuratIso) {
     .filter(r => r.tmt && r.tmt <= tglSuratIso)
     .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
   return candidates[0] || null;
+}
+
+function lookupGelar(nip, tglSuratIso) {
+  if (!nip || !tglSuratIso || isMitraNip(nip)) return '';
+  const candidates = riwayatGelar
+    .filter(r => String(r.pegawai_nip || '').trim() === String(nip).trim())
+    .filter(r => r.tmt && r.tmt <= tglSuratIso)
+    .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
+  return candidates[0] ? (candidates[0].gelar || '') : '';
 }
 
 /**
@@ -5116,7 +5220,8 @@ async function buildTemplateData(data, opts) {
   // untuk deteksi.
   const peg              = isMitraNip(firstNip) ? null : pegawaiByNIP[firstNip];
   const mitr             = isMitraNip(firstNip) ? mitraByNip[firstNip]      : null;
-  const namaPegawai      = (peg && peg.NAMA)
+  const namaPegawai      = lookupGelar(firstNip, data.tanggal_surat)
+                             || (peg && peg.NAMA)
                              || (mitr && mitr.nama)
                              || firstNm
                              || '';
@@ -5171,7 +5276,8 @@ async function buildTemplateData(data, opts) {
     // di-resolve sesuai sumber data:
     //   - Pegawai biasa: lookup pegawaiByNIP + riwayat_jabatan + riwayat_pangkat_golongan
     //   - Mitra: dari record mitra (jabatan='Mitra', pangkat='-', nip='-')
-    const nama_p     = (p && p.NAMA) || (m && m.nama) || nm || '';
+    const nama_p     = lookupGelar(nip, data.tanggal_surat)
+                       || (p && p.NAMA) || (m && m.nama) || nm || '';
     const nip_p      = isMitra ? '-' : (nip || '-');
     const jabatan_p  = isMitra
                          ? (m ? (m.jabatan || 'Mitra') : 'Mitra')
@@ -5244,8 +5350,10 @@ async function buildTemplateData(data, opts) {
   //     - "Plh. Kepala BPS Kabupaten Raja Ampat"
   // Fallback: kalau penandatangan_jabatan kosong, lookup via lookupJabatan
   // (jenis='utama') untuk konsistensi dengan behavior lama.
-  const ttdNama       = data.penandatangan_nama || '';
   const ttdNip        = data.penandatangan_nip  || '';
+  const ttdNama       = lookupGelar(ttdNip, data.tanggal_surat)
+                     || data.penandatangan_nama
+                     || '';
   const ttdJabRaw     = data.penandatangan_jabatan
                      || lookupJabatan(ttdNip, data.tanggal_surat)
                      || '';
@@ -5262,7 +5370,8 @@ async function buildTemplateData(data, opts) {
   let namaPPK = '';
   if (nipPPK) {
     const pegPPK = pegawaiByNIP[nipPPK];
-    namaPPK = (pegPPK && pegPPK.NAMA)
+    namaPPK = lookupGelar(nipPPK, data.tanggal_surat)
+            || (pegPPK && pegPPK.NAMA)
             || (ppkRecord && ppkRecord.nama)
             || '';
   }
@@ -5700,7 +5809,7 @@ async function init() {
   if (!SESSION) return;
   Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION, true);
-  Promise.all([loadPegawai(), loadMitra(), loadRiwayatJabatan(), loadRiwayatPangkatGolongan(), loadUsers(), loadSurat()]);
+  Promise.all([loadPegawai(), loadMitra(), loadRiwayatJabatan(), loadRiwayatPangkatGolongan(), loadRiwayatGelar(), loadUsers(), loadSurat()]);
 
   // Pre-warm: load library docxtemplater + 3 template di background
   // supaya klik Preview pertama tidak terhambat fetch template.

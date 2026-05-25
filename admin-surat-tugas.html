@@ -458,6 +458,12 @@
   .ac-item:hover,.ac-item.focused{background:var(--gold-light)}
   .ac-item.selected{background:#ecfdf5}
   .ac-item.selected:hover,.ac-item.selected.focused{background:#d1fae5}
+  .ac-item.disabled{cursor:not-allowed;opacity:.62;background:#fafafa}
+  .ac-item.disabled:hover,.ac-item.disabled.focused{background:#fafafa}
+  .ac-badge{display:inline-block;margin-left:6px;border-radius:100px;padding:1px 7px;font-size:9.5px;font-weight:700;letter-spacing:.3px;vertical-align:middle}
+  .ac-badge.pegawai{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+  .ac-badge.mitra{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe}
+  .ac-badge.pensiun{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
 
   /* MAK typeahead — popup terpisah dari ac-popup pegawai supaya logic
      tidak conflict (data type beda). Render item lebih kaya: kode MAK
