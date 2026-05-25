@@ -376,12 +376,12 @@ async function loadPegawai() {
   try {
     // Ambil semua kolom supaya status_kepegawaian/tanggal_pensiun ikut
     // tersedia setelah migration dijalankan, tanpa perlu ubah select lagi.
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=*&order=NAMA.asc`, { headers: H });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=*&order=nama.asc`, { headers: H });
     if (!res.ok) return;
     pegawaiList = await res.json();
     pegawaiByNIP = {};
     pegawaiList.forEach(p => {
-      const nip = String(p.NIP || '').trim();
+      const nip = String(pegawaiNip(p) || '').trim();
       if (nip) pegawaiByNIP[nip] = p;
     });
   } catch(e) { console.warn('Gagal load pegawai:', e); }
@@ -1740,7 +1740,7 @@ function onPgKeydown(e, inp) {
     e.preventDefault();
     if (acState.focusIdx >= 0 && acState.filtered[acState.focusIdx]) {
       const p = acState.filtered[acState.focusIdx];
-      pickPegawai(cellEl, String(p.NIP).trim(), p.NAMA || '');
+      pickPegawai(cellEl, String(pegawaiNip(p)).trim(), pegawaiNama(p) || '');
       inp.value = '';
       acFilter('');
     }
@@ -1814,8 +1814,8 @@ function acFilter(q) {
     const mitraPool = mitraList
       .filter(m => m.tahun === tahunAktif)
       .map(m => ({
-        NIP: formatMitraNip(m.tahun, m.id),
-        NAMA: m.nama,
+        pegawai_nip: formatMitraNip(m.tahun, m.id),
+        nama: m.nama,
         _isMitra: true,
         _mitraTahun: m.tahun,
       }));
@@ -1829,8 +1829,8 @@ function acFilter(q) {
 
   acState.filtered = combinedPool.filter(p => {
     if (!q) return true;
-    const nama = (p.NAMA || '').toLowerCase();
-    const nip  = String(p.NIP || '').toLowerCase();
+    const nama = (pegawaiNama(p) || '').toLowerCase();
+    const nip  = String(pegawaiNip(p) || '').toLowerCase();
     return nama.includes(q) || nip.includes(q);
   }).slice(0, 50);
   acRenderList(selectedNips);
@@ -1849,8 +1849,8 @@ function acRenderList(selectedNips) {
     return;
   }
   list.innerHTML = acState.filtered.map((p, i) => {
-    const nip   = String(p.NIP || '').trim();
-    const nama  = p.NAMA || '-';
+    const nip   = String(pegawaiNip(p) || '').trim();
+    const nama  = pegawaiNama(p) || '-';
     const isSel = selectedNips.includes(nip);
     // Badge "Mitra" di samping nama untuk membedakan dari pegawai biasa.
     // Untuk pegawai biasa, tampilkan badge "Pegawai" supaya konsisten —
@@ -1892,7 +1892,7 @@ function acPick(idx) {
     showPageAlert(p._disabledReason || 'Pegawai ini tidak bisa dipilih untuk tanggal surat tersebut.', 'error');
     return;
   }
-  pickPegawai(acState.cellEl, String(p.NIP).trim(), p.NAMA || '');
+  pickPegawai(acState.cellEl, String(pegawaiNip(p)).trim(), pegawaiNama(p) || '');
   if (acState.inputEl) {
     acState.inputEl.value = '';
     acState.inputEl.focus();
@@ -2897,15 +2897,15 @@ function validatePegawaiAvailability(values) {
     if (!p) return;
     const tglPensiun = tanggalPensiunPegawai(p);
     if (isPegawaiPensiunAt(p, tglSurat)) {
-      errors.push(`${nama || p.NAMA || nip} sudah pensiun pada tanggal surat${tglPensiun ? ` (${fmtTgl(tglPensiun)})` : ''}.`);
+      errors.push(`${nama || pegawaiNama(p) || nip} sudah pensiun pada tanggal surat${tglPensiun ? ` (${fmtTgl(tglPensiun)})` : ''}.`);
       addField(field);
       return;
     }
     if (normalizeStatusKepegawaian(p) === 'pensiun' && tglPensiun && tugasMulai && tugasMulai >= tglPensiun) {
-      errors.push(`${nama || p.NAMA || nip} tidak bisa ditugaskan karena waktu pelaksanaan dimulai setelah pensiun.`);
+      errors.push(`${nama || pegawaiNama(p) || nip} tidak bisa ditugaskan karena waktu pelaksanaan dimulai setelah pensiun.`);
       addField(field);
     } else if (normalizeStatusKepegawaian(p) === 'pensiun' && tglPensiun && tugasSelesai && tugasSelesai >= tglPensiun) {
-      errors.push(`${nama || p.NAMA || nip} pensiun per ${fmtTgl(tglPensiun)}, sedangkan waktu pelaksanaan melewati tanggal tersebut.`);
+      errors.push(`${nama || pegawaiNama(p) || nip} pensiun per ${fmtTgl(tglPensiun)}, sedangkan waktu pelaksanaan melewati tanggal tersebut.`);
       addField(field);
     }
   };
@@ -3684,9 +3684,10 @@ function lookupJabatan(nip, tglSuratIso) {
     .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
   if (candidates.length) return candidates[0].jabatan || '';
   const peg = pegawaiByNIP[nip];
-  if (peg && peg.NAMA) {
+  const pegNama = pegawaiNama(peg);
+  if (peg && pegNama) {
     const candByName = riwayatJabatan
-      .filter(r => (r.nama || '').trim().toLowerCase() === (peg.NAMA || '').trim().toLowerCase())
+      .filter(r => (r.nama || '').trim().toLowerCase() === pegNama.trim().toLowerCase())
       .filter(r => (r.jenis || 'utama') === 'utama')
       .filter(r => r.tmt && r.tmt <= tglSuratIso)
       .sort((a, b) => (b.tmt || '').localeCompare(a.tmt || ''));
@@ -4116,7 +4117,7 @@ async function importSuratFromExcel(inputEl) {
     // kolom Pegawai dan Penandatangan.
     const pegawaiByNama = {};
     pegawaiList.forEach(p => {
-      const k = String(p.NAMA || '').trim().toLowerCase();
+      const k = String(pegawaiNama(p) || '').trim().toLowerCase();
       if (k) pegawaiByNama[k] = p;
     });
 
@@ -4149,8 +4150,8 @@ async function importSuratFromExcel(inputEl) {
       namaList.forEach(nama => {
         const p = pegawaiByNama[nama.toLowerCase()];
         if (p) {
-          matchedNips.push(String(p.NIP));
-          matchedNames.push(p.NAMA);
+          matchedNips.push(String(pegawaiNip(p)));
+          matchedNames.push(pegawaiNama(p));
         } else {
           unmatchedNames.push(nama);
         }
@@ -4165,8 +4166,8 @@ async function importSuratFromExcel(inputEl) {
       if (ttdNamaRaw) {
         const p = pegawaiByNama[ttdNamaRaw.toLowerCase()];
         if (p) {
-          ttdNip = String(p.NIP);
-          ttdNama = p.NAMA;
+          ttdNip = String(pegawaiNip(p));
+          ttdNama = pegawaiNama(p);
         } else {
           warnings.push(`Baris ${rowNum}: penandatangan "${ttdNamaRaw}" tidak match ke data pegawai → di-skip`);
         }
@@ -5221,7 +5222,7 @@ async function buildTemplateData(data, opts) {
   const peg              = isMitraNip(firstNip) ? null : pegawaiByNIP[firstNip];
   const mitr             = isMitraNip(firstNip) ? mitraByNip[firstNip]      : null;
   const namaPegawai      = lookupGelar(firstNip, data.tanggal_surat)
-                             || (peg && peg.NAMA)
+                             || pegawaiNama(peg)
                              || (mitr && mitr.nama)
                              || firstNm
                              || '';
@@ -5235,7 +5236,7 @@ async function buildTemplateData(data, opts) {
   // Satuan kerja: pegawai dari kolom UNIT KERJA, mitra dari kolom instansi
   const skerjaPegawai    = mitr
                              ? (mitr.instansi || '')
-                             : ((peg && (peg['UNIT KERJA'] || peg.UNIT_KERJA)) || '');
+                             : pegawaiUnitKerja(peg);
 
   // ── Halaman 1: nama, jabatan, pangkat → "Terlampir" kalau ≥2 pegawai
   // Sesuai konfirmasi user: untuk pegawai >1 nama, jabatan, pangkat &
@@ -5277,7 +5278,7 @@ async function buildTemplateData(data, opts) {
     //   - Pegawai biasa: lookup pegawaiByNIP + riwayat_jabatan + riwayat_pangkat_golongan
     //   - Mitra: dari record mitra (jabatan='Mitra', pangkat='-', nip='-')
     const nama_p     = lookupGelar(nip, data.tanggal_surat)
-                       || (p && p.NAMA) || (m && m.nama) || nm || '';
+                       || pegawaiNama(p) || (m && m.nama) || nm || '';
     const nip_p      = isMitra ? '-' : (nip || '-');
     const jabatan_p  = isMitra
                          ? (m ? (m.jabatan || 'Mitra') : 'Mitra')
@@ -5304,7 +5305,7 @@ async function buildTemplateData(data, opts) {
 
     const skerja_p   = isMitra
                          ? (m ? (m.instansi || '') : '')
-                         : ((p && (p['UNIT KERJA'] || p.UNIT_KERJA)) || '');
+                         : pegawaiUnitKerja(p);
 
     const bertugas_p = String(bertugasList[i] || '').trim();
     const jabatan_bertugas_p = bertugas_p
@@ -5371,7 +5372,7 @@ async function buildTemplateData(data, opts) {
   if (nipPPK) {
     const pegPPK = pegawaiByNIP[nipPPK];
     namaPPK = lookupGelar(nipPPK, data.tanggal_surat)
-            || (pegPPK && pegPPK.NAMA)
+            || pegawaiNama(pegPPK)
             || (ppkRecord && ppkRecord.nama)
             || '';
   }

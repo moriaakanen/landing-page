@@ -252,7 +252,7 @@
     if (_lookupCache.pendingPromise) return _lookupCache.pendingPromise;
 
     var p = Promise.all([
-      fetch(url + '/rest/v1/data_pegawai?select=NIP,NAMA',
+      fetch(url + '/rest/v1/data_pegawai?select=pegawai_nip,nama',
             { headers: window.SUPABASE_HEADERS })
         .then(function (r) { return r.ok ? r.json() : []; })
         .catch(function () { return []; }),
@@ -263,8 +263,9 @@
     ]).then(function (results) {
       var pegawaiByNIP = {};
       (results[0] || []).forEach(function (row) {
-        if (row && row.NIP) {
-          pegawaiByNIP[String(row.NIP)] = row.NAMA || String(row.NIP);
+        var nip = window.pegawaiNip ? window.pegawaiNip(row) : (row && (row.pegawai_nip || row.NIP));
+        if (row && nip) {
+          pegawaiByNIP[String(nip)] = (window.pegawaiNama ? window.pegawaiNama(row) : (row.nama || row.NAMA)) || String(nip);
         }
       });
       var usersByID = {};

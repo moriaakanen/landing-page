@@ -168,6 +168,39 @@
   // Alias backward-compat: beberapa file lama pakai escAttr() — sama persis.
   window.escAttr = esc;
 
+  // ─── data_pegawai column helpers ─────────────────────────────────
+  // Migration 2026-05 mengganti kolom Supabase dari format lama
+  // (NAMA/NIP/"UNIT KERJA") ke snake_case. Helper ini menjaga kode tetap
+  // tahan transisi saat sebagian data/cache masih memakai bentuk lama.
+  function pegawaiNama(row) {
+    return row ? (row.nama ?? row.NAMA ?? '') : '';
+  }
+  function pegawaiNip(row) {
+    return row ? (row.pegawai_nip ?? row.NIP ?? row.username ?? '') : '';
+  }
+  function pegawaiKarpeg(row) {
+    return row ? (row.karpeg ?? row['NOMOR SERI KARPEG'] ?? '') : '';
+  }
+  function pegawaiTtl(row) {
+    return row ? (row.ttl ?? row['TEMPAT/TANGGAL LAHIR'] ?? '') : '';
+  }
+  function pegawaiJk(row) {
+    return row ? (row.jk ?? row['JENIS KELAMIN'] ?? '') : '';
+  }
+  function pegawaiUnitKerja(row) {
+    return row ? (row.unit_kerja ?? row['UNIT KERJA'] ?? row.UNIT_KERJA ?? '') : '';
+  }
+  function pegawaiPendidikanTerakhir(row) {
+    return row ? (row.pendidikan_terakhir ?? row['PENDIDIKAN TERAKHIR'] ?? '') : '';
+  }
+  window.pegawaiNama = pegawaiNama;
+  window.pegawaiNip = pegawaiNip;
+  window.pegawaiKarpeg = pegawaiKarpeg;
+  window.pegawaiTtl = pegawaiTtl;
+  window.pegawaiJk = pegawaiJk;
+  window.pegawaiUnitKerja = pegawaiUnitKerja;
+  window.pegawaiPendidikanTerakhir = pegawaiPendidikanTerakhir;
+
   // ─── Logout ────────────────────────────────────────────────────
   // Dipanggil dari template topbar (onclick="logout()") DAN dari halaman lain.
   function logout() {

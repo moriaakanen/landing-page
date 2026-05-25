@@ -174,7 +174,7 @@
    */
   async function fetchPegawai(nip) {
     const rows = await fetchJson(
-      `data_pegawai?NIP=eq.${encodeURIComponent(nip)}&limit=1`
+      `data_pegawai?pegawai_nip=eq.${encodeURIComponent(nip)}&limit=1`
     );
     if (!rows.length) throw new Error(`Pegawai dengan NIP ${nip} tidak ditemukan`);
     return rows[0];
@@ -751,7 +751,7 @@
     });
 
     // ─── Resolve nama (riwayat_gelar terbaru, fallback NAMA) ──
-    const nama = (gelarRow && gelarRow.gelar) || pegawai.NAMA || '';
+    const nama = (gelarRow && gelarRow.gelar) || (window.pegawaiNama ? window.pegawaiNama(pegawai) : (pegawai.nama || pegawai.NAMA)) || '';
 
     // ─── Resolve {pangkat_golongan_tmt} & {jabatan_tmt} ──────
     const pangkat_golongan_tmt =
@@ -760,7 +760,7 @@
       `${jabatanRow.jabatan || '—'}/${fmtTglID(jabatanRow.tmt) || '—'}`;
 
     // ─── Penandatangan (pakai pattern surat tugas) ───────────
-    const ttdNama        = penandatanganPegawai ? (penandatanganPegawai.NAMA || '') : '';
+    const ttdNama        = penandatanganPegawai ? ((window.pegawaiNama ? window.pegawaiNama(penandatanganPegawai) : (penandatanganPegawai.nama || penandatanganPegawai.NAMA)) || '') : '';
     const ttdJabRaw      = penandatanganJabatan ? (penandatanganJabatan.jabatan || '') : '';
     const ttdJabFinal    = (typeof transformJabatanPenandatangan === 'function')
                             ? transformJabatanPenandatangan(ttdJabRaw)
@@ -789,13 +789,13 @@
       nomor_surat_3,
       periode: resolvePeriodeText(bulan_start, bulan_end, tahun_periode),
       nama,
-      nip: pegawai.NIP || '',
-      karpeg:    pegawai['NOMOR SERI KARPEG'] || '',
-      ttl:       pegawai['TEMPAT/TANGGAL LAHIR'] || '',
-      jk:        pegawai['JENIS KELAMIN'] || '',
+      nip: window.pegawaiNip ? window.pegawaiNip(pegawai) : (pegawai.pegawai_nip || pegawai.NIP || ''),
+      karpeg:    window.pegawaiKarpeg ? window.pegawaiKarpeg(pegawai) : (pegawai.karpeg || pegawai['NOMOR SERI KARPEG'] || ''),
+      ttl:       window.pegawaiTtl ? window.pegawaiTtl(pegawai) : (pegawai.ttl || pegawai['TEMPAT/TANGGAL LAHIR'] || ''),
+      jk:        window.pegawaiJk ? window.pegawaiJk(pegawai) : (pegawai.jk || pegawai['JENIS KELAMIN'] || ''),
       pangkat_golongan_tmt,
       jabatan_tmt,
-      instansi:  pegawai['UNIT KERJA'] || '',
+      instansi:  window.pegawaiUnitKerja ? window.pegawaiUnitKerja(pegawai) : (pegawai.unit_kerja || pegawai['UNIT KERJA'] || ''),
       predikat:    predikat_str,
       predikat_2:  predikat_2_str,
       persen:      persen_str,
@@ -841,7 +841,7 @@
         detail_predikat,
         // Snapshot identitas (buat caller display di preview)
         nama_display: nama,
-        nip_display:  pegawai.NIP || '',
+        nip_display:  window.pegawaiNip ? window.pegawaiNip(pegawai) : (pegawai.pegawai_nip || pegawai.NIP || ''),
         pangkat_golongan_tmt,
         jabatan_tmt,
         // Snapshot penandatangan

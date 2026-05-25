@@ -89,6 +89,11 @@
   .pg-card.has-pending{background:linear-gradient(180deg,#fff 0%,#fffdf6 100%)}
   .pg-card.has-pending::before{opacity:1;width:5px}
   .pg-card.has-pending::after{content:'';position:absolute;top:14px;right:14px;width:8px;height:8px;background:var(--gold);border-radius:50%;box-shadow:0 0 0 4px rgba(200,168,75,.18);animation:pgPulse 2s infinite}
+  .pg-card.is-retired{background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);border-color:#dbe3ec}
+  .pg-card.is-retired::before{background:#94a3b8;opacity:.75}
+  .pg-card.is-retired:hover{border-color:#94a3b8}
+  .pg-card.is-retired .pg-card-head{background:#f8fafc}
+  .pg-card.is-retired .pg-progress-block{background:#f8fafc}
   @keyframes pgPulse{0%,100%{box-shadow:0 0 0 4px rgba(200,168,75,.18)}50%{box-shadow:0 0 0 7px rgba(200,168,75,.05)}}
 
   .pg-card-head{padding:16px 18px 14px 20px;display:flex;align-items:center;gap:13px;background:#fff;border-bottom:1px solid var(--border)}
@@ -99,6 +104,7 @@
 
   .pg-pill-pak{display:inline-flex;align-items:center;gap:4px;background:var(--gold);color:#fff;border:none;border-radius:100px;padding:3px 9px;font-size:9.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;box-shadow:0 2px 6px rgba(200,168,75,.4)}
   .pg-pill-struct{display:inline-flex;align-items:center;margin-left:6px;padding:2px 7px;border-radius:100px;background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;vertical-align:middle}
+  .pg-pill-retired{display:inline-flex;align-items:center;margin-left:6px;padding:2px 7px;border-radius:100px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;vertical-align:middle}
 
   /* Card body — info dengan chip-like presentation */
   .pg-card-body{padding:14px 18px 6px;display:flex;flex-direction:column;gap:10px}
@@ -428,6 +434,7 @@
       <div class="stat-pill"><div class="stat-pill-icon" style="background:#fef3c7">PAK</div><div><div class="stat-pill-num" id="st-pak-pending">—</div><div class="stat-pill-label">PAK Menunggu</div></div></div>
       <div class="stat-pill"><div class="stat-pill-icon" style="background:#ecfdf5">NP</div><div><div class="stat-pill-num" id="st-ready-pangkat">—</div><div class="stat-pill-label">Siap Naik Pangkat</div></div></div>
       <div class="stat-pill"><div class="stat-pill-icon" style="background:#fdf4ff">NJ</div><div><div class="stat-pill-num" id="st-ready-jenjang">—</div><div class="stat-pill-label">Siap Naik Jenjang</div></div></div>
+      <div class="stat-pill"><div class="stat-pill-icon" style="background:#f1f5f9">AR</div><div><div class="stat-pill-num" id="st-retired">—</div><div class="stat-pill-label">Arsip Pensiun</div></div></div>
     </div>
 
     <!-- ─── FILTER BAR ───────────────────────────────────────────── -->
@@ -451,6 +458,11 @@
         <option value="">Status PAK: Semua</option>
         <option value="menunggu">Ada PAK Menunggu</option>
         <option value="ready">Siap Naik (AK Cukup)</option>
+      </select>
+      <select class="filter-select" id="filter-status" onchange="onFilterChange()">
+        <option value="">Status: Semua</option>
+        <option value="aktif">Aktif</option>
+        <option value="pensiun">Pensiun</option>
       </select>
       <span class="filter-info" id="filter-info">—</span>
     </div>
@@ -820,7 +832,7 @@ const TAB_CONFIG = {
       const peg = STATE.pegawaiByNIP[nip];
       return {
         pegawai_nip:  nip,
-        nama:         peg ? (peg.NAMA || '') : '',
+        nama:         peg ? (pegawaiNama(peg) || '') : '',
         jabatan:      (form.jabatan || '').trim(),
         jenis:        form.jenis || 'utama',
         tmt:          form.tmt,
@@ -891,6 +903,19 @@ function fmtTglID(iso) {
   return `${parseInt(m[3], 10)} ${BULAN[parseInt(m[2], 10) - 1]} ${m[1]}`;
 }
 
+function pegStatus(p) {
+  return String(p && (p.status_kepegawaian || 'aktif') || 'aktif').trim().toLowerCase();
+}
+
+function isPensiunPegawai(p) {
+  return pegStatus(p) === 'pensiun';
+}
+
+function pensiunLabel(p) {
+  if (!isPensiunPegawai(p)) return '';
+  return p.tanggal_pensiun ? `Pensiun per ${fmtTglID(p.tanggal_pensiun)}` : 'Pensiun';
+}
+
 function fmtPeriode(p) {
   if (!p.bulan_start || !p.bulan_end || !p.tahun_periode) return '—';
   if (p.bulan_start === p.bulan_end) {
@@ -952,7 +977,7 @@ function estimasiTanggalPromosi(sisa, latestAK, jenjangAktif) {
 async function loadAll() {
   try {
     const [pegawaiRes, akRes, pangkatRes, jabatanRes, gelarRes, pakRes] = await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=*&order=NAMA.asc`,                 { headers: SUPABASE_HEADERS }),
+      fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=*&order=nama.asc`,                 { headers: SUPABASE_HEADERS }),
       fetch(`${SUPABASE_URL}/rest/v1/riwayat_angka_kredit?select=*&order=tmt.desc`,         { headers: SUPABASE_HEADERS }),
       fetch(`${SUPABASE_URL}/rest/v1/riwayat_pangkat_golongan?select=*&order=tmt.desc`,     { headers: SUPABASE_HEADERS }),
       fetch(`${SUPABASE_URL}/rest/v1/riwayat_jabatan?select=*&order=tmt.desc`,              { headers: SUPABASE_HEADERS }),
@@ -964,7 +989,8 @@ async function loadAll() {
     if (!pegawaiRes.ok) throw new Error(`Fetch data_pegawai gagal (HTTP ${pegawaiRes.status})`);
     STATE.pegawaiList = await pegawaiRes.json();
     STATE.pegawaiByNIP = STATE.pegawaiList.reduce((acc, p) => {
-      if (p.NIP) acc[p.NIP] = p;
+      const nip = pegawaiNip(p);
+      if (nip) acc[nip] = p;
       return acc;
     }, {});
 
@@ -1022,7 +1048,7 @@ function buildPegawaiSummary() {
   });
 
   STATE.pegawaiSummary = STATE.pegawaiList.map(peg => {
-    const nip = peg.NIP;
+    const nip = pegawaiNip(peg);
     const latestAK      = akByNIP[nip]      || null;
     const latestPangkat = pangkatByNIP[nip] || null;
     const latestJabatan = jabatanByNIP[nip] || null;
@@ -1041,12 +1067,14 @@ function buildPegawaiSummary() {
       : (golongan ? window.progressGolongan(akKumulatif, golongan) : null);
 
     return {
-      nip, nama: peg.NAMA || '(Tanpa Nama)',
+      nip, nama: pegawaiNama(peg) || '(Tanpa Nama)',
       pegawai: peg,
       latestAK, latestPangkat, latestJabatan, latestGelar,
       akList, pakList, pakPending,
       akKumulatif,
       golongan, jenjang, isStruktural, prog,
+      isPensiun: isPensiunPegawai(peg),
+      pensiunText: pensiunLabel(peg),
     };
   });
 }
@@ -1069,11 +1097,13 @@ function updateStats() {
   const pakPending = STATE.pegawaiSummary.filter(s => s.pakPending.length > 0).length;
   const readyP = STATE.pegawaiSummary.filter(s => s.prog && s.prog.pangkat && s.prog.pangkat.can_promote).length;
   const readyJ = STATE.pegawaiSummary.filter(s => s.prog && s.prog.jenjang && s.prog.jenjang.can_promote).length;
+  const retired = STATE.pegawaiSummary.filter(s => s.isPensiun).length;
 
   document.getElementById('st-total').textContent        = total;
   document.getElementById('st-pak-pending').textContent  = pakPending;
   document.getElementById('st-ready-pangkat').textContent = readyP;
   document.getElementById('st-ready-jenjang').textContent = readyJ;
+  document.getElementById('st-retired').textContent       = retired;
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -1084,6 +1114,7 @@ function onFilterChange() {
   const q       = document.getElementById('search-input').value.trim().toLowerCase();
   const fJenjang= document.getElementById('filter-jenjang').value;
   const fPAK    = document.getElementById('filter-pak').value;
+  const fStatus = document.getElementById('filter-status').value;
 
   STATE.filtered = STATE.pegawaiSummary.filter(s => {
     // Search
@@ -1095,6 +1126,8 @@ function onFilterChange() {
     if (fJenjang) {
       if (!s.jenjang || s.jenjang.key !== fJenjang) return false;
     }
+    if (fStatus === 'aktif' && s.isPensiun) return false;
+    if (fStatus === 'pensiun' && !s.isPensiun) return false;
     // Filter PAK status
     if (fPAK === 'menunggu') {
       if (s.pakPending.length === 0) return false;
@@ -1107,6 +1140,7 @@ function onFilterChange() {
 
   // Sort: pakPending > 0 dulu, lalu by nama
   STATE.filtered.sort((a, b) => {
+    if (a.isPensiun !== b.isPensiun) return a.isPensiun ? 1 : -1;
     const aP = a.pakPending.length > 0 ? 1 : 0;
     const bP = b.pakPending.length > 0 ? 1 : 0;
     if (aP !== bP) return bP - aP;
@@ -1144,12 +1178,15 @@ function renderPegawaiCard(s) {
   const pakPill = s.pakPending.length > 0
     ? `<span class="pg-pill-pak" title="${s.pakPending.length} pengajuan PAK menunggu persetujuan">${s.pakPending.length} Menunggu</span>`
     : '';
+  const retiredPill = s.isPensiun
+    ? `<span class="pg-pill-retired" title="${escAttr(s.pensiunText || 'Pensiun')}">Pensiun</span>`
+    : '';
 
-  const cardCls = s.pakPending.length > 0 ? 'pg-card has-pending' : 'pg-card';
+  const cardCls = ['pg-card', s.pakPending.length > 0 ? 'has-pending' : '', s.isPensiun ? 'is-retired' : ''].filter(Boolean).join(' ');
 
   // Jabatan row
   const jabatanText = s.latestJabatan
-    ? `${esc(s.latestJabatan.jabatan)}${s.isStruktural ? '<span class="pg-pill-struct">Struktural</span>' : ''}`
+    ? `${esc(s.latestJabatan.jabatan)}${s.isStruktural ? '<span class="pg-pill-struct">Struktural</span>' : ''}${retiredPill}`
     : `<span class="empty">Belum ada jabatan</span>`;
 
   // Pangkat row (gabung pangkat / golongan)
@@ -1163,7 +1200,7 @@ function renderPegawaiCard(s) {
     : `<span class="empty">Belum ada riwayat AK</span>`;
 
   // Progress block (ring-based, design baru)
-  const progress = renderProgressBlock(s);
+  const progress = s.isPensiun ? renderRetiredBlock(s) : renderProgressBlock(s);
 
   // Footer count
   const pakCount = s.pakList.length;
@@ -1179,7 +1216,7 @@ function renderPegawaiCard(s) {
           : `<div class="pg-avatar">${esc(initialsFromName(s.nama))}</div>`}
         <div class="pg-name-wrap">
           <div class="pg-name">${esc(s.nama)}</div>
-          <div class="pg-nip">${esc(s.nip || '— tanpa NIP —')} ${pakPill ? '· ' + pakPill : ''}</div>
+          <div class="pg-nip">${esc(s.nip || '— tanpa NIP —')} ${pakPill ? '· ' + pakPill : ''} ${s.isPensiun ? '· ' + esc(s.pensiunText || 'Pensiun') : ''}</div>
         </div>
       </div>
       <div class="pg-card-body">
@@ -1316,6 +1353,17 @@ function renderProgressBlock(s) {
     </div>`;
 }
 
+function renderRetiredBlock(s) {
+  return `
+    <div class="pg-progress-block">
+      <div class="pg-progress-title">Status Kepegawaian</div>
+      <div style="font-size:12.5px;color:#475569;line-height:1.55">
+        <strong>${esc(s.pensiunText || 'Pensiun')}</strong><br>
+        Arsip tetap bisa dibuka untuk riwayat dan dokumen lama. Pengajuan PAK baru dinonaktifkan.
+      </div>
+    </div>`;
+}
+
 /**
  * Helper: render satu baris ring progress.
  *
@@ -1429,7 +1477,7 @@ function openAdminPhotoEditor() {
       if (STATE.pegawaiByNIP[s.nip]) {
         STATE.pegawaiByNIP[s.nip] = { ...STATE.pegawaiByNIP[s.nip], ...row, foto_url: url };
       }
-      const raw = STATE.pegawaiList.find(p => String(p.NIP ?? '') === String(s.nip ?? ''));
+      const raw = STATE.pegawaiList.find(p => String(pegawaiNip(p) ?? '') === String(s.nip ?? ''));
       if (raw) Object.assign(raw, row, { foto_url: url });
       Object.assign(s.pegawai, row, { foto_url: url });
 
@@ -1531,8 +1579,15 @@ function renderTabPengajuan(s) {
   const header = `
     <div class="pg-tab-actions">
       <h3>Pengajuan Penilaian Angka Kredit</h3>
-      <button class="btn btn-gold" type="button" onclick="openPakModal()" ${s.isStruktural ? 'disabled title="Pegawai struktural tidak bisa mengajukan PAK"' : ''}>+ Ajukan PAK</button>
+      <button class="btn btn-gold" type="button" onclick="openPakModal()" ${(s.isStruktural || s.isPensiun) ? `disabled title="${escAttr(s.isPensiun ? 'Pegawai pensiun tidak bisa mengajukan PAK' : 'Pegawai struktural tidak bisa mengajukan PAK')}"` : ''}>+ Ajukan PAK</button>
     </div>`;
+
+  if (s.isPensiun) {
+    return header + `
+      <div style="padding:22px 20px;color:#475569;font-size:13px;background:#f8fafc;border-radius:9px;border:1px solid #cbd5e1;line-height:1.7">
+        ${esc(s.pensiunText || 'Pegawai ini sudah pensiun')}. Riwayat dan dokumen lama tetap bisa dilihat, tetapi pengajuan PAK baru tidak tersedia.
+      </div>`;
+  }
 
   if (s.isStruktural) {
     return header + `
@@ -2157,8 +2212,8 @@ function renderPakPersonOptions() {
   const q = (document.getElementById('pak-person-search-input')?.value || '').toLowerCase().trim();
   const selected = document.getElementById('pak-input-penandatangan').value;
   const rows = STATE.pegawaiList
-    .filter(p => p.NIP)
-    .filter(p => !q || `${p.NAMA || ''} ${p.NIP || ''}`.toLowerCase().includes(q))
+    .filter(p => pegawaiNip(p))
+    .filter(p => !q || `${pegawaiNama(p) || ''} ${pegawaiNip(p) || ''}`.toLowerCase().includes(q))
     .slice(0, 80);
 
   const list = document.getElementById('pak-person-list');
@@ -2168,15 +2223,17 @@ function renderPakPersonOptions() {
   }
 
   list.innerHTML = rows.map(p => {
-    const active = String(p.NIP) === String(selected);
+    const nip = pegawaiNip(p);
+    const nama = pegawaiNama(p) || nip;
+    const active = String(nip) === String(selected);
     return `
-      <button type="button" class="pak-person-option ${active ? 'active' : ''}" onclick="${escAttr(`event.stopPropagation();selectPakPerson(${jsArg(p.NIP)}, ${jsArg(p.NAMA || p.NIP)})`)}">
+      <button type="button" class="pak-person-option ${active ? 'active' : ''}" onclick="${escAttr(`event.stopPropagation();selectPakPerson(${jsArg(nip)}, ${jsArg(nama)})`)}">
         ${window.Avatar9201
-          ? window.Avatar9201.renderAvatar(p, p.NAMA || p.NIP, 'pak-person-avatar')
-          : `<span class="pak-person-avatar">${esc(initialsFromName(p.NAMA || p.NIP))}</span>`}
+          ? window.Avatar9201.renderAvatar(p, nama, 'pak-person-avatar')
+          : `<span class="pak-person-avatar">${esc(initialsFromName(nama))}</span>`}
         <span class="pak-person-main">
-          <span class="pak-person-name">${esc(p.NAMA || p.NIP)}</span>
-          <span class="pak-person-nip">${esc(p.NIP)}</span>
+          <span class="pak-person-name">${esc(nama)}</span>
+          <span class="pak-person-nip">${esc(nip)}</span>
         </span>
       </button>`;
   }).join('');
@@ -2202,6 +2259,10 @@ async function openPakModal(editRow = null) {
   const summary = STATE.pegawaiSummary.find(x => String(x.nip ?? '') === String(STATE.detailOpenNIP ?? ''));
   if (summary && summary.isStruktural) {
     showToast('Pegawai struktural tidak bisa mengajukan PAK', 'error');
+    return;
+  }
+  if (summary && summary.isPensiun) {
+    showToast('Pegawai pensiun tidak bisa mengajukan PAK', 'error');
     return;
   }
   STATE.pakModalNIP = STATE.detailOpenNIP;
@@ -2230,8 +2291,8 @@ async function openPakModal(editRow = null) {
     });
     setPakPeriodInputs(start, end);
     setPakDateValue(PAK_EDIT_ROW.tgl_pengajuan || pakPeriodEndDate(end.year, end.month), pakPeriodEndDate(end.year, end.month));
-    const signer = (STATE.pegawaiList || []).find(x => String(x.NIP) === String(PAK_EDIT_ROW.penandatangan_nip));
-    selectPakPerson(PAK_EDIT_ROW.penandatangan_nip || '', PAK_EDIT_ROW.penandatangan_nama || signer?.NAMA || PAK_EDIT_ROW.penandatangan_nip || 'Pilih pegawai...');
+    const signer = (STATE.pegawaiList || []).find(x => String(pegawaiNip(x)) === String(PAK_EDIT_ROW.penandatangan_nip));
+    selectPakPerson(PAK_EDIT_ROW.penandatangan_nip || '', PAK_EDIT_ROW.penandatangan_nama || pegawaiNama(signer) || PAK_EDIT_ROW.penandatangan_nip || 'Pilih pegawai...');
     onPakInputChange();
   }
 
@@ -2456,7 +2517,7 @@ async function submitPak() {
 
     // 3. Render doc & saveAs
     const blob = await PakGenerator.renderDoc(ctxFinal);
-    const safeName = (STATE.pegawaiByNIP[STATE.pakModalNIP]?.NAMA || STATE.pakModalNIP).replace(/[^\w\s-]/g, '_');
+    const safeName = (pegawaiNama(STATE.pegawaiByNIP[STATE.pakModalNIP]) || STATE.pakModalNIP).replace(/[^\w\s-]/g, '_');
     const filename = `Konversi PK ke AK - ${safeName}.docx`;
     saveAs(blob, filename);
 
@@ -2497,7 +2558,7 @@ async function downloadPengajuan(pakId) {
       nomor_urut: p.nomor_urut,
     });
     const blob = await PakGenerator.renderDoc(ctx);
-    const safeName = (STATE.pegawaiByNIP[p.pegawai_nip]?.NAMA || p.pegawai_nip).replace(/[^\w\s-]/g, '_');
+    const safeName = (pegawaiNama(STATE.pegawaiByNIP[p.pegawai_nip]) || p.pegawai_nip).replace(/[^\w\s-]/g, '_');
     saveAs(blob, `Konversi PK ke AK - ${safeName}.docx`);
   } catch (e) {
     console.error('[admin-pak] download error:', e);
@@ -2539,7 +2600,7 @@ async function previewPengajuan(pakId) {
   }
   _pakPreviewState.currentBlob = null;
   _pakPreviewState.currentPakId = pakId;
-  _pakPreviewState.currentPakNama = STATE.pegawaiByNIP[p.pegawai_nip]?.NAMA || p.pegawai_nip;
+  _pakPreviewState.currentPakNama = pegawaiNama(STATE.pegawaiByNIP[p.pegawai_nip]) || p.pegawai_nip;
 
   closePengajuanSummary();
 
@@ -2695,7 +2756,7 @@ function openPengajuanSummary(id) {
   const periodeText = pakPeriodFromRow(p);
   document.getElementById('pengajuan-summary-body').innerHTML = `
     <div class="summary-form">
-      <div class="form-group"><label>Pegawai</label><div class="summary-readbox">${esc(STATE.pegawaiByNIP[p.pegawai_nip]?.NAMA || p.pegawai_nip)}</div></div>
+      <div class="form-group"><label>Pegawai</label><div class="summary-readbox">${esc(pegawaiNama(STATE.pegawaiByNIP[p.pegawai_nip]) || p.pegawai_nip)}</div></div>
       <div class="form-group"><label>Periode Pengajuan</label><div class="summary-readbox">${esc(periodeText)}</div></div>
       <div class="form-group"><label>Tanggal Pengajuan</label><div class="summary-readbox">${esc(fmtTglID(p.tgl_pengajuan) || '-')}</div></div>
       <div class="form-group"><label>Penandatangan</label><div class="summary-readbox">${esc(p.penandatangan_nama || p.penandatangan_nip || '-')}</div></div>

@@ -60,7 +60,7 @@ declare
 begin
   update public.data_pegawai
      set foto_url = p_foto_url
-   where "NIP" = p_nip
+   where pegawai_nip = p_nip
    returning * into v_row;
 
   if not found then

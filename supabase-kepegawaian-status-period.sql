@@ -54,7 +54,7 @@ comment on column public.riwayat_jabatan.tmt_selesai is
 -- set status_kepegawaian = 'pensiun',
 --     tanggal_pensiun = '2026-10-01',
 --     keterangan_status = 'Pensiun TMT 1 Oktober 2026'
--- where "NIP" = '199903302019121001';
+-- where pegawai_nip = '199903302019121001';
 
 -- Contoh jabatan lainnya selesai:
 -- update public.riwayat_jabatan
