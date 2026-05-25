@@ -936,11 +936,11 @@
   }
 
   function buildDefaultFilename(context) {
-    // "Konversi PK ke AK — <nama_singkat> — <periode>.docx"
+    // "Konversi PK ke AK - <nama_singkat> - <periode>.docx"
     const nama = (context._meta && context._meta.nama_display) || 'Pegawai';
     const namaSingkat = String(nama).split(/\s+/).slice(0, 3).join(' ');
     const per = context.periode || '';
-    return `Konversi PK ke AK — ${namaSingkat} — ${per}.docx`;
+    return `Konversi PK ke AK - ${namaSingkat} - ${per}.docx`;
   }
 
   // ═══════════════════════════════════════════════════════════════════
