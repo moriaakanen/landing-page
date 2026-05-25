@@ -92,7 +92,7 @@
   @keyframes pgPulse{0%,100%{box-shadow:0 0 0 4px rgba(200,168,75,.18)}50%{box-shadow:0 0 0 7px rgba(200,168,75,.05)}}
 
   .pg-card-head{padding:16px 18px 14px;display:flex;align-items:center;gap:13px;background:linear-gradient(180deg,#fafaf6 0%,var(--white) 100%);border-bottom:1px solid var(--border)}
-  .pg-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:var(--gold);font-family:'Fraunces',serif;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:.5px;box-shadow:0 2px 6px rgba(13,35,64,.15)}
+  .pg-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:var(--gold);font-family:'Fraunces',serif;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:.5px;box-shadow:0 2px 6px rgba(13,35,64,.15);overflow:hidden}
   .pg-name-wrap{flex:1;min-width:0;padding-right:18px}
   .pg-name{font-size:14.5px;font-weight:700;color:var(--navy);line-height:1.3;letter-spacing:-.1px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .pg-nip{font-size:11.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums;font-weight:500;letter-spacing:.2px}
@@ -179,7 +179,7 @@
 
   /* Header detail pegawai */
   .pg-detail-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,#fafaf6 0%,var(--white) 100%);border-radius:14px 14px 0 0}
-  .pg-detail-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:var(--gold);font-family:'Fraunces',serif;font-size:22px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:.5px}
+  .pg-detail-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:var(--gold);font-family:'Fraunces',serif;font-size:22px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:.5px;overflow:hidden}
   .pg-detail-name-wrap{flex:1;min-width:0}
   .pg-detail-name{font-family:'Fraunces',serif;font-size:21px;font-weight:500;color:var(--navy);line-height:1.2}
   .pg-detail-meta{font-size:12px;color:var(--muted);margin-top:4px;font-weight:500;line-height:1.5}
@@ -330,7 +330,7 @@
   .pak-person-list{max-height:260px;overflow-y:auto;padding:6px}
   .pak-person-option{width:100%;display:flex;align-items:center;gap:10px;padding:10px;border:none;border-radius:9px;background:transparent;text-align:left;cursor:pointer;font-family:inherit;transition:background .15s}
   .pak-person-option:hover,.pak-person-option.active{background:#faf4e3}
-  .pak-person-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);font-family:'Fraunces',serif;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+  .pak-person-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);font-family:'Fraunces',serif;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;overflow:hidden}
   .pak-person-main{min-width:0;flex:1}
   .pak-person-name{font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pak-person-nip{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
@@ -466,6 +466,7 @@
         <div class="pg-detail-name" id="detail-name">—</div>
         <div class="pg-detail-meta" id="detail-meta">—</div>
       </div>
+      <button class="avatar-admin-btn" onclick="openAdminPhotoEditor()" type="button">+ Foto</button>
       <button class="modal-close" onclick="closeDetail()" type="button">✕</button>
     </div>
     <div class="pg-tabs" id="detail-tabs">
@@ -644,6 +645,7 @@
 <!-- Library shared 9201 -->
 <script src="config.js"></script>
 <script src="9201-shared.js"></script>
+<script src="9201-avatar.js"></script>
 <script src="9201-topbar.js"></script>
 <script src="9201-sidebar.js"></script>
 <script src="9201-role-switcher.js"></script>
@@ -1140,7 +1142,9 @@ function renderPegawaiCard(s) {
   return `
     <div class="${cardCls}" data-nip="${escAttr(s.nip)}" role="button" tabindex="0" aria-label="Lihat detail ${escAttr(s.nama)}">
       <div class="pg-card-head">
-        <div class="pg-avatar">${esc(initialsFromName(s.nama))}</div>
+        ${window.Avatar9201
+          ? window.Avatar9201.renderAvatar(s.pegawai, s.nama, 'pg-avatar')
+          : `<div class="pg-avatar">${esc(initialsFromName(s.nama))}</div>`}
         <div class="pg-name-wrap">
           <div class="pg-name">${esc(s.nama)}</div>
           <div class="pg-nip">${esc(s.nip || '— tanpa NIP —')} ${pakPill ? '· ' + pakPill : ''}</div>
@@ -1311,7 +1315,12 @@ function openDetail(nip) {
   STATE.detailActiveTab = (s.pakPending.length > 0) ? 'pengajuan' : 'ak';
 
   // Header
-  document.getElementById('detail-avatar').textContent = initialsFromName(s.nama);
+  const detailAvatar = document.getElementById('detail-avatar');
+  if (window.Avatar9201) {
+    window.Avatar9201.setAvatarElement(detailAvatar, s.pegawai, s.nama);
+  } else {
+    detailAvatar.textContent = initialsFromName(s.nama);
+  }
   const namePill = s.pakPending.length > 0
     ? `<span class="pg-pill-pak" style="margin-left:8px;vertical-align:middle">⏳ ${s.pakPending.length} PAK MENUNGGU</span>`
     : '';
@@ -1336,6 +1345,42 @@ function closeDetail() {
   STATE.detailOpenNIP = null;
   document.getElementById('detail-modal').classList.remove('show');
   document.body.style.overflow = '';
+}
+
+function openAdminPhotoEditor() {
+  if (!window.Avatar9201 || !STATE.detailOpenNIP) return;
+  const s = STATE.pegawaiSummary.find(x => String(x.nip ?? '') === String(STATE.detailOpenNIP ?? ''));
+  if (!s) {
+    showToast('Data pegawai tidak ditemukan', 'error');
+    return;
+  }
+  window.Avatar9201.openEditor({
+    person: s.pegawai,
+    nip: s.nip,
+    name: s.nama,
+    onSaved(row, url) {
+      if (STATE.pegawaiByNIP[s.nip]) {
+        STATE.pegawaiByNIP[s.nip] = { ...STATE.pegawaiByNIP[s.nip], ...row, foto_url: url };
+      }
+      const raw = STATE.pegawaiList.find(p => String(p.NIP ?? '') === String(s.nip ?? ''));
+      if (raw) Object.assign(raw, row, { foto_url: url });
+      Object.assign(s.pegawai, row, { foto_url: url });
+
+      const detailAvatar = document.getElementById('detail-avatar');
+      window.Avatar9201.setAvatarElement(detailAvatar, s.pegawai, s.nama);
+      renderGrid();
+
+      try {
+        const session = JSON.parse(localStorage.getItem('nova_user') || 'null');
+        if (session && (String(session.username) === String(s.nip) || Number(session.id) === Number(s.pegawai.id))) {
+          session.foto_url = url;
+          localStorage.setItem('nova_user', JSON.stringify(session));
+          if (window.Topbar9201) window.Topbar9201.setUser(session, { skipEnsure: true });
+        }
+      } catch (_) {}
+      showToast('Foto profil pegawai diperbarui', 'success');
+    }
+  });
 }
 
 function bindPegawaiCardEvents() {
@@ -1979,7 +2024,9 @@ function renderPakPersonOptions() {
     const active = String(p.NIP) === String(selected);
     return `
       <button type="button" class="pak-person-option ${active ? 'active' : ''}" onclick="${escAttr(`event.stopPropagation();selectPakPerson(${jsArg(p.NIP)}, ${jsArg(p.NAMA || p.NIP)})`)}">
-        <span class="pak-person-avatar">${esc(initialsFromName(p.NAMA || p.NIP))}</span>
+        ${window.Avatar9201
+          ? window.Avatar9201.renderAvatar(p, p.NAMA || p.NIP, 'pak-person-avatar')
+          : `<span class="pak-person-avatar">${esc(initialsFromName(p.NAMA || p.NIP))}</span>`}
         <span class="pak-person-main">
           <span class="pak-person-name">${esc(p.NAMA || p.NIP)}</span>
           <span class="pak-person-nip">${esc(p.NIP)}</span>
