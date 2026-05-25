@@ -97,9 +97,6 @@ create or replace function public.update_pegawai_foto(
   p_foto_url text
 )
 returns public.data_pegawai
-language plpgsql
-security definer
-set search_path = public
 as $$
 declare
   v_row public.data_pegawai;
@@ -116,7 +113,10 @@ begin
 
   return v_row;
 end;
-$$;
+$$
+language plpgsql
+security definer
+set search_path = public;
 
 grant execute on function public.update_pegawai_foto(text, text) to anon, authenticated;
 
@@ -140,9 +140,6 @@ create or replace function public.pengajuan_pak_update(
   p_penandatangan_nama text default null
 )
 returns jsonb
-language plpgsql
-security definer
-set search_path = public
 as $function$
 declare
   v_pegawai_nip text;
@@ -229,16 +226,16 @@ begin
 
   return v_result;
 end;
-$function$;
+$function$
+language plpgsql
+security definer
+set search_path = public;
 
 create or replace function public.pengajuan_pak_delete(
   p_caller_id bigint,
   p_pengajuan_id bigint
 )
 returns jsonb
-language plpgsql
-security definer
-set search_path = public
 as $function$
 declare
   v_pegawai_nip text;
@@ -287,7 +284,10 @@ begin
 
   return v_result;
 end;
-$function$;
+$function$
+language plpgsql
+security definer
+set search_path = public;
 
 revoke all on function public.pengajuan_pak_update(bigint, bigint, integer, integer, integer, text, numeric, numeric, numeric, jsonb, date, text, text) from public;
 revoke all on function public.pengajuan_pak_delete(bigint, bigint) from public;

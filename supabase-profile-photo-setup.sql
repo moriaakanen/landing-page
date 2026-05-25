@@ -51,9 +51,6 @@ create or replace function public.update_pegawai_foto(
   p_foto_url text
 )
 returns public.data_pegawai
-language plpgsql
-security definer
-set search_path = public
 as $$
 declare
   v_row public.data_pegawai;
@@ -70,6 +67,9 @@ begin
 
   return v_row;
 end;
-$$;
+$$
+language plpgsql
+security definer
+set search_path = public;
 
 grant execute on function public.update_pegawai_foto(text, text) to anon;
