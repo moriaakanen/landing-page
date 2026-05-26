@@ -208,9 +208,13 @@
   .cal-head-title{font-family:'Fraunces',serif;font-size:18px;font-weight:500;color:var(--navy);display:flex;align-items:center;gap:10px}
   .cal-head-title em{font-style:italic;color:var(--gold)}
   .cal-head-icon{width:32px;height:32px;border-radius:8px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--navy)}
+  .cal-mode-toggle{display:flex;align-items:center;gap:3px;padding:3px;border:1px solid var(--border);border-radius:10px;background:#fafaf6}
+  .cal-mode-btn{border:0;background:transparent;color:var(--muted);border-radius:7px;padding:7px 10px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s;white-space:nowrap}
+  .cal-mode-btn.active{background:var(--navy);color:#fff;box-shadow:0 4px 12px rgba(13,35,64,.14)}
   .cal-nav{display:flex;align-items:center;gap:6px}
   .cal-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--navy);transition:all .15s;font-family:inherit}
   .cal-btn:hover{background:var(--gold-light);border-color:var(--gold)}
+  .cal-btn:disabled{opacity:.45;cursor:not-allowed;background:#f8fafc;border-color:var(--border);color:var(--muted)}
   .cal-btn-primary{padding:7px 14px;width:auto;font-size:12px;font-weight:600;background:var(--navy);color:#fff;border:none;letter-spacing:.2px}
   .cal-btn-primary:hover{background:var(--navy2)}
   .cal-month-label{font-size:13px;font-weight:600;color:var(--navy);min-width:130px;text-align:center;letter-spacing:.2px}
@@ -226,6 +230,7 @@
   .cal-day.today .cal-day-number{color:var(--gold-dark)}
   .cal-events{flex:1;display:flex;flex-direction:column;gap:2px;overflow:hidden}
   .cal-event{font-size:9.5px;padding:2px 5px;border-radius:3px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;letter-spacing:.1px}
+  .cal-event.surat{border-left:3px solid var(--navy);padding-left:4px}
   .cal-more{font-size:9px;color:var(--muted);margin-top:auto;text-align:right;font-weight:500}
   @media(max-width:768px){
     .cal-day{min-height:54px;padding:4px}
@@ -242,6 +247,56 @@
   .modal-overlay.show{display:flex}
   .modal{background:var(--white);border-radius:14px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,35,64,.25);animation:popIn .22s cubic-bezier(.175,.885,.32,1.275)}
   @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .modal.modal-event{max-width:720px;overflow:visible}
+  .modal-event .modal-body{overflow:visible}
+  .event-form-shell{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px}
+  .event-form-main,.event-side{min-width:0}
+  .event-panel{border:1px solid var(--border);border-radius:12px;background:#fffdf8;padding:12px}
+  .event-panel-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:10px}
+  .event-date-wrap{position:relative}
+  .event-date-trigger{width:100%;min-height:42px;border:1.5px solid var(--border2);border-radius:9px;background:linear-gradient(180deg,#fff,#fbfaf7);color:var(--navy);font-family:inherit;font-size:13px;font-weight:700;text-align:left;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+  .event-date-trigger:hover,.event-date-wrap.open .event-date-trigger{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,168,75,.12)}
+  .event-date-trigger::after{content:'';width:8px;height:8px;border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;transform:rotate(45deg);opacity:.65}
+  .event-date-wrap.open .event-date-trigger::after{transform:rotate(225deg);margin-top:5px}
+  .event-date-popover{position:absolute;left:0;top:calc(100% + 8px);z-index:720;width:310px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 18px 48px rgba(13,35,64,.22);overflow:hidden;display:none}
+  .event-date-wrap.open .event-date-popover{display:block;animation:popIn .16s ease}
+  .event-date-head{padding:12px 14px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff}
+  .event-date-head span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.72);font-weight:800;margin-bottom:4px}
+  .event-date-head strong{display:block;font-size:16px;line-height:1.25}
+  .event-date-nav{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#fafaf6;border-bottom:1px solid var(--border)}
+  .event-date-nav strong{font-family:'Fraunces',serif;font-size:17px;color:var(--navy);font-weight:600}
+  .event-date-nav button{width:30px;height:30px;border-radius:50%;border:1px solid rgba(200,168,75,.35);background:var(--gold);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .event-date-weekdays,.event-date-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+  .event-date-weekdays{padding:9px 10px 3px;color:var(--muted);font-size:10px;font-weight:800;text-align:center}
+  .event-date-grid{gap:4px;padding:7px 10px 10px}
+  .event-date-day{height:30px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--navy);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .event-date-day:hover{background:var(--gold-light);border-color:rgba(200,168,75,.45)}
+  .event-date-day.is-muted{color:#b8b8b8;font-weight:500}
+  .event-date-day.is-today:not(.is-selected){border-color:var(--gold);color:var(--gold-dark)}
+  .event-date-day.is-selected{background:var(--gold);color:#fff;box-shadow:0 5px 14px rgba(200,168,75,.25)}
+  .event-time-grid{display:grid;grid-template-columns:1fr 120px;gap:10px}
+  .event-hour-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:158px;overflow-y:auto;padding-right:2px}
+  .event-minute-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+  .event-time-btn,.event-allday-btn{height:32px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--navy);font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+  .event-time-btn:hover,.event-allday-btn:hover{background:var(--gold-light);border-color:var(--gold)}
+  .event-time-btn.active,.event-allday-btn.active{background:var(--navy);border-color:var(--navy);color:#fff}
+  .event-allday-btn{width:100%;margin-top:8px}
+  .event-source-note{font-size:11.5px;color:var(--muted);line-height:1.55;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:14px}
+  .event-list-titlebar{font-size:12px;font-weight:800;color:var(--navy);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:7px}
+  .event-list-item{display:grid;grid-template-columns:10px 1fr auto;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid rgba(221,216,207,.72)}
+  .event-list-item:last-child{border-bottom:0}
+  .event-list-color{width:10px;height:34px;border-radius:20px;margin-top:2px}
+  .event-list-title{font-size:13px;font-weight:800;color:var(--navy);line-height:1.35}
+  .event-list-time{font-size:11.5px;color:var(--muted);line-height:1.45;margin-top:2px}
+  .event-list-people{font-size:11px;color:#475569;margin-top:5px;line-height:1.4}
+  .event-list-actions{display:flex;gap:6px}
+  .ela-edit,.ela-delete{border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--navy);font-family:inherit;font-size:11px;font-weight:800;padding:5px 8px;cursor:pointer}
+  .ela-delete{color:var(--red);border-color:#fecaca;background:#fff7f7}
+  @media(max-width:760px){
+    .event-form-shell{grid-template-columns:1fr}
+    .event-side{order:2}
+    .event-date-popover{width:min(310px,calc(100vw - 60px))}
+  }
 
   /* ======== MODAL PREVIEW PAK - wider, document viewer ======== */
   #pak-preview-modal{z-index:900}
@@ -440,10 +495,14 @@
             <span>Kalender <em>Kegiatan</em></span>
           </div>
           <div class="cal-nav">
+            <div class="cal-mode-toggle" role="tablist" aria-label="Pilihan kalender">
+              <button class="cal-mode-btn active" id="cal-mode-personal" type="button" onclick="setCalendarMode('personal')">Pribadi</button>
+              <button class="cal-mode-btn" id="cal-mode-global" type="button" onclick="setCalendarMode('global')">Bersama</button>
+            </div>
             <button class="cal-btn" onclick="changeMonth(-1)" title="Bulan sebelumnya">&lsaquo;</button>
             <span class="cal-month-label" id="cal-month-label">-</span>
             <button class="cal-btn" onclick="changeMonth(1)" title="Bulan berikutnya">&rsaquo;</button>
-            <button class="cal-btn cal-btn-primary" onclick="openModalForToday()">+ Tambah</button>
+            <button class="cal-btn cal-btn-primary" id="cal-add-btn" onclick="openModalForToday()">+ Tambah</button>
           </div>
         </div>
         <div class="cal-grid">
@@ -465,45 +524,82 @@
 
 <!-- ======== MODAL KEGIATAN ======== -->
 <div class="modal-overlay" id="event-modal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
+  <div class="modal modal-event">
     <div class="modal-header">
       <div class="modal-title" id="modal-title">Tambah <em>Kegiatan</em></div>
       <button class="modal-close" onclick="closeModal()">x</button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label>Tanggal</label>
-        <input type="date" id="evt-date" readonly>
+      <div class="event-source-note" id="event-source-note">
+        Kalender pribadi menampilkan jadwal pribadi Anda dan surat tugas yang melibatkan Anda. Kalender bersama menampilkan surat tugas seluruh pegawai.
       </div>
-      <div class="form-group">
-        <label>Judul Kegiatan</label>
-        <input type="text" id="evt-title" placeholder="Contoh: Rapat Koordinasi" maxlength="100">
-      </div>
-      <div class="form-group">
-        <label>Waktu (opsional)</label>
-        <input type="time" id="evt-time">
-      </div>
-      <div class="form-group">
-        <label>Keterangan (opsional)</label>
-        <textarea id="evt-desc" placeholder="Deskripsi kegiatan..."></textarea>
-      </div>
-      <div class="form-group">
-        <label>Warna Tanda</label>
-        <div class="color-options" id="color-options">
-          <div class="color-opt selected" style="background:#c8a84b" data-color="#c8a84b" onclick="selectColor(this)"></div>
-          <div class="color-opt" style="background:#3b82f6" data-color="#3b82f6" onclick="selectColor(this)"></div>
-          <div class="color-opt" style="background:#22c55e" data-color="#22c55e" onclick="selectColor(this)"></div>
-          <div class="color-opt" style="background:#ef4444" data-color="#ef4444" onclick="selectColor(this)"></div>
-          <div class="color-opt" style="background:#a855f7" data-color="#a855f7" onclick="selectColor(this)"></div>
-          <div class="color-opt" style="background:#f97316" data-color="#f97316" onclick="selectColor(this)"></div>
-          <div class="color-opt" style="background:#06b6d4" data-color="#06b6d4" onclick="selectColor(this)"></div>
-          <div class="color-opt" style="background:#6b7280" data-color="#6b7280" onclick="selectColor(this)"></div>
+      <div class="event-form-shell">
+        <div class="event-form-main" id="event-form-main">
+          <input type="hidden" id="evt-date">
+          <input type="hidden" id="evt-time">
+          <div class="form-group">
+            <label>Tanggal Kegiatan</label>
+            <div class="event-date-wrap" id="evt-date-wrap">
+              <button class="event-date-trigger" id="evt-date-trigger" type="button" onclick="toggleEventDatePicker()">Pilih tanggal</button>
+              <div class="event-date-popover" id="evt-date-popover">
+                <div class="event-date-head">
+                  <span>Tanggal terpilih</span>
+                  <strong id="evt-date-selected-label">Belum dipilih</strong>
+                </div>
+                <div class="event-date-nav">
+                  <button type="button" onclick="changeEventPickerMonth(-1)">&lsaquo;</button>
+                  <strong id="evt-date-month-label">-</strong>
+                  <button type="button" onclick="changeEventPickerMonth(1)">&rsaquo;</button>
+                </div>
+                <div class="event-date-weekdays">
+                  <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+                </div>
+                <div class="event-date-grid" id="evt-date-grid"></div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Judul Kegiatan</label>
+            <input type="text" id="evt-title" placeholder="Contoh: Rapat Koordinasi" maxlength="100">
+          </div>
+          <div class="form-group">
+            <label>Waktu</label>
+            <div class="event-panel">
+              <div class="event-panel-title">Format 24 jam</div>
+              <div class="event-time-grid">
+                <div class="event-hour-grid" id="evt-hour-grid"></div>
+                <div class="event-minute-grid" id="evt-minute-grid"></div>
+              </div>
+              <button type="button" class="event-allday-btn active" id="evt-allday-btn" onclick="clearEventTime()">Sepanjang hari</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Keterangan (opsional)</label>
+            <textarea id="evt-desc" placeholder="Catatan singkat, lokasi, atau agenda kegiatan..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Warna Tanda</label>
+            <div class="color-options" id="color-options">
+              <div class="color-opt selected" style="background:#c8a84b" data-color="#c8a84b" onclick="selectColor(this)" title="Prioritas"></div>
+              <div class="color-opt" style="background:#3b82f6" data-color="#3b82f6" onclick="selectColor(this)" title="Koordinasi"></div>
+              <div class="color-opt" style="background:#22c55e" data-color="#22c55e" onclick="selectColor(this)" title="Lapangan"></div>
+              <div class="color-opt" style="background:#ef4444" data-color="#ef4444" onclick="selectColor(this)" title="Penting"></div>
+              <div class="color-opt" style="background:#a855f7" data-color="#a855f7" onclick="selectColor(this)" title="Internal"></div>
+              <div class="color-opt" style="background:#f97316" data-color="#f97316" onclick="selectColor(this)" title="Administrasi"></div>
+              <div class="color-opt" style="background:#06b6d4" data-color="#06b6d4" onclick="selectColor(this)" title="Monitoring"></div>
+              <div class="color-opt" style="background:#6b7280" data-color="#6b7280" onclick="selectColor(this)" title="Lainnya"></div>
+            </div>
+          </div>
+        </div>
+        <div class="event-side">
+          <div class="event-panel">
+            <div id="day-events-list"></div>
+          </div>
         </div>
       </div>
-      <div id="day-events-list" style="margin-top:16px"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
+      <button class="btn btn-secondary" id="btn-close-event" onclick="closeModal()">Batal</button>
       <button class="btn btn-danger" id="btn-delete-event" style="display:none" onclick="deleteCurrentEvent()">Hapus</button>
       <button class="btn btn-primary" onclick="saveEvent()" id="btn-save-event">Simpan</button>
     </div>
@@ -1959,6 +2055,7 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('.pak-period-picker-wrap')) closePakPeriodPicker();
   if (!e.target.closest('.pak-person-picker-wrap')) closePakPersonPicker();
   if (!e.target.closest('.pak-date-picker-wrap')) closePakDatePicker();
+  if (!e.target.closest('.event-date-wrap')) closeEventDatePicker();
 });
 
 async function reloadPengajuan() {
@@ -2045,15 +2142,24 @@ async function fetchProfil(userId) {
 }
 
 // ===============================================================
-// KALENDER KEGIATAN - preserved dari versi sebelumnya
-// (DB-backed via RPC kalender_list / kalender_upsert / kalender_delete)
+// KALENDER KEGIATAN
+// Pribadi = kegiatan pribadi + surat tugas user.
+// Bersama = surat tugas selesai seluruh pegawai.
 // ===============================================================
 var calCurrentDate = new Date();
 var calSelectedDate = null;
 var calEditingEventId = null;
 var calCurrentUserId = null;
+var calCurrentUserNip = null;
+var calMode = 'personal';
+var calPersonalEvents = [];
+var calSuratEvents = [];
 var calCachedEvents = [];
+var evtDatePickerDate = new Date();
+var evtHourSelected = null;
+var evtMinuteSelected = '00';
 var EVENT_COLORS = {
+  '#0d2340': {bg:'rgba(13,35,64,.10)', text:'#0d2340'},
   '#c8a84b': {bg:'rgba(200,168,75,.15)', text:'#7a5c10'},
   '#3b82f6': {bg:'rgba(59,130,246,.12)', text:'#1d4ed8'},
   '#22c55e': {bg:'rgba(34,197,94,.12)', text:'#15803d'},
@@ -2064,7 +2170,7 @@ var EVENT_COLORS = {
   '#6b7280': {bg:'rgba(107,114,128,.12)', text:'#374151'},
 };
 
-// Helper RPC kalender - pakai novaRpc dari 9201-shared.js
+// Helper RPC kalender pribadi - pakai novaRpc dari 9201-shared.js.
 const rpcListEvents   = (uid, cid) => novaRpc('kalender_list',   { p_user_id: uid, p_caller_id: cid });
 const rpcUpsertEvent  = (ev,  cid) => novaRpc('kalender_upsert', {
   p_caller_id:cid, p_id:ev.id||null, p_tanggal:ev.tanggal,
@@ -2075,13 +2181,96 @@ const rpcDeleteEvent  = (id, cid) => novaRpc('kalender_delete', { p_id: id, p_ca
 
 function fmtWaktu(t) { return t ? String(t).slice(0,5) : ''; }
 function escapeHtml(t) { var d=document.createElement('div'); d.textContent = t==null?'':String(t); return d.innerHTML; }
+function isoFromDateObj(d) { return formatDateKey(d.getFullYear(), d.getMonth(), d.getDate()); }
+function parseDateKey(dk) {
+  var p = String(dk || '').slice(0,10).split('-');
+  return p.length === 3 ? new Date(+p[0], +p[1]-1, +p[2]) : null;
+}
 
 async function reloadEvents() {
   if (!calCurrentUserId) return;
   try {
-    const rows = await rpcListEvents(calCurrentUserId, calCurrentUserId);
-    calCachedEvents = Array.isArray(rows) ? rows : [];
-  } catch(e) { console.error('[9201] Gagal load kalender:', e); calCachedEvents = []; }
+    const [rows, suratRows] = await Promise.all([
+      rpcListEvents(calCurrentUserId, calCurrentUserId).catch(e => {
+        console.warn('[9201] Gagal load kalender pribadi:', e);
+        return [];
+      }),
+      loadSuratTugasEvents().catch(e => {
+        console.warn('[9201] Gagal load kalender surat tugas:', e);
+        return [];
+      })
+    ]);
+    calPersonalEvents = (Array.isArray(rows) ? rows : []).map(e => ({ ...e, source:'personal', editable:true }));
+    calSuratEvents = Array.isArray(suratRows) ? suratRows : [];
+    rebuildCalendarCache();
+  } catch(e) {
+    console.error('[9201] Gagal load kalender:', e);
+    calPersonalEvents = [];
+    calSuratEvents = [];
+    rebuildCalendarCache();
+  }
+}
+
+async function loadSuratTugasEvents() {
+  const url = `${SUPABASE_URL}/rest/v1/surat_tugas?select=id,nomor_surat,tanggal_surat,tanggal_berangkat,tanggal_kembali,waktu_pelaksanaan_text,perihal,tujuan,pegawai_list,pegawai_nip,status&status=eq.selesai&order=tanggal_berangkat.asc`;
+  const res = await fetch(url, { headers: SUPABASE_HEADERS });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const rows = await res.json();
+  return expandSuratTugasRows(rows || []);
+}
+
+function expandSuratTugasRows(rows) {
+  const events = [];
+  rows.forEach(s => {
+    if (!s.tanggal_berangkat) return;
+    const start = parseDateKey(s.tanggal_berangkat);
+    const end = parseDateKey(s.tanggal_kembali || s.tanggal_berangkat);
+    if (!start || !end) return;
+    const maxDays = 90;
+    const pegawai = Array.isArray(s.pegawai_list) ? s.pegawai_list : [];
+    for (let i = 0, d = new Date(start); d <= end && i < maxDays; i++, d.setDate(d.getDate() + 1)) {
+      const tanggal = isoFromDateObj(d);
+      events.push({
+        id: `surat-${s.id}-${tanggal}`,
+        surat_id: s.id,
+        source: 'surat',
+        editable: false,
+        tanggal,
+        judul: s.perihal ? `Surat tugas: ${s.perihal}` : 'Surat tugas',
+        waktu: null,
+        warna: '#0d2340',
+        keterangan: s.tujuan || s.waktu_pelaksanaan_text || '',
+        pegawai_list: pegawai,
+        pegawai_nip: Array.isArray(s.pegawai_nip) ? s.pegawai_nip : [],
+        nomor_surat: s.nomor_surat,
+        tanggal_berangkat: s.tanggal_berangkat,
+        tanggal_kembali: s.tanggal_kembali || s.tanggal_berangkat,
+        waktu_pelaksanaan_text: s.waktu_pelaksanaan_text || '',
+      });
+    }
+  });
+  return events;
+}
+
+function suratIncludesCurrentUser(ev) {
+  if (!calCurrentUserNip) return false;
+  return Array.isArray(ev.pegawai_nip) && ev.pegawai_nip.some(n => String(n) === String(calCurrentUserNip));
+}
+
+function rebuildCalendarCache() {
+  if (calMode === 'global') {
+    calCachedEvents = calSuratEvents.slice();
+  } else {
+    calCachedEvents = calPersonalEvents.concat(calSuratEvents.filter(suratIncludesCurrentUser));
+  }
+}
+
+function sortCalendarEvents(a, b) {
+  const aw = a.waktu || (a.source === 'surat' ? '99:99' : '');
+  const bw = b.waktu || (b.source === 'surat' ? '99:99' : '');
+  if (aw !== bw) return aw.localeCompare(bw);
+  if (a.source !== b.source) return a.source === 'personal' ? -1 : 1;
+  return String(a.judul || '').localeCompare(String(b.judul || ''), 'id');
 }
 
 function getMonthData(year, month) {
@@ -2099,9 +2288,20 @@ function getMonthData(year, month) {
 }
 function formatDateKey(y,m,d) { return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
 function formatDateId(dk) {
-  var p = dk.split('-'), d = +p[2], m = +p[1];
+  var p = String(dk || '').split('-'), d = +p[2], m = +p[1];
   var months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   return d + ' ' + months[m-1] + ' ' + p[0];
+}
+
+function setCalendarMode(mode) {
+  calMode = mode === 'global' ? 'global' : 'personal';
+  document.getElementById('cal-mode-personal').classList.toggle('active', calMode === 'personal');
+  document.getElementById('cal-mode-global').classList.toggle('active', calMode === 'global');
+  const addBtn = document.getElementById('cal-add-btn');
+  addBtn.disabled = calMode === 'global';
+  addBtn.title = calMode === 'global' ? 'Kalender bersama otomatis dari surat tugas' : 'Tambah kegiatan pribadi';
+  rebuildCalendarCache();
+  renderCalendar();
 }
 
 function renderCalendar() {
@@ -2118,8 +2318,7 @@ function renderCalendar() {
     var day = days[i];
     var dateKey = formatDateKey(day.y, day.m, day.d);
     var isToday = dateKey === todayKey;
-    var dayEvents = calCachedEvents.filter(e => e.tanggal === dateKey)
-                                    .sort((a,b) => (a.waktu||'').localeCompare(b.waktu||''));
+    var dayEvents = calCachedEvents.filter(e => e.tanggal === dateKey).sort(sortCalendarEvents);
     var hasEvents = dayEvents.length > 0;
     var cls = 'cal-day' + (day.other ? ' other-month':'') + (isToday ? ' today':'') + (hasEvents ? ' has-events':'');
     html += '<div class="' + cls + '" onclick="openModalForDate(\'' + dateKey + '\')">';
@@ -2128,7 +2327,8 @@ function renderCalendar() {
     for (var k = 0; k < Math.min(dayEvents.length, 3); k++) {
       var ev = dayEvents[k];
       var c = EVENT_COLORS[ev.warna] || EVENT_COLORS['#c8a84b'];
-      html += '<div class="cal-event" style="background:' + c.bg + ';color:' + c.text + '">' + escapeHtml(ev.judul) + '</div>';
+      var eventCls = 'cal-event' + (ev.source === 'surat' ? ' surat' : '');
+      html += '<div class="' + eventCls + '" style="background:' + c.bg + ';color:' + c.text + '">' + escapeHtml(ev.judul) + '</div>';
     }
     if (dayEvents.length > 3) html += '<div class="cal-more">+' + (dayEvents.length - 3) + ' lainnya</div>';
     html += '</div></div>';
@@ -2142,29 +2342,41 @@ function changeMonth(delta) {
   renderCalendar();
 }
 function openModalForToday() {
+  if (calMode === 'global') return;
   var today = new Date();
   openModalForDate(formatDateKey(today.getFullYear(), today.getMonth(), today.getDate()));
 }
 function openModalForDate(dateKey) {
   calSelectedDate = dateKey;
   calEditingEventId = null;
-  document.getElementById('evt-date').value = dateKey;
-  document.getElementById('evt-title').value = '';
-  document.getElementById('evt-time').value = '';
-  document.getElementById('evt-desc').value = '';
-  document.getElementById('modal-title').innerHTML = 'Tambah <em>Kegiatan</em> - ' + formatDateId(dateKey);
+  setEventFormMode(calMode);
+  setEventDate(dateKey, false);
+  clearEventFormFields();
+  document.getElementById('modal-title').innerHTML = (calMode === 'global' ? 'Kalender <em>Bersama</em>' : 'Tambah <em>Kegiatan</em>') + ' - ' + formatDateId(dateKey);
   document.getElementById('btn-delete-event').style.display = 'none';
   document.getElementById('btn-save-event').textContent = 'Simpan';
   selectColor(document.querySelector('.color-opt[data-color="#c8a84b"]'));
   renderDayEventList(dateKey);
   document.getElementById('event-modal').classList.add('show');
 }
+function setEventFormMode(mode) {
+  const isGlobal = mode === 'global';
+  document.getElementById('event-form-main').style.display = isGlobal ? 'none' : '';
+  document.getElementById('btn-save-event').style.display = isGlobal ? 'none' : '';
+  document.getElementById('btn-delete-event').style.display = 'none';
+  document.getElementById('btn-close-event').textContent = isGlobal ? 'Tutup' : 'Batal';
+  document.getElementById('event-source-note').textContent = isGlobal
+    ? 'Kalender bersama otomatis tersinkron dari surat tugas berstatus selesai. Kegiatan pribadi tidak tampil di sini.'
+    : 'Kalender pribadi berisi kegiatan pribadi Anda dan surat tugas yang melibatkan Anda. Kegiatan pribadi tidak tampil di kalender bersama.';
+}
 function closeModal() {
   document.getElementById('event-modal').classList.remove('show');
+  closeEventDatePicker();
   calEditingEventId = null;
   calSelectedDate  = null;
 }
 function selectColor(el) {
+  if (!el) return;
   document.querySelectorAll('.color-opt').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
 }
@@ -2172,26 +2384,127 @@ function getSelectedColor() {
   var sel = document.querySelector('.color-opt.selected');
   return sel ? sel.getAttribute('data-color') : '#c8a84b';
 }
+function clearEventFormFields() {
+  document.getElementById('evt-title').value = '';
+  document.getElementById('evt-desc').value = '';
+  clearEventTime();
+}
 function resetEventForm(dateKey) {
   calEditingEventId = null;
-  document.getElementById('evt-title').value = '';
-  document.getElementById('evt-time').value = '';
-  document.getElementById('evt-desc').value = '';
-  document.getElementById('modal-title').innerHTML = 'Tambah <em>Kegiatan</em> - ' + formatDateId(dateKey);
+  setEventDate(dateKey || calSelectedDate, false);
+  clearEventFormFields();
+  document.getElementById('modal-title').innerHTML = 'Tambah <em>Kegiatan</em> - ' + formatDateId(dateKey || calSelectedDate);
   document.getElementById('btn-delete-event').style.display = 'none';
   document.getElementById('btn-save-event').textContent = 'Simpan';
   selectColor(document.querySelector('.color-opt[data-color="#c8a84b"]'));
 }
 
+function renderEventTimePicker() {
+  const hourGrid = document.getElementById('evt-hour-grid');
+  const minuteGrid = document.getElementById('evt-minute-grid');
+  if (!hourGrid || !minuteGrid) return;
+  hourGrid.innerHTML = Array.from({length:24}, (_, i) =>
+    `<button type="button" class="event-time-btn" data-hour="${String(i).padStart(2,'0')}" onclick="setEventTime('${String(i).padStart(2,'0')}', null)">${String(i).padStart(2,'0')}</button>`
+  ).join('');
+  minuteGrid.innerHTML = ['00','15','30','45'].map(m =>
+    `<button type="button" class="event-time-btn" data-minute="${m}" onclick="setEventTime(null, '${m}')">${m}</button>`
+  ).join('');
+  syncEventTimeUI();
+}
+function setEventTime(hour, minute) {
+  if (hour != null) evtHourSelected = hour;
+  if (minute != null) evtMinuteSelected = minute;
+  if (evtHourSelected == null) evtHourSelected = '08';
+  if (!evtMinuteSelected) evtMinuteSelected = '00';
+  document.getElementById('evt-time').value = `${evtHourSelected}:${evtMinuteSelected}`;
+  syncEventTimeUI();
+}
+function clearEventTime() {
+  evtHourSelected = null;
+  evtMinuteSelected = '00';
+  const el = document.getElementById('evt-time');
+  if (el) el.value = '';
+  syncEventTimeUI();
+}
+function syncEventTimeUI() {
+  document.querySelectorAll('#evt-hour-grid .event-time-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.hour === evtHourSelected);
+  });
+  document.querySelectorAll('#evt-minute-grid .event-time-btn').forEach(btn => {
+    btn.classList.toggle('active', evtHourSelected != null && btn.dataset.minute === evtMinuteSelected);
+  });
+  const allDay = document.getElementById('evt-allday-btn');
+  if (allDay) allDay.classList.toggle('active', evtHourSelected == null);
+}
+function setEventTimeFromValue(value) {
+  const m = String(value || '').match(/^(\d{2}):(\d{2})/);
+  if (!m) { clearEventTime(); return; }
+  evtHourSelected = m[1];
+  const minute = Number(m[2]);
+  evtMinuteSelected = String(Math.round(minute / 15) * 15).padStart(2,'0');
+  if (evtMinuteSelected === '60') evtMinuteSelected = '45';
+  document.getElementById('evt-time').value = `${evtHourSelected}:${evtMinuteSelected}`;
+  syncEventTimeUI();
+}
+
+function setEventDate(dateKey, closePicker) {
+  if (!dateKey) return;
+  calSelectedDate = dateKey;
+  document.getElementById('evt-date').value = dateKey;
+  document.getElementById('evt-date-trigger').textContent = formatDateId(dateKey);
+  document.getElementById('evt-date-selected-label').textContent = formatDateId(dateKey);
+  const parsed = parseDateKey(dateKey);
+  if (parsed) evtDatePickerDate = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+  renderEventDatePicker();
+  if (closePicker) closeEventDatePicker();
+}
+function toggleEventDatePicker() {
+  const wrap = document.getElementById('evt-date-wrap');
+  wrap.classList.toggle('open');
+  if (wrap.classList.contains('open')) renderEventDatePicker();
+}
+function closeEventDatePicker() {
+  const wrap = document.getElementById('evt-date-wrap');
+  if (wrap) wrap.classList.remove('open');
+}
+function changeEventPickerMonth(delta) {
+  evtDatePickerDate.setDate(1);
+  evtDatePickerDate.setMonth(evtDatePickerDate.getMonth() + delta);
+  renderEventDatePicker();
+}
+function renderEventDatePicker() {
+  const grid = document.getElementById('evt-date-grid');
+  if (!grid) return;
+  const year = evtDatePickerDate.getFullYear();
+  const month = evtDatePickerDate.getMonth();
+  const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  document.getElementById('evt-date-month-label').textContent = `${monthNames[month]} ${year}`;
+  const selected = document.getElementById('evt-date').value;
+  const today = new Date();
+  const todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  grid.innerHTML = getMonthData(year, month).map(day => {
+    const key = formatDateKey(day.y, day.m, day.d);
+    const cls = [
+      'event-date-day',
+      day.other ? 'is-muted' : '',
+      key === selected ? 'is-selected' : '',
+      key === todayKey ? 'is-today' : ''
+    ].filter(Boolean).join(' ');
+    return `<button type="button" class="${cls}" onclick="setEventDate('${key}', true)">${day.d}</button>`;
+  }).join('');
+}
+
 async function saveEvent() {
   var titleVal = document.getElementById('evt-title').value.trim();
   if (!titleVal) { alert('Judul kegiatan wajib diisi.'); return; }
+  var dateVal = document.getElementById('evt-date').value || calSelectedDate;
+  if (!dateVal) { alert('Tanggal kegiatan wajib dipilih.'); return; }
   var btn = document.getElementById('btn-save-event');
   var btnDel = document.getElementById('btn-delete-event');
   btn.disabled = true; if (btnDel) btnDel.disabled = true;
   var payload = {
     id:         calEditingEventId,
-    tanggal:    calSelectedDate,
+    tanggal:    dateVal,
     judul:      titleVal,
     waktu:      document.getElementById('evt-time').value || null,
     keterangan: document.getElementById('evt-desc').value.trim() || null,
@@ -2200,9 +2513,10 @@ async function saveEvent() {
   try {
     await rpcUpsertEvent(payload, calCurrentUserId);
     await reloadEvents();
+    setEventDate(dateVal, false);
     renderCalendar();
-    renderDayEventList(calSelectedDate);
-    resetEventForm(calSelectedDate);
+    renderDayEventList(dateVal);
+    resetEventForm(dateVal);
   } catch(e) {
     alert('Gagal menyimpan kegiatan: ' + e.message);
   } finally {
@@ -2211,14 +2525,17 @@ async function saveEvent() {
 }
 
 function editEvent(id) {
-  var ev = calCachedEvents.find(e => e.id === id);
+  var ev = calPersonalEvents.find(e => String(e.id) === String(id));
   if (!ev) return;
-  calEditingEventId = id;
+  setEventFormMode('personal');
+  calEditingEventId = ev.id;
+  setEventDate(ev.tanggal, false);
   document.getElementById('evt-title').value = ev.judul || '';
-  document.getElementById('evt-time').value  = fmtWaktu(ev.waktu);
+  setEventTimeFromValue(ev.waktu);
   document.getElementById('evt-desc').value  = ev.keterangan || '';
   document.getElementById('modal-title').innerHTML = 'Edit <em>Kegiatan</em> - ' + formatDateId(ev.tanggal);
   document.getElementById('btn-delete-event').style.display = '';
+  document.getElementById('btn-save-event').style.display = '';
   document.getElementById('btn-save-event').textContent = 'Perbarui';
   var colorOpt = document.querySelector('.color-opt[data-color="' + ev.warna + '"]');
   if (colorOpt) selectColor(colorOpt);
@@ -2241,26 +2558,43 @@ async function deleteCurrentEvent() {
 }
 
 function renderDayEventList(dateKey) {
-  var events = calCachedEvents.filter(e => e.tanggal === dateKey)
-                              .sort((a,b) => (a.waktu||'').localeCompare(b.waktu||''));
+  var events = calCachedEvents.filter(e => e.tanggal === dateKey).sort(sortCalendarEvents);
   var container = document.getElementById('day-events-list');
-  if (!events.length) { container.innerHTML = ''; return; }
-  var html = '<div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px">Kegiatan hari ini (' + events.length + ')</div>';
+  var html = '<div class="event-list-titlebar">' + (calMode === 'global' ? 'Agenda bersama' : 'Agenda hari ini') + ' (' + events.length + ')</div>';
+  if (!events.length) {
+    container.innerHTML = html + '<div class="event-list-time">Belum ada kegiatan pada tanggal ini.</div>';
+    return;
+  }
   for (var i = 0; i < events.length; i++) {
     var ev = events[i];
-    var waktuStr = fmtWaktu(ev.waktu);
+    var waktuStr = ev.source === 'surat'
+      ? (ev.waktu_pelaksanaan_text || formatSuratRange(ev))
+      : fmtWaktu(ev.waktu);
+    var people = Array.isArray(ev.pegawai_list) && ev.pegawai_list.length
+      ? '<div class="event-list-people">' + escapeHtml(ev.pegawai_list.join(', ')) + '</div>'
+      : '';
     html += '<div class="event-list-item">';
-    html += '<div class="event-list-color" style="background:' + ev.warna + '"></div>';
+    html += '<div class="event-list-color" style="background:' + (ev.warna || '#c8a84b') + '"></div>';
     html += '<div class="event-list-info">';
     html += '<div class="event-list-title">' + escapeHtml(ev.judul) + '</div>';
-    html += '<div class="event-list-time">' + (waktuStr ? waktuStr + ' - ' : '') + (ev.keterangan ? escapeHtml(ev.keterangan) : 'Tanpa keterangan') + '</div>';
+    html += '<div class="event-list-time">' + (waktuStr ? escapeHtml(waktuStr) + ' - ' : '') + (ev.keterangan ? escapeHtml(ev.keterangan) : (ev.source === 'surat' ? 'Surat tugas' : 'Tanpa keterangan')) + '</div>';
+    html += people;
     html += '</div>';
     html += '<div class="event-list-actions">';
-    html += '<button class="ela-edit" onclick="editEvent(' + ev.id + ')">Edit</button>';
-    html += '<button class="ela-delete" onclick="deleteEventById(' + ev.id + ')">Hapus</button>';
+    if (ev.editable) {
+      html += '<button class="ela-edit" onclick="editEvent(' + JSON.stringify(ev.id) + ')">Edit</button>';
+      html += '<button class="ela-delete" onclick="deleteEventById(' + JSON.stringify(ev.id) + ')">Hapus</button>';
+    }
     html += '</div></div>';
   }
   container.innerHTML = html;
+}
+
+function formatSuratRange(ev) {
+  if (!ev.tanggal_berangkat) return '';
+  const start = formatDateId(ev.tanggal_berangkat);
+  const end = ev.tanggal_kembali && ev.tanggal_kembali !== ev.tanggal_berangkat ? formatDateId(ev.tanggal_kembali) : '';
+  return end ? `${start} s.d ${end}` : start;
 }
 
 async function deleteEventById(id) {
@@ -2270,12 +2604,15 @@ async function deleteEventById(id) {
     await reloadEvents();
     renderCalendar();
     renderDayEventList(calSelectedDate);
-    if (calEditingEventId === id) resetEventForm(calSelectedDate);
+    if (String(calEditingEventId) === String(id)) resetEventForm(calSelectedDate);
   } catch(e) { alert('Gagal menghapus kegiatan: ' + e.message); }
 }
 
 async function initCalendar(userId) {
   calCurrentUserId = userId;
+  calCurrentUserNip = STATE_PROFIL.nip;
+  renderEventTimePicker();
+  setCalendarMode('personal');
   renderCalendar();
   await reloadEvents();
   renderCalendar();
@@ -2286,7 +2623,7 @@ async function init() {
   const s = novaCheckSession({ requireAdmin: false });
   if (!s) return;
   Topbar9201.setUser(s);
-  fetchProfil(s.id);
+  await fetchProfil(s.id);
   initRoleSwitcher(s, false);
   await initCalendar(s.id);
 }
