@@ -60,13 +60,15 @@
   .hero-avatar-wrap{margin-bottom:14px}
   .hero-name{font-family:'Fraunces',serif;font-size:20px;font-weight:500;color:var(--navy);line-height:1.25;letter-spacing:-.2px;margin-bottom:6px}
   .hero-jabatan{font-size:12px;color:var(--gold-dark);font-weight:600;letter-spacing:.4px;text-transform:uppercase;margin-bottom:10px;line-height:1.4}
-  .hero-nip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--bg);border:1px solid var(--border);border-radius:100px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:var(--muted);letter-spacing:.5px}
-  .hero-nip strong{color:var(--navy);font-weight:700}
-  .hero-karpeg{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11px;color:var(--muted);line-height:1.4}
-  .hero-karpeg strong{font-family:ui-monospace,'SF Mono',Menlo,monospace;color:var(--navy);font-size:12px;letter-spacing:.2px}
-  .hero-karpeg-empty{color:var(--muted);font-style:italic;font-weight:500}
-  .hero-mini-btn{height:26px;padding:0 9px;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--navy);font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;box-shadow:0 1px 2px rgba(13,35,64,.04)}
-  .hero-mini-btn:hover{border-color:var(--gold);background:var(--gold-light)}
+  .hero-id-stack{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:340px}
+  .hero-nip,.hero-karpeg{display:flex;align-items:center;gap:8px;min-height:32px;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,#fff,#fbfaf7);box-shadow:0 1px 3px rgba(13,35,64,.04);padding:6px 8px 6px 10px;color:var(--muted);line-height:1.35}
+  .hero-nip{justify-content:center;width:max-content;max-width:100%;font-size:11px;letter-spacing:.5px}
+  .hero-karpeg{width:100%;justify-content:space-between;font-size:11px}
+  .hero-id-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:var(--border2);white-space:nowrap}
+  .hero-id-value{font-family:ui-monospace,'SF Mono',Menlo,monospace;color:var(--navy);font-size:12px;font-weight:800;letter-spacing:.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .hero-karpeg-empty{font-family:'Plus Jakarta Sans',sans-serif;color:var(--muted);font-style:italic;font-weight:600;letter-spacing:0}
+  .hero-mini-btn{height:26px;min-width:34px;padding:0 9px;border:1px solid rgba(200,168,75,.45);border-radius:8px;background:var(--gold-light);color:var(--gold-dark);font-family:inherit;font-size:10.5px;font-weight:900;cursor:pointer;box-shadow:0 1px 2px rgba(13,35,64,.04);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+  .hero-mini-btn:hover{border-color:var(--gold);background:#fff6d6;color:var(--navy)}
 
   /* Quick stats di hero card */
   .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);background:var(--bg);align-items:stretch}
@@ -226,16 +228,22 @@
   .cal-grid{padding:18px 22px 22px}
   .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px}
   .cal-weekday{text-align:center;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:6px 0}
-  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-  .cal-day{aspect-ratio:1;min-height:74px;border-radius:8px;border:1px solid var(--border);background:var(--bg);padding:6px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;overflow:visible}
+  .cal-day{aspect-ratio:1;min-height:82px;border-radius:8px;border:1px solid var(--border);background:var(--bg);padding:6px;cursor:pointer;transition:all .15s;position:relative;overflow:visible;display:flex;flex-direction:column}
   .cal-day:hover{border-color:var(--gold);background:var(--gold-light)}
   .cal-day.other-month{opacity:.4}
   .cal-day.today{border-color:var(--gold);background:rgba(200,168,75,.08);box-shadow:inset 0 0 0 1px var(--gold)}
   .cal-day-number{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px}
   .cal-day.today .cal-day-number{color:var(--gold-dark)}
-  .cal-events{flex:1;display:flex;flex-direction:column;gap:2px;overflow:hidden}
-  .cal-event{font-size:9.5px;padding:2px 5px;border-radius:3px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;letter-spacing:.1px}
-  .cal-event.surat{border-left:3px solid var(--navy);padding-left:4px}
+  .cal-events{flex:1;display:flex;flex-direction:column;gap:3px;overflow:visible;position:relative;z-index:2}
+  .cal-event-slot{height:18px}
+  .cal-event{height:18px;font-size:9.5px;padding:3px 6px;border-radius:5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15;letter-spacing:.1px;box-shadow:0 3px 8px rgba(13,35,64,.12);position:relative;z-index:3;border:1px solid rgba(255,255,255,.38)}
+  .cal-event.surat{box-shadow:0 4px 10px rgba(13,35,64,.14)}
+  .cal-event.is-range-start{border-top-right-radius:0;border-bottom-right-radius:0;margin-right:-9px;padding-right:12px;border-right-color:transparent}
+  .cal-event.is-range-mid{border-radius:0;margin-left:-9px;margin-right:-9px;padding-left:12px;padding-right:12px;border-left-color:transparent;border-right-color:transparent}
+  .cal-event.is-range-end{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:-9px;padding-left:12px;border-left-color:transparent}
+  .cal-event.is-range-single{border-radius:5px}
+  .cal-event.is-range-mid .cal-event-label,.cal-event.is-range-end .cal-event-label{opacity:0}
   .cal-more{font-size:9px;color:var(--muted);margin-top:auto;text-align:right;font-weight:500}
   @media(max-width:768px){
     .cal-day{min-height:54px;padding:4px}
@@ -243,7 +251,7 @@
   }
   @media(max-width:600px){
     .cal-day{min-height:44px}
-    .cal-event{display:none}
+    .cal-event,.cal-event-slot,.cal-more{display:none}
     .cal-day.has-events::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:5px;height:5px;background:var(--gold);border-radius:50%}
   }
 
@@ -333,10 +341,17 @@
   .form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:7px;font-family:inherit;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;background:var(--white)}
   .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
   .form-group textarea{resize:vertical;min-height:60px}
-  .color-options{display:flex;gap:8px;flex-wrap:wrap}
-  .color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .15s}
-  .color-opt:hover{transform:scale(1.15)}
-  .color-opt.selected{border-color:var(--navy)}
+  .color-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .color-opt{height:38px;border-radius:10px;cursor:pointer;border:1px solid var(--border);transition:transform .15s,border-color .15s,box-shadow .15s;background:var(--tag-color);position:relative;overflow:hidden;box-shadow:inset 0 -18px 28px rgba(0,0,0,.08)}
+  .color-opt:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(13,35,64,.12),inset 0 -18px 28px rgba(0,0,0,.08)}
+  .color-opt.selected{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.12),inset 0 -18px 28px rgba(0,0,0,.08)}
+  .color-opt.selected::after{content:'';position:absolute;right:8px;top:8px;width:8px;height:12px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+  .color-opt span{position:absolute;left:8px;bottom:7px;color:#fff;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.4px;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+  .karpeg-modal-note{font-size:12px;line-height:1.55;color:var(--muted);background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:14px}
+  .karpeg-field-shell{display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center;border:1px solid var(--border);border-radius:12px;background:#fffdf8;padding:10px 12px}
+  .karpeg-field-label{font-size:10px;font-weight:900;color:var(--gold-dark);letter-spacing:1px;text-transform:uppercase}
+  .karpeg-field-shell input{width:100%;border:0;background:#fff;border-radius:8px;padding:10px 11px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:14px;font-weight:800;color:var(--navy);outline:none;box-shadow:inset 0 0 0 1px var(--border)}
+  .karpeg-field-shell input:focus{box-shadow:inset 0 0 0 1.5px var(--gold),0 0 0 3px rgba(200,168,75,.16)}
   .modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:#fafaf6}
   .btn{padding:8px 16px;border-radius:7px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:none}
   .btn-secondary{background:var(--bg);color:var(--navy);border:1px solid var(--border)}
@@ -583,14 +598,14 @@
           <div class="form-group">
             <label>Warna Tanda</label>
             <div class="color-options" id="color-options">
-              <div class="color-opt selected" style="background:#c8a84b" data-color="#c8a84b" onclick="selectColor(this)" title="Prioritas"></div>
-              <div class="color-opt" style="background:#3b82f6" data-color="#3b82f6" onclick="selectColor(this)" title="Koordinasi"></div>
-              <div class="color-opt" style="background:#22c55e" data-color="#22c55e" onclick="selectColor(this)" title="Lapangan"></div>
-              <div class="color-opt" style="background:#ef4444" data-color="#ef4444" onclick="selectColor(this)" title="Penting"></div>
-              <div class="color-opt" style="background:#a855f7" data-color="#a855f7" onclick="selectColor(this)" title="Internal"></div>
-              <div class="color-opt" style="background:#f97316" data-color="#f97316" onclick="selectColor(this)" title="Administrasi"></div>
-              <div class="color-opt" style="background:#06b6d4" data-color="#06b6d4" onclick="selectColor(this)" title="Monitoring"></div>
-              <div class="color-opt" style="background:#6b7280" data-color="#6b7280" onclick="selectColor(this)" title="Lainnya"></div>
+              <button type="button" class="color-opt selected" style="--tag-color:#c8a84b" data-color="#c8a84b" onclick="selectColor(this)" title="Prioritas"><span>Prioritas</span></button>
+              <button type="button" class="color-opt" style="--tag-color:#3b82f6" data-color="#3b82f6" onclick="selectColor(this)" title="Koordinasi"><span>Koordinasi</span></button>
+              <button type="button" class="color-opt" style="--tag-color:#22c55e" data-color="#22c55e" onclick="selectColor(this)" title="Lapangan"><span>Lapangan</span></button>
+              <button type="button" class="color-opt" style="--tag-color:#ef4444" data-color="#ef4444" onclick="selectColor(this)" title="Penting"><span>Penting</span></button>
+              <button type="button" class="color-opt" style="--tag-color:#a855f7" data-color="#a855f7" onclick="selectColor(this)" title="Internal"><span>Internal</span></button>
+              <button type="button" class="color-opt" style="--tag-color:#f97316" data-color="#f97316" onclick="selectColor(this)" title="Administrasi"><span>Admin</span></button>
+              <button type="button" class="color-opt" style="--tag-color:#06b6d4" data-color="#06b6d4" onclick="selectColor(this)" title="Monitoring"><span>Monitor</span></button>
+              <button type="button" class="color-opt" style="--tag-color:#6b7280" data-color="#6b7280" onclick="selectColor(this)" title="Lainnya"><span>Lainnya</span></button>
             </div>
           </div>
         </div>
@@ -605,6 +620,29 @@
       <button class="btn btn-secondary" id="btn-close-event" onclick="closeModal()">Batal</button>
       <button class="btn btn-danger" id="btn-delete-event" style="display:none" onclick="deleteCurrentEvent()">Hapus</button>
       <button class="btn btn-primary" onclick="saveEvent()" id="btn-save-event">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== MODAL EDIT KARPEG ======== -->
+<div class="modal-overlay" id="karpeg-modal" onclick="if(event.target===this)closeKarpegModal()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title">Edit <em>Karpeg</em></div>
+      <button class="modal-close" onclick="closeKarpegModal()">x</button>
+    </div>
+    <div class="modal-body">
+      <div class="karpeg-modal-note">
+        Nomor Seri Karpeg tersimpan ke data pegawai dan dapat dikosongkan jika pegawai belum memiliki Karpeg.
+      </div>
+      <div class="karpeg-field-shell">
+        <div class="karpeg-field-label">Karpeg</div>
+        <input type="text" id="karpeg-input" maxlength="40" placeholder="Contoh: A 123456">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" type="button" onclick="closeKarpegModal()">Batal</button>
+      <button class="btn btn-primary" type="button" id="btn-save-karpeg" onclick="saveKarpegFromModal()">Simpan</button>
     </div>
   </div>
 </div>
@@ -954,11 +992,16 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
         </div>
         <div class="hero-name">${esc(nama)}</div>
         <div class="hero-jabatan">${esc(jabatanText)}</div>
-        <div class="hero-nip">NIP <strong>${esc(nip)}</strong></div>
-        <div class="hero-karpeg">
-          <span>Karpeg</span>
-          ${karpeg ? `<strong>${esc(karpeg)}</strong>` : '<span class="hero-karpeg-empty">Belum diisi</span>'}
-          <button type="button" class="hero-mini-btn" onclick="editMyKarpeg()">Edit</button>
+        <div class="hero-id-stack">
+          <div class="hero-nip">
+            <span class="hero-id-label">NIP</span>
+            <span class="hero-id-value">${esc(nip)}</span>
+          </div>
+          <div class="hero-karpeg">
+            <span class="hero-id-label">Karpeg</span>
+            <span class="hero-id-value ${karpeg ? '' : 'hero-karpeg-empty'}">${karpeg ? esc(karpeg) : 'Belum diisi'}</span>
+            <button type="button" class="hero-mini-btn" onclick="openKarpegModal()">Edit</button>
+          </div>
         </div>
       </div>
       <div class="hero-stats">
@@ -1081,15 +1124,28 @@ async function updatePegawaiKarpeg(nip, karpeg) {
   return Array.isArray(rows) && rows.length ? rows[0] : { pegawai_nip: nip, karpeg: value };
 }
 
-async function editMyKarpeg() {
+function openKarpegModal() {
   if (!STATE_PROFIL.pegawai) return;
-  const current = clean(pegawaiKarpeg(STATE_PROFIL.pegawai));
-  const next = prompt('Nomor Seri Karpeg', current);
-  if (next === null) return;
-  const value = String(next || '').trim();
+  const input = document.getElementById('karpeg-input');
+  if (input) input.value = clean(pegawaiKarpeg(STATE_PROFIL.pegawai));
+  document.getElementById('karpeg-modal').classList.add('show');
+  setTimeout(() => input && input.focus(), 0);
+}
+
+function closeKarpegModal() {
+  document.getElementById('karpeg-modal').classList.remove('show');
+}
+
+async function saveKarpegFromModal() {
+  if (!STATE_PROFIL.pegawai) return;
+  const btn = document.getElementById('btn-save-karpeg');
+  const input = document.getElementById('karpeg-input');
+  const value = String(input && input.value || '').trim();
+  if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
   try {
     const row = await updatePegawaiKarpeg(STATE_PROFIL.nip, value);
     STATE_PROFIL.pegawai = { ...STATE_PROFIL.pegawai, ...row, karpeg: value };
+    closeKarpegModal();
     renderProfil(
       STATE_PROFIL.pegawai,
       STATE_PROFIL.akList,
@@ -1099,6 +1155,8 @@ async function editMyKarpeg() {
     );
   } catch (e) {
     alert('Gagal menyimpan Karpeg: ' + (e.message || e));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Simpan'; }
   }
 }
 
@@ -2221,16 +2279,17 @@ var evtDatePickerDate = new Date();
 var evtHourSelected = null;
 var evtMinuteSelected = '00';
 var EVENT_COLORS = {
-  '#0d2340': {bg:'rgba(13,35,64,.10)', text:'#0d2340'},
-  '#c8a84b': {bg:'rgba(200,168,75,.15)', text:'#7a5c10'},
-  '#3b82f6': {bg:'rgba(59,130,246,.12)', text:'#1d4ed8'},
-  '#22c55e': {bg:'rgba(34,197,94,.12)', text:'#15803d'},
-  '#ef4444': {bg:'rgba(239,68,68,.12)', text:'#b91c1c'},
-  '#a855f7': {bg:'rgba(168,85,247,.12)', text:'#7e22ce'},
-  '#f97316': {bg:'rgba(249,115,22,.12)', text:'#c2410c'},
-  '#06b6d4': {bg:'rgba(6,182,212,.12)', text:'#0e7490'},
-  '#6b7280': {bg:'rgba(107,114,128,.12)', text:'#374151'},
+  '#0d2340': {bg:'rgba(13,35,64,.10)', text:'#0d2340', solid:'#0d2340', fg:'#fff'},
+  '#c8a84b': {bg:'rgba(200,168,75,.15)', text:'#7a5c10', solid:'#c8a84b', fg:'#fff'},
+  '#3b82f6': {bg:'rgba(59,130,246,.12)', text:'#1d4ed8', solid:'#3b82f6', fg:'#fff'},
+  '#22c55e': {bg:'rgba(34,197,94,.12)', text:'#15803d', solid:'#22c55e', fg:'#fff'},
+  '#ef4444': {bg:'rgba(239,68,68,.12)', text:'#b91c1c', solid:'#ef4444', fg:'#fff'},
+  '#a855f7': {bg:'rgba(168,85,247,.12)', text:'#7e22ce', solid:'#a855f7', fg:'#fff'},
+  '#f97316': {bg:'rgba(249,115,22,.12)', text:'#c2410c', solid:'#f97316', fg:'#fff'},
+  '#06b6d4': {bg:'rgba(6,182,212,.12)', text:'#0e7490', solid:'#06b6d4', fg:'#fff'},
+  '#6b7280': {bg:'rgba(107,114,128,.12)', text:'#374151', solid:'#6b7280', fg:'#fff'},
 };
+var EVENT_PALETTE = ['#22c55e','#3b82f6','#a855f7','#f97316','#06b6d4','#ef4444','#c8a84b','#6b7280','#0d2340'];
 
 // Helper RPC kalender pribadi - pakai novaRpc dari 9201-shared.js.
 const rpcListEvents   = (uid, cid) => novaRpc('kalender_list',   { p_user_id: uid, p_caller_id: cid });
@@ -2257,6 +2316,41 @@ function normalizeNipList(value) {
     return raw.slice(1, -1).split(',').map(v => v.replace(/^"|"$/g, '').trim()).filter(Boolean);
   }
   return raw.split(',').map(v => v.trim()).filter(Boolean);
+}
+function eventKey(ev) {
+  return String(ev && (ev.range_id || ev.surat_id || ev.id) || '');
+}
+function eventColorForKey(key) {
+  const s = String(key || '');
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) hash = ((hash << 5) - hash + s.charCodeAt(i)) | 0;
+  return EVENT_PALETTE[Math.abs(hash) % EVENT_PALETTE.length] || '#0d2340';
+}
+function addDaysKey(dateKey, delta) {
+  const d = parseDateKey(dateKey);
+  if (!d) return '';
+  d.setDate(d.getDate() + delta);
+  return isoFromDateObj(d);
+}
+function eventOccursOnDate(ev, dateKey) {
+  if (!ev || !dateKey) return false;
+  if (ev.range_start && ev.range_end) return dateKey >= ev.range_start && dateKey <= ev.range_end;
+  return ev.tanggal === dateKey;
+}
+function calendarRangeClass(ev, dateKey) {
+  if (!ev || !ev.range_start || !ev.range_end || ev.range_start === ev.range_end) return 'is-range-single';
+  const d = parseDateKey(dateKey);
+  const starts = dateKey === ev.range_start || (d && d.getDay() === 0);
+  const ends = dateKey === ev.range_end || (d && d.getDay() === 6);
+  if (starts && ends) return 'is-range-single';
+  if (starts) return 'is-range-start';
+  if (ends) return 'is-range-end';
+  return 'is-range-mid';
+}
+function shouldShowRangeLabel(ev, dateKey) {
+  if (!ev || !ev.range_start || ev.range_start === ev.range_end) return true;
+  const d = parseDateKey(dateKey);
+  return dateKey === ev.range_start || (d && d.getDay() === 0);
 }
 
 async function reloadEvents() {
@@ -2302,17 +2396,24 @@ function expandSuratTugasRows(rows) {
     const maxDays = 90;
     const pegawai = Array.isArray(s.pegawai_list) ? s.pegawai_list : [];
     const pegawaiNips = normalizeNipList(s.pegawai_nip);
+    const rangeStart = isoFromDateObj(start);
+    const rangeEnd = isoFromDateObj(end);
+    const rangeId = `surat-${s.id}`;
+    const warna = eventColorForKey(rangeId);
     for (let i = 0, d = new Date(start); d <= end && i < maxDays; i++, d.setDate(d.getDate() + 1)) {
       const tanggal = isoFromDateObj(d);
       events.push({
-        id: `surat-${s.id}-${tanggal}`,
+        id: `${rangeId}-${tanggal}`,
+        range_id: rangeId,
         surat_id: s.id,
         source: 'surat',
         editable: false,
         tanggal,
+        range_start: rangeStart,
+        range_end: rangeEnd,
         judul: s.perihal ? `Surat tugas: ${s.perihal}` : 'Surat tugas',
         waktu: null,
-        warna: '#0d2340',
+        warna,
         keterangan: s.tujuan || s.waktu_pelaksanaan_text || '',
         pegawai_list: pegawai,
         pegawai_nip: pegawaiNips,
@@ -2378,12 +2479,64 @@ function setCalendarMode(mode) {
   renderCalendar();
 }
 
+function buildCalendarSlots(days) {
+  const result = {};
+  const maxSlots = window.innerWidth <= 600 ? 1 : 3;
+  for (let week = 0; week < 6; week++) {
+    const weekDays = days.slice(week * 7, week * 7 + 7).map(day => formatDateKey(day.y, day.m, day.d));
+    const unique = [];
+    const seen = {};
+    weekDays.forEach(dateKey => {
+      calCachedEvents
+        .filter(ev => eventOccursOnDate(ev, dateKey))
+        .sort(sortCalendarEvents)
+        .forEach(ev => {
+          const key = eventKey(ev);
+          if (!seen[key]) {
+            seen[key] = true;
+            unique.push(ev);
+          }
+        });
+    });
+    unique.sort((a, b) => {
+      const as = a.range_start || a.tanggal || '';
+      const bs = b.range_start || b.tanggal || '';
+      if (as !== bs) return as.localeCompare(bs);
+      return sortCalendarEvents(a, b);
+    });
+
+    const slots = Array.from({ length: maxSlots }, () => ({}));
+    weekDays.forEach(dateKey => { result[dateKey] = { slots:Array(maxSlots).fill(null), overflow:0 }; });
+
+    unique.forEach(ev => {
+      const activeDays = weekDays.filter(dateKey => eventOccursOnDate(ev, dateKey));
+      let target = -1;
+      for (let slot = 0; slot < maxSlots; slot++) {
+        if (activeDays.every(dateKey => !slots[slot][dateKey])) {
+          target = slot;
+          break;
+        }
+      }
+      if (target === -1) {
+        activeDays.forEach(dateKey => { result[dateKey].overflow += 1; });
+        return;
+      }
+      activeDays.forEach(dateKey => {
+        slots[target][dateKey] = true;
+        result[dateKey].slots[target] = ev;
+      });
+    });
+  }
+  return result;
+}
+
 function renderCalendar() {
   var year  = calCurrentDate.getFullYear();
   var month = calCurrentDate.getMonth();
   var monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   document.getElementById('cal-month-label').textContent = monthNames[month] + ' ' + year;
   var days = getMonthData(year, month);
+  var daySlots = buildCalendarSlots(days);
   var container = document.getElementById('cal-days');
   var today = new Date();
   var todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
@@ -2392,19 +2545,26 @@ function renderCalendar() {
     var day = days[i];
     var dateKey = formatDateKey(day.y, day.m, day.d);
     var isToday = dateKey === todayKey;
-    var dayEvents = calCachedEvents.filter(e => e.tanggal === dateKey).sort(sortCalendarEvents);
+    var dayEvents = calCachedEvents.filter(e => eventOccursOnDate(e, dateKey)).sort(sortCalendarEvents);
     var hasEvents = dayEvents.length > 0;
     var cls = 'cal-day' + (day.other ? ' other-month':'') + (isToday ? ' today':'') + (hasEvents ? ' has-events':'');
     html += '<div class="' + cls + '" onclick="openModalForDate(\'' + dateKey + '\')">';
     html += '<div class="cal-day-number">' + day.d + '</div>';
     html += '<div class="cal-events">';
-    for (var k = 0; k < Math.min(dayEvents.length, 3); k++) {
-      var ev = dayEvents[k];
+    var slotInfo = daySlots[dateKey] || { slots:[], overflow:0 };
+    for (var k = 0; k < slotInfo.slots.length; k++) {
+      var ev = slotInfo.slots[k];
+      if (!ev) {
+        html += '<div class="cal-event-slot"></div>';
+        continue;
+      }
       var c = EVENT_COLORS[ev.warna] || EVENT_COLORS['#c8a84b'];
-      var eventCls = 'cal-event' + (ev.source === 'surat' ? ' surat' : '');
-      html += '<div class="' + eventCls + '" style="background:' + c.bg + ';color:' + c.text + '">' + escapeHtml(ev.judul) + '</div>';
+      var rangeCls = calendarRangeClass(ev, dateKey);
+      var eventCls = 'cal-event ' + rangeCls + (ev.source === 'surat' ? ' surat' : '');
+      var label = shouldShowRangeLabel(ev, dateKey) ? escapeHtml(ev.judul) : '&nbsp;';
+      html += '<div class="' + eventCls + '" style="background:' + (c.solid || ev.warna || '#c8a84b') + ';color:' + (c.fg || '#fff') + '"><span class="cal-event-label">' + label + '</span></div>';
     }
-    if (dayEvents.length > 3) html += '<div class="cal-more">+' + (dayEvents.length - 3) + ' lainnya</div>';
+    if (slotInfo.overflow > 0) html += '<div class="cal-more">+' + slotInfo.overflow + ' lainnya</div>';
     html += '</div></div>';
   }
   container.innerHTML = html;
