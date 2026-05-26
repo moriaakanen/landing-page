@@ -113,13 +113,10 @@
   .pg-info-row{display:flex;align-items:center;gap:8px;font-size:12.5px;line-height:1.4;min-width:0}
   .pg-info-icon{width:24px;height:24px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--muted);position:relative;font-weight:800}
   .pg-info-icon.ak{background:var(--bg);color:var(--muted);border:0;font-size:10px;letter-spacing:.2px}
-  .pg-info-row.karpeg{padding:7px 9px;margin-left:-4px;margin-right:-4px;border:1px solid #e2e8f0;border-radius:10px;background:linear-gradient(180deg,#f8fafc,#fff)}
-  .pg-info-row.karpeg .pg-info-text{display:flex;align-items:center;justify-content:space-between;gap:8px}
-  .pg-info-icon.karpeg{background:#eef2f7;color:#475569;border:1px solid #dbe3ec;font-size:0;letter-spacing:.2px}
-  .pg-info-icon.karpeg::before{content:'';width:12px;height:9px;border:1.8px solid currentColor;border-radius:2px;background:rgba(255,255,255,.35)}
-  .pg-info-icon.karpeg::after{content:'';position:absolute;left:8px;top:10px;width:8px;height:1.6px;background:currentColor;box-shadow:0 4px 0 currentColor}
-  .pg-karpeg-label{font-size:9.5px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;white-space:nowrap}
-  .pg-karpeg-value{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;font-weight:800;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+  .pg-info-icon.karpeg{background:var(--bg);color:var(--muted);border:0;font-size:0}
+  .pg-info-icon.karpeg::before{content:'';width:12px;height:9px;border:1.7px solid currentColor;border-radius:2px;background:rgba(255,255,255,.35)}
+  .pg-info-icon.karpeg::after{content:'';position:absolute;left:8px;top:10px;width:8px;height:1.5px;background:currentColor;box-shadow:0 4px 0 currentColor}
+  .pg-karpeg-value{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;font-weight:800;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .pg-info-icon.job::before{content:'';width:12px;height:8px;border:1.7px solid currentColor;border-radius:2px}
   .pg-info-icon.job::after{content:'';position:absolute;top:6px;width:6px;height:4px;border:1.5px solid currentColor;border-bottom:0;border-radius:2px 2px 0 0}
   .pg-info-icon.rank::before{content:'';width:12px;height:12px;border:1.7px solid currentColor;border-radius:50%}
@@ -1268,9 +1265,9 @@ function renderPegawaiCard(s) {
           <div class="pg-info-icon rank" title="Pangkat / Golongan"></div>
           <div class="pg-info-text">${pangkatText}</div>
         </div>
-        <div class="pg-info-row karpeg">
+        <div class="pg-info-row">
           <div class="pg-info-icon karpeg" title="Karpeg">KG</div>
-          <div class="pg-info-text"><span class="pg-karpeg-label">Karpeg</span><span class="pg-karpeg-value">${karpegText}</span></div>
+          <div class="pg-info-text"><span class="pg-karpeg-value">${karpegText}</span></div>
         </div>
         <div class="pg-info-row">
           <div class="pg-info-icon ak" title="Angka Kredit">AK</div>
