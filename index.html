@@ -62,6 +62,11 @@
   .hero-jabatan{font-size:12px;color:var(--gold-dark);font-weight:600;letter-spacing:.4px;text-transform:uppercase;margin-bottom:10px;line-height:1.4}
   .hero-nip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--bg);border:1px solid var(--border);border-radius:100px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:var(--muted);letter-spacing:.5px}
   .hero-nip strong{color:var(--navy);font-weight:700}
+  .hero-karpeg{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11px;color:var(--muted);line-height:1.4}
+  .hero-karpeg strong{font-family:ui-monospace,'SF Mono',Menlo,monospace;color:var(--navy);font-size:12px;letter-spacing:.2px}
+  .hero-karpeg-empty{color:var(--muted);font-style:italic;font-weight:500}
+  .hero-mini-btn{height:26px;padding:0 9px;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--navy);font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;box-shadow:0 1px 2px rgba(13,35,64,.04)}
+  .hero-mini-btn:hover{border-color:var(--gold);background:var(--gold-light)}
 
   /* Quick stats di hero card */
   .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);background:var(--bg);align-items:stretch}
@@ -277,7 +282,9 @@
   .event-date-day.is-muted{color:#b8b8b8;font-weight:500}
   .event-date-day.is-today:not(.is-selected){border-color:var(--gold);color:var(--gold-dark)}
   .event-date-day.is-selected{background:var(--gold);color:#fff;box-shadow:0 5px 14px rgba(200,168,75,.25)}
-  .event-time-grid{display:grid;grid-template-columns:1fr 120px;gap:10px}
+  .event-time-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .event-time-select{height:44px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--navy);font-family:inherit;font-size:14px;font-weight:800;padding:0 12px;outline:none;cursor:pointer;box-shadow:0 1px 2px rgba(13,35,64,.03)}
+  .event-time-select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,168,75,.18)}
   .event-hour-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:158px;overflow-y:auto;padding-right:2px}
   .event-minute-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
   .event-time-btn,.event-allday-btn{height:32px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--navy);font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
@@ -563,8 +570,8 @@
             <div class="event-panel">
               <div class="event-panel-title">Format 24 jam</div>
               <div class="event-time-grid">
-                <div class="event-hour-grid" id="evt-hour-grid"></div>
-                <div class="event-minute-grid" id="evt-minute-grid"></div>
+                <select class="event-time-select" id="evt-hour-select" onchange="setEventTime(this.value, null)" aria-label="Pilih jam"></select>
+                <select class="event-time-select" id="evt-minute-select" onchange="setEventTime(null, this.value)" aria-label="Pilih menit"></select>
               </div>
               <button type="button" class="event-allday-btn active" id="evt-allday-btn" onclick="clearEventTime()">Sepanjang hari</button>
             </div>
@@ -903,6 +910,7 @@ function akRiwayatRow(row) {
 function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
   const nama = clean(pegawaiNama(pegawai)) || 'Pegawai';
   const nip  = clean(pegawaiNip(pegawai))  || '-';
+  const karpeg = clean(pegawaiKarpeg(pegawai));
 
   // Ambil entri terbaru dari masing-masing tabel riwayat (index 0 karena sudah desc).
   const latestJabatan = (jabatan && jabatan[0]) || null;
@@ -947,6 +955,11 @@ function renderProfil(pegawai, ak, jabatan, pangkat, pengajuan) {
         <div class="hero-name">${esc(nama)}</div>
         <div class="hero-jabatan">${esc(jabatanText)}</div>
         <div class="hero-nip">NIP <strong>${esc(nip)}</strong></div>
+        <div class="hero-karpeg">
+          <span>Karpeg</span>
+          ${karpeg ? `<strong>${esc(karpeg)}</strong>` : '<span class="hero-karpeg-empty">Belum diisi</span>'}
+          <button type="button" class="hero-mini-btn" onclick="editMyKarpeg()">Edit</button>
+        </div>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -1034,6 +1047,59 @@ function openMyProfilePhotoEditor() {
       } catch (_) {}
     }
   });
+}
+
+async function updatePegawaiKarpeg(nip, karpeg) {
+  if (!nip || nip === '-') throw new Error('NIP pegawai tidak ditemukan.');
+  const value = String(karpeg || '').trim();
+
+  const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_pegawai_karpeg`, {
+    method: 'POST',
+    headers: SUPABASE_HEADERS,
+    body: JSON.stringify({ p_nip: String(nip), p_karpeg: value || null }),
+  }).catch(() => null);
+  if (rpcRes && rpcRes.ok) {
+    const payload = await rpcRes.json().catch(() => null);
+    if (Array.isArray(payload)) return payload[0] || { pegawai_nip: nip, karpeg: value };
+    return payload || { pegawai_nip: nip, karpeg: value };
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?pegawai_nip=eq.${encodeURIComponent(nip)}&select=*`, {
+    method: 'PATCH',
+    headers: { ...SUPABASE_HEADERS, Prefer: 'return=representation' },
+    body: JSON.stringify({ karpeg: value || null }),
+  });
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try {
+      const err = await res.json();
+      msg = err.message || err.error || msg;
+    } catch (_) {}
+    throw new Error(msg);
+  }
+  const rows = await res.json().catch(() => []);
+  return Array.isArray(rows) && rows.length ? rows[0] : { pegawai_nip: nip, karpeg: value };
+}
+
+async function editMyKarpeg() {
+  if (!STATE_PROFIL.pegawai) return;
+  const current = clean(pegawaiKarpeg(STATE_PROFIL.pegawai));
+  const next = prompt('Nomor Seri Karpeg', current);
+  if (next === null) return;
+  const value = String(next || '').trim();
+  try {
+    const row = await updatePegawaiKarpeg(STATE_PROFIL.nip, value);
+    STATE_PROFIL.pegawai = { ...STATE_PROFIL.pegawai, ...row, karpeg: value };
+    renderProfil(
+      STATE_PROFIL.pegawai,
+      STATE_PROFIL.akList,
+      STATE_PROFIL.jabatanList,
+      STATE_PROFIL.pangkatList,
+      STATE_PROFIL.pengajuan
+    );
+  } catch (e) {
+    alert('Gagal menyimpan Karpeg: ' + (e.message || e));
+  }
 }
 
 function akPeriodEndFromRow(row) {
@@ -2182,6 +2248,16 @@ function parseDateKey(dk) {
   var p = String(dk || '').slice(0,10).split('-');
   return p.length === 3 ? new Date(+p[0], +p[1]-1, +p[2]) : null;
 }
+function normalizeNipList(value) {
+  if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean);
+  if (value == null) return [];
+  const raw = String(value).trim();
+  if (!raw) return [];
+  if (raw[0] === '{' && raw[raw.length - 1] === '}') {
+    return raw.slice(1, -1).split(',').map(v => v.replace(/^"|"$/g, '').trim()).filter(Boolean);
+  }
+  return raw.split(',').map(v => v.trim()).filter(Boolean);
+}
 
 async function reloadEvents() {
   if (!calCurrentUserId) return;
@@ -2220,10 +2296,12 @@ function expandSuratTugasRows(rows) {
   rows.forEach(s => {
     if (!s.tanggal_berangkat) return;
     const start = parseDateKey(s.tanggal_berangkat);
-    const end = parseDateKey(s.tanggal_kembali || s.tanggal_berangkat);
+    const parsedEnd = parseDateKey(s.tanggal_kembali || s.tanggal_berangkat);
+    const end = parsedEnd && parsedEnd >= start ? parsedEnd : start;
     if (!start || !end) return;
     const maxDays = 90;
     const pegawai = Array.isArray(s.pegawai_list) ? s.pegawai_list : [];
+    const pegawaiNips = normalizeNipList(s.pegawai_nip);
     for (let i = 0, d = new Date(start); d <= end && i < maxDays; i++, d.setDate(d.getDate() + 1)) {
       const tanggal = isoFromDateObj(d);
       events.push({
@@ -2237,7 +2315,7 @@ function expandSuratTugasRows(rows) {
         warna: '#0d2340',
         keterangan: s.tujuan || s.waktu_pelaksanaan_text || '',
         pegawai_list: pegawai,
-        pegawai_nip: Array.isArray(s.pegawai_nip) ? s.pegawai_nip : [],
+        pegawai_nip: pegawaiNips,
         nomor_surat: s.nomor_surat,
         tanggal_berangkat: s.tanggal_berangkat,
         tanggal_kembali: s.tanggal_kembali || s.tanggal_berangkat,
@@ -2398,23 +2476,24 @@ function resetEventForm(dateKey) {
 }
 
 function renderEventTimePicker() {
-  const hourGrid = document.getElementById('evt-hour-grid');
-  const minuteGrid = document.getElementById('evt-minute-grid');
-  if (!hourGrid || !minuteGrid) return;
-  hourGrid.innerHTML = Array.from({length:24}, (_, i) =>
-    `<button type="button" class="event-time-btn" data-hour="${String(i).padStart(2,'0')}" onclick="setEventTime('${String(i).padStart(2,'0')}', null)">${String(i).padStart(2,'0')}</button>`
-  ).join('');
-  minuteGrid.innerHTML = ['00','15','30','45'].map(m =>
-    `<button type="button" class="event-time-btn" data-minute="${m}" onclick="setEventTime(null, '${m}')">${m}</button>`
+  const hourSelect = document.getElementById('evt-hour-select');
+  const minuteSelect = document.getElementById('evt-minute-select');
+  if (!hourSelect || !minuteSelect) return;
+  hourSelect.innerHTML = '<option value="">Pilih jam</option>' + Array.from({length:24}, (_, i) => {
+    const h = String(i).padStart(2,'0');
+    return `<option value="${h}">${h}</option>`;
+  }).join('');
+  minuteSelect.innerHTML = '<option value="">Menit</option>' + ['00','15','30','45'].map(m =>
+    `<option value="${m}">${m}</option>`
   ).join('');
   syncEventTimeUI();
 }
 function setEventTime(hour, minute) {
-  if (hour != null) evtHourSelected = hour;
-  if (minute != null) evtMinuteSelected = minute;
-  if (evtHourSelected == null) evtHourSelected = '08';
+  if (hour != null) evtHourSelected = hour || null;
+  if (minute != null) evtMinuteSelected = minute || '00';
+  if (evtHourSelected == null && minute != null) evtHourSelected = '08';
   if (!evtMinuteSelected) evtMinuteSelected = '00';
-  document.getElementById('evt-time').value = `${evtHourSelected}:${evtMinuteSelected}`;
+  document.getElementById('evt-time').value = evtHourSelected == null ? '' : `${evtHourSelected}:${evtMinuteSelected}`;
   syncEventTimeUI();
 }
 function clearEventTime() {
@@ -2425,12 +2504,10 @@ function clearEventTime() {
   syncEventTimeUI();
 }
 function syncEventTimeUI() {
-  document.querySelectorAll('#evt-hour-grid .event-time-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.hour === evtHourSelected);
-  });
-  document.querySelectorAll('#evt-minute-grid .event-time-btn').forEach(btn => {
-    btn.classList.toggle('active', evtHourSelected != null && btn.dataset.minute === evtMinuteSelected);
-  });
+  const hourSelect = document.getElementById('evt-hour-select');
+  const minuteSelect = document.getElementById('evt-minute-select');
+  if (hourSelect) hourSelect.value = evtHourSelected || '';
+  if (minuteSelect) minuteSelect.value = evtHourSelected == null ? '' : (evtMinuteSelected || '00');
   const allDay = document.getElementById('evt-allday-btn');
   if (allDay) allDay.classList.toggle('active', evtHourSelected == null);
 }
