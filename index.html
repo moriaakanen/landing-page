@@ -247,9 +247,12 @@
   .modal-overlay.show{display:flex}
   .modal{background:var(--white);border-radius:14px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,35,64,.25);animation:popIn .22s cubic-bezier(.175,.885,.32,1.275)}
   @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-  .modal.modal-event{max-width:720px;overflow:visible}
-  .modal-event .modal-body{overflow:visible}
+  .modal.modal-event{max-width:720px;display:flex;flex-direction:column;overflow:hidden}
+  .modal-event .modal-body{overflow:visible;min-height:0}
   .event-form-shell{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px}
+  .event-form-shell.global-view{grid-template-columns:1fr}
+  .event-form-shell.global-view .event-side{order:0}
+  .event-form-shell.global-view .event-panel{max-height:calc(100vh - 245px);overflow-y:auto}
   .event-form-main,.event-side{min-width:0}
   .event-panel{border:1px solid var(--border);border-radius:12px;background:#fffdf8;padding:12px}
   .event-panel-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:10px}
@@ -292,6 +295,9 @@
   .event-list-actions{display:flex;gap:6px}
   .ela-edit,.ela-delete{border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--navy);font-family:inherit;font-size:11px;font-weight:800;padding:5px 8px;cursor:pointer}
   .ela-delete{color:var(--red);border-color:#fecaca;background:#fff7f7}
+  .global-view .event-list-item{grid-template-columns:10px minmax(0,1fr);padding:12px 0}
+  .global-view .event-list-actions{display:none}
+  .global-view .event-list-title{white-space:normal;overflow:visible;text-overflow:clip}
   @media(max-width:760px){
     .event-form-shell{grid-template-columns:1fr}
     .event-side{order:2}
@@ -412,16 +418,6 @@
   .summary-actions-note{font-size:11px;color:var(--muted);line-height:1.45;margin-top:-6px}
   .btn:disabled{opacity:.5;cursor:not-allowed}
   .btn-primary:hover{background:var(--navy2)}
-  .event-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg);margin-bottom:8px;border:1px solid var(--border)}
-  .event-list-color{width:10px;height:10px;border-radius:3px;flex-shrink:0}
-  .event-list-info{flex:1;min-width:0}
-  .event-list-title{font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .event-list-time{font-size:11px;color:var(--muted)}
-  .event-list-actions{display:flex;gap:4px}
-  .event-list-actions button{padding:4px 8px;font-size:11px;border-radius:4px;border:none;cursor:pointer;font-family:inherit;font-weight:500}
-  .ela-edit{background:var(--gold-light);color:var(--gold-dark)}
-  .ela-delete{background:#fef2f2;color:var(--red)}
-
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .fade-in{animation:fadeUp .5s cubic-bezier(.2,.7,.3,1) both}
 
@@ -2361,6 +2357,8 @@ function openModalForDate(dateKey) {
 }
 function setEventFormMode(mode) {
   const isGlobal = mode === 'global';
+  const shell = document.querySelector('.event-form-shell');
+  if (shell) shell.classList.toggle('global-view', isGlobal);
   document.getElementById('event-form-main').style.display = isGlobal ? 'none' : '';
   document.getElementById('btn-save-event').style.display = isGlobal ? 'none' : '';
   document.getElementById('btn-delete-event').style.display = 'none';
