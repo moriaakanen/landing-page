@@ -643,7 +643,7 @@
      Mirroring pattern dari admin-surat-tugas.html (modal-preview).
      Generate dokumen on-demand → upload ke Supabase Storage →
      embed via Office Online viewer (view.officeapps.live.com).
-     File preview di-cleanup 60 detik setelah modal ditutup.
+     File preview otomatis dihapus 10 menit setelah dibuat.
      ═══════════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="pak-preview-modal" onclick="if(event.target===this)closePakPreview()">
   <div class="modal modal-preview-pak">
@@ -2615,8 +2615,7 @@ async function downloadPengajuan(pakId) {
      1. Generate dokumen via PakGenerator.generatePreviewUrl(opts)
      2. Embed viewerUrl ke iframe di modal
      3. Cache filename di _pakPreviewState supaya download bisa reuse
-     4. Saat modal ditutup, cleanup file di storage setelah 60 detik
-        (kalau user buka ulang cepat, tidak perlu re-upload)
+     4. File preview otomatis dijadwalkan hapus 10 menit sejak dibuat
 ═══════════════════════════════════════════════════════════════════════ */
 let _pakPreviewState = {
   uploadedFilename: null,    // filename di bucket (untuk cleanup)
@@ -2703,11 +2702,12 @@ function closePakPreview() {
   modal.classList.remove('show');
   document.body.style.overflow = '';
 
-  // Cleanup file di storage setelah 60 detik (kalau user re-open, masih cache)
+  // File preview sudah dijadwalkan hapus 10 menit sejak dibuat.
+  // Filename tetap disimpan agar preview berikutnya bisa membersihkan file lama lebih cepat.
   if (_pakPreviewState.uploadedFilename) {
     const fn = _pakPreviewState.uploadedFilename;
-    _pakPreviewState.uploadedFilename = null;
-    setTimeout(() => PakGenerator.deletePreviewFile(fn), 60000);
+    if (PakGenerator.schedulePreviewCleanup) PakGenerator.schedulePreviewCleanup(fn);
+    else setTimeout(() => PakGenerator.deletePreviewFile(fn), 10 * 60 * 1000);
   }
 
   _pakPreviewState.currentBlob = null;

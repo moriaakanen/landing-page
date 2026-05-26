@@ -2958,12 +2958,9 @@ function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) {
   const el = document.getElementById(id);
   if (el) el.style.display = 'none';
-  // Cleanup file preview di Supabase Storage saat modal preview ditutup.
-  // Delay 60 detik — kalau user buka ulang cepat, tidak perlu re-upload.
+  // File preview dijadwalkan hapus 10 menit sejak dibuat.
   if (id === 'modal-preview' && _previewUploadedPath) {
-    const path = _previewUploadedPath;
-    _previewUploadedPath = null;
-    setTimeout(() => deletePreviewFile(path), 60_000);
+    schedulePreviewCleanup(_previewUploadedPath);
   }
   // Reset state khusus modal preview
   if (id === 'modal-preview') {
@@ -3798,11 +3795,14 @@ let currentPreviewSurat = null;
 
 /* ── Office Online Viewer (preview) ──────────────────────────────────
    Bucket Supabase Storage tempat file .docx sementara disimpan.
-   File otomatis dihapus saat modal ditutup (delay 60 detik). Orphan
-   files (kalau user crash/close paksa) dibersihkan saat halaman load
+   File otomatis dijadwalkan hapus 10 menit sejak preview dibuat.
+   Orphan files (kalau user crash/close paksa) dibersihkan saat halaman load
    via cleanupOrphanPreviewFiles().
 ─────────────────────────────────────────────────────────────────── */
 const PREVIEW_BUCKET = 'surat-tugas-preview';
+const PREVIEW_TTL_MS = 10 * 60 * 1000;
+const PREVIEW_SIGNED_URL_TTL_SEC = Math.ceil(PREVIEW_TTL_MS / 1000);
+const _previewCleanupTimers = {};
 let _previewUploadedPath = null;
 // Opts visum yg sedang aktif untuk modal preview saat ini. Dipakai oleh
 // downloadFromPreview() dan openInWordForPrint() agar tombol-tombol di
@@ -3860,10 +3860,12 @@ async function uploadPreviewDocx(blob, suratId) {
     try { const err = await res.json(); msg = err.message || err.error || msg; } catch(_) {}
     throw new Error(`Upload preview gagal: ${msg}`);
   }
+  schedulePreviewCleanup(filename);
+  cleanupOrphanPreviewFiles();
   return filename;
 }
 
-async function getPreviewSignedUrl(filename, expiresInSec = 3600) {
+async function getPreviewSignedUrl(filename, expiresInSec = PREVIEW_SIGNED_URL_TTL_SEC) {
   const res = await fetch(
     `${SUPABASE_URL}/storage/v1/object/sign/${PREVIEW_BUCKET}/${filename}`,
     {
@@ -3880,6 +3882,7 @@ async function getPreviewSignedUrl(filename, expiresInSec = 3600) {
 
 async function deletePreviewFile(filename) {
   if (!filename) return;
+  clearPreviewCleanupTimer(filename);
   try {
     await fetch(`${SUPABASE_URL}/storage/v1/object/${PREVIEW_BUCKET}/${filename}`, {
       method: 'DELETE',
@@ -3888,22 +3891,39 @@ async function deletePreviewFile(filename) {
   } catch (e) { console.warn('[9201] Cleanup preview file gagal:', e); }
 }
 
-/* Defensive cleanup: hapus file preview lama (>1 jam) yang mungkin
+function clearPreviewCleanupTimer(filename) {
+  const timer = _previewCleanupTimers[filename];
+  if (timer) {
+    clearTimeout(timer);
+    delete _previewCleanupTimers[filename];
+  }
+}
+
+function schedulePreviewCleanup(filename, delayMs = PREVIEW_TTL_MS) {
+  if (!filename || _previewCleanupTimers[filename]) return;
+  const delay = Math.max(0, Number(delayMs) || PREVIEW_TTL_MS);
+  _previewCleanupTimers[filename] = setTimeout(() => {
+    delete _previewCleanupTimers[filename];
+    deletePreviewFile(filename);
+  }, delay);
+}
+
+/* Defensive cleanup: hapus file preview lama (>10 menit) yang mungkin
    ter-orphan kalau user close paksa. Fire-and-forget, dipanggil di init(). */
 async function cleanupOrphanPreviewFiles() {
   try {
     const res = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${PREVIEW_BUCKET}`, {
       method: 'POST',
       headers: { ...H },
-      body: JSON.stringify({ limit: 100, prefix: '' }),
+      body: JSON.stringify({ limit: 1000, prefix: '' }),
     });
     if (!res.ok) return;
     const files = await res.json();
-    const oneHourAgo = Date.now() - 3600_000;
+    const expiredBefore = Date.now() - PREVIEW_TTL_MS;
     files.forEach(f => {
       // Filename pattern: "{suratId}_{timestamp}.docx"
       const m = f.name && f.name.match(/_(\d+)\.docx$/);
-      if (m && parseInt(m[1]) < oneHourAgo) deletePreviewFile(f.name);
+      if (m && parseInt(m[1], 10) < expiredBefore) deletePreviewFile(f.name);
     });
   } catch (e) { /* fire-and-forget */ }
 }
@@ -4326,7 +4346,7 @@ async function openPreview(suratId) {
     const blob = await buildSuratTugasDoc(surat, visumOpts);
     const filename = await uploadPreviewDocx(blob, surat.id);
     _previewUploadedPath = filename;
-    const fileUrl = await getPreviewSignedUrl(filename, 3600);
+    const fileUrl = await getPreviewSignedUrl(filename);
 
     const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
     container.innerHTML = `
@@ -4801,13 +4821,13 @@ async function openInWordForPrint() {
     // Kalau tidak ada (mis. user direct call atau preview gagal), upload ulang
     // pakai opts visum yg SAMA dengan yg dipakai di preview saat ini.
     if (_previewUploadedPath) {
-      signedUrl = await getPreviewSignedUrl(_previewUploadedPath, 3600);
+      signedUrl = await getPreviewSignedUrl(_previewUploadedPath);
     } else {
       ensureLibrariesLoaded();
       const blob = await buildSuratTugasDoc(currentPreviewSurat, _previewVisumOpts || {});
       const filename = await uploadPreviewDocx(blob, currentPreviewSurat.id);
       _previewUploadedPath = filename;
-      signedUrl = await getPreviewSignedUrl(filename, 3600);
+      signedUrl = await getPreviewSignedUrl(filename);
     }
 
     // Format protocol handler Word:
@@ -5825,7 +5845,7 @@ async function init() {
   // Dijalankan setelah loadSurat selesai biar tidak ada race kalau RLS lambat.
   loadMAKSuggestions();
 
-  // Bersihkan file preview orphan (>1 jam) di Supabase Storage. Fire-and-forget.
+  // Bersihkan file preview orphan (>10 menit) di Supabase Storage. Fire-and-forget.
   cleanupOrphanPreviewFiles();
 }
 init();

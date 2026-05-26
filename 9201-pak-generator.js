@@ -951,7 +951,7 @@
   //   2. renderDoc(context)    → Blob .docx
   //   3. uploadPreviewDocx(blob, pakId) → upload ke Supabase Storage
   //                              return filename di bucket
-  //   4. getPreviewSignedUrl(filename) → URL temporary (1 jam expiry)
+  //   4. getPreviewSignedUrl(filename) → URL temporary (10 menit expiry)
   //   5. buildOfficeViewerUrl(signedUrl) → URL final iframe
   //
   // Bucket: dipakai sama dengan surat-tugas — 'surat-tugas-preview'.
@@ -966,6 +966,9 @@
   // Bucket di Supabase Storage. Reuse bucket surat-tugas-preview supaya
   // tidak butuh setup tambahan di Supabase Dashboard.
   const PREVIEW_BUCKET = 'surat-tugas-preview';
+  const PREVIEW_TTL_MS = 10 * 60 * 1000;
+  const PREVIEW_SIGNED_URL_TTL_SEC = Math.ceil(PREVIEW_TTL_MS / 1000);
+  const _previewCleanupTimers = {};
 
   /**
    * Upload Blob .docx ke Supabase Storage, return filename.
@@ -991,17 +994,19 @@
       try { const err = await res.json(); msg = err.message || err.error || msg; } catch(_) {}
       throw new Error(`Upload preview gagal: ${msg}`);
     }
+    schedulePreviewCleanup(filename);
+    cleanupExpiredPreviewFiles().catch(() => {});
     return filename;
   }
 
   /**
    * Buat signed URL untuk file di bucket preview.
    * @param {string} filename
-   * @param {number} [expiresInSec=3600]
+   * @param {number} [expiresInSec=600]
    * @returns {Promise<string>}  URL lengkap siap embed di iframe
    */
   async function getPreviewSignedUrl(filename, expiresInSec) {
-    const exp = expiresInSec || 3600;
+    const exp = expiresInSec || PREVIEW_SIGNED_URL_TTL_SEC;
     const url = `${SUPABASE_URL}/storage/v1/object/sign/${PREVIEW_BUCKET}/${filename}`;
     const res = await fetch(url, {
       method: 'POST',
@@ -1022,6 +1027,7 @@
    */
   async function deletePreviewFile(filename) {
     if (!filename) return;
+    clearPreviewCleanupTimer(filename);
     try {
       await fetch(`${SUPABASE_URL}/storage/v1/object/${PREVIEW_BUCKET}/${filename}`, {
         method: 'DELETE',
@@ -1032,6 +1038,51 @@
       });
     } catch (e) {
       console.warn('[PakGen] Cleanup preview file gagal:', e);
+    }
+  }
+
+  function clearPreviewCleanupTimer(filename) {
+    const timer = _previewCleanupTimers[filename];
+    if (timer) {
+      clearTimeout(timer);
+      delete _previewCleanupTimers[filename];
+    }
+  }
+
+  function schedulePreviewCleanup(filename, delayMs = PREVIEW_TTL_MS) {
+    if (!filename || _previewCleanupTimers[filename]) return;
+    const delay = Math.max(0, Number(delayMs) || PREVIEW_TTL_MS);
+    _previewCleanupTimers[filename] = setTimeout(() => {
+      delete _previewCleanupTimers[filename];
+      deletePreviewFile(filename);
+    }, delay);
+  }
+
+  function getPreviewTimestamp(filename) {
+    const m = filename && String(filename).match(/_(\d+)\.docx$/);
+    return m ? parseInt(m[1], 10) : null;
+  }
+
+  async function cleanupExpiredPreviewFiles(maxAgeMs = PREVIEW_TTL_MS) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${PREVIEW_BUCKET}`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ limit: 1000, prefix: '' }),
+      });
+      if (!res.ok) return;
+      const files = await res.json();
+      const expiredBefore = Date.now() - maxAgeMs;
+      files.forEach(file => {
+        const ts = getPreviewTimestamp(file && file.name);
+        if (ts && ts < expiredBefore) deletePreviewFile(file.name);
+      });
+    } catch (_) {
+      // Fire-and-forget cleanup; preview should still work if list policy is blocked.
     }
   }
 
@@ -1056,7 +1107,7 @@
     const blob     = await renderDoc(context);
     const pakId    = (opts && opts.pakId) || (opts && opts.id) || 'tmp';
     const filename = await uploadPreviewDocx(blob, pakId);
-    const signedUrl = await getPreviewSignedUrl(filename, 3600);
+    const signedUrl = await getPreviewSignedUrl(filename);
     const viewerUrl = buildOfficeViewerUrl(signedUrl);
     return { viewerUrl, signedUrl, filename, blob, context };
   }
@@ -1073,6 +1124,9 @@
     uploadPreviewDocx,
     getPreviewSignedUrl,
     deletePreviewFile,
+    schedulePreviewCleanup,
+    cleanupExpiredPreviewFiles,
+    PREVIEW_TTL_MS,
     buildOfficeViewerUrl,
     generatePreviewUrl,
     // Helpers expose untuk UI (mis. modal preview):

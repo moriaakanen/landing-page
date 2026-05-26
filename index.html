@@ -779,8 +779,8 @@
 <!-- ===============================================================
      MODAL PREVIEW PAK - Office Online viewer iframe
      Generate dokumen on-demand -> upload ke Supabase Storage ->
-     embed via Office Online viewer. File preview di-cleanup 60 detik
-     setelah modal ditutup.
+     embed via Office Online viewer. File preview otomatis dihapus
+     10 menit setelah dibuat.
      =============================================================== -->
 <div class="modal-overlay" id="pak-preview-modal" onclick="if(event.target===this)closePakPreview()">
   <div class="modal modal-preview-pak">
@@ -2057,8 +2057,8 @@ async function downloadPengajuan(id) {
    PREVIEW PAK (USER) - Office Online viewer iframe
    -----------------------------------------------------------------
    Pola sama dengan admin-kepegawaian.html. User bisa lihat preview
-   tanpa harus download dulu. Dokumen di-cleanup 60 detik setelah modal
-   ditutup.
+   tanpa harus download dulu. Dokumen otomatis dihapus 10 menit
+   setelah dibuat.
 ======================================================================= */
 let _pakPreviewState = {
   uploadedFilename: null,
@@ -2145,11 +2145,12 @@ function closePakPreview() {
   modal.classList.remove('show');
   document.body.style.overflow = '';
 
-  // Cleanup file di storage setelah 60 detik
+  // File preview sudah dijadwalkan hapus 10 menit sejak dibuat.
+  // Filename tetap disimpan agar preview berikutnya bisa membersihkan file lama lebih cepat.
   if (_pakPreviewState.uploadedFilename) {
     const fn = _pakPreviewState.uploadedFilename;
-    _pakPreviewState.uploadedFilename = null;
-    setTimeout(() => PakGenerator.deletePreviewFile(fn), 60000);
+    if (PakGenerator.schedulePreviewCleanup) PakGenerator.schedulePreviewCleanup(fn);
+    else setTimeout(() => PakGenerator.deletePreviewFile(fn), 10 * 60 * 1000);
   }
 
   _pakPreviewState.currentBlob = null;
