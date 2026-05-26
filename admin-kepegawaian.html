@@ -918,6 +918,24 @@ function pensiunLabel(p) {
   return p.tanggal_pensiun ? `Pensiun per ${fmtTglID(p.tanggal_pensiun)}` : 'Pensiun';
 }
 
+function nipAppointmentKey(nip) {
+  const digits = String(nip || '').replace(/\D/g, '');
+  if (digits.length < 14) return Number.POSITIVE_INFINITY;
+  const yyyymm = digits.slice(8, 14);
+  const year = Number(yyyymm.slice(0, 4));
+  const month = Number(yyyymm.slice(4, 6));
+  if (!year || month < 1 || month > 12) return Number.POSITIVE_INFINITY;
+  return (year * 100) + month;
+}
+
+function jabatanOrderPriority(s) {
+  if (s && s.isPensiun) return 99;
+  const jabatan = String(s && s.latestJabatan && s.latestJabatan.jabatan || '').trim().toLowerCase();
+  if (jabatan.startsWith('kepala bps')) return 1;
+  if (jabatan === 'kepala subbagian umum') return 2;
+  return 3;
+}
+
 function fmtPeriode(p) {
   if (!p.bulan_start || !p.bulan_end || !p.tahun_periode) return '—';
   if (p.bulan_start === p.bulan_end) {
@@ -1140,12 +1158,15 @@ function onFilterChange() {
     return true;
   });
 
-  // Sort: pakPending > 0 dulu, lalu by nama
+  // Sort: pimpinan aktif, lalu senioritas dari NIP posisi 9-14 (yyyymm pengangkatan).
   STATE.filtered.sort((a, b) => {
     if (a.isPensiun !== b.isPensiun) return a.isPensiun ? 1 : -1;
-    const aP = a.pakPending.length > 0 ? 1 : 0;
-    const bP = b.pakPending.length > 0 ? 1 : 0;
-    if (aP !== bP) return bP - aP;
+    const aPriority = jabatanOrderPriority(a);
+    const bPriority = jabatanOrderPriority(b);
+    if (aPriority !== bPriority) return aPriority - bPriority;
+    const aNipKey = nipAppointmentKey(a.nip);
+    const bNipKey = nipAppointmentKey(b.nip);
+    if (aNipKey !== bNipKey) return aNipKey - bNipKey;
     return String(a.nama).localeCompare(String(b.nama), 'id');
   });
 
