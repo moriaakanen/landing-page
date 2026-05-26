@@ -113,6 +113,7 @@
   .pg-info-row{display:flex;align-items:center;gap:8px;font-size:12.5px;line-height:1.4;min-width:0}
   .pg-info-icon{width:24px;height:24px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--muted);position:relative;font-weight:800}
   .pg-info-icon.ak{background:var(--bg);color:var(--muted);border:0;font-size:10px;letter-spacing:.2px}
+  .pg-info-icon.karpeg{background:#f8fafc;color:#64748b;border:0;font-size:9.5px;letter-spacing:.2px}
   .pg-info-icon.job::before{content:'';width:12px;height:8px;border:1.7px solid currentColor;border-radius:2px}
   .pg-info-icon.job::after{content:'';position:absolute;top:6px;width:6px;height:4px;border:1.5px solid currentColor;border-bottom:0;border-radius:2px 2px 0 0}
   .pg-info-icon.rank::before{content:'';width:12px;height:12px;border:1.7px solid currentColor;border-radius:50%}
@@ -1082,18 +1083,20 @@ function buildPegawaiSummary() {
     const golongan    = latestPangkat ? window.getGolonganByName(latestPangkat.golongan) : null;
     const isStruktural = latestJabatan ? window.isJabatanStruktural(latestJabatan.jabatan) : false;
     const jenjang     = isStruktural ? null : (latestJabatan ? window.extractJenjangFromJabatan(latestJabatan.jabatan) : null);
+    const isPensiun   = isPensiunPegawai(peg);
     const prog        = isStruktural
       ? window.progressStruktural(latestPangkat)
       : (golongan ? window.progressGolongan(akKumulatif, golongan) : null);
 
     return {
       nip, nama: pegawaiNama(peg) || '(Tanpa Nama)',
+      karpeg: pegawaiKarpeg(peg),
       pegawai: peg,
       latestAK, latestPangkat, latestJabatan, latestGelar,
       akList, pakList, pakPending,
       akKumulatif,
       golongan, jenjang, isStruktural, prog,
-      isPensiun: isPensiunPegawai(peg),
+      isPensiun,
       pensiunText: pensiunLabel(peg),
     };
   });
@@ -1115,8 +1118,8 @@ function groupLatestByNIP(rows, field) {
 function updateStats() {
   const total = STATE.pegawaiSummary.length;
   const pakPending = STATE.pegawaiSummary.filter(s => s.pakPending.length > 0).length;
-  const readyP = STATE.pegawaiSummary.filter(s => s.prog && s.prog.pangkat && s.prog.pangkat.can_promote).length;
-  const readyJ = STATE.pegawaiSummary.filter(s => s.prog && s.prog.jenjang && s.prog.jenjang.can_promote).length;
+  const readyP = STATE.pegawaiSummary.filter(s => !s.isPensiun && s.prog && s.prog.pangkat && s.prog.pangkat.can_promote).length;
+  const readyJ = STATE.pegawaiSummary.filter(s => !s.isPensiun && s.prog && s.prog.jenjang && s.prog.jenjang.can_promote).length;
   const retired = STATE.pegawaiSummary.filter(s => s.isPensiun).length;
 
   document.getElementById('st-total').textContent        = total;
@@ -1153,7 +1156,7 @@ function onFilterChange() {
       if (s.pakPending.length === 0) return false;
     } else if (fPAK === 'ready') {
       const ready = (s.prog && ((s.prog.pangkat && s.prog.pangkat.can_promote) || (s.prog.jenjang && s.prog.jenjang.can_promote)));
-      if (!ready) return false;
+      if (s.isPensiun || !ready) return false;
     }
     return true;
   });
@@ -1217,6 +1220,10 @@ function renderPegawaiCard(s) {
     ? `${esc(s.latestPangkat.pangkat || '—')} <span class="sep">·</span> Gol. ${esc(s.latestPangkat.golongan || '—')}`
     : `<span class="empty">Belum ada pangkat</span>`;
 
+  const karpegText = s.karpeg
+    ? esc(s.karpeg)
+    : `<span class="empty">Belum ada Karpeg</span>`;
+
   // AK Terbaru row
   const akText = s.latestAK
     ? `<span class="ak-num">${esc(fmtAK(s.latestAK.angka_kredit))}</span><span class="ak-period">${esc(akPeriodText(s.latestAK))}</span>`
@@ -1254,6 +1261,10 @@ function renderPegawaiCard(s) {
         <div class="pg-info-row">
           <div class="pg-info-icon rank" title="Pangkat / Golongan"></div>
           <div class="pg-info-text">${pangkatText}</div>
+        </div>
+        <div class="pg-info-row">
+          <div class="pg-info-icon karpeg" title="Karpeg">KG</div>
+          <div class="pg-info-text">${karpegText}</div>
         </div>
         <div class="pg-info-row">
           <div class="pg-info-icon ak" title="Angka Kredit">AK</div>
@@ -1470,6 +1481,7 @@ function openDetail(nip) {
 
   const metaParts = [];
   if (s.nip) metaParts.push(`NIP: <strong>${esc(s.nip)}</strong>`);
+  metaParts.push(`Karpeg: <strong>${s.karpeg ? esc(s.karpeg) : 'Belum diisi'}</strong>`);
   if (s.latestPangkat) metaParts.push(`Pangkat: <strong>${esc(s.latestPangkat.pangkat || '—')} / ${esc(s.latestPangkat.golongan || '—')}</strong>`);
   if (s.latestJabatan) metaParts.push(`Jabatan: <strong>${esc(s.latestJabatan.jabatan || '—')}</strong>`);
   document.getElementById('detail-meta').innerHTML = metaParts.length ? metaParts.join(' &middot; ') : 'Belum ada riwayat lengkap.';
