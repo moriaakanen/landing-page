@@ -229,30 +229,29 @@
   .cal-grid{padding:18px 22px 22px}
   .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px}
   .cal-weekday{text-align:center;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:6px 0}
-  .cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;overflow:visible}
-  .cal-day{min-height:122px;border-radius:8px;border:1px solid var(--border);background:var(--bg);padding:6px;cursor:pointer;transition:all .15s;position:relative;overflow:visible;display:flex;flex-direction:column}
+  .cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:minmax(142px,auto);gap:4px;overflow:visible;position:relative}
+  .cal-day{min-height:142px;border-radius:8px;border:1px solid var(--border);background:var(--bg);padding:6px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;display:flex;flex-direction:column;z-index:1}
   .cal-day:hover{border-color:var(--gold);background:var(--gold-light)}
   .cal-day.other-month{opacity:.4}
   .cal-day.today{border-color:var(--gold);background:rgba(200,168,75,.08);box-shadow:inset 0 0 0 1px var(--gold)}
   .cal-day-number{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px}
   .cal-day.today .cal-day-number{color:var(--gold-dark)}
   .cal-events{flex:1;display:flex;flex-direction:column;gap:3px;overflow:visible;position:relative;z-index:2}
-  .cal-event-slot{height:18px}
-  .cal-event{height:18px;font-size:9.5px;padding:3px 6px;border-radius:5px;font-weight:800;white-space:nowrap;overflow:hidden;line-height:1.15;letter-spacing:.1px;box-shadow:0 3px 8px rgba(13,35,64,.12);position:relative;z-index:3;border:1px solid rgba(255,255,255,.38)}
+  .cal-event{height:18px;min-width:0;font-size:9.5px;padding:3px 7px;border-radius:6px;font-weight:800;white-space:nowrap;overflow:hidden;line-height:1.15;letter-spacing:.1px;box-shadow:0 3px 8px rgba(13,35,64,.12);position:relative;z-index:3;border:1px solid rgba(255,255,255,.38);align-self:start;pointer-events:none}
   .cal-event-label{display:block;max-width:100%;overflow:hidden;text-overflow:clip;white-space:nowrap}
   .cal-event.surat{box-shadow:0 4px 10px rgba(13,35,64,.14)}
-  .cal-event.is-range-start{border-top-right-radius:0;border-bottom-right-radius:0;margin-right:-8px;padding-right:11px;border-right-color:transparent}
-  .cal-event.is-range-mid{border-radius:0;margin-left:-8px;margin-right:-8px;padding-left:11px;padding-right:11px;border-left-color:transparent;border-right-color:transparent}
-  .cal-event.is-range-end{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:-8px;padding-left:11px;border-left-color:transparent}
+  .cal-event.is-range-start,.cal-event.is-range-mid,.cal-event.is-range-end{border-radius:6px}
   .cal-event.is-range-single{border-radius:5px}
-  .cal-more{position:absolute;right:6px;bottom:-1px;z-index:5;max-width:calc(100% - 12px);font-size:9px;color:var(--muted);background:rgba(250,250,246,.9);border-radius:6px;padding:1px 4px;text-align:right;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cal-more{z-index:5;align-self:start;justify-self:end;margin-right:6px;max-width:calc(100% - 12px);font-size:9px;color:var(--muted);background:rgba(250,250,246,.9);border-radius:6px;padding:1px 4px;text-align:right;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   @media(max-width:768px){
+    .cal-days{grid-auto-rows:minmax(82px,auto)}
     .cal-day{min-height:72px;padding:4px}
     .cal-event{font-size:8px;padding:1px 3px}
   }
   @media(max-width:600px){
+    .cal-days{grid-auto-rows:minmax(48px,auto)}
     .cal-day{min-height:48px}
-    .cal-event,.cal-event-slot,.cal-more{display:none}
+    .cal-event,.cal-more{display:none}
     .cal-day.has-events::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:5px;height:5px;background:var(--gold);border-radius:50%}
   }
 
@@ -2359,9 +2358,6 @@ function calendarRangeClass(ev, dateKey) {
   if (ends) return 'is-range-end';
   return 'is-range-mid';
 }
-function shouldShowRangeLabel(ev, dateKey) {
-  return !!ev && !!dateKey;
-}
 function calendarMeasureText(text) {
   if (!window._calTextMeasureCtx) {
     const canvas = document.createElement('canvas');
@@ -2376,11 +2372,10 @@ function calendarDayContentWidth(container) {
   const gap = 4;
   return Math.max(42, (container.clientWidth - (gap * 6)) / 7);
 }
-function calendarLabelWidth(container, ev, dateKey) {
-  const base = calendarDayContentWidth(container) - 12;
-  const cls = calendarRangeClass(ev, dateKey);
-  const overlap = cls === 'is-range-mid' ? 16 : (cls === 'is-range-start' || cls === 'is-range-end' ? 8 : 0);
-  return Math.max(24, base + overlap);
+function calendarBarLabelWidth(container, bar) {
+  const gap = 4;
+  const dayWidth = calendarDayContentWidth(container);
+  return Math.max(24, (dayWidth * bar.span) + (gap * Math.max(0, bar.span - 1)) - 16);
 }
 function takeCalendarTextFragment(text, maxWidth, isLast) {
   let rest = String(text || '').replace(/^\s+/, '');
@@ -2408,28 +2403,21 @@ function takeCalendarTextFragment(text, maxWidth, isLast) {
   if (isLast && next) label = (label || rest.slice(0, 1)) + suffix;
   return { label, rest:next };
 }
-function buildCalendarLabelMap(days, daySlots, container) {
+function buildCalendarBarLabelMap(bars, container) {
   const grouped = {};
-  days.forEach(day => {
-    const dateKey = formatDateKey(day.y, day.m, day.d);
-    const slots = (daySlots[dateKey] && daySlots[dateKey].slots) || [];
-    slots.forEach(ev => {
-      if (!ev) return;
-      const key = eventKey(ev);
-      if (!grouped[key]) grouped[key] = { ev, dates:[] };
-      if (!grouped[key].dates.includes(dateKey)) grouped[key].dates.push(dateKey);
-    });
+  (bars || []).forEach((bar, idx) => {
+    const key = eventKey(bar.ev);
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push({ ...bar, idx });
   });
 
   const labels = {};
   Object.keys(grouped).forEach(key => {
-    const item = grouped[key];
-    const dates = item.dates.sort();
-    let rest = String(item.ev.judul || '');
-    dates.forEach((dateKey, idx) => {
-      const part = takeCalendarTextFragment(rest, calendarLabelWidth(container, item.ev, dateKey), idx === dates.length - 1);
-      if (!labels[dateKey]) labels[dateKey] = {};
-      labels[dateKey][key] = part.label;
+    const parts = grouped[key].sort((a, b) => (a.week - b.week) || (a.startCol - b.startCol));
+    let rest = String(parts[0] && parts[0].ev && parts[0].ev.judul || '');
+    parts.forEach((bar, idx) => {
+      const part = takeCalendarTextFragment(rest, calendarBarLabelWidth(container, bar), idx === parts.length - 1);
+      labels[bar.idx] = part.label;
       rest = part.rest;
     });
   });
@@ -2563,7 +2551,7 @@ function setCalendarMode(mode) {
 }
 
 function buildCalendarSlots(days) {
-  const result = {};
+  const result = { _bars: [] };
   const maxSlots = window.innerWidth <= 600 ? 1 : (window.innerWidth <= 768 ? 2 : 4);
   for (let week = 0; week < 6; week++) {
     const weekDays = days.slice(week * 7, week * 7 + 7).map(day => formatDateKey(day.y, day.m, day.d));
@@ -2604,6 +2592,17 @@ function buildCalendarSlots(days) {
         activeDays.forEach(dateKey => { result[dateKey].overflow += 1; });
         return;
       }
+      const firstIdx = weekDays.indexOf(activeDays[0]);
+      const lastIdx = weekDays.indexOf(activeDays[activeDays.length - 1]);
+      result._bars.push({
+        ev,
+        week,
+        slot: target,
+        startCol: firstIdx + 1,
+        span: Math.max(1, lastIdx - firstIdx + 1),
+        startDate: activeDays[0],
+        endDate: activeDays[activeDays.length - 1],
+      });
       activeDays.forEach(dateKey => {
         slots[target][dateKey] = true;
         result[dateKey].slots[target] = ev;
@@ -2621,36 +2620,46 @@ function renderCalendar() {
   var days = getMonthData(year, month);
   var container = document.getElementById('cal-days');
   var daySlots = buildCalendarSlots(days);
-  var labelMap = buildCalendarLabelMap(days, daySlots, container);
+  var bars = daySlots._bars || [];
+  var barLabels = buildCalendarBarLabelMap(bars, container);
   var today = new Date();
   var todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
   var html = '';
   for (var i = 0; i < days.length; i++) {
     var day = days[i];
     var dateKey = formatDateKey(day.y, day.m, day.d);
+    var col = (i % 7) + 1;
+    var row = Math.floor(i / 7) + 1;
     var isToday = dateKey === todayKey;
     var dayEvents = calCachedEvents.filter(e => eventOccursOnDate(e, dateKey)).sort(sortCalendarEvents);
     var hasEvents = dayEvents.length > 0;
     var cls = 'cal-day' + (day.other ? ' other-month':'') + (isToday ? ' today':'') + (hasEvents ? ' has-events':'');
-    html += '<div class="' + cls + '" onclick="openModalForDate(\'' + dateKey + '\')">';
+    html += '<div class="' + cls + '" style="grid-column:' + col + ';grid-row:' + row + '" onclick="openModalForDate(\'' + dateKey + '\')">';
     html += '<div class="cal-day-number">' + day.d + '</div>';
-    html += '<div class="cal-events">';
-    var slotInfo = daySlots[dateKey] || { slots:[], overflow:0 };
-    for (var k = 0; k < slotInfo.slots.length; k++) {
-      var ev = slotInfo.slots[k];
-      if (!ev) {
-        html += '<div class="cal-event-slot"></div>';
-        continue;
-      }
-      var c = EVENT_COLORS[ev.warna] || EVENT_COLORS['#c8a84b'];
-      var rangeCls = calendarRangeClass(ev, dateKey);
-      var eventCls = 'cal-event ' + rangeCls + (ev.source === 'surat' ? ' surat' : '');
-      var label = shouldShowRangeLabel(ev, dateKey) ? escapeHtml((labelMap[dateKey] && labelMap[dateKey][eventKey(ev)]) || '') : '&nbsp;';
-      html += '<div class="' + eventCls + '" style="background:' + (c.solid || ev.warna || '#c8a84b') + ';color:' + (c.fg || '#fff') + '"><span class="cal-event-label">' + label + '</span></div>';
-    }
-    if (slotInfo.overflow > 0) html += '<div class="cal-more">+' + slotInfo.overflow + ' lainnya</div>';
-    html += '</div></div>';
+    html += '<div class="cal-events"></div></div>';
   }
+
+  days.forEach((day, i) => {
+    var dateKey = formatDateKey(day.y, day.m, day.d);
+    var slotInfo = daySlots[dateKey] || { slots:[], overflow:0 };
+    if (slotInfo.overflow > 0) {
+      var col = (i % 7) + 1;
+      var row = Math.floor(i / 7) + 1;
+      var top = 31 + (slotInfo.slots.length * 21);
+      html += '<div class="cal-more" style="grid-column:' + col + ';grid-row:' + row + ';margin-top:' + top + 'px">+' + slotInfo.overflow + ' lainnya</div>';
+    }
+  });
+
+  bars.forEach((bar, idx) => {
+    var ev = bar.ev;
+    if (!ev) return;
+    var c = EVENT_COLORS[ev.warna] || EVENT_COLORS['#c8a84b'];
+    var rangeCls = calendarRangeClass(ev, bar.startDate);
+    var eventCls = 'cal-event ' + rangeCls + (ev.source === 'surat' ? ' surat' : '');
+    var top = 31 + (bar.slot * 21);
+    var label = escapeHtml(barLabels[idx] || '');
+    html += '<div class="' + eventCls + '" style="grid-column:' + bar.startCol + ' / span ' + bar.span + ';grid-row:' + (bar.week + 1) + ';margin: ' + top + 'px 6px 0 6px;background:' + (c.solid || ev.warna || '#c8a84b') + ';color:' + (c.fg || '#fff') + '"><span class="cal-event-label">' + label + '</span></div>';
+  });
   container.innerHTML = html;
 }
 
