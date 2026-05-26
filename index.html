@@ -2361,6 +2361,79 @@ function calendarRangeClass(ev, dateKey) {
 function shouldShowRangeLabel(ev, dateKey) {
   return !!ev && !!dateKey;
 }
+function calendarMeasureText(text) {
+  if (!window._calTextMeasureCtx) {
+    const canvas = document.createElement('canvas');
+    window._calTextMeasureCtx = canvas.getContext('2d');
+  }
+  const ctx = window._calTextMeasureCtx;
+  ctx.font = "800 9.5px 'Plus Jakarta Sans', Arial, sans-serif";
+  return ctx.measureText(String(text || '')).width;
+}
+function calendarDayContentWidth(container) {
+  if (!container) return 82;
+  const gap = 6;
+  return Math.max(42, (container.clientWidth - (gap * 6)) / 7);
+}
+function calendarLabelWidth(container, ev, dateKey) {
+  const base = calendarDayContentWidth(container) - 14;
+  const cls = calendarRangeClass(ev, dateKey);
+  const overlap = cls === 'is-range-mid' ? 18 : (cls === 'is-range-start' || cls === 'is-range-end' ? 9 : 0);
+  return Math.max(24, base + overlap);
+}
+function takeCalendarTextFragment(text, maxWidth, isLast) {
+  let rest = String(text || '').replace(/^\s+/, '');
+  if (!rest) return { label:'', rest:'' };
+  if (calendarMeasureText(rest) <= maxWidth) return { label:rest, rest:'' };
+
+  const suffix = isLast ? '...' : '';
+  const suffixWidth = suffix ? calendarMeasureText(suffix) : 0;
+  const targetWidth = Math.max(8, maxWidth - suffixWidth);
+  let lo = 0;
+  let hi = rest.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (calendarMeasureText(rest.slice(0, mid).trimEnd()) <= targetWidth) lo = mid;
+    else hi = mid - 1;
+  }
+  let cut = Math.max(1, lo);
+  let label = rest.slice(0, cut).trimEnd();
+  let next = rest.slice(cut).replace(/^\s+/, '');
+
+  while (label && calendarMeasureText(label + suffix) > maxWidth) {
+    next = label.slice(-1) + next;
+    label = label.slice(0, -1).trimEnd();
+  }
+  if (isLast && next) label = (label || rest.slice(0, 1)) + suffix;
+  return { label, rest:next };
+}
+function buildCalendarLabelMap(days, daySlots, container) {
+  const grouped = {};
+  days.forEach(day => {
+    const dateKey = formatDateKey(day.y, day.m, day.d);
+    const slots = (daySlots[dateKey] && daySlots[dateKey].slots) || [];
+    slots.forEach(ev => {
+      if (!ev) return;
+      const key = eventKey(ev);
+      if (!grouped[key]) grouped[key] = { ev, dates:[] };
+      if (!grouped[key].dates.includes(dateKey)) grouped[key].dates.push(dateKey);
+    });
+  });
+
+  const labels = {};
+  Object.keys(grouped).forEach(key => {
+    const item = grouped[key];
+    const dates = item.dates.sort();
+    let rest = String(item.ev.judul || '');
+    dates.forEach((dateKey, idx) => {
+      const part = takeCalendarTextFragment(rest, calendarLabelWidth(container, item.ev, dateKey), idx === dates.length - 1);
+      if (!labels[dateKey]) labels[dateKey] = {};
+      labels[dateKey][key] = part.label;
+      rest = part.rest;
+    });
+  });
+  return labels;
+}
 
 async function reloadEvents() {
   if (!calCurrentUserId) return;
@@ -2545,8 +2618,9 @@ function renderCalendar() {
   var monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   document.getElementById('cal-month-label').textContent = monthNames[month] + ' ' + year;
   var days = getMonthData(year, month);
-  var daySlots = buildCalendarSlots(days);
   var container = document.getElementById('cal-days');
+  var daySlots = buildCalendarSlots(days);
+  var labelMap = buildCalendarLabelMap(days, daySlots, container);
   var today = new Date();
   var todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
   var html = '';
@@ -2570,7 +2644,7 @@ function renderCalendar() {
       var c = EVENT_COLORS[ev.warna] || EVENT_COLORS['#c8a84b'];
       var rangeCls = calendarRangeClass(ev, dateKey);
       var eventCls = 'cal-event ' + rangeCls + (ev.source === 'surat' ? ' surat' : '');
-      var label = shouldShowRangeLabel(ev, dateKey) ? escapeHtml(ev.judul) : '&nbsp;';
+      var label = shouldShowRangeLabel(ev, dateKey) ? escapeHtml((labelMap[dateKey] && labelMap[dateKey][eventKey(ev)]) || '') : '&nbsp;';
       html += '<div class="' + eventCls + '" style="background:' + (c.solid || ev.warna || '#c8a84b') + ';color:' + (c.fg || '#fff') + '"><span class="cal-event-label">' + label + '</span></div>';
     }
     if (slotInfo.overflow > 0) html += '<div class="cal-more">+' + slotInfo.overflow + ' lainnya</div>';
