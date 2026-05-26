@@ -11,6 +11,7 @@
  *   - "surat-tugas"       → Surat Tugas user (surat-tugas.html)
  *   - "admin-surat"       → Persetujuan Surat (admin-surat-tugas.html)
  *   - "kepegawaian"       → Kepegawaian (admin-kepegawaian.html — gabungan baru)
+ *   - "predikat-kinerja"  → Predikat Kinerja (admin-predikat-kinerja.html)
  *   - "kamus-pok"         → Kamus POK (manajemen-kamus-pok.html)
  *   - "manajemen-mitra"   → Manajemen Mitra (manajemen-mitra.html)
  *   - "manajemen-pengguna"→ Manajemen Pengguna (manajemen-pengguna.html)
@@ -38,6 +39,7 @@
   var NAV_ADMIN_ITEMS = [
     { key: 'admin-surat',         href: 'admin-surat-tugas.html',    icon: '✅', label: 'Surat Tugas' },
     { key: 'kepegawaian',         href: 'admin-kepegawaian.html',    icon: '👥', label: 'Kepegawaian' },
+    { key: 'predikat-kinerja',    href: 'admin-predikat-kinerja.html', icon: 'PK', label: 'Predikat Kinerja' },
     { key: 'kamus-pok',           href: 'manajemen-kamus-pok.html',  icon: '📚', label: 'Kamus POK' },
     { key: 'manajemen-mitra',     href: 'manajemen-mitra.html',      icon: '🤝', label: 'Manajemen Mitra' },
     { key: 'manajemen-pengguna',  href: 'manajemen-pengguna.html',   icon: '👥', label: 'Manajemen Pengguna' },
