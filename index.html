@@ -242,6 +242,7 @@
   .cal-event.surat{box-shadow:0 4px 10px rgba(13,35,64,.14)}
   .cal-event.is-range-start,.cal-event.is-range-mid,.cal-event.is-range-end{border-radius:6px}
   .cal-event.is-range-single{border-radius:5px}
+  .cal-event.is-range-single .cal-event-label{text-overflow:ellipsis}
   .cal-more{z-index:5;align-self:start;justify-self:end;margin-right:6px;max-width:calc(100% - 12px);font-size:9px;color:var(--muted);background:rgba(250,250,246,.9);border-radius:6px;padding:1px 4px;text-align:right;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   @media(max-width:768px){
     .cal-days{grid-auto-rows:minmax(82px,auto)}
@@ -2375,7 +2376,7 @@ function calendarDayContentWidth(container) {
 function calendarBarLabelWidth(container, bar) {
   const gap = 4;
   const dayWidth = calendarDayContentWidth(container);
-  return Math.max(24, (dayWidth * bar.span) + (gap * Math.max(0, bar.span - 1)) - 16);
+  return Math.max(24, (dayWidth * bar.span) + (gap * Math.max(0, bar.span - 1)) - 24);
 }
 function takeCalendarTextFragment(text, maxWidth, isLast) {
   let rest = String(text || '').replace(/^\s+/, '');
