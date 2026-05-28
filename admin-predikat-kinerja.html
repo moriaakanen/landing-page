@@ -107,9 +107,17 @@
   .detail-sub{font-size:12px;color:var(--muted);margin-top:3px}
   .detail-year{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
   .detail-year-label{font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
-  .year-select{height:38px;min-width:118px;border:1.5px solid var(--border2);border-radius:9px;background:#fff;color:var(--navy);font-weight:900;padding:0 36px 0 13px;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--navy) 50%),linear-gradient(135deg,var(--navy) 50%,transparent 50%);background-position:calc(100% - 18px) 16px,calc(100% - 13px) 16px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;transition:border-color .15s,box-shadow .15s,background-color .15s}
-  .year-select:hover{border-color:var(--navy);background-color:#fffdf8}
-  .year-select:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
+  .year-picker{position:relative;min-width:118px}
+  .year-trigger{width:100%;height:40px;border:1.5px solid var(--border2);border-radius:10px;background:#fff;color:var(--navy);font-weight:900;padding:0 38px 0 14px;outline:none;cursor:pointer;text-align:left;box-shadow:0 1px 3px rgba(13,35,64,.05);transition:border-color .15s,box-shadow .15s,background-color .15s}
+  .year-trigger:hover{border-color:var(--navy);background:#fffdf8}
+  .year-trigger:focus-visible,.year-picker.open .year-trigger{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.1)}
+  .year-trigger::after{content:'';position:absolute;right:15px;top:50%;width:9px;height:9px;border-right:2px solid var(--navy);border-bottom:2px solid var(--navy);transform:translateY(-65%) rotate(45deg);transition:transform .16s ease}
+  .year-picker.open .year-trigger::after{transform:translateY(-25%) rotate(225deg)}
+  .year-menu{position:absolute;right:0;top:calc(100% + 6px);width:100%;min-width:128px;background:#fff;border:1px solid var(--border2);border-radius:10px;box-shadow:0 18px 38px rgba(13,35,64,.18);padding:5px;display:none;z-index:20;max-height:220px;overflow:auto}
+  .year-picker.open .year-menu{display:block;animation:fadeUp .14s ease both}
+  .year-option{width:100%;border:none;background:transparent;color:var(--navy);border-radius:7px;padding:9px 11px;text-align:left;font-weight:800;cursor:pointer;transition:background .14s,color .14s}
+  .year-option:hover,.year-option:focus-visible{background:var(--gold-light);outline:none}
+  .year-option.active{background:var(--navy);color:#fff}
   .detail-content{padding:16px;display:flex;flex-direction:column;gap:14px}
   .section-title{font-size:11px;font-weight:900;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:7px}
   .section-title::before{content:'';width:16px;height:2px;background:var(--gold);border-radius:2px}
@@ -125,6 +133,9 @@
   .status-ditolak,.status-batal{background:#fef2f2;color:#991b1b;border-color:#fecaca}
   .status-default{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
   .performance-table{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+  .performance-table.annual-table{overflow:hidden}
+  .performance-table.annual-table table{min-width:0;table-layout:fixed}
+  .performance-table.annual-table th,.performance-table.annual-table td{white-space:normal}
   table{width:100%;border-collapse:collapse;min-width:760px}
   th{background:#faf9f6;text-align:left;padding:10px 12px;font-size:10px;font-weight:900;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
   td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle}
@@ -436,19 +447,35 @@
     STATE.years = [...years].sort((a,b) => b-a);
   }
   function renderYearOptions(){
-    const select = byId('detail-year-select');
-    if(select){
-      select.innerHTML = yearOptionsHtml();
-      select.value = String(STATE.selectedYear);
+    const label = byId('detail-year-value');
+    const menu = byId('detail-year-menu');
+    if(label) label.textContent = String(STATE.selectedYear || '-');
+    if(menu){
+      menu.innerHTML = yearOptionsHtml();
     }
   }
   function yearOptionsHtml(){
-    return STATE.years.map(y => `<option value="${y}" ${Number(y) === Number(STATE.selectedYear) ? 'selected' : ''}>${y}</option>`).join('');
+    return STATE.years.map(y => `<button class="year-option ${Number(y) === Number(STATE.selectedYear) ? 'active' : ''}" type="button" onclick="selectYear(${Number(y)})">${y}</button>`).join('');
   }
   function onYearChange(value){
-    STATE.selectedYear = Number(value || (byId('detail-year-select') && byId('detail-year-select').value));
+    const next = Number(value);
+    if(!next || Number(next) === Number(STATE.selectedYear)) return;
+    STATE.selectedYear = next;
     buildEmployees();
     applyEmployeeFilter(true);
+  }
+  function toggleYearMenu(event){
+    if(event) event.stopPropagation();
+    const picker = byId('detail-year-picker');
+    if(picker) picker.classList.toggle('open');
+  }
+  function closeYearMenu(){
+    const picker = byId('detail-year-picker');
+    if(picker) picker.classList.remove('open');
+  }
+  function selectYear(year){
+    closeYearMenu();
+    onYearChange(year);
   }
 
   function rowsForYear(rows){ return rows.filter(r => Number(r.tahun) === Number(STATE.selectedYear)); }
@@ -562,7 +589,12 @@
         </div>
         <div class="detail-year">
           <span class="detail-year-label">Tahun</span>
-          <select class="year-select" id="detail-year-select" onchange="onYearChange(this.value)">${yearOptionsHtml()}</select>
+          <div class="year-picker" id="detail-year-picker">
+            <button class="year-trigger" type="button" onclick="toggleYearMenu(event)" aria-haspopup="listbox" aria-expanded="false">
+              <span id="detail-year-value">${escHtml(STATE.selectedYear || '-')}</span>
+            </button>
+            <div class="year-menu" id="detail-year-menu" role="listbox">${yearOptionsHtml()}</div>
+          </div>
         </div>
       </div>
       <div class="detail-content">
@@ -575,12 +607,12 @@
 
   function renderAnnual(row){
     if(!row){
-      return `<div class="performance-table"><div style="overflow:auto"><table>
+      return `<div class="performance-table annual-table"><table>
         ${renderPerformanceHeader(false, 'Periode')}
         <tbody><tr><td colspan="6" style="color:var(--muted)">Belum ada predikat tahunan untuk pegawai ini pada tahun yang dipilih.</td></tr></tbody>
-      </table></div></div>`;
+      </table></div>`;
     }
-    return `<div class="performance-table"><div style="overflow:auto"><table>
+    return `<div class="performance-table annual-table"><table>
       ${renderPerformanceHeader(false, 'Periode')}
       <tbody><tr>
         <td><div class="month-name">${escHtml(row.tahun || STATE.selectedYear)}</div></td>
@@ -590,7 +622,7 @@
         <td><span class="predikat-badge ${predicateClass(row.predikat)}">${escHtml(row.predikat || '-')}</span></td>
         <td><span class="status-badge ${statusClass(row.status)}">${escHtml(row.status || '-')}</span></td>
       </tr></tbody>
-    </table></div></div>`;
+    </table></div>`;
   }
 
   function renderPerformanceHeader(sortable, firstLabel){
@@ -959,7 +991,12 @@
     document.addEventListener('keydown', e => {
       if(e.key !== 'Escape') return;
       if(byId('import-confirm').classList.contains('show')) closeImportConfirm(false);
+      else if(byId('detail-year-picker') && byId('detail-year-picker').classList.contains('open')) closeYearMenu();
       else closeImportModal();
+    });
+    document.addEventListener('click', e => {
+      const picker = byId('detail-year-picker');
+      if(picker && !picker.contains(e.target)) closeYearMenu();
     });
     loadAll();
   }
