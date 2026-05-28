@@ -316,6 +316,7 @@
     visibleEmployees: [],
   };
   const IMPORT = { sourceRows: [], parsed: [], payload: [], mode: 'periode' };
+  let SESSION = null;
 
   function byId(id){ return document.getElementById(id); }
   function clean(v){ return String(v == null ? '' : v).trim(); }
@@ -791,7 +792,6 @@
     if(!IMPORT.payload.length) return showAlert('Tidak ada baris valid untuk disimpan.', 'error', 'import');
     const bad = IMPORT.parsed.filter(r => r.errors.length || !r.pegawai.row).length;
     const nips = [...new Set(IMPORT.payload.map(r => r.pegawai_nip).filter(Boolean))];
-    const nipFilter = nips.map(n => encodeURIComponent(n)).join(',');
     const replaceText = IMPORT.mode === 'tahunan'
       ? `data tahunan ${year} untuk ${nips.length} pegawai di file ini`
       : `data bulanan ${year} untuk ${nips.length} pegawai dan bulan ${[...new Set(IMPORT.payload.map(r => r.bulan))].sort((a,b)=>a-b).map(monthName).join(', ')}`;
@@ -801,48 +801,26 @@
     btn.disabled = true;
     btn.textContent = 'Menyimpan...';
     try{
-      if(IMPORT.mode === 'tahunan'){
-        await deleteRows(`predikat_kinerja_tahunan?tahun=eq.${year}&pegawai_nip=in.(${nipFilter})`);
-        await postRows('predikat_kinerja_tahunan', IMPORT.payload);
-      }else{
-        const months = [...new Set(IMPORT.payload.map(r => r.bulan))].sort((a,b)=>a-b);
-        await deleteRows(`predikat_kinerja_bulanan?tahun=eq.${year}&pegawai_nip=in.(${nipFilter})&bulan=in.(${months.join(',')})`);
-        await postRows('predikat_kinerja_bulanan', IMPORT.payload);
-      }
+      const result = await novaRpc('predikat_kinerja_import', {
+        p_caller_id: SESSION && SESSION.id,
+        p_mode: IMPORT.mode === 'tahunan' ? 'tahunan' : 'bulanan',
+        p_year: year,
+        p_payload: IMPORT.payload,
+      });
       STATE.selectedYear = year;
       closeImportModal();
-      showAlert(`Import berhasil: ${IMPORT.payload.length} record disimpan.`, 'success');
+      const savedCount = result && typeof result.inserted === 'number' ? result.inserted : IMPORT.payload.length;
+      showAlert(`Import berhasil: ${savedCount} record disimpan.`, 'success');
       await loadAll();
     }catch(e){
       console.error('[predikat] submitImport:', e);
-      showAlert(`Gagal menyimpan import: ${e.message}`, 'error', 'import');
+      const hint = String(e.message || '').toLowerCase().includes('function')
+        ? ' Jalankan dulu file supabase-predikat-kinerja-import-rpc.sql di Supabase SQL Editor.'
+        : '';
+      showAlert(`Gagal menyimpan import: ${e.message}${hint}`, 'error', 'import');
     }finally{
       btn.disabled = false;
       btn.textContent = 'Simpan Import';
-    }
-  }
-
-  async function deleteRows(path){
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method:'DELETE', headers:{ ...H, Prefer:'return=minimal' } });
-    if(!res.ok){
-      let msg = `HTTP ${res.status}`;
-      try{ const err = await res.json(); msg = err.message || err.hint || msg; }catch(_){}
-      throw new Error(msg);
-    }
-  }
-  async function postRows(table, payload){
-    for(let i=0; i<payload.length; i+=500){
-      const chunk = payload.slice(i, i+500);
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-        method:'POST',
-        headers:{ ...H, Prefer:'return=minimal' },
-        body: JSON.stringify(chunk),
-      });
-      if(!res.ok){
-        let msg = `HTTP ${res.status}`;
-        try{ const err = await res.json(); msg = err.message || err.hint || msg; }catch(_){}
-        throw new Error(msg);
-      }
     }
   }
 
@@ -875,6 +853,7 @@
     if(!session) return;
     session = await novaVerifyAdminSession(session);
     if(!session) return;
+    SESSION = session;
     if(window.Topbar9201 && typeof window.Topbar9201.setUser === 'function') window.Topbar9201.setUser(session);
     initRoleSwitcher(session, true);
     document.addEventListener('keydown', e => { if(e.key === 'Escape') closeImportModal(); });
