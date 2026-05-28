@@ -45,7 +45,8 @@
   .page-title{font-family:'Fraunces',serif;font-size:clamp(24px,2.6vw,32px);font-weight:300;color:var(--navy);line-height:1.2}
   .page-title em{font-style:italic;color:var(--gold);font-weight:400}
   .page-desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.65;max-width:760px}
-  .page-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .page-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end;min-width:min(720px,100%)}
+  .page-actions .header-search{flex:1 1 320px;min-width:260px;max-width:420px}
   .btn-primary,.btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:8px;font-weight:800;cursor:pointer;white-space:nowrap;transition:background .18s,border-color .18s,box-shadow .18s,transform .14s;color:var(--navy)}
   .btn-primary{padding:9px 16px;background:var(--navy);border:1px solid var(--navy);color:#fff;box-shadow:0 2px 9px rgba(13,35,64,.2)}
   .btn-primary:hover:not(:disabled){background:var(--navy2);transform:translateY(-1px);box-shadow:0 6px 16px rgba(13,35,64,.22)}
@@ -61,7 +62,6 @@
   .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
   .alert.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
 
-  .control-row{display:grid;grid-template-columns:minmax(220px,1fr) 180px auto;gap:10px;align-items:center;margin-bottom:14px}
   .search-wrap{position:relative;min-width:0}
   .search-mark{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:900;font-size:11px;color:var(--muted)}
   .search-input,.select-input,.file-input{width:100%;height:40px;background:var(--white);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
@@ -102,18 +102,17 @@
   .detail-scroll{max-height:calc(100vh - 330px);overflow:auto}
   .detail-hero{padding:18px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fff 0%,#fffdf8 100%)}
   .detail-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);font-family:'Fraunces',serif;font-size:18px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+  .detail-identity{min-width:0}
   .detail-name{font-size:18px;font-weight:900;color:var(--navy);line-height:1.25}
   .detail-sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .detail-year{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .detail-year-label{font-size:10px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+  .year-select{height:38px;min-width:118px;border:1.5px solid var(--border2);border-radius:9px;background:#fff;color:var(--navy);font-weight:900;padding:0 36px 0 13px;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--navy) 50%),linear-gradient(135deg,var(--navy) 50%,transparent 50%);background-position:calc(100% - 18px) 16px,calc(100% - 13px) 16px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;transition:border-color .15s,box-shadow .15s,background-color .15s}
+  .year-select:hover{border-color:var(--navy);background-color:#fffdf8}
+  .year-select:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
   .detail-content{padding:16px;display:flex;flex-direction:column;gap:14px}
   .section-title{font-size:11px;font-weight:900;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:7px}
   .section-title::before{content:'';width:16px;height:2px;background:var(--gold);border-radius:2px}
-  .annual-card{border:1px solid var(--border);border-radius:10px;padding:14px;background:#faf9f6;display:grid;grid-template-columns:minmax(170px,1fr) repeat(3,minmax(90px,120px)) auto;gap:12px;align-items:center}
-  .annual-card.empty{display:block;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
-  .annual-title{font-weight:900;color:var(--navy);font-size:14px}
-  .annual-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
-  .score-block{min-width:0}
-  .score-label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:900;margin-bottom:3px}
-  .score-value{font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums}
   .predikat-badge,.status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:100px;font-size:11px;font-weight:900;border:1px solid transparent;white-space:nowrap}
   .predikat-badge::before,.status-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
   .pred-sangat-baik{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
@@ -125,15 +124,17 @@
   .status-draft,.status-proses,.status-menunggu{background:#fffbeb;color:#92400e;border-color:#fde68a}
   .status-ditolak,.status-batal{background:#fef2f2;color:#991b1b;border-color:#fecaca}
   .status-default{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
-  .month-table{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .performance-table{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
   table{width:100%;border-collapse:collapse;min-width:760px}
   th{background:#faf9f6;text-align:left;padding:10px 12px;font-size:10px;font-weight:900;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
   td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle}
   tbody tr:last-child td{border-bottom:none}
   tbody tr:hover{background:#fafaf8}
   .month-name{font-weight:900;color:var(--navy)}
-  .month-quarter{font-size:10.5px;color:var(--muted);font-weight:700;margin-top:2px}
   .num{font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums}
+  .sort-head{border:none;background:transparent;color:inherit;text-transform:inherit;letter-spacing:inherit;font-size:inherit;font-weight:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0}
+  .sort-head:hover{color:var(--navy)}
+  .sort-mark{font-size:9px;color:var(--gold-dark);min-width:10px}
   .empty-state{padding:42px 22px;text-align:center;color:var(--muted)}
   .empty-mark{width:42px;height:42px;border-radius:12px;background:var(--gold-light);color:var(--gold-dark);font-weight:900;display:grid;place-items:center;margin:0 auto 10px}
   .empty-title{font-family:'Fraunces',serif;font-size:18px;color:var(--navy);font-weight:500;margin-bottom:4px}
@@ -164,6 +165,16 @@
   .preview-table{min-width:780px}
   .preview-table td,.preview-table th{font-size:11.5px;padding:8px 10px}
   .row-ok{color:#047857;font-weight:900}.row-bad{color:#991b1b;font-weight:900}
+  .confirm-overlay{position:fixed;inset:0;background:rgba(13,35,64,.62);z-index:1200;display:none;align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(4px)}
+  .confirm-overlay.show{display:flex}
+  .confirm-card{width:min(460px,100%);background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 24px 72px rgba(13,35,64,.34);overflow:hidden}
+  .confirm-top{padding:20px 22px 14px;display:flex;gap:14px;align-items:flex-start}
+  .confirm-icon{width:42px;height:42px;border-radius:12px;background:var(--gold-light);color:var(--gold-dark);display:grid;place-items:center;font-weight:900;flex-shrink:0;border:1px solid rgba(200,168,75,.35)}
+  .confirm-title{font-family:'Fraunces',serif;font-size:21px;font-weight:500;color:var(--navy);line-height:1.25;margin-bottom:6px}
+  .confirm-message{font-size:13.5px;line-height:1.65;color:#334155}
+  .confirm-note{margin-top:10px;border:1px solid #fde68a;background:#fffbeb;color:#92400e;border-radius:9px;padding:9px 10px;font-size:12px;line-height:1.5}
+  .confirm-note:empty{display:none}
+  .confirm-actions{padding:14px 22px;background:#faf9f6;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
 
   @media(max-width:1120px){
     .workspace{grid-template-columns:1fr}
@@ -171,17 +182,17 @@
   }
   @media(max-width:940px){
     .stats-row{grid-template-columns:repeat(2,minmax(150px,1fr))}
-    .control-row{grid-template-columns:1fr 160px}
-    .control-row .btn-outline{grid-column:1/-1}
+    .page-actions{width:100%;justify-content:flex-start}
+    .page-actions .header-search{max-width:none}
     .form-grid{grid-template-columns:1fr}
-    .annual-card{grid-template-columns:1fr 1fr}
   }
   @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px 44px}}
   @media(max-width:600px){
     .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
     .sidebar.open{left:0}.layout{display:block}
-    .stats-row,.control-row,.preview-summary{grid-template-columns:1fr}
-    .annual-card{grid-template-columns:1fr}
+    .stats-row,.preview-summary{grid-template-columns:1fr}
+    .detail-hero{align-items:flex-start;flex-wrap:wrap}
+    .detail-year{margin-left:66px;width:calc(100% - 66px);justify-content:flex-start}
   }
 </style>
 </head>
@@ -200,22 +211,17 @@
         <p class="page-desc">Pilih tahun, lalu klik nama pegawai untuk melihat predikat tahunan di baris atas dan predikat bulanan di bawahnya. Data bulanan 2026 dapat diisi dari export triwulanan.</p>
       </div>
       <div class="page-actions">
+        <div class="search-wrap header-search">
+          <span class="search-mark">Q</span>
+          <input class="search-input" id="search-input" type="search" placeholder="Cari nama, NIP, atau NIP lama..." oninput="applyEmployeeFilter()">
+        </div>
         <button class="btn-outline" type="button" onclick="exportCSV()"><span class="btn-symbol">CSV</span> Export</button>
-        <button class="btn-outline" type="button" onclick="openImportModal()"><span class="btn-symbol">IMP</span> Import Predikat</button>
+        <button class="btn-outline" type="button" onclick="openImportModal()"><span class="btn-symbol">IMP</span> Import</button>
         <button class="btn-primary" type="button" onclick="loadAll()"><span class="btn-symbol">R</span> Muat Ulang</button>
       </div>
     </div>
 
     <div id="page-alert" class="alert"><span id="page-alert-icon"></span><span id="page-alert-text"></span></div>
-
-    <div class="control-row fade-in" style="animation-delay:.05s">
-      <div class="search-wrap">
-        <span class="search-mark">Q</span>
-        <input class="search-input" id="search-input" type="search" placeholder="Cari nama, NIP, atau NIP lama..." oninput="applyEmployeeFilter()">
-      </div>
-      <select class="select-input" id="year-select" onchange="onYearChange()"></select>
-      <button class="btn-outline" type="button" onclick="selectFirstVisible()">Pilih Pegawai Teratas</button>
-    </div>
 
     <div class="stats-row fade-in" style="animation-delay:.08s">
       <div class="stat-pill"><div class="stat-icon people">PG</div><div><div class="stat-num" id="st-pegawai">-</div><div class="stat-label">Total Pegawai</div></div></div>
@@ -233,7 +239,7 @@
       </section>
 
       <section class="detail-panel">
-        <div class="panel-head"><div class="panel-title">Detail Predikat</div><div class="panel-count" id="detail-count">-</div></div>
+        <div class="panel-head"><div class="panel-title">Detail Predikat</div><div class="panel-count" id="detail-count"></div></div>
         <div class="detail-scroll" id="detail-area">
           <div class="empty-state"><div class="empty-mark">PK</div><div class="empty-title">Pilih pegawai</div><div class="empty-desc">Klik nama pegawai untuk melihat predikat kinerja tahunan dan bulanan pada tahun yang dipilih.</div></div>
         </div>
@@ -292,6 +298,23 @@
   </div>
 </div>
 
+<div class="confirm-overlay" id="import-confirm" onclick="if(event.target===this)closeImportConfirm(false)">
+  <div class="confirm-card">
+    <div class="confirm-top">
+      <div class="confirm-icon">!</div>
+      <div>
+        <div class="confirm-title">Konfirmasi Import</div>
+        <div class="confirm-message" id="confirm-message"></div>
+        <div class="confirm-note" id="confirm-note"></div>
+      </div>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn-outline" type="button" onclick="closeImportConfirm(false)">Batal</button>
+      <button class="btn-primary" type="button" onclick="closeImportConfirm(true)">Import</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="config.js"></script>
 <script src="9201-shared.js"></script>
@@ -311,12 +334,14 @@
     tahunan: [],
     years: [],
     selectedYear: null,
-    selectedNip: null,
+    selectedKey: null,
+    monthlySort: { key: 'bulan', dir: 'asc' },
     employees: [],
     visibleEmployees: [],
   };
   const IMPORT = { sourceRows: [], parsed: [], payload: [], mode: 'periode' };
   let SESSION = null;
+  let confirmResolve = null;
 
   function byId(id){ return document.getElementById(id); }
   function clean(v){ return String(v == null ? '' : v).trim(); }
@@ -333,7 +358,9 @@
   function jabatanPriority(emp){ if(emp.isRetired) return 99; const j=lower(emp.latestJabatan && emp.latestJabatan.jabatan); if(j.startsWith('kepala bps')) return 1; if(j==='kepala subbagian umum') return 2; return 3; }
   function quarterLabel(month){ return month<=3?'I':month<=6?'II':month<=9?'III':'IV'; }
   function monthName(month){ return MONTHS[month-1] || `Bulan ${month}`; }
+  function employeeKey(p, nip, index){ return `${clean(nip) || `tanpa-nip-${p && p.id != null ? p.id : index}`}::${p && p.id != null ? p.id : index}`; }
   function predicateClass(v){ const s=lower(v); if(s.includes('sangat')&&s.includes('baik')) return 'pred-sangat-baik'; if(s.includes('baik')) return 'pred-baik'; if(s.includes('cukup')) return 'pred-cukup'; if(s.includes('kurang')||s.includes('buruk')) return 'pred-kurang'; return 'pred-default'; }
+  function predicateRank(v){ const s=lower(v); if(s.includes('sangat')&&s.includes('baik')) return 1; if(s.includes('baik')) return 2; if(s.includes('cukup')) return 3; if(s.includes('kurang')) return 4; if(s) return 50; return 99; }
   function statusClass(v){ const s=normKey(v).replace(/\s+/g,'-'); if(['final','dinilai','selesai','disetujui','approved'].includes(s)) return 'status-dinilai'; if(['draft','proses','menunggu','pending'].includes(s)) return 'status-draft'; if(['ditolak','batal','rejected'].includes(s)) return 'status-ditolak'; return 'status-default'; }
   function canonicalPredikat(v){ const s=lower(v); if(s.includes('sangat')&&s.includes('baik')) return 'Sangat Baik'; if(s.includes('baik')) return 'Baik'; if(s.includes('cukup')) return 'Cukup'; if(s.includes('kurang')) return 'Kurang'; return clean(v); }
 
@@ -409,11 +436,17 @@
     STATE.years = [...years].sort((a,b) => b-a);
   }
   function renderYearOptions(){
-    byId('year-select').innerHTML = STATE.years.map(y => `<option value="${y}">${y}</option>`).join('');
-    byId('year-select').value = String(STATE.selectedYear);
+    const select = byId('detail-year-select');
+    if(select){
+      select.innerHTML = yearOptionsHtml();
+      select.value = String(STATE.selectedYear);
+    }
   }
-  function onYearChange(){
-    STATE.selectedYear = Number(byId('year-select').value);
+  function yearOptionsHtml(){
+    return STATE.years.map(y => `<option value="${y}" ${Number(y) === Number(STATE.selectedYear) ? 'selected' : ''}>${y}</option>`).join('');
+  }
+  function onYearChange(value){
+    STATE.selectedYear = Number(value || (byId('detail-year-select') && byId('detail-year-select').value));
     buildEmployees();
     applyEmployeeFilter(true);
   }
@@ -423,11 +456,12 @@
   function monthlyFor(nip){ return rowsForYear(STATE.bulanan).filter(r => String(r.pegawai_nip) === String(nip)).sort((a,b) => Number(a.bulan)-Number(b.bulan)); }
 
   function buildEmployees(){
-    STATE.employees = STATE.pegawai.map(p => {
+    STATE.employees = STATE.pegawai.map((p, index) => {
       const nip = pegawaiNip(p);
       const annual = annualFor(nip);
       const monthly = monthlyFor(nip);
       return {
+        key: employeeKey(p, nip, index),
         nip,
         oldNip: typeof pegawaiNipLama === 'function' ? pegawaiNipLama(p) : (p.nip_lama || ''),
         nama: pegawaiNama(p) || '(Tanpa Nama)',
@@ -453,8 +487,8 @@
       if(!q) return true;
       return `${e.nama} ${e.nip} ${e.oldNip} ${e.latestJabatan && e.latestJabatan.jabatan || ''}`.toLowerCase().includes(q);
     });
-    if(!keepSelection || !STATE.visibleEmployees.some(e => String(e.nip) === String(STATE.selectedNip))){
-      STATE.selectedNip = STATE.visibleEmployees[0] ? STATE.visibleEmployees[0].nip : null;
+    if(!keepSelection || !STATE.visibleEmployees.some(e => String(e.key) === String(STATE.selectedKey))){
+      STATE.selectedKey = STATE.visibleEmployees[0] ? STATE.visibleEmployees[0].key : null;
     }
     renderStats();
     renderEmployeeList();
@@ -463,14 +497,14 @@
 
   function selectFirstVisible(){
     if(STATE.visibleEmployees[0]){
-      STATE.selectedNip = STATE.visibleEmployees[0].nip;
+      STATE.selectedKey = STATE.visibleEmployees[0].key;
       renderEmployeeList();
       renderDetail();
     }
   }
 
-  function selectEmployee(nip){
-    STATE.selectedNip = nip;
+  function selectEmployee(key){
+    STATE.selectedKey = key;
     renderEmployeeList();
     renderDetail();
   }
@@ -493,10 +527,10 @@
       return;
     }
     list.innerHTML = STATE.visibleEmployees.map(e => {
-      const active = String(e.nip) === String(STATE.selectedNip);
+      const active = String(e.key) === String(STATE.selectedKey);
       const annualChip = e.annual ? `<span class="mini-chip ok">Tahunan: ${escHtml(e.annual.predikat || '-')}</span>` : '<span class="mini-chip empty">Tahunan: -</span>';
       const monthChip = e.monthly.length ? `<span class="mini-chip ok">${e.monthly.length}/12 bulan</span>` : '<span class="mini-chip empty">0/12 bulan</span>';
-      return `<button class="emp-card ${active ? 'active' : ''}" type="button" onclick="selectEmployee(${jsArg(e.nip)})">
+      return `<button class="emp-card ${active ? 'active' : ''}" type="button" data-emp-key="${escHtml(e.key)}">
         <div class="emp-avatar">${escHtml(initials(e.nama))}</div>
         <div class="emp-main">
           <div style="display:flex;align-items:center;gap:6px">
@@ -512,19 +546,23 @@
 
   function renderDetail(){
     const area = byId('detail-area');
-    const emp = STATE.employees.find(e => String(e.nip) === String(STATE.selectedNip));
+    const emp = STATE.employees.find(e => String(e.key) === String(STATE.selectedKey));
     if(!emp){
-      byId('detail-count').textContent = '-';
+      byId('detail-count').textContent = '';
       area.innerHTML = '<div class="empty-state"><div class="empty-mark">PK</div><div class="empty-title">Pilih pegawai</div><div class="empty-desc">Klik nama pegawai untuk melihat predikat tahun yang dipilih.</div></div>';
       return;
     }
-    byId('detail-count').textContent = `${STATE.selectedYear}`;
+    byId('detail-count').textContent = '';
     area.innerHTML = `
       <div class="detail-hero">
         <div class="detail-avatar">${escHtml(initials(emp.nama))}</div>
-        <div>
+        <div class="detail-identity">
           <div class="detail-name">${escHtml(emp.nama)}</div>
           <div class="detail-sub">${escHtml(emp.nip || '-')} ${emp.oldNip ? `&middot; NIP lama ${escHtml(emp.oldNip)}` : ''}</div>
+        </div>
+        <div class="detail-year">
+          <span class="detail-year-label">Tahun</span>
+          <select class="year-select" id="detail-year-select" onchange="onYearChange(this.value)">${yearOptionsHtml()}</select>
         </div>
       </div>
       <div class="detail-content">
@@ -537,48 +575,92 @@
 
   function renderAnnual(row){
     if(!row){
-      return '<div class="annual-card empty">Belum ada predikat tahunan untuk pegawai ini pada tahun yang dipilih.</div>';
+      return `<div class="performance-table"><div style="overflow:auto"><table>
+        ${renderPerformanceHeader(false, 'Periode')}
+        <tbody><tr><td colspan="6" style="color:var(--muted)">Belum ada predikat tahunan untuk pegawai ini pada tahun yang dipilih.</td></tr></tbody>
+      </table></div></div>`;
     }
-    return `<div class="annual-card">
-      <div><div class="annual-title">${escHtml(row.tahun || STATE.selectedYear)}</div><div class="annual-sub">Record tahunan</div></div>
-      ${scoreBlock('Hasil Kerja', row.hasil_kerja)}
-      ${scoreBlock('Perilaku', row.perilaku)}
-      ${scoreBlock('Nilai', row.nilai)}
-      <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end">
-        <span class="predikat-badge ${predicateClass(row.predikat)}">${escHtml(row.predikat || '-')}</span>
-        <span class="status-badge ${statusClass(row.status)}">${escHtml(row.status || '-')}</span>
-      </div>
-    </div>`;
+    return `<div class="performance-table"><div style="overflow:auto"><table>
+      ${renderPerformanceHeader(false, 'Periode')}
+      <tbody><tr>
+        <td><div class="month-name">${escHtml(row.tahun || STATE.selectedYear)}</div></td>
+        <td class="num">${fmtNum(row.hasil_kerja)}</td>
+        <td class="num">${fmtNum(row.perilaku)}</td>
+        <td class="num">${fmtNum(row.nilai)}</td>
+        <td><span class="predikat-badge ${predicateClass(row.predikat)}">${escHtml(row.predikat || '-')}</span></td>
+        <td><span class="status-badge ${statusClass(row.status)}">${escHtml(row.status || '-')}</span></td>
+      </tr></tbody>
+    </table></div></div>`;
   }
 
-  function scoreBlock(label, value){
-    return `<div class="score-block"><div class="score-label">${escHtml(label)}</div><div class="score-value">${escHtml(fmtNum(value))}</div></div>`;
+  function renderPerformanceHeader(sortable, firstLabel){
+    const sortButton = (key, label) => {
+      if(!sortable) return escHtml(label);
+      const active = STATE.monthlySort.key === key;
+      const mark = active
+        ? (key === 'bulan'
+          ? (STATE.monthlySort.dir === 'asc' ? '1-12' : '12-1')
+          : (STATE.monthlySort.dir === 'asc' ? 'A-Z' : 'Z-A'))
+        : '';
+      return `<button class="sort-head" type="button" onclick="setMonthlySort('${key}')">${escHtml(label)}<span class="sort-mark">${mark}</span></button>`;
+    };
+    return `<thead><tr>
+      <th>${sortable ? sortButton('bulan', firstLabel) : escHtml(firstLabel)}</th>
+      <th>Hasil Kerja</th>
+      <th>Perilaku</th>
+      <th>Nilai</th>
+      <th>${sortButton('predikat', 'Predikat')}</th>
+      <th>Status</th>
+    </tr></thead>`;
+  }
+
+  function setMonthlySort(key){
+    if(STATE.monthlySort.key === key){
+      STATE.monthlySort.dir = STATE.monthlySort.dir === 'asc' ? 'desc' : 'asc';
+    }else{
+      STATE.monthlySort = { key, dir:'asc' };
+    }
+    renderDetail();
   }
 
   function renderMonthly(rows){
     const map = {};
     rows.forEach(r => { map[Number(r.bulan)] = r; });
-    const body = [];
-    for(let m=1; m<=12; m++){
-      const r = map[m];
+    let items = Array.from({ length:12 }, (_, i) => ({ month:i+1, row:map[i+1] || null }));
+    if(STATE.monthlySort.key === 'predikat'){
+      const dir = STATE.monthlySort.dir === 'desc' ? -1 : 1;
+      items = items.slice().sort((a,b) => {
+        if(!a.row && !b.row) return a.month - b.month;
+        if(!a.row) return 1;
+        if(!b.row) return -1;
+        const ar = a.row ? predicateRank(a.row.predikat) : 999;
+        const br = b.row ? predicateRank(b.row.predikat) : 999;
+        if(ar !== br) return (ar - br) * dir;
+        return a.month - b.month;
+      });
+    }else if(STATE.monthlySort.dir === 'desc'){
+      items = items.slice().sort((a,b) => b.month - a.month);
+    }
+    const body = items.map(item => {
+      const m = item.month;
+      const r = item.row;
       if(r){
-        body.push(`<tr>
-          <td><div class="month-name">${monthName(m)}</div><div class="month-quarter">Triwulan ${quarterLabel(m)}</div></td>
+        return `<tr>
+          <td><div class="month-name">${monthName(m)}</div></td>
           <td class="num">${fmtNum(r.hasil_kerja)}</td>
           <td class="num">${fmtNum(r.perilaku)}</td>
           <td class="num">${fmtNum(r.nilai)}</td>
           <td><span class="predikat-badge ${predicateClass(r.predikat)}">${escHtml(r.predikat || '-')}</span></td>
           <td><span class="status-badge ${statusClass(r.status)}">${escHtml(r.status || '-')}</span></td>
-        </tr>`);
-      } else {
-        body.push(`<tr>
-          <td><div class="month-name">${monthName(m)}</div><div class="month-quarter">Triwulan ${quarterLabel(m)}</div></td>
-          <td colspan="5" style="color:var(--muted)">Belum ada data</td>
-        </tr>`);
+        </tr>`;
       }
-    }
-    return `<div class="month-table"><div style="overflow:auto"><table>
-      <thead><tr><th>Bulan</th><th>Hasil Kerja</th><th>Perilaku</th><th>Nilai</th><th>Predikat</th><th>Status</th></tr></thead>
+      return `<tr>
+          <td><div class="month-name">${monthName(m)}</div></td>
+          <td colspan="5" style="color:var(--muted)">Belum ada data</td>
+        </tr>`;
+    });
+    return `<div class="performance-table"><div style="overflow:auto"><table>
+      ${renderPerformanceHeader(true, 'Bulan')}
       <tbody>${body.join('')}</tbody>
     </table></div></div>`;
   }
@@ -786,6 +868,20 @@
     }).join('') + (IMPORT.parsed.length > 120 ? `<tr><td colspan="7" style="text-align:center;color:var(--muted)">... dan ${IMPORT.parsed.length - 120} baris lainnya</td></tr>` : '');
   }
 
+  function openImportConfirm(replaceText, badCount){
+    byId('confirm-message').textContent = `Import akan mengganti ${replaceText}. Lanjutkan?`;
+    byId('confirm-note').textContent = badCount ? `${badCount} baris bermasalah akan dilewati.` : '';
+    byId('import-confirm').classList.add('show');
+    return new Promise(resolve => { confirmResolve = resolve; });
+  }
+  function closeImportConfirm(approved){
+    byId('import-confirm').classList.remove('show');
+    if(confirmResolve){
+      confirmResolve(!!approved);
+      confirmResolve = null;
+    }
+  }
+
   async function submitImport(){
     const year = Number(byId('import-year').value);
     if(!year || year < 2020 || year > 2100) return showAlert('Tahun import tidak valid.', 'error', 'import');
@@ -795,7 +891,7 @@
     const replaceText = IMPORT.mode === 'tahunan'
       ? `data tahunan ${year} untuk ${nips.length} pegawai di file ini`
       : `data bulanan ${year} untuk ${nips.length} pegawai dan bulan ${[...new Set(IMPORT.payload.map(r => r.bulan))].sort((a,b)=>a-b).map(monthName).join(', ')}`;
-    if(!confirm(`Import akan mengganti ${replaceText}. Lanjutkan?${bad ? `\n\n${bad} baris bermasalah akan dilewati.` : ''}`)) return;
+    if(!await openImportConfirm(replaceText, bad)) return;
 
     const btn = byId('btn-import-save');
     btn.disabled = true;
@@ -856,7 +952,15 @@
     SESSION = session;
     if(window.Topbar9201 && typeof window.Topbar9201.setUser === 'function') window.Topbar9201.setUser(session);
     initRoleSwitcher(session, true);
-    document.addEventListener('keydown', e => { if(e.key === 'Escape') closeImportModal(); });
+    byId('employee-list').addEventListener('click', e => {
+      const card = e.target.closest('.emp-card');
+      if(card && card.dataset.empKey) selectEmployee(card.dataset.empKey);
+    });
+    document.addEventListener('keydown', e => {
+      if(e.key !== 'Escape') return;
+      if(byId('import-confirm').classList.contains('show')) closeImportConfirm(false);
+      else closeImportModal();
+    });
     loadAll();
   }
 
