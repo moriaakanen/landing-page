@@ -13,8 +13,7 @@
     --gold:#c8a84b;--gold-light:#f5edda;--gold-dark:#a78a3a;
     --text:#1a1a2e;--muted:#6b7280;--muted2:#9ca3af;
     --border:#e2ddd6;--border2:#d1ccc3;
-    --red:#c0392b;--success:#1a7a4a;--warn:#92400e;
-    --blue:#1d4ed8;--violet:#6d28d9;--teal:#0f766e;
+    --red:#c0392b;--success:#1a7a4a;--warn:#92400e;--blue:#1d4ed8;
     --sidebar-w:260px;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -45,16 +44,15 @@
   .page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
   .page-title{font-family:'Fraunces',serif;font-size:clamp(24px,2.6vw,32px);font-weight:300;color:var(--navy);line-height:1.2}
   .page-title em{font-style:italic;color:var(--gold);font-weight:400}
-  .page-desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.65;max-width:720px}
+  .page-desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.65;max-width:760px}
   .page-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-
-  .btn-primary,.btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:8px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .18s,border-color .18s,box-shadow .18s,transform .14s;color:var(--navy)}
+  .btn-primary,.btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:8px;font-weight:800;cursor:pointer;white-space:nowrap;transition:background .18s,border-color .18s,box-shadow .18s,transform .14s;color:var(--navy)}
   .btn-primary{padding:9px 16px;background:var(--navy);border:1px solid var(--navy);color:#fff;box-shadow:0 2px 9px rgba(13,35,64,.2)}
   .btn-primary:hover:not(:disabled){background:var(--navy2);transform:translateY(-1px);box-shadow:0 6px 16px rgba(13,35,64,.22)}
   .btn-outline{padding:8px 14px;background:var(--white);border:1.5px solid var(--border2);font-size:12.5px}
   .btn-outline:hover:not(:disabled){background:#faf9f6;border-color:var(--navy)}
   .btn-primary:disabled,.btn-outline:disabled{opacity:.55;cursor:not-allowed;transform:none}
-  .btn-symbol{width:18px;height:18px;border-radius:5px;display:grid;place-items:center;background:rgba(255,255,255,.12);font-size:12px;line-height:1}
+  .btn-symbol{min-width:20px;height:20px;border-radius:5px;display:grid;place-items:center;background:rgba(255,255,255,.13);font-size:10.5px;line-height:1;padding:0 4px}
   .btn-outline .btn-symbol{background:var(--gold-light);color:var(--gold-dark)}
 
   .alert{display:none;align-items:flex-start;gap:9px;padding:11px 14px;border-radius:9px;margin-bottom:14px;font-size:13px;line-height:1.5}
@@ -63,77 +61,80 @@
   .alert.success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
   .alert.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
 
-  .mode-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
-  .segmented{display:inline-grid;grid-template-columns:1fr 1fr;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:4px;box-shadow:0 1px 4px rgba(13,35,64,.05)}
-  .seg-btn{border:0;background:transparent;color:var(--muted);padding:9px 16px;border-radius:7px;font-weight:800;font-size:13px;cursor:pointer;min-width:112px}
-  .seg-btn.active{background:var(--navy);color:#fff;box-shadow:0 5px 14px rgba(13,35,64,.18)}
-  .mode-note{font-size:12px;color:var(--muted);line-height:1.55}
-  .mode-note strong{color:var(--navy)}
+  .control-row{display:grid;grid-template-columns:minmax(220px,1fr) 180px auto;gap:10px;align-items:center;margin-bottom:14px}
+  .search-wrap{position:relative;min-width:0}
+  .search-mark{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:900;font-size:11px;color:var(--muted)}
+  .search-input,.select-input,.file-input{width:100%;height:40px;background:var(--white);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+  .search-input{padding:9px 12px 9px 38px;font-size:13px}
+  .select-input{padding:8px 12px;font-size:13px;cursor:pointer}
+  .search-input:focus,.select-input:focus,.file-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
 
   .stats-row{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px;margin-bottom:16px}
   .stat-pill{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 15px;display:flex;align-items:center;gap:12px;min-width:0;box-shadow:0 1px 4px rgba(13,35,64,.045)}
-  .stat-icon{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;font-weight:900;font-size:12px;color:var(--navy);border:1px solid rgba(13,35,64,.08);flex-shrink:0}
-  .stat-icon.total{background:#eef2ff}
-  .stat-icon.avg{background:#ecfdf5}
-  .stat-icon.top{background:var(--gold-light)}
-  .stat-icon.people{background:#e0f2fe}
+  .stat-icon{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;font-weight:900;font-size:11px;color:var(--navy);border:1px solid rgba(13,35,64,.08);flex-shrink:0}
+  .stat-icon.people{background:#eef2ff}.stat-icon.year{background:var(--gold-light)}.stat-icon.annual{background:#ecfdf5}.stat-icon.month{background:#e0f2fe}
   .stat-num{font-family:'Fraunces',serif;font-size:22px;font-weight:500;color:var(--navy);line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .stat-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-top:4px}
 
-  .toolbar{display:grid;grid-template-columns:minmax(260px,1fr) repeat(4,auto);gap:10px;margin-bottom:12px;align-items:center}
-  .search-wrap{position:relative;min-width:0}
-  .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:11px;font-weight:900;pointer-events:none}
-  .search-input,.filter-select{width:100%;height:40px;background:var(--white);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
-  .search-input{padding:9px 12px 9px 38px;font-size:13px}
-  .filter-select{padding:8px 34px 8px 12px;font-size:12.5px;cursor:pointer;min-width:136px}
-  .search-input:focus,.filter-select:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
-  .month-filter.is-hidden{display:none}
+  .workspace{display:grid;grid-template-columns:minmax(280px,360px) minmax(0,1fr);gap:16px;align-items:start}
+  .employee-panel,.detail-panel{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 5px rgba(13,35,64,.05)}
+  .panel-head{background:var(--navy);padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .panel-title{font-size:12px;font-weight:800;color:rgba(255,255,255,.78);letter-spacing:.9px;text-transform:uppercase}
+  .panel-count{font-size:11px;color:rgba(255,255,255,.45);font-weight:600}
+  .employee-list{max-height:calc(100vh - 330px);overflow-y:auto;padding:8px}
+  .employee-list::-webkit-scrollbar,.detail-scroll::-webkit-scrollbar{width:9px;height:9px}
+  .employee-list::-webkit-scrollbar-track,.detail-scroll::-webkit-scrollbar-track{background:#faf9f6}
+  .employee-list::-webkit-scrollbar-thumb,.detail-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px}
+  .emp-card{width:100%;border:1px solid transparent;background:#fff;border-radius:9px;padding:11px 10px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s,border-color .15s,box-shadow .15s}
+  .emp-card:hover{background:#faf9f6;border-color:var(--border)}
+  .emp-card.active{background:var(--gold-light);border-color:rgba(200,168,75,.65);box-shadow:inset 3px 0 0 var(--gold)}
+  .emp-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);font-family:'Fraunces',serif;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+  .emp-main{min-width:0;flex:1}
+  .emp-name{font-size:13px;font-weight:800;color:var(--navy);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .emp-nip{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+  .emp-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+  .mini-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:100px;border:1px solid var(--border);background:#faf9f6;color:var(--muted);font-size:10px;font-weight:800}
+  .mini-chip.ok{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+  .mini-chip.warn{background:#fffbeb;color:#92400e;border-color:#fde68a}
+  .mini-chip.empty{background:#f3f4f6;color:#6b7280;border-color:#e5e7eb}
+  .retired-mark{font-size:9.5px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:100px;padding:2px 6px;font-weight:900;margin-left:auto}
 
-  .insight-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;min-height:34px}
-  .insight-label{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-right:2px}
-  .dist-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid var(--border);background:var(--white);border-radius:100px;font-size:12px;font-weight:700;color:var(--navy)}
-  .dist-dot{width:8px;height:8px;border-radius:50%;background:var(--chip-color,var(--muted))}
-  .dist-count{color:var(--muted);font-variant-numeric:tabular-nums}
-
-  .table-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 5px rgba(13,35,64,.05)}
-  .table-head{background:var(--navy);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .table-title{font-size:12px;font-weight:800;color:rgba(255,255,255,.78);letter-spacing:.9px;text-transform:uppercase}
-  .table-count{font-size:11px;color:rgba(255,255,255,.45);font-weight:600}
-  .table-scroll{overflow:auto}
-  .table-scroll::-webkit-scrollbar{height:10px;width:10px}
-  .table-scroll::-webkit-scrollbar-track{background:var(--bg)}
-  .table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:8px}
-  table{width:100%;border-collapse:collapse;min-width:940px}
-  th{background:#faf9f6;text-align:left;padding:11px 14px;font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.9px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
-  td{padding:13px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
-  tbody tr{transition:background .15s}
-  tbody tr:hover{background:#fafaf8}
-  tbody tr:last-child td{border-bottom:none}
-  .pegawai-cell{display:flex;align-items:center;gap:11px;min-width:260px}
-  .avatar-sm{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);font-family:'Fraunces',serif;font-size:13px;font-weight:700;display:grid;place-items:center;flex-shrink:0;box-shadow:0 2px 6px rgba(13,35,64,.13)}
-  .pegawai-name{font-weight:800;color:var(--navy);line-height:1.3}
-  .pegawai-nip{font-size:11.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
-  .period-cell{font-weight:800;color:var(--navy);white-space:nowrap}
-  .period-sub{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px}
-  .num-cell{min-width:96px}
-  .num-main{font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums}
-  .meter{height:5px;background:#ede9df;border-radius:999px;margin-top:6px;overflow:hidden}
-  .meter-fill{height:100%;width:0;background:var(--meter,#1a7a4a);border-radius:inherit}
-  .predikat-badge,.status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:100px;font-size:11px;font-weight:800;border:1px solid transparent;white-space:nowrap}
+  .detail-scroll{max-height:calc(100vh - 330px);overflow:auto}
+  .detail-hero{padding:18px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fff 0%,#fffdf8 100%)}
+  .detail-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);font-family:'Fraunces',serif;font-size:18px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+  .detail-name{font-size:18px;font-weight:900;color:var(--navy);line-height:1.25}
+  .detail-sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .detail-content{padding:16px;display:flex;flex-direction:column;gap:14px}
+  .section-title{font-size:11px;font-weight:900;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:7px}
+  .section-title::before{content:'';width:16px;height:2px;background:var(--gold);border-radius:2px}
+  .annual-card{border:1px solid var(--border);border-radius:10px;padding:14px;background:#faf9f6;display:grid;grid-template-columns:minmax(170px,1fr) repeat(3,minmax(90px,120px)) auto;gap:12px;align-items:center}
+  .annual-card.empty{display:block;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
+  .annual-title{font-weight:900;color:var(--navy);font-size:14px}
+  .annual-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .score-block{min-width:0}
+  .score-label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:900;margin-bottom:3px}
+  .score-value{font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums}
+  .predikat-badge,.status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:100px;font-size:11px;font-weight:900;border:1px solid transparent;white-space:nowrap}
   .predikat-badge::before,.status-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
   .pred-sangat-baik{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
   .pred-baik{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
   .pred-cukup{background:#fffbeb;color:#92400e;border-color:#fde68a}
   .pred-kurang{background:#fef2f2;color:#991b1b;border-color:#fecaca}
   .pred-default{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
-  .status-final,.status-selesai,.status-disetujui{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+  .status-final,.status-dinilai,.status-selesai,.status-disetujui{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
   .status-draft,.status-proses,.status-menunggu{background:#fffbeb;color:#92400e;border-color:#fde68a}
   .status-ditolak,.status-batal{background:#fef2f2;color:#991b1b;border-color:#fecaca}
   .status-default{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
-  .date-cell{font-size:12px;color:var(--muted);white-space:nowrap}
-  .btn-row{padding:5px 10px;border:1px solid var(--border2);border-radius:6px;background:#fff;color:var(--navy);font-size:11.5px;font-weight:800;cursor:pointer}
-  .btn-row:hover{border-color:var(--gold);background:var(--gold-light)}
-  .empty-state{padding:48px 22px;text-align:center;color:var(--muted)}
+  .month-table{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  table{width:100%;border-collapse:collapse;min-width:760px}
+  th{background:#faf9f6;text-align:left;padding:10px 12px;font-size:10px;font-weight:900;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fafaf8}
+  .month-name{font-weight:900;color:var(--navy)}
+  .month-quarter{font-size:10.5px;color:var(--muted);font-weight:700;margin-top:2px}
+  .num{font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums}
+  .empty-state{padding:42px 22px;text-align:center;color:var(--muted)}
   .empty-mark{width:42px;height:42px;border-radius:12px;background:var(--gold-light);color:var(--gold-dark);font-weight:900;display:grid;place-items:center;margin:0 auto 10px}
   .empty-title{font-family:'Fraunces',serif;font-size:18px;color:var(--navy);font-weight:500;margin-bottom:4px}
   .empty-desc{font-size:13px;line-height:1.6;max-width:420px;margin:0 auto}
@@ -141,41 +142,46 @@
   @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
 
   .modal-overlay{position:fixed;inset:0;background:rgba(13,35,64,.56);z-index:1000;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(3px)}
-  .modal-overlay.show{display:flex;animation:fadeUp .16s ease}
-  .modal{background:var(--white);border-radius:13px;width:min(620px,100%);overflow:hidden;box-shadow:0 24px 70px rgba(13,35,64,.32)}
+  .modal-overlay.show{display:flex}
+  .modal{background:var(--white);border-radius:13px;width:min(860px,100%);max-height:92vh;overflow:hidden;box-shadow:0 24px 70px rgba(13,35,64,.32);display:flex;flex-direction:column}
   .modal-header{background:var(--navy);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
   .modal-title{font-family:'Fraunces',serif;color:#fff;font-size:20px;font-weight:300}
   .modal-title em{color:var(--gold);font-style:italic}
   .modal-close{background:transparent;border:none;color:rgba(255,255,255,.65);font-size:20px;line-height:1;cursor:pointer;border-radius:6px;padding:4px 8px}
   .modal-close:hover{background:rgba(255,255,255,.1);color:#fff}
-  .modal-body{padding:22px;display:flex;flex-direction:column;gap:16px}
-  .detail-head{display:flex;align-items:center;gap:13px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-  .detail-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);font-family:'Fraunces',serif;font-size:17px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
-  .detail-name{font-size:16px;font-weight:800;color:var(--navy)}
-  .detail-nip{font-size:12px;color:var(--muted);margin-top:2px}
-  .detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .detail-item{background:#faf9f6;border:1px solid var(--border);border-radius:9px;padding:11px 12px;min-width:0}
-  .detail-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:800;margin-bottom:5px}
-  .detail-value{font-size:14px;font-weight:800;color:var(--navy);line-height:1.35;word-break:break-word}
-  .modal-footer{padding:14px 22px;background:#faf9f6;border-top:1px solid var(--border);display:flex;justify-content:flex-end}
+  .modal-body{padding:20px 22px;overflow:auto;display:flex;flex-direction:column;gap:15px}
+  .modal-footer{padding:14px 22px;background:#faf9f6;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+  .form-grid{display:grid;grid-template-columns:160px 220px 1fr;gap:10px;align-items:end}
+  .form-group{display:flex;flex-direction:column;gap:6px}
+  .form-label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .file-input{padding:8px 10px;height:auto;min-height:40px}
+  .hint-box{border:1px solid #bfdbfe;background:#eff6ff;color:#1e40af;border-radius:9px;padding:11px 12px;font-size:12.5px;line-height:1.6}
+  .preview-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .preview-pill{border:1px solid var(--border);border-radius:9px;padding:10px;background:#faf9f6}
+  .preview-num{font-family:'Fraunces',serif;font-size:20px;color:var(--navy);font-weight:600}
+  .preview-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:900;margin-top:3px}
+  .preview-table-wrap{border:1px solid var(--border);border-radius:10px;overflow:auto;max-height:260px}
+  .preview-table{min-width:780px}
+  .preview-table td,.preview-table th{font-size:11.5px;padding:8px 10px}
+  .row-ok{color:#047857;font-weight:900}.row-bad{color:#991b1b;font-weight:900}
 
-  @media(max-width:1024px){
+  @media(max-width:1120px){
+    .workspace{grid-template-columns:1fr}
+    .employee-list,.detail-scroll{max-height:none}
+  }
+  @media(max-width:940px){
     .stats-row{grid-template-columns:repeat(2,minmax(150px,1fr))}
-    .toolbar{grid-template-columns:1fr 1fr 1fr}
-    .search-wrap{grid-column:1/-1}
+    .control-row{grid-template-columns:1fr 160px}
+    .control-row .btn-outline{grid-column:1/-1}
+    .form-grid{grid-template-columns:1fr}
+    .annual-card{grid-template-columns:1fr 1fr}
   }
   @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px 44px}}
   @media(max-width:600px){
     .sidebar{position:fixed;left:-260px;top:52px;bottom:0;z-index:150;transition:left .25s ease;box-shadow:4px 0 20px rgba(13,35,64,.12)}
     .sidebar.open{left:0}.layout{display:block}
-    .page-header{margin-bottom:18px}
-    .mode-row{align-items:stretch}
-    .segmented{width:100%}
-    .seg-btn{min-width:0}
-    .stats-row{grid-template-columns:1fr}
-    .toolbar{grid-template-columns:1fr}
-    .filter-select{min-width:0}
-    .detail-grid{grid-template-columns:1fr}
+    .stats-row,.control-row,.preview-summary{grid-template-columns:1fr}
+    .annual-card{grid-template-columns:1fr}
   }
 </style>
 </head>
@@ -191,86 +197,102 @@
       <div>
         <div class="page-eyebrow">Administrasi</div>
         <h1 class="page-title">Predikat <em>Kinerja</em></h1>
-        <p class="page-desc">Pantau predikat kinerja pegawai dari tabel bulanan dan tahunan. Gunakan filter untuk audit periode, status, atau predikat tertentu.</p>
+        <p class="page-desc">Pilih tahun, lalu klik nama pegawai untuk melihat predikat tahunan di baris atas dan predikat bulanan di bawahnya. Data bulanan 2026 dapat diisi dari export triwulanan.</p>
       </div>
       <div class="page-actions">
         <button class="btn-outline" type="button" onclick="exportCSV()"><span class="btn-symbol">CSV</span> Export</button>
-        <button class="btn-primary" type="button" onclick="loadData()"><span class="btn-symbol">R</span> Muat Ulang</button>
+        <button class="btn-outline" type="button" onclick="openImportModal()"><span class="btn-symbol">IMP</span> Import Predikat</button>
+        <button class="btn-primary" type="button" onclick="loadAll()"><span class="btn-symbol">R</span> Muat Ulang</button>
       </div>
     </div>
 
     <div id="page-alert" class="alert"><span id="page-alert-icon"></span><span id="page-alert-text"></span></div>
 
-    <div class="mode-row fade-in" style="animation-delay:.05s">
-      <div class="segmented" aria-label="Pilih jenis predikat kinerja">
-        <button class="seg-btn active" id="tab-bulanan" type="button" onclick="switchMode('bulanan')">Bulanan</button>
-        <button class="seg-btn" id="tab-tahunan" type="button" onclick="switchMode('tahunan')">Tahunan</button>
+    <div class="control-row fade-in" style="animation-delay:.05s">
+      <div class="search-wrap">
+        <span class="search-mark">Q</span>
+        <input class="search-input" id="search-input" type="search" placeholder="Cari nama, NIP, atau NIP lama..." oninput="applyEmployeeFilter()">
       </div>
-      <div class="mode-note" id="mode-note"><strong>Bulanan:</strong> membaca tabel predikat_kinerja_bulanan.</div>
+      <select class="select-input" id="year-select" onchange="onYearChange()"></select>
+      <button class="btn-outline" type="button" onclick="selectFirstVisible()">Pilih Pegawai Teratas</button>
     </div>
 
     <div class="stats-row fade-in" style="animation-delay:.08s">
-      <div class="stat-pill"><div class="stat-icon total">ROW</div><div><div class="stat-num" id="st-total">-</div><div class="stat-label">Record Tampil</div></div></div>
-      <div class="stat-pill"><div class="stat-icon avg">AVG</div><div><div class="stat-num" id="st-average">-</div><div class="stat-label">Rata-rata Nilai</div></div></div>
-      <div class="stat-pill"><div class="stat-icon top">TOP</div><div><div class="stat-num" id="st-top">-</div><div class="stat-label">Predikat Terbanyak</div></div></div>
-      <div class="stat-pill"><div class="stat-icon people">NIP</div><div><div class="stat-num" id="st-people">-</div><div class="stat-label">Pegawai Unik</div></div></div>
+      <div class="stat-pill"><div class="stat-icon people">PG</div><div><div class="stat-num" id="st-pegawai">-</div><div class="stat-label">Total Pegawai</div></div></div>
+      <div class="stat-pill"><div class="stat-icon year">TH</div><div><div class="stat-num" id="st-year">-</div><div class="stat-label">Tahun Aktif</div></div></div>
+      <div class="stat-pill"><div class="stat-icon annual">AN</div><div><div class="stat-num" id="st-annual">-</div><div class="stat-label">Punya Tahunan</div></div></div>
+      <div class="stat-pill"><div class="stat-icon month">BL</div><div><div class="stat-num" id="st-month">-</div><div class="stat-label">Record Bulanan</div></div></div>
     </div>
 
-    <div class="toolbar fade-in" style="animation-delay:.11s">
-      <div class="search-wrap">
-        <span class="search-icon">Q</span>
-        <input class="search-input" type="search" id="search-input" placeholder="Cari nama, NIP, predikat, atau status..." oninput="applyFilters()">
-      </div>
-      <select class="filter-select" id="filter-tahun" onchange="applyFilters()">
-        <option value="">Semua Tahun</option>
-      </select>
-      <select class="filter-select month-filter" id="filter-bulan" onchange="applyFilters()">
-        <option value="">Semua Bulan</option>
-      </select>
-      <select class="filter-select" id="filter-predikat" onchange="applyFilters()">
-        <option value="">Semua Predikat</option>
-      </select>
-      <select class="filter-select" id="filter-status" onchange="applyFilters()">
-        <option value="">Semua Status</option>
-      </select>
-    </div>
+    <div class="workspace fade-in" style="animation-delay:.12s">
+      <section class="employee-panel">
+        <div class="panel-head"><div class="panel-title">Daftar Pegawai</div><div class="panel-count" id="employee-count">Memuat...</div></div>
+        <div class="employee-list" id="employee-list">
+          <div style="padding:8px;display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:58px"></div><div class="skel" style="height:58px"></div><div class="skel" style="height:58px"></div></div>
+        </div>
+      </section>
 
-    <div class="insight-strip fade-in" id="distribution" style="animation-delay:.14s"></div>
-
-    <div class="table-card fade-in" style="animation-delay:.17s">
-      <div class="table-head">
-        <span class="table-title" id="table-title">Predikat Kinerja Bulanan</span>
-        <span class="table-count" id="table-count">Memuat...</span>
-      </div>
-      <div class="table-scroll">
-        <table>
-          <thead id="table-head"></thead>
-          <tbody id="table-body">
-            <tr><td colspan="9"><div style="padding:16px;display:flex;flex-direction:column;gap:9px">
-              <div class="skel" style="height:42px"></div>
-              <div class="skel" style="height:42px"></div>
-              <div class="skel" style="height:42px"></div>
-            </div></td></tr>
-          </tbody>
-        </table>
-      </div>
+      <section class="detail-panel">
+        <div class="panel-head"><div class="panel-title">Detail Predikat</div><div class="panel-count" id="detail-count">-</div></div>
+        <div class="detail-scroll" id="detail-area">
+          <div class="empty-state"><div class="empty-mark">PK</div><div class="empty-title">Pilih pegawai</div><div class="empty-desc">Klik nama pegawai untuk melihat predikat kinerja tahunan dan bulanan pada tahun yang dipilih.</div></div>
+        </div>
+      </section>
     </div>
   </main>
 </div>
 
-<div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeDetail()">
+<div class="modal-overlay" id="import-modal" onclick="if(event.target===this)closeImportModal()">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Detail <em>Predikat</em></div>
-      <button class="modal-close" type="button" onclick="closeDetail()">x</button>
+      <div class="modal-title">Import <em>Predikat Kinerja</em></div>
+      <button class="modal-close" type="button" onclick="closeImportModal()">x</button>
     </div>
-    <div class="modal-body" id="detail-body"></div>
+    <div class="modal-body">
+      <div class="hint-box">
+        File export memakai kolom <strong>Niplama</strong>. Saran saya: jalankan migrasi <code>supabase-data-pegawai-nip-lama.sql</code>, lalu isi <code>data_pegawai.nip_lama</code>. Import tetap mencoba fallback ke NIP sekarang dan nama, tetapi mapping via NIP lama jauh lebih aman.
+      </div>
+      <div id="import-alert" class="alert"><span id="import-alert-icon"></span><span id="import-alert-text"></span></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="import-year">Tahun</label>
+          <input class="select-input" id="import-year" type="number" min="2020" max="2100">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="import-kind">Jenis File</label>
+          <select class="select-input" id="import-kind" onchange="resetImportPreview()">
+            <option value="periode">Bulanan / Triwulanan</option>
+            <option value="tahunan">Tahunan</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="import-file">File Excel</label>
+          <input class="file-input" id="import-file" type="file" accept=".xlsx,.xls" onchange="parseImportFile()">
+        </div>
+      </div>
+
+      <div class="preview-summary">
+        <div class="preview-pill"><div class="preview-num" id="imp-source">0</div><div class="preview-label">Baris Sumber</div></div>
+        <div class="preview-pill"><div class="preview-num" id="imp-valid">0</div><div class="preview-label">Pegawai Cocok</div></div>
+        <div class="preview-pill"><div class="preview-num" id="imp-expanded">0</div><div class="preview-label">Record Disimpan</div></div>
+        <div class="preview-pill"><div class="preview-num" id="imp-error">0</div><div class="preview-label">Butuh Cek</div></div>
+      </div>
+
+      <div class="preview-table-wrap">
+        <table class="preview-table">
+          <thead><tr><th>Status</th><th>Niplama</th><th>Nama Export</th><th>Mapping</th><th>Periode</th><th>Predikat</th><th>Catatan</th></tr></thead>
+          <tbody id="import-preview"><tr><td colspan="7" class="empty-state">Pilih file Excel untuk melihat preview.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
     <div class="modal-footer">
-      <button class="btn-outline" type="button" onclick="closeDetail()">Tutup</button>
+      <button class="btn-outline" type="button" onclick="closeImportModal()">Batal</button>
+      <button class="btn-primary" id="btn-import-save" type="button" onclick="submitImport()" disabled>Simpan Import</button>
     </div>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="config.js"></script>
 <script src="9201-shared.js"></script>
 <script src="9201-avatar.js"></script>
@@ -280,422 +302,587 @@
 
 <script>
   const H = SUPABASE_HEADERS;
-  const MONTHS = (window.BULAN && window.BULAN.length)
-    ? window.BULAN
-    : ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  const TABLES = {
-    bulanan: {
-      table: 'predikat_kinerja_bulanan',
-      title: 'Predikat Kinerja Bulanan',
-      note: '<strong>Bulanan:</strong> membaca tabel predikat_kinerja_bulanan.',
-      columns: 'id,pegawai_nip,nama,tahun,bulan,bulan_nama,hasil_kerja,perilaku,nilai,predikat,status,created_at',
-      order: 'tahun.desc,bulan.desc,nama.asc',
-    },
-    tahunan: {
-      table: 'predikat_kinerja_tahunan',
-      title: 'Predikat Kinerja Tahunan',
-      note: '<strong>Tahunan:</strong> membaca tabel predikat_kinerja_tahunan.',
-      columns: 'id,pegawai_nip,nama,tahun,hasil_kerja,perilaku,nilai,predikat,status,created_at',
-      order: 'tahun.desc,nama.asc',
-    },
-  };
+  const MONTHS = window.BULAN || ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const QUARTERS = { I:[1,2,3], II:[4,5,6], III:[7,8,9], IV:[10,11,12] };
   const STATE = {
-    mode: 'bulanan',
-    rows: { bulanan: [], tahunan: [] },
-    filtered: [],
-    loaded: false,
+    pegawai: [],
+    jabatanByNIP: {},
+    bulanan: [],
+    tahunan: [],
+    years: [],
+    selectedYear: null,
+    selectedNip: null,
+    employees: [],
+    visibleEmployees: [],
   };
+  const IMPORT = { sourceRows: [], parsed: [], payload: [], mode: 'periode' };
 
-  function byId(id) { return document.getElementById(id); }
-  function cleanText(v) { return String(v == null ? '' : v).trim(); }
-  function lower(v) { return cleanText(v).toLowerCase(); }
-  function num(v) {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  }
-  function fmtNumber(v, digits = 2) {
-    const n = num(v);
-    if (n == null) return '-';
-    return n.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: digits });
-  }
-  function fmtDate(v) {
-    if (!v) return '-';
-    const d = new Date(v);
-    if (Number.isNaN(d.getTime())) return '-';
-    return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
-  }
-  function initials(name) {
-    const parts = cleanText(name).split(/\s+/).filter(Boolean);
-    if (!parts.length) return 'PK';
-    return parts.slice(0, 2).map(p => p[0]).join('').toUpperCase();
-  }
-  function periodLabel(row) {
-    if (STATE.mode === 'tahunan') return String(row.tahun || '-');
-    const monthName = cleanText(row.bulan_nama) || MONTHS[(Number(row.bulan) || 1) - 1] || `Bulan ${row.bulan || '-'}`;
-    return `${monthName} ${row.tahun || '-'}`;
-  }
-  function normalizeClass(v) {
-    return lower(v)
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'default';
-  }
-  function predicateClass(v) {
-    const s = lower(v);
-    if (s.includes('sangat') && s.includes('baik')) return 'pred-sangat-baik';
-    if (s === 'baik' || s.includes('baik')) return 'pred-baik';
-    if (s.includes('cukup') || s.includes('butuh')) return 'pred-cukup';
-    if (s.includes('kurang') || s.includes('buruk')) return 'pred-kurang';
-    return 'pred-default';
-  }
-  function statusClass(v) {
-    const s = normalizeClass(v);
-    if (['final','selesai','disetujui','approved'].includes(s)) return 'status-final';
-    if (['draft','proses','menunggu','pending'].includes(s)) return 'status-draft';
-    if (['ditolak','batal','rejected'].includes(s)) return 'status-ditolak';
-    return 'status-default';
-  }
-  function meterColor(value) {
-    const n = num(value);
-    if (n == null) return '#9ca3af';
-    if (n >= 90) return '#1a7a4a';
-    if (n >= 75) return '#1d4ed8';
-    if (n >= 60) return '#c8a84b';
-    return '#c0392b';
-  }
-  function safeId(prefix, value) {
-    return `${prefix}-${String(value).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-  }
+  function byId(id){ return document.getElementById(id); }
+  function clean(v){ return String(v == null ? '' : v).trim(); }
+  function lower(v){ return clean(v).toLowerCase(); }
+  function escHtml(v){ return (typeof esc === 'function') ? esc(v) : clean(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function digits(v){ return clean(v).replace(/\D/g, ''); }
+  function initials(name){ const p=clean(name).split(/\s+/).filter(Boolean); return (p.slice(0,2).map(x=>x[0]).join('') || 'PK').toUpperCase(); }
+  function num(v){ const n=Number(v); return Number.isFinite(n) ? n : null; }
+  function fmtNum(v){ const n=num(v); return n == null ? '-' : n.toLocaleString('id-ID',{maximumFractionDigits:2}); }
+  function normKey(v){ return clean(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
+  function nipAppointmentKey(nip){ const d=digits(nip); if(d.length<14) return Number.POSITIVE_INFINITY; const y=Number(d.slice(8,12)), m=Number(d.slice(12,14)); return y&&m>=1&&m<=12 ? y*100+m : Number.POSITIVE_INFINITY; }
+  function pegStatus(p){ return lower(p && (p.status_kepegawaian || 'aktif')) || 'aktif'; }
+  function isRetired(p){ return pegStatus(p) === 'pensiun'; }
+  function jabatanPriority(emp){ if(emp.isRetired) return 99; const j=lower(emp.latestJabatan && emp.latestJabatan.jabatan); if(j.startsWith('kepala bps')) return 1; if(j==='kepala subbagian umum') return 2; return 3; }
+  function quarterLabel(month){ return month<=3?'I':month<=6?'II':month<=9?'III':'IV'; }
+  function monthName(month){ return MONTHS[month-1] || `Bulan ${month}`; }
+  function predicateClass(v){ const s=lower(v); if(s.includes('sangat')&&s.includes('baik')) return 'pred-sangat-baik'; if(s.includes('baik')) return 'pred-baik'; if(s.includes('cukup')) return 'pred-cukup'; if(s.includes('kurang')||s.includes('buruk')) return 'pred-kurang'; return 'pred-default'; }
+  function statusClass(v){ const s=normKey(v).replace(/\s+/g,'-'); if(['final','dinilai','selesai','disetujui','approved'].includes(s)) return 'status-dinilai'; if(['draft','proses','menunggu','pending'].includes(s)) return 'status-draft'; if(['ditolak','batal','rejected'].includes(s)) return 'status-ditolak'; return 'status-default'; }
+  function canonicalPredikat(v){ const s=lower(v); if(s.includes('sangat')&&s.includes('baik')) return 'Sangat Baik'; if(s.includes('baik')) return 'Baik'; if(s.includes('cukup')) return 'Cukup'; if(s.includes('kurang')) return 'Kurang'; return clean(v); }
 
-  function showPageAlert(message, type = 'info') {
-    const el = byId('page-alert');
-    byId('page-alert-icon').textContent = type === 'error' ? '!' : type === 'success' ? 'OK' : 'i';
-    byId('page-alert-text').textContent = message;
+  function showAlert(message, type='info', target='page'){
+    const el = byId(target === 'import' ? 'import-alert' : 'page-alert');
+    byId(target === 'import' ? 'import-alert-icon' : 'page-alert-icon').textContent = type === 'error' ? '!' : type === 'success' ? 'OK' : 'i';
+    byId(target === 'import' ? 'import-alert-text' : 'page-alert-text').textContent = message;
     el.className = `alert show ${type}`;
   }
-  function hidePageAlert() {
-    byId('page-alert').className = 'alert';
-  }
+  function hideAlert(target='page'){ byId(target === 'import' ? 'import-alert' : 'page-alert').className = 'alert'; }
 
-  async function fetchRows(kind) {
-    const cfg = TABLES[kind];
-    const url = `${SUPABASE_URL}/rest/v1/${cfg.table}?select=${cfg.columns}&order=${cfg.order}`;
-    const res = await fetch(url, {
-      headers: { ...H, Range: '0-9999' },
-    });
-    if (!res.ok) {
+  async function fetchJson(path){
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: H });
+    if(!res.ok){
       let msg = `HTTP ${res.status}`;
-      try {
-        const err = await res.json();
-        msg = err.message || err.hint || msg;
-      } catch (_) {}
-      throw new Error(`${cfg.table}: ${msg}`);
+      try { const err = await res.json(); msg = err.message || err.hint || msg; } catch(_){}
+      throw new Error(msg);
     }
     return res.json();
   }
 
-  async function loadData() {
-    hidePageAlert();
+  async function loadAll(){
+    hideAlert();
     setLoading();
-    try {
-      const [bulanan, tahunan] = await Promise.all([fetchRows('bulanan'), fetchRows('tahunan')]);
-      STATE.rows.bulanan = Array.isArray(bulanan) ? bulanan : [];
-      STATE.rows.tahunan = Array.isArray(tahunan) ? tahunan : [];
-      STATE.loaded = true;
-      rebuildFilters(true);
-      applyFilters();
-      showPageAlert('Data predikat kinerja berhasil dimuat.', 'success');
-      setTimeout(hidePageAlert, 1800);
-    } catch (e) {
-      console.error('[predikat-kinerja] loadData:', e);
-      STATE.loaded = true;
-      STATE.filtered = [];
-      showPageAlert(`Gagal memuat data: ${e.message}`, 'error');
-      renderAll();
+    try{
+      const [pegawai, bulanan, tahunan, jabatan] = await Promise.all([
+        fetchJson('data_pegawai?select=*&order=nama.asc'),
+        fetchJson('predikat_kinerja_bulanan?select=*&order=tahun.desc,bulan.asc,nama.asc'),
+        fetchJson('predikat_kinerja_tahunan?select=*&order=tahun.desc,nama.asc'),
+        fetchJson('riwayat_jabatan?select=pegawai_nip,jabatan,tmt,jenis&order=tmt.desc'),
+      ]);
+      STATE.pegawai = Array.isArray(pegawai) ? pegawai : [];
+      STATE.bulanan = Array.isArray(bulanan) ? bulanan : [];
+      STATE.tahunan = Array.isArray(tahunan) ? tahunan : [];
+      STATE.jabatanByNIP = latestJabatanMap(Array.isArray(jabatan) ? jabatan : []);
+      buildYears();
+      if(!STATE.selectedYear || !STATE.years.includes(Number(STATE.selectedYear))) STATE.selectedYear = STATE.years[0] || new Date().getFullYear();
+      renderYearOptions();
+      buildEmployees();
+      applyEmployeeFilter();
+      showAlert('Data predikat kinerja berhasil dimuat.', 'success');
+      setTimeout(() => hideAlert(), 1500);
+    }catch(e){
+      console.error('[predikat] loadAll:', e);
+      showAlert(`Gagal memuat data: ${e.message}`, 'error');
+      byId('employee-list').innerHTML = errorState(e.message);
+      byId('detail-area').innerHTML = errorState(e.message);
     }
   }
 
-  function setLoading() {
-    byId('table-count').textContent = 'Memuat...';
-    byId('table-body').innerHTML = `<tr><td colspan="9"><div style="padding:16px;display:flex;flex-direction:column;gap:9px">
-      <div class="skel" style="height:42px"></div>
-      <div class="skel" style="height:42px"></div>
-      <div class="skel" style="height:42px"></div>
-    </div></td></tr>`;
+  function setLoading(){
+    byId('employee-count').textContent = 'Memuat...';
+    byId('employee-list').innerHTML = '<div style="padding:8px;display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:58px"></div><div class="skel" style="height:58px"></div><div class="skel" style="height:58px"></div></div>';
+    byId('detail-area').innerHTML = '<div style="padding:16px;display:flex;flex-direction:column;gap:10px"><div class="skel" style="height:74px"></div><div class="skel" style="height:160px"></div><div class="skel" style="height:220px"></div></div>';
   }
+  function errorState(msg){ return `<div class="empty-state"><div class="empty-mark">!</div><div class="empty-title">Gagal memuat</div><div class="empty-desc">${escHtml(msg || 'Terjadi kesalahan.')}</div></div>`; }
 
-  function switchMode(mode) {
-    if (!TABLES[mode] || STATE.mode === mode) return;
-    STATE.mode = mode;
-    byId('tab-bulanan').classList.toggle('active', mode === 'bulanan');
-    byId('tab-tahunan').classList.toggle('active', mode === 'tahunan');
-    byId('mode-note').innerHTML = TABLES[mode].note;
-    byId('table-title').textContent = TABLES[mode].title;
-    byId('filter-bulan').classList.toggle('is-hidden', mode !== 'bulanan');
-    rebuildFilters(false);
-    applyFilters();
-  }
-
-  function uniqueSorted(rows, key, numeric = false) {
-    const vals = [...new Set(rows.map(r => r[key]).filter(v => cleanText(v) !== ''))];
-    return vals.sort((a, b) => numeric ? Number(b) - Number(a) : cleanText(a).localeCompare(cleanText(b), 'id'));
-  }
-  function setOptions(select, values, firstLabel, selected) {
-    const current = selected == null ? select.value : selected;
-    select.innerHTML = `<option value="">${firstLabel}</option>` + values.map(v => {
-      const value = esc(cleanText(v));
-      return `<option value="${value}">${value}</option>`;
-    }).join('');
-    if ([...select.options].some(o => o.value === current)) select.value = current;
-  }
-  function rebuildFilters(resetYear) {
-    const rows = STATE.rows[STATE.mode] || [];
-    const tahunSelect = byId('filter-tahun');
-    const tahunValues = uniqueSorted(rows, 'tahun', true);
-    const currentYear = String(new Date().getFullYear());
-    const defaultYear = resetYear && tahunValues.map(String).includes(currentYear) ? currentYear : tahunSelect.value;
-    setOptions(tahunSelect, tahunValues, 'Semua Tahun', defaultYear);
-    if (resetYear && !tahunSelect.value && tahunValues.length) tahunSelect.value = String(tahunValues[0]);
-
-    const monthSelect = byId('filter-bulan');
-    if (STATE.mode === 'bulanan') {
-      const months = uniqueSorted(rows, 'bulan', true).sort((a, b) => Number(a) - Number(b));
-      monthSelect.innerHTML = '<option value="">Semua Bulan</option>' + months.map(m => {
-        const label = MONTHS[(Number(m) || 1) - 1] || `Bulan ${m}`;
-        return `<option value="${esc(m)}">${esc(label)}</option>`;
-      }).join('');
-    } else {
-      monthSelect.value = '';
-    }
-
-    setOptions(byId('filter-predikat'), uniqueSorted(rows, 'predikat'), 'Semua Predikat');
-    setOptions(byId('filter-status'), uniqueSorted(rows, 'status'), 'Semua Status');
-  }
-
-  function applyFilters() {
-    const rows = STATE.rows[STATE.mode] || [];
-    const q = lower(byId('search-input').value);
-    const tahun = byId('filter-tahun').value;
-    const bulan = byId('filter-bulan').value;
-    const predikat = lower(byId('filter-predikat').value);
-    const status = lower(byId('filter-status').value);
-
-    STATE.filtered = rows.filter(row => {
-      if (tahun && String(row.tahun) !== tahun) return false;
-      if (STATE.mode === 'bulanan' && bulan && String(row.bulan) !== bulan) return false;
-      if (predikat && lower(row.predikat) !== predikat) return false;
-      if (status && lower(row.status) !== status) return false;
-      if (!q) return true;
-      const haystack = [
-        row.nama, row.pegawai_nip, row.predikat, row.status, row.tahun,
-        row.bulan, row.bulan_nama, row.hasil_kerja, row.perilaku, row.nilai,
-      ].map(lower).join(' ');
-      return haystack.includes(q);
+  function latestJabatanMap(rows){
+    const map = {};
+    rows.filter(r => (r.jenis || 'utama') === 'utama').forEach(r => {
+      if(!r.pegawai_nip) return;
+      const cur = map[r.pegawai_nip];
+      if(!cur || String(r.tmt || '').localeCompare(String(cur.tmt || '')) > 0) map[r.pegawai_nip] = r;
     });
-    renderAll();
+    return map;
   }
 
-  function renderAll() {
+  function buildYears(){
+    const years = new Set();
+    STATE.bulanan.forEach(r => { if(r.tahun) years.add(Number(r.tahun)); });
+    STATE.tahunan.forEach(r => { if(r.tahun) years.add(Number(r.tahun)); });
+    if(!years.size) years.add(new Date().getFullYear());
+    STATE.years = [...years].sort((a,b) => b-a);
+  }
+  function renderYearOptions(){
+    byId('year-select').innerHTML = STATE.years.map(y => `<option value="${y}">${y}</option>`).join('');
+    byId('year-select').value = String(STATE.selectedYear);
+  }
+  function onYearChange(){
+    STATE.selectedYear = Number(byId('year-select').value);
+    buildEmployees();
+    applyEmployeeFilter(true);
+  }
+
+  function rowsForYear(rows){ return rows.filter(r => Number(r.tahun) === Number(STATE.selectedYear)); }
+  function annualFor(nip){ return rowsForYear(STATE.tahunan).find(r => String(r.pegawai_nip) === String(nip)) || null; }
+  function monthlyFor(nip){ return rowsForYear(STATE.bulanan).filter(r => String(r.pegawai_nip) === String(nip)).sort((a,b) => Number(a.bulan)-Number(b.bulan)); }
+
+  function buildEmployees(){
+    STATE.employees = STATE.pegawai.map(p => {
+      const nip = pegawaiNip(p);
+      const annual = annualFor(nip);
+      const monthly = monthlyFor(nip);
+      return {
+        nip,
+        oldNip: typeof pegawaiNipLama === 'function' ? pegawaiNipLama(p) : (p.nip_lama || ''),
+        nama: pegawaiNama(p) || '(Tanpa Nama)',
+        pegawai: p,
+        latestJabatan: STATE.jabatanByNIP[nip] || null,
+        annual,
+        monthly,
+        isRetired: isRetired(p),
+      };
+    }).sort((a,b) => {
+      if(a.isRetired !== b.isRetired) return a.isRetired ? 1 : -1;
+      const pa = jabatanPriority(a), pb = jabatanPriority(b);
+      if(pa !== pb) return pa - pb;
+      const na = nipAppointmentKey(a.nip), nb = nipAppointmentKey(b.nip);
+      if(na !== nb) return na - nb;
+      return a.nama.localeCompare(b.nama, 'id');
+    });
+  }
+
+  function applyEmployeeFilter(keepSelection=false){
+    const q = lower(byId('search-input').value);
+    STATE.visibleEmployees = STATE.employees.filter(e => {
+      if(!q) return true;
+      return `${e.nama} ${e.nip} ${e.oldNip} ${e.latestJabatan && e.latestJabatan.jabatan || ''}`.toLowerCase().includes(q);
+    });
+    if(!keepSelection || !STATE.visibleEmployees.some(e => String(e.nip) === String(STATE.selectedNip))){
+      STATE.selectedNip = STATE.visibleEmployees[0] ? STATE.visibleEmployees[0].nip : null;
+    }
     renderStats();
-    renderDistribution();
-    renderTable();
+    renderEmployeeList();
+    renderDetail();
   }
 
-  function renderStats() {
-    const rows = STATE.filtered;
-    const total = rows.length;
-    const nilai = rows.map(r => num(r.nilai)).filter(v => v != null);
-    const avg = nilai.length ? nilai.reduce((a, b) => a + b, 0) / nilai.length : null;
-    const people = new Set(rows.map(r => cleanText(r.pegawai_nip) || cleanText(r.nama)).filter(Boolean)).size;
-    const predCounts = countBy(rows, r => cleanText(r.predikat) || 'Tanpa Predikat');
-    const top = Object.entries(predCounts).sort((a, b) => b[1] - a[1])[0];
-
-    byId('st-total').textContent = total.toLocaleString('id-ID');
-    byId('st-average').textContent = avg == null ? '-' : fmtNumber(avg, 2);
-    byId('st-top').textContent = top ? top[0] : '-';
-    byId('st-people').textContent = people.toLocaleString('id-ID');
-    byId('table-count').textContent = `${total.toLocaleString('id-ID')} dari ${(STATE.rows[STATE.mode] || []).length.toLocaleString('id-ID')} record`;
+  function selectFirstVisible(){
+    if(STATE.visibleEmployees[0]){
+      STATE.selectedNip = STATE.visibleEmployees[0].nip;
+      renderEmployeeList();
+      renderDetail();
+    }
   }
 
-  function countBy(rows, fn) {
-    return rows.reduce((acc, row) => {
-      const key = fn(row);
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
+  function selectEmployee(nip){
+    STATE.selectedNip = nip;
+    renderEmployeeList();
+    renderDetail();
   }
 
-  function renderDistribution() {
-    const box = byId('distribution');
-    const counts = countBy(STATE.filtered, r => cleanText(r.predikat) || 'Tanpa Predikat');
-    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    if (!entries.length) {
-      box.innerHTML = '';
+  function renderStats(){
+    const year = Number(STATE.selectedYear);
+    const annualCount = STATE.employees.filter(e => e.annual).length;
+    const monthCount = rowsForYear(STATE.bulanan).length;
+    byId('st-pegawai').textContent = STATE.employees.length.toLocaleString('id-ID');
+    byId('st-year').textContent = year || '-';
+    byId('st-annual').textContent = annualCount.toLocaleString('id-ID');
+    byId('st-month').textContent = monthCount.toLocaleString('id-ID');
+  }
+
+  function renderEmployeeList(){
+    const list = byId('employee-list');
+    byId('employee-count').textContent = `${STATE.visibleEmployees.length} dari ${STATE.employees.length}`;
+    if(!STATE.visibleEmployees.length){
+      list.innerHTML = '<div class="empty-state"><div class="empty-mark">Q</div><div class="empty-title">Tidak ada pegawai</div><div class="empty-desc">Ubah kata kunci pencarian untuk menampilkan pegawai.</div></div>';
       return;
     }
-    box.innerHTML = '<span class="insight-label">Sebaran</span>' + entries.map(([label, count]) => {
-      const color = getPredicateColor(label);
-      return `<span class="dist-chip"><span class="dist-dot" style="--chip-color:${color}"></span>${esc(label)} <span class="dist-count">${count}</span></span>`;
+    list.innerHTML = STATE.visibleEmployees.map(e => {
+      const active = String(e.nip) === String(STATE.selectedNip);
+      const annualChip = e.annual ? `<span class="mini-chip ok">Tahunan: ${escHtml(e.annual.predikat || '-')}</span>` : '<span class="mini-chip empty">Tahunan: -</span>';
+      const monthChip = e.monthly.length ? `<span class="mini-chip ok">${e.monthly.length}/12 bulan</span>` : '<span class="mini-chip empty">0/12 bulan</span>';
+      return `<button class="emp-card ${active ? 'active' : ''}" type="button" onclick="selectEmployee(${jsArg(e.nip)})">
+        <div class="emp-avatar">${escHtml(initials(e.nama))}</div>
+        <div class="emp-main">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="emp-name">${escHtml(e.nama)}</div>
+            ${e.isRetired ? '<span class="retired-mark">PENSIUN</span>' : ''}
+          </div>
+          <div class="emp-nip">${escHtml(e.nip || '-')}</div>
+          <div class="emp-meta">${annualChip}${monthChip}</div>
+        </div>
+      </button>`;
     }).join('');
   }
 
-  function getPredicateColor(label) {
-    const cls = predicateClass(label);
-    if (cls === 'pred-sangat-baik') return '#047857';
-    if (cls === 'pred-baik') return '#1d4ed8';
-    if (cls === 'pred-cukup') return '#c8a84b';
-    if (cls === 'pred-kurang') return '#c0392b';
-    return '#6b7280';
-  }
-
-  function renderTable() {
-    renderTableHead();
-    const body = byId('table-body');
-    const rows = STATE.filtered;
-    const colSpan = STATE.mode === 'bulanan' ? 9 : 8;
-    if (!rows.length) {
-      body.innerHTML = `<tr><td colspan="${colSpan}">
-        <div class="empty-state">
-          <div class="empty-mark">PK</div>
-          <div class="empty-title">Tidak ada data yang cocok</div>
-          <div class="empty-desc">Coba ubah filter tahun, bulan, predikat, status, atau kata kunci pencarian.</div>
-        </div>
-      </td></tr>`;
+  function renderDetail(){
+    const area = byId('detail-area');
+    const emp = STATE.employees.find(e => String(e.nip) === String(STATE.selectedNip));
+    if(!emp){
+      byId('detail-count').textContent = '-';
+      area.innerHTML = '<div class="empty-state"><div class="empty-mark">PK</div><div class="empty-title">Pilih pegawai</div><div class="empty-desc">Klik nama pegawai untuk melihat predikat tahun yang dipilih.</div></div>';
       return;
     }
-    body.innerHTML = rows.map((row, idx) => renderRow(row, idx)).join('');
+    byId('detail-count').textContent = `${STATE.selectedYear}`;
+    area.innerHTML = `
+      <div class="detail-hero">
+        <div class="detail-avatar">${escHtml(initials(emp.nama))}</div>
+        <div>
+          <div class="detail-name">${escHtml(emp.nama)}</div>
+          <div class="detail-sub">${escHtml(emp.nip || '-')} ${emp.oldNip ? `&middot; NIP lama ${escHtml(emp.oldNip)}` : ''}</div>
+        </div>
+      </div>
+      <div class="detail-content">
+        <div class="section-title">Predikat Tahunan</div>
+        ${renderAnnual(emp.annual)}
+        <div class="section-title">Predikat Bulanan</div>
+        ${renderMonthly(emp.monthly)}
+      </div>`;
   }
 
-  function renderTableHead() {
-    if (STATE.mode === 'bulanan') {
-      byId('table-head').innerHTML = `<tr>
-        <th>Pegawai</th><th>Periode</th><th>Hasil Kerja</th><th>Perilaku</th><th>Nilai</th><th>Predikat</th><th>Status</th><th>Dibuat</th><th style="text-align:right">Aksi</th>
-      </tr>`;
-    } else {
-      byId('table-head').innerHTML = `<tr>
-        <th>Pegawai</th><th>Tahun</th><th>Hasil Kerja</th><th>Perilaku</th><th>Nilai</th><th>Predikat</th><th>Status</th><th style="text-align:right">Aksi</th>
-      </tr>`;
+  function renderAnnual(row){
+    if(!row){
+      return '<div class="annual-card empty">Belum ada predikat tahunan untuk pegawai ini pada tahun yang dipilih.</div>';
     }
-  }
-
-  function renderRow(row, idx) {
-    const detailBtn = `<button class="btn-row" type="button" onclick="openDetail(${idx})">Detail</button>`;
-    const common = `
-      <td>${pegawaiCell(row)}</td>
-      <td>${periodCell(row)}</td>
-      ${numberCell(row.hasil_kerja)}
-      ${numberCell(row.perilaku)}
-      ${numberCell(row.nilai, true)}
-      <td><span class="predikat-badge ${predicateClass(row.predikat)}">${esc(cleanText(row.predikat) || '-')}</span></td>
-      <td><span class="status-badge ${statusClass(row.status)}">${esc(cleanText(row.status) || '-')}</span></td>`;
-    if (STATE.mode === 'bulanan') {
-      return `<tr>${common}<td class="date-cell">${esc(fmtDate(row.created_at))}</td><td style="text-align:right">${detailBtn}</td></tr>`;
-    }
-    return `<tr>${common}<td style="text-align:right">${detailBtn}</td></tr>`;
-  }
-
-  function pegawaiCell(row) {
-    const nama = cleanText(row.nama) || 'Tanpa Nama';
-    return `<div class="pegawai-cell">
-      <div class="avatar-sm">${esc(initials(nama))}</div>
-      <div><div class="pegawai-name">${esc(nama)}</div><div class="pegawai-nip">${esc(cleanText(row.pegawai_nip) || '-')}</div></div>
+    return `<div class="annual-card">
+      <div><div class="annual-title">${escHtml(row.tahun || STATE.selectedYear)}</div><div class="annual-sub">Record tahunan</div></div>
+      ${scoreBlock('Hasil Kerja', row.hasil_kerja)}
+      ${scoreBlock('Perilaku', row.perilaku)}
+      ${scoreBlock('Nilai', row.nilai)}
+      <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end">
+        <span class="predikat-badge ${predicateClass(row.predikat)}">${escHtml(row.predikat || '-')}</span>
+        <span class="status-badge ${statusClass(row.status)}">${escHtml(row.status || '-')}</span>
+      </div>
     </div>`;
   }
 
-  function periodCell(row) {
-    if (STATE.mode === 'bulanan') {
-      const monthName = cleanText(row.bulan_nama) || MONTHS[(Number(row.bulan) || 1) - 1] || `Bulan ${row.bulan || '-'}`;
-      return `<div class="period-cell">${esc(monthName)}</div><div class="period-sub">${esc(row.tahun || '-')}</div>`;
+  function scoreBlock(label, value){
+    return `<div class="score-block"><div class="score-label">${escHtml(label)}</div><div class="score-value">${escHtml(fmtNum(value))}</div></div>`;
+  }
+
+  function renderMonthly(rows){
+    const map = {};
+    rows.forEach(r => { map[Number(r.bulan)] = r; });
+    const body = [];
+    for(let m=1; m<=12; m++){
+      const r = map[m];
+      if(r){
+        body.push(`<tr>
+          <td><div class="month-name">${monthName(m)}</div><div class="month-quarter">Triwulan ${quarterLabel(m)}</div></td>
+          <td class="num">${fmtNum(r.hasil_kerja)}</td>
+          <td class="num">${fmtNum(r.perilaku)}</td>
+          <td class="num">${fmtNum(r.nilai)}</td>
+          <td><span class="predikat-badge ${predicateClass(r.predikat)}">${escHtml(r.predikat || '-')}</span></td>
+          <td><span class="status-badge ${statusClass(r.status)}">${escHtml(r.status || '-')}</span></td>
+        </tr>`);
+      } else {
+        body.push(`<tr>
+          <td><div class="month-name">${monthName(m)}</div><div class="month-quarter">Triwulan ${quarterLabel(m)}</div></td>
+          <td colspan="5" style="color:var(--muted)">Belum ada data</td>
+        </tr>`);
+      }
     }
-    return `<div class="period-cell">${esc(row.tahun || '-')}</div><div class="period-sub">Tahunan</div>`;
+    return `<div class="month-table"><div style="overflow:auto"><table>
+      <thead><tr><th>Bulan</th><th>Hasil Kerja</th><th>Perilaku</th><th>Nilai</th><th>Predikat</th><th>Status</th></tr></thead>
+      <tbody>${body.join('')}</tbody>
+    </table></div></div>`;
   }
 
-  function numberCell(value, strong = false) {
-    const n = num(value);
-    const width = n == null ? 0 : Math.max(0, Math.min(100, n));
-    return `<td class="num-cell">
-      <div class="num-main" style="${strong ? 'font-size:15px' : ''}">${esc(fmtNumber(value, 2))}</div>
-      <div class="meter"><div class="meter-fill" style="width:${width}%;--meter:${meterColor(value)}"></div></div>
-    </td>`;
+  function buildPegawaiMaps(){
+    const oldMap = {}, nipMap = {}, nameMap = {};
+    STATE.pegawai.forEach(p => {
+      const nip = pegawaiNip(p);
+      const old = typeof pegawaiNipLama === 'function' ? pegawaiNipLama(p) : (p.nip_lama || '');
+      if(nip) nipMap[digits(nip)] = p;
+      if(old) oldMap[digits(old)] = p;
+      const nk = normKey(pegawaiNama(p));
+      if(nk && !nameMap[nk]) nameMap[nk] = p;
+    });
+    return { oldMap, nipMap, nameMap };
   }
 
-  function openDetail(index) {
-    const row = STATE.filtered[index];
-    if (!row) return;
-    const titlePeriod = STATE.mode === 'bulanan' ? 'Periode Bulanan' : 'Periode Tahunan';
-    const details = [
-      ['Jenis Data', STATE.mode === 'bulanan' ? 'Bulanan' : 'Tahunan'],
-      [titlePeriod, periodLabel(row)],
-      ['Hasil Kerja', fmtNumber(row.hasil_kerja, 2)],
-      ['Perilaku', fmtNumber(row.perilaku, 2)],
-      ['Nilai Akhir', fmtNumber(row.nilai, 2)],
-      ['Predikat', cleanText(row.predikat) || '-'],
-      ['Status', cleanText(row.status) || '-'],
-      ['Dibuat', fmtDate(row.created_at)],
-    ];
-    byId('detail-body').innerHTML = `
-      <div class="detail-head">
-        <div class="detail-avatar">${esc(initials(row.nama))}</div>
-        <div><div class="detail-name">${esc(cleanText(row.nama) || 'Tanpa Nama')}</div><div class="detail-nip">${esc(cleanText(row.pegawai_nip) || '-')}</div></div>
-      </div>
-      <div class="detail-grid">
-        ${details.map(([label, value]) => `<div class="detail-item"><div class="detail-label">${esc(label)}</div><div class="detail-value">${esc(value)}</div></div>`).join('')}
-      </div>`;
-    byId('detail-modal').classList.add('show');
+  function openImportModal(){
+    hideAlert('import');
+    byId('import-year').value = STATE.selectedYear || new Date().getFullYear();
+    resetImportPreview();
+    byId('import-modal').classList.add('show');
     document.body.style.overflow = 'hidden';
   }
-
-  function closeDetail() {
-    byId('detail-modal').classList.remove('show');
+  function closeImportModal(){
+    byId('import-modal').classList.remove('show');
     document.body.style.overflow = '';
   }
+  function resetImportPreview(){
+    IMPORT.sourceRows = [];
+    IMPORT.parsed = [];
+    IMPORT.payload = [];
+    IMPORT.mode = byId('import-kind').value;
+    byId('import-file').value = '';
+    renderImportPreview();
+  }
 
-  function exportCSV() {
-    const rows = STATE.filtered;
-    if (!rows.length) {
-      showPageAlert('Tidak ada data untuk diexport.', 'info');
+  async function parseImportFile(){
+    hideAlert('import');
+    const file = byId('import-file').files[0];
+    if(!file) return;
+    if(typeof XLSX === 'undefined'){
+      showAlert('Library pembaca Excel gagal dimuat. Periksa koneksi lalu refresh halaman.', 'error', 'import');
       return;
     }
-    const headers = STATE.mode === 'bulanan'
-      ? ['pegawai_nip','nama','tahun','bulan','bulan_nama','hasil_kerja','perilaku','nilai','predikat','status','created_at']
-      : ['pegawai_nip','nama','tahun','hasil_kerja','perilaku','nilai','predikat','status','created_at'];
-    const csv = [headers.join(';')].concat(rows.map(row => headers.map(h => csvCell(row[h])).join(';'))).join('\r\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    try{
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type:'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const matrix = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+      parseImportMatrix(matrix);
+      renderImportPreview();
+    }catch(e){
+      console.error('[predikat] parseImportFile:', e);
+      showAlert(`Gagal membaca Excel: ${e.message}`, 'error', 'import');
+    }
+  }
+
+  function headerKey(v){
+    return clean(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'');
+  }
+  function findCol(headers, aliases){
+    const keys = headers.map(headerKey);
+    for(const alias of aliases){
+      const idx = keys.indexOf(headerKey(alias));
+      if(idx >= 0) return idx;
+    }
+    return -1;
+  }
+  function parseImportMatrix(matrix){
+    IMPORT.mode = byId('import-kind').value;
+    const rows = matrix.filter(r => Array.isArray(r) && r.some(c => clean(c) !== ''));
+    if(rows.length < 2) throw new Error('File tidak berisi baris data.');
+    const headers = rows[0];
+    const cols = {
+      niplama: findCol(headers, ['Niplama','NIP Lama','nip_lama']),
+      nama: findCol(headers, ['Nama']),
+      bulan: findCol(headers, ['Bulan','Periode']),
+      hasil: findCol(headers, ['Rata-rata hasil kerja','Hasil Kerja']),
+      perilaku: findCol(headers, ['Rata-rata perilaku','Perilaku']),
+      nilai: findCol(headers, ['Nilai rata-rata','Nilai']),
+      predikat: findCol(headers, ['Predikat kinerja','Predikat']),
+      status: findCol(headers, ['Status']),
+    };
+    const required = IMPORT.mode === 'tahunan'
+      ? ['niplama','nama','hasil','perilaku','nilai','predikat','status']
+      : ['niplama','nama','bulan','hasil','perilaku','nilai','predikat','status'];
+    const missing = required.filter(k => cols[k] < 0);
+    if(missing.length) throw new Error(`Kolom wajib tidak ditemukan: ${missing.join(', ')}.`);
+
+    const maps = buildPegawaiMaps();
+    const year = Number(byId('import-year').value) || new Date().getFullYear();
+    IMPORT.sourceRows = rows.slice(1);
+    IMPORT.parsed = IMPORT.sourceRows.map((cells, index) => {
+      const niplama = clean(cells[cols.niplama]);
+      const nama = clean(cells[cols.nama]);
+      const pegawai = resolvePegawai(niplama, nama, maps);
+      const periods = IMPORT.mode === 'tahunan' ? [{ months: [], label: String(year) }] : parsePeriod(cells[cols.bulan]);
+      const errors = [];
+      if(!pegawai.row) errors.push('Niplama/Nama tidak cocok dengan data_pegawai');
+      if(!periods.length) errors.push('Periode tidak dikenali');
+      const base = {
+        rowNo: index + 2,
+        niplama,
+        nama,
+        pegawai,
+        periods,
+        hasil_kerja: parseNumber(cells[cols.hasil]),
+        perilaku: parseNumber(cells[cols.perilaku]),
+        nilai: parseNumber(cells[cols.nilai]),
+        predikat: canonicalPredikat(cells[cols.predikat]),
+        status: clean(cells[cols.status]) || null,
+        errors,
+      };
+      if(base.hasil_kerja == null) errors.push('Hasil kerja tidak valid');
+      if(base.perilaku == null) errors.push('Perilaku tidak valid');
+      if(base.nilai == null) errors.push('Nilai tidak valid');
+      if(!base.predikat) errors.push('Predikat kosong');
+      return base;
+    });
+    buildImportPayload(year);
+  }
+
+  function resolvePegawai(niplama, nama, maps){
+    const oldKey = digits(niplama);
+    if(oldKey && maps.oldMap[oldKey]) return { row: maps.oldMap[oldKey], method:'nip_lama' };
+    if(oldKey && maps.nipMap[oldKey]) return { row: maps.nipMap[oldKey], method:'pegawai_nip' };
+    const nameKey = normKey(nama);
+    if(nameKey && maps.nameMap[nameKey]) return { row: maps.nameMap[nameKey], method:'nama' };
+    return { row:null, method:'' };
+  }
+  function parseNumber(v){
+    if(typeof v === 'number' && Number.isFinite(v)) return v;
+    const s = clean(v).replace(',', '.').replace(/[^0-9.-]/g, '');
+    if(!s) return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+  function parsePeriod(v){
+    const raw = clean(v);
+    const upper = raw.toUpperCase().replace(/\./g,'').replace(/\s+/g,' ');
+    const roman = upper.match(/^(?:TRIWULAN|TW|Q)?\s*(I|II|III|IV)$/);
+    if(roman) return [{ months: QUARTERS[roman[1]], label:`Triwulan ${roman[1]}` }];
+    const qNum = upper.match(/^(?:TRIWULAN|TW|Q)\s*([1-4])$/);
+    if(qNum) return [{ months: QUARTERS[['I','II','III','IV'][Number(qNum[1])-1]], label:`Triwulan ${['I','II','III','IV'][Number(qNum[1])-1]}` }];
+    const n = Number(raw);
+    if(Number.isInteger(n) && n >= 1 && n <= 12) return [{ months:[n], label:monthName(n) }];
+    const idx = MONTHS.findIndex(m => normKey(m) === normKey(raw) || normKey(m).slice(0,3) === normKey(raw).slice(0,3));
+    if(idx >= 0) return [{ months:[idx+1], label:MONTHS[idx] }];
+    return [];
+  }
+
+  function buildImportPayload(year){
+    IMPORT.payload = [];
+    IMPORT.parsed.forEach(item => {
+      if(item.errors.length || !item.pegawai.row) return;
+      const pegawai_nip = pegawaiNip(item.pegawai.row);
+      const nama = pegawaiNama(item.pegawai.row) || item.nama;
+      if(IMPORT.mode === 'tahunan'){
+        IMPORT.payload.push({
+          pegawai_nip, nama, tahun: year,
+          hasil_kerja: item.hasil_kerja, perilaku: item.perilaku, nilai: item.nilai,
+          predikat: item.predikat, status: item.status,
+        });
+      }else{
+        item.periods.forEach(period => {
+          period.months.forEach(month => {
+            IMPORT.payload.push({
+              pegawai_nip, nama, tahun: year, bulan: month, bulan_nama: monthName(month),
+              hasil_kerja: item.hasil_kerja, perilaku: item.perilaku, nilai: item.nilai,
+              predikat: item.predikat, status: item.status,
+            });
+          });
+        });
+      }
+    });
+  }
+
+  function renderImportPreview(){
+    const total = IMPORT.parsed.length;
+    const valid = IMPORT.parsed.filter(r => !r.errors.length && r.pegawai.row).length;
+    const err = total - valid;
+    byId('imp-source').textContent = total;
+    byId('imp-valid').textContent = valid;
+    byId('imp-expanded').textContent = IMPORT.payload.length;
+    byId('imp-error').textContent = err;
+    byId('btn-import-save').disabled = IMPORT.payload.length === 0;
+    if(!total){
+      byId('import-preview').innerHTML = '<tr><td colspan="7" class="empty-state">Pilih file Excel untuk melihat preview.</td></tr>';
+      return;
+    }
+    byId('import-preview').innerHTML = IMPORT.parsed.slice(0, 120).map(item => {
+      const ok = !item.errors.length && item.pegawai.row;
+      const mapping = item.pegawai.row ? `${pegawaiNip(item.pegawai.row)} (${item.pegawai.method})` : '-';
+      const period = item.periods.map(p => p.label).join(', ') || '-';
+      return `<tr>
+        <td class="${ok ? 'row-ok' : 'row-bad'}">${ok ? 'OK' : 'CEK'}</td>
+        <td>${escHtml(item.niplama || '-')}</td>
+        <td>${escHtml(item.nama || '-')}</td>
+        <td>${escHtml(mapping)}</td>
+        <td>${escHtml(period)}</td>
+        <td>${escHtml(item.predikat || '-')}</td>
+        <td>${escHtml(item.errors.join('; ') || 'Siap import')}</td>
+      </tr>`;
+    }).join('') + (IMPORT.parsed.length > 120 ? `<tr><td colspan="7" style="text-align:center;color:var(--muted)">... dan ${IMPORT.parsed.length - 120} baris lainnya</td></tr>` : '');
+  }
+
+  async function submitImport(){
+    const year = Number(byId('import-year').value);
+    if(!year || year < 2020 || year > 2100) return showAlert('Tahun import tidak valid.', 'error', 'import');
+    if(!IMPORT.payload.length) return showAlert('Tidak ada baris valid untuk disimpan.', 'error', 'import');
+    const bad = IMPORT.parsed.filter(r => r.errors.length || !r.pegawai.row).length;
+    const nips = [...new Set(IMPORT.payload.map(r => r.pegawai_nip).filter(Boolean))];
+    const nipFilter = nips.map(n => encodeURIComponent(n)).join(',');
+    const replaceText = IMPORT.mode === 'tahunan'
+      ? `data tahunan ${year} untuk ${nips.length} pegawai di file ini`
+      : `data bulanan ${year} untuk ${nips.length} pegawai dan bulan ${[...new Set(IMPORT.payload.map(r => r.bulan))].sort((a,b)=>a-b).map(monthName).join(', ')}`;
+    if(!confirm(`Import akan mengganti ${replaceText}. Lanjutkan?${bad ? `\n\n${bad} baris bermasalah akan dilewati.` : ''}`)) return;
+
+    const btn = byId('btn-import-save');
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+    try{
+      if(IMPORT.mode === 'tahunan'){
+        await deleteRows(`predikat_kinerja_tahunan?tahun=eq.${year}&pegawai_nip=in.(${nipFilter})`);
+        await postRows('predikat_kinerja_tahunan', IMPORT.payload);
+      }else{
+        const months = [...new Set(IMPORT.payload.map(r => r.bulan))].sort((a,b)=>a-b);
+        await deleteRows(`predikat_kinerja_bulanan?tahun=eq.${year}&pegawai_nip=in.(${nipFilter})&bulan=in.(${months.join(',')})`);
+        await postRows('predikat_kinerja_bulanan', IMPORT.payload);
+      }
+      STATE.selectedYear = year;
+      closeImportModal();
+      showAlert(`Import berhasil: ${IMPORT.payload.length} record disimpan.`, 'success');
+      await loadAll();
+    }catch(e){
+      console.error('[predikat] submitImport:', e);
+      showAlert(`Gagal menyimpan import: ${e.message}`, 'error', 'import');
+    }finally{
+      btn.disabled = false;
+      btn.textContent = 'Simpan Import';
+    }
+  }
+
+  async function deleteRows(path){
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method:'DELETE', headers:{ ...H, Prefer:'return=minimal' } });
+    if(!res.ok){
+      let msg = `HTTP ${res.status}`;
+      try{ const err = await res.json(); msg = err.message || err.hint || msg; }catch(_){}
+      throw new Error(msg);
+    }
+  }
+  async function postRows(table, payload){
+    for(let i=0; i<payload.length; i+=500){
+      const chunk = payload.slice(i, i+500);
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+        method:'POST',
+        headers:{ ...H, Prefer:'return=minimal' },
+        body: JSON.stringify(chunk),
+      });
+      if(!res.ok){
+        let msg = `HTTP ${res.status}`;
+        try{ const err = await res.json(); msg = err.message || err.hint || msg; }catch(_){}
+        throw new Error(msg);
+      }
+    }
+  }
+
+  function exportCSV(){
+    const year = Number(STATE.selectedYear);
+    const rows = [];
+    STATE.employees.forEach(e => {
+      if(e.annual){
+        rows.push({ jenis:'Tahunan', pegawai_nip:e.nip, nama:e.nama, tahun:year, bulan:'', bulan_nama:'', ...pickScore(e.annual) });
+      }
+      e.monthly.forEach(m => rows.push({ jenis:'Bulanan', pegawai_nip:e.nip, nama:e.nama, tahun:year, bulan:m.bulan, bulan_nama:m.bulan_nama, ...pickScore(m) }));
+    });
+    if(!rows.length) return showAlert('Tidak ada data untuk diexport pada tahun ini.', 'info');
+    const headers = ['jenis','pegawai_nip','nama','tahun','bulan','bulan_nama','hasil_kerja','perilaku','nilai','predikat','status'];
+    const csv = [headers.join(';')].concat(rows.map(r => headers.map(h => `"${clean(r[h]).replace(/"/g,'""')}"`).join(';'))).join('\r\n');
+    const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     const url = URL.createObjectURL(blob);
     a.href = url;
-    a.download = `predikat-kinerja-${STATE.mode}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `predikat-kinerja-${year}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
   }
+  function pickScore(r){ return { hasil_kerja:r.hasil_kerja, perilaku:r.perilaku, nilai:r.nilai, predikat:r.predikat, status:r.status }; }
 
-  function csvCell(value) {
-    const s = cleanText(value).replace(/"/g, '""');
-    return `"${s}"`;
-  }
-
-  async function init() {
-    let session = novaCheckSession({ requireAdmin: true });
-    if (!session) return;
+  async function init(){
+    let session = novaCheckSession({ requireAdmin:true });
+    if(!session) return;
     session = await novaVerifyAdminSession(session);
-    if (!session) return;
-    if (window.Topbar9201 && typeof window.Topbar9201.setUser === 'function') {
-      window.Topbar9201.setUser(session);
-    }
+    if(!session) return;
+    if(window.Topbar9201 && typeof window.Topbar9201.setUser === 'function') window.Topbar9201.setUser(session);
     initRoleSwitcher(session, true);
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') closeDetail();
-    });
-    loadData();
+    document.addEventListener('keydown', e => { if(e.key === 'Escape') closeImportModal(); });
+    loadAll();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 </script>
 </body>
 </html>

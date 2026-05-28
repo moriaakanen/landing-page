@@ -215,10 +215,40 @@
     const rows = await fetchJson(
       `predikat_kinerja_bulanan?pegawai_nip=eq.${encodeURIComponent(nip)}`
       + `&tahun=eq.${tahun}`
-      + `&bulan=gte.${bulan_start}&bulan=lte.${bulan_end}`
       + `&order=bulan.asc`
     );
-    return rows;
+    return normalizePredikatBulananRows(rows, bulan_start, bulan_end);
+  }
+
+  function quarterMonthsFromLabel(label) {
+    const raw = String(label || '').trim().toLowerCase();
+    if (!raw) return null;
+    const compact = raw.replace(/\./g, '').replace(/\s+/g, ' ');
+    const roman = compact.match(/^(?:triwulan|tw|q)?\s*(i|ii|iii|iv)$/i);
+    if (!roman) return null;
+    const map = { i: [1,2,3], ii: [4,5,6], iii: [7,8,9], iv: [10,11,12] };
+    return map[roman[1].toLowerCase()] || null;
+  }
+
+  function normalizePredikatBulananRows(rows, bulan_start, bulan_end) {
+    const byMonth = {};
+    (rows || []).forEach(row => {
+      const qMonths = quarterMonthsFromLabel(row.bulan_nama);
+      const months = qMonths || [Number(row.bulan)];
+      months.forEach(month => {
+        if (!month || month < bulan_start || month > bulan_end) return;
+        const expanded = {
+          ...row,
+          bulan: month,
+          bulan_nama: BULAN[month - 1],
+          _sumber_periode: qMonths ? (row.bulan_nama || `Triwulan ${Math.ceil(month / 3)}`) : (row.bulan_nama || BULAN[month - 1]),
+        };
+        if (!byMonth[month] || byMonth[month]._sumber_periode !== byMonth[month].bulan_nama) {
+          byMonth[month] = expanded;
+        }
+      });
+    });
+    return Object.values(byMonth).sort((a, b) => Number(a.bulan) - Number(b.bulan));
   }
 
   /**
@@ -591,7 +621,7 @@
         throw new Error(
           `Predikat bulanan tidak lengkap untuk periode ini. ` +
           `Bulan tanpa predikat: ${missing.join(', ')}. ` +
-          `Pastikan semua bulan sudah di-import ke predikat_kinerja_bulanan.`
+          `Pastikan predikat bulanan atau triwulanan sudah di-import ke predikat_kinerja_bulanan.`
         );
       }
     }
