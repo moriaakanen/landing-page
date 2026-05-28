@@ -178,6 +178,9 @@
   function pegawaiNip(row) {
     return row ? (row.pegawai_nip ?? row.NIP ?? row.username ?? '') : '';
   }
+  function pegawaiNipLama(row) {
+    return row ? (row.nip_lama ?? row.niplama ?? row['NIP LAMA'] ?? row['Niplama'] ?? '') : '';
+  }
   function pegawaiKarpeg(row) {
     return row ? (row.karpeg ?? row['NOMOR SERI KARPEG'] ?? '') : '';
   }
@@ -195,6 +198,7 @@
   }
   window.pegawaiNama = pegawaiNama;
   window.pegawaiNip = pegawaiNip;
+  window.pegawaiNipLama = pegawaiNipLama;
   window.pegawaiKarpeg = pegawaiKarpeg;
   window.pegawaiTtl = pegawaiTtl;
   window.pegawaiJk = pegawaiJk;
