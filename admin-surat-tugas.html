@@ -683,13 +683,6 @@
 
 <div id="topbar-mount"></div>
 
-<!-- #3: Tombol toggle sidebar — fixed overlay di pinggir sidebar.
-     State collapse di-persist via localStorage (key: sidebar_collapsed). -->
-<button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()"
-        title="Sembunyikan / tampilkan menu">
-  <span class="toggle-icon">‹</span>
-</button>
-
 <div class="layout">
   <aside class="sidebar" id="sidebar" data-active="admin-surat"></aside>
 
@@ -1002,25 +995,6 @@
 <script src="9201-sidebar.js"></script>
 <script src="9201-role-switcher.js"></script>
 <script src="9201-notifikasi.js"></script>
-
-<script>
-/* #3: Sidebar collapse toggle — state per-browser via localStorage.
-   Diapply secepat mungkin (sebelum konten render) supaya tidak ada flicker. */
-(function(){
-  const KEY='sidebar_collapsed_v1';
-  function applyState(){
-    let collapsed=false;
-    try{collapsed=localStorage.getItem(KEY)==='1';}catch(_){}
-    document.body.classList.toggle('sidebar-collapsed',collapsed);
-  }
-  applyState();  // restore dari localStorage langsung
-  window.toggleSidebar=function(){
-    const nowCollapsed=!document.body.classList.contains('sidebar-collapsed');
-    document.body.classList.toggle('sidebar-collapsed',nowCollapsed);
-    try{localStorage.setItem(KEY,nowCollapsed?'1':'0');}catch(_){}
-  };
-})();
-</script>
 
 <!-- ═══════════════════════════════════════════════════════════
      LOGIC — di file terpisah agar mudah di-maintain
