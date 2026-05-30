@@ -460,6 +460,8 @@
   #pak-modal .pak-form-panel .form-group:last-child{margin-bottom:0}
   #pak-modal .pak-period-note{border-radius:9px;border-left:0;border:1px solid #bfdbfe;background:#eff6ff;margin-bottom:9px;padding:10px 12px}
   #pak-modal .pak-period-trigger,#pak-modal .pak-person-trigger,#pak-modal .pak-date-trigger{min-height:40px;border-radius:9px;background:#fff}
+  #pak-modal .pak-person-popover{top:auto;bottom:calc(100% + 8px);max-height:380px}
+  #pak-modal .pak-person-list{max-height:310px}
   #pak-modal .pak-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
   #pak-modal .pak-preview-item{min-width:0;padding:9px 10px;border:1px solid rgba(13,35,64,.08);border-radius:9px;background:rgba(255,255,255,.72)}
   #pak-modal .pak-preview-item.full{grid-column:1/-1}
@@ -467,10 +469,35 @@
   #pak-modal .pak-preview-value.big{font-size:25px;color:var(--navy)}
   #pak-modal .pak-preview-placeholder{min-height:190px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px;color:var(--muted);font-size:12.5px;line-height:1.5;border:1px dashed var(--border2);border-radius:10px;background:rgba(255,255,255,.58);padding:18px}
   #pak-modal .pak-preview-placeholder::before{content:'AK';width:42px;height:42px;border-radius:14px;background:var(--gold-light);color:var(--gold-dark);display:flex;align-items:center;justify-content:center;font-weight:900;letter-spacing:.5px}
+
+  #pengajuan-summary-modal .modal.modal-pak{max-width:1040px;max-height:calc(100vh - 28px)}
+  #pengajuan-summary-modal .modal-body{padding:16px 20px 18px;overflow:visible}
+  #pengajuan-summary-modal .pak-intro-note{font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:14px;background:linear-gradient(180deg,#fff,#fafaf6);padding:12px 14px;border-radius:10px;border:1px solid var(--border)}
+  #pengajuan-summary-modal .pak-compose-grid{display:grid;grid-template-columns:minmax(360px,.95fr) minmax(320px,1.05fr);gap:16px;align-items:start}
+  #pengajuan-summary-modal .pak-compose-panel,#pengajuan-summary-modal .pak-preview{border:1px solid var(--border);border-radius:12px;background:#fff;box-shadow:0 12px 32px rgba(13,35,64,.08)}
+  #pengajuan-summary-modal .pak-compose-panel{padding:15px;background:linear-gradient(180deg,#fff 0%,#fffdf8 100%)}
+  #pengajuan-summary-modal .pak-preview{display:block!important;margin:0;padding:15px;min-height:100%;background:linear-gradient(180deg,#ffffff 0%,#fbfaf6 100%)}
+  #pengajuan-summary-modal .pak-panel-head,#pengajuan-summary-modal .pak-preview-head{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+  #pengajuan-summary-modal .pak-panel-title,#pengajuan-summary-modal .pak-preview-head-title{font-size:11px;font-weight:800;color:var(--navy);letter-spacing:.65px;text-transform:uppercase}
+  #pengajuan-summary-modal .pak-panel-icon,#pengajuan-summary-modal .pak-preview-head-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:linear-gradient(135deg,var(--navy),var(--navy2));box-shadow:0 8px 20px rgba(13,35,64,.16);position:relative;color:#fff}
+  #pengajuan-summary-modal .pak-panel-icon.form::before{content:'';width:13px;height:16px;border:2px solid rgba(255,255,255,.9);border-radius:3px;box-shadow:inset 0 5px 0 rgba(255,255,255,.18)}
+  #pengajuan-summary-modal .pak-panel-icon.form::after{content:'';position:absolute;width:12px;height:2px;background:var(--gold);border-radius:2px;transform:translateY(2px)}
+  #pengajuan-summary-modal .pak-preview-head-icon::before{content:'AK';font-size:10px;font-weight:900;letter-spacing:.5px;color:var(--gold)}
+  #pengajuan-summary-modal .summary-readbox{min-height:40px;padding:10px 12px;border:1.5px solid var(--border2);border-radius:9px;background:#fffdf8;color:var(--navy);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  #pengajuan-summary-modal .summary-readbox.editable{cursor:pointer;border-color:rgba(200,168,75,.62);background:#fffdf6;transition:border-color .15s,box-shadow .15s,background .15s}
+  #pengajuan-summary-modal .summary-readbox.editable:hover{background:#fff;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,168,75,.12)}
+  #pengajuan-summary-modal .summary-readbox .hint{color:var(--gold-dark);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;white-space:nowrap}
+  #pengajuan-summary-modal .pak-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  #pengajuan-summary-modal .pak-preview-item{min-width:0;padding:9px 10px;border:1px solid rgba(13,35,64,.08);border-radius:9px;background:rgba(255,255,255,.72)}
+  #pengajuan-summary-modal .pak-preview-item.full{grid-column:1/-1}
+  #pengajuan-summary-modal .pak-preview-divider{grid-column:1/-1;height:1px;background:var(--border);margin:1px 0}
+  #pengajuan-summary-modal .pak-preview-value.big{font-size:25px;color:var(--navy)}
+  #pengajuan-summary-modal .summary-locked-note{margin-top:10px;padding:10px 12px;border-radius:9px;background:#f8fafc;border:1px solid var(--border);color:var(--muted);font-size:12px;line-height:1.5}
   @media(max-width:900px){
     .modal.modal-pak{max-width:760px}
     #pak-modal .pak-compose-grid{grid-template-columns:1fr}
     #pak-modal .pak-preview{position:static}
+    #pengajuan-summary-modal .pak-compose-grid{grid-template-columns:1fr}
   }
   .summary-form{display:flex;flex-direction:column;gap:14px}
   .summary-readbox{min-height:42px;padding:10px 12px;border:1.5px solid var(--border2);border-radius:8px;background:#fffdf8;color:var(--navy);font-size:13px;font-weight:500;display:flex;align-items:center}
@@ -823,7 +850,7 @@
           <div class="pak-preview-spin"></div>
           <div>Menyiapkan dokumen...</div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px">
-            Render via Microsoft Word Online (5-15 detik pertama kali)
+            Dokumen dibuat lokal di browser, tanpa membuka file dari Supabase.
           </div>
         </div>
       </div>
@@ -1576,7 +1603,7 @@ function ensurePengajuanSummaryModal() {
   el.id = 'pengajuan-summary-modal';
   el.className = 'modal-overlay';
   el.onclick = e => { if (e.target === el) closePengajuanSummary(); };
-  el.innerHTML = `<div class="modal modal-pak" style="max-width:640px">
+  el.innerHTML = `<div class="modal modal-pak">
     <div class="modal-header">
       <div class="modal-title">Ringkasan <em>Pengajuan PAK</em></div>
       <button class="modal-close" onclick="closePengajuanSummary()" type="button">x</button>
@@ -1598,41 +1625,80 @@ async function openPengajuanSummary(id) {
   if (!p) return alert('Pengajuan tidak ditemukan.');
   await ensurePegawaiList();
   const modal = ensurePengajuanSummaryModal();
-  const isPending = (p.status || 'menunggu') === 'menunggu';
+  const status = String(p.status || 'menunggu').toLowerCase();
+  const isPending = status !== 'selesai';
+  const statusLabel = status === 'selesai' ? 'Selesai' : 'Menunggu';
   const periodeText = pakPeriodFromRow(p);
+  const editableHint = isPending ? '<span class="hint">Edit</span>' : '';
+  const readboxClass = isPending ? 'summary-readbox editable' : 'summary-readbox';
+  const editAttr = isPending ? ` onclick="openPakEditModal(${id})" role="button" tabindex="0"` : '';
+  const pegawaiNamaText = STATE_PROFIL.profil && (pegawaiNama(STATE_PROFIL.profil) || STATE_PROFIL.profil.nama)
+    ? (pegawaiNama(STATE_PROFIL.profil) || STATE_PROFIL.profil.nama)
+    : (p.pegawai_nip || STATE_PROFIL.nip || '-');
+  const modeBadge = p.mode_hitung === 'tahunan'
+    ? '<span class="status-pill selesai" style="margin-left:6px">Tahunan</span>'
+    : '<span class="status-pill menunggu" style="margin-left:6px">Bulanan</span>';
+  const statusBadge = `<span class="status-pill ${esc(status)}">${esc(statusLabel)}</span>`;
   document.getElementById('pengajuan-summary-body').innerHTML = `
-    <div class="summary-form">
-      <div class="form-group"><label>Periode Pengajuan</label><div class="summary-readbox">${esc(periodeText)}</div></div>
-      <div class="form-group"><label>Tanggal Pengajuan</label><div class="summary-readbox">${esc(fmtTglID(p.tgl_pengajuan) || '-')}</div></div>
-      <div class="form-group"><label>Penandatangan</label><div class="summary-readbox">${esc(p.penandatangan_nama || p.penandatangan_nip || '-')}</div></div>
+    <div class="pak-intro-note">
+      Ringkasan pengajuan ini memakai perhitungan yang sama dengan Ajukan PAK Baru. Selama status belum selesai, data pengajuan masih bisa diedit.
+    </div>
+    <div class="pak-compose-grid">
+      <section class="pak-compose-panel pak-form-panel">
+        <div class="pak-panel-head">
+          <div class="pak-panel-icon form"></div>
+          <div class="pak-panel-title">Data Pengajuan</div>
+        </div>
+        <div class="form-group">
+          <label>Pegawai</label>
+          <div class="summary-readbox">${esc(pegawaiNamaText)} ${modeBadge}</div>
+        </div>
+        <div class="form-group">
+          <label>Periode Pengajuan</label>
+          <div class="${readboxClass}"${editAttr}>${esc(periodeText)} ${editableHint}</div>
+        </div>
+        <div class="form-group">
+          <label>Tanggal Pengajuan</label>
+          <div class="${readboxClass}"${editAttr}>${esc(fmtTglID(p.tgl_pengajuan) || '-')} ${editableHint}</div>
+        </div>
+        <div class="form-group">
+          <label>Penandatangan</label>
+          <div class="${readboxClass}"${editAttr}>${esc(p.penandatangan_nama || p.penandatangan_nip || '-')} ${editableHint}</div>
+        </div>
+        ${isPending ? '' : '<div class="summary-locked-note">Pengajuan yang sudah selesai tidak bisa diedit atau dihapus.</div>'}
+      </section>
       <div class="pak-preview">
-        <div class="pak-preview-head"><div class="pak-preview-head-icon"></div><div class="pak-preview-head-title">Ringkasan Perhitungan</div></div>
+        <div class="pak-preview-head">
+          <div class="pak-preview-head-icon"></div>
+          <div class="pak-preview-head-title">Ringkasan Perhitungan</div>
+        </div>
         <div class="pak-preview-grid">
           <div class="pak-preview-item"><div class="pak-preview-label">Nomor</div><div class="pak-preview-value">${esc(String(p.nomor_urut || '-').padStart(3,'0'))}</div></div>
-          <div class="pak-preview-item"><div class="pak-preview-label">Status</div><div class="pak-preview-value">${esc(p.status || 'menunggu')}</div></div>
+          <div class="pak-preview-item"><div class="pak-preview-label">Status</div><div class="pak-preview-value">${statusBadge}</div></div>
+          <div class="pak-preview-divider"></div>
+          <div class="pak-preview-item"><div class="pak-preview-label">AK Sebelumnya</div><div class="pak-preview-value">${esc(fmtAK(p.ak_n1))}</div></div>
           <div class="pak-preview-item"><div class="pak-preview-label">AK Didapat</div><div class="pak-preview-value">+ ${esc(fmtAK(p.ak_didapat))}</div></div>
-          <div class="pak-preview-item"><div class="pak-preview-label">AK Total</div><div class="pak-preview-value big">${esc(fmtAK(p.ak_total))}</div></div>
+          <div class="pak-preview-item full"><div class="pak-preview-label">AK Total Baru</div><div class="pak-preview-value big">${esc(fmtAK(p.ak_total))}</div></div>
         </div>
       </div>
-    </div>
-    ${isPending ? '' : '<div class="form-help warn">Pengajuan yang sudah selesai tidak bisa diedit atau dihapus.</div>'}`;
+    </div>`;
   document.getElementById('pengajuan-summary-footer').innerHTML = `
     <button class="btn btn-secondary" onclick="closePengajuanSummary()" type="button">Tutup</button>
     <button class="btn btn-secondary" onclick="previewPengajuan(${id})" type="button">Preview Dokumen</button>
-    ${isPending ? `<button class="btn btn-secondary" onclick="openPakEditModal(${id})" type="button">Edit</button><button class="btn btn-danger" onclick="deletePengajuan(${id})" type="button">Batalkan Pengajuan</button>` : ''}`;
+    ${isPending ? `<button class="btn btn-primary" onclick="openPakEditModal(${id})" type="button">Edit Pengajuan</button><button class="btn btn-danger" onclick="deletePengajuan(${id})" type="button">Batalkan Pengajuan</button>` : ''}`;
   modal.classList.add('show');
 }
 
 async function openPakEditModal(id) {
   const p = STATE_PROFIL.pengajuan.find(x => x.id === id);
-  if (!p || (p.status || 'menunggu') !== 'menunggu') return alert('Hanya pengajuan menunggu yang bisa diedit.');
+  if (!p || String(p.status || 'menunggu').toLowerCase() === 'selesai') return alert('Pengajuan yang sudah selesai tidak bisa diedit.');
   closePengajuanSummary();
   await openPakModal(p);
 }
 
 async function savePengajuanSummary(id) {
   const p = STATE_PROFIL.pengajuan.find(x => x.id === id);
-  if (!p || (p.status || 'menunggu') !== 'menunggu') return;
+  if (!p || String(p.status || 'menunggu').toLowerCase() === 'selesai') return;
   const tahun = Number(document.getElementById('sum-tahun').value);
   const bulan_start = Number(document.getElementById('sum-bulan-start').value);
   const bulan_end = Number(document.getElementById('sum-bulan-end').value);
@@ -1651,7 +1717,7 @@ async function savePengajuanSummary(id) {
 
 async function deletePengajuan(id) {
   const p = STATE_PROFIL.pengajuan.find(x => x.id === id);
-  if (!p || (p.status || 'menunggu') !== 'menunggu') return alert('Hanya pengajuan menunggu yang bisa dihapus.');
+  if (!p || String(p.status || 'menunggu').toLowerCase() === 'selesai') return alert('Pengajuan yang sudah selesai tidak bisa dihapus.');
   if (!confirm('Batalkan pengajuan PAK ini?')) return;
   try {
     await mutatePengajuanRow('DELETE', id);
@@ -2085,7 +2151,7 @@ async function downloadPengajuan(id) {
 }
 
 /* ====================================================================
-   PREVIEW PAK (USER) - Office Online viewer iframe
+   PREVIEW PAK (USER) - local browser render
    -----------------------------------------------------------------
    Pola sama dengan admin-kepegawaian.html. User bisa lihat preview
    tanpa harus download dulu. Dokumen otomatis dihapus 10 menit
@@ -2133,7 +2199,7 @@ async function previewPengajuan(id) {
       <div class="pak-preview-spin"></div>
       <div>Menyiapkan dokumen...</div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px">
-        Render via Microsoft Word Online (5-15 detik pertama kali)
+        Dokumen dibuat lokal di browser, tanpa membuka file dari Supabase.
       </div>
     </div>`;
 
