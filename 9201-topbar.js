@@ -51,7 +51,7 @@
   .notif-badge[hidden]{display:none !important}
   :where(.menu-toggle){display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:6px;cursor:pointer;color:#fff;font-size:16px;margin-left:4px;font-family:inherit}
   :where(.menu-toggle:hover){background:rgba(255,255,255,.12)}
-  body.sidebar-hidden :where(.topbar-brand){width:auto}
+  body.sidebar-hidden :where(.topbar-brand),body.sidebar-collapsed :where(.topbar-brand){width:0;padding:0;border-right:none;opacity:0;overflow:hidden}
   @media(max-width:768px){:where(.topbar-time){display:none}}
   @media(max-width:600px){:where(.menu-toggle){display:none!important}}
   `;

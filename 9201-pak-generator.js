@@ -1025,7 +1025,6 @@
       throw new Error(`Upload preview gagal: ${msg}`);
     }
     schedulePreviewCleanup(filename);
-    cleanupExpiredPreviewFiles().catch(() => {});
     return filename;
   }
 

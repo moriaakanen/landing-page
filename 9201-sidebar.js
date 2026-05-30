@@ -40,14 +40,22 @@
     padding:16px 12px!important;border-right:1px solid rgba(13,35,64,.09)!important;
     box-shadow:8px 0 30px rgba(13,35,64,.035)!important;overflow-y:auto!important;opacity:1;
   }
-  .sidebar-float-toggle{
-    position:fixed;left:calc(var(--sidebar-w,260px) - 18px);top:80px;z-index:260;width:36px;height:36px;
-    border:1px solid rgba(13,35,64,.12);border-radius:999px;background:#fff;color:var(--navy,#0d2340);
-    box-shadow:0 10px 28px rgba(13,35,64,.16);font:900 18px/1 'Plus Jakarta Sans',sans-serif;
-    display:flex;align-items:center;justify-content:center;cursor:pointer;transition:left .24s ease,transform .18s ease,box-shadow .18s ease,background .18s ease;
+  .sidebar-toggle{
+    position:fixed;top:62px;left:calc(var(--sidebar-w,260px) - 14px);
+    width:28px;height:28px;border-radius:50%;
+    background:var(--white,#fff);border:1.5px solid var(--border,#e2ddd6);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;z-index:260;color:var(--navy,#0d2340);
+    transition:left .25s ease,background .15s,transform .15s;
+    box-shadow:0 2px 8px rgba(13,35,64,.08);
+    font-size:13px;font-weight:700;line-height:1;padding:0;
   }
-  .sidebar-float-toggle:hover{background:#fffaf0;box-shadow:0 14px 32px rgba(13,35,64,.2);transform:translateY(-1px)}
-  body.sidebar-hidden .sidebar-float-toggle{left:14px}
+  .sidebar-toggle:hover{background:var(--bg,#f5f4f0);transform:scale(1.05)}
+  body.sidebar-hidden .sidebar-toggle,
+  body.sidebar-collapsed .sidebar-toggle{left:6px}
+  .toggle-icon{display:inline-block;transition:transform .25s ease}
+  body.sidebar-hidden .sidebar-toggle .toggle-icon,
+  body.sidebar-collapsed .sidebar-toggle .toggle-icon{transform:rotate(180deg)}
   :where(.sidebar-section-label),:where(.nav-group-label),:where(.nav-item-icon){display:none!important}
   :where(.nav-item){
     min-height:42px;padding:0 14px!important;border-left:0!important;border-radius:10px;
@@ -96,7 +104,7 @@
   }
   :where(.sidebar-footer strong){display:none!important}
   @media(max-width:600px){
-    .sidebar-float-toggle{left:14px;top:80px}
+    .sidebar-toggle{left:14px;top:62px}
     :where(.sidebar){padding:14px 12px!important}
     :where(.sidebar.collapsed){width:var(--sidebar-w,260px)!important;opacity:1;padding:14px 12px!important}
   }
@@ -124,7 +132,7 @@
   }
 
   function buildSidebar(activeKey) {
-    var html = '<button class="sidebar-float-toggle" type="button" onclick="Sidebar9201.toggleSidebar()" aria-label="Sembunyikan menu">&lt;</button>';
+    var html = '';
 
     NAV_USER_ITEMS.forEach(function (item) {
       html += buildItem(item, activeKey);
@@ -157,21 +165,37 @@
     if (!aside) return;
     var activeKey = aside.getAttribute('data-active') || '';
     aside.innerHTML = buildSidebar(activeKey);
+    ensureToggleButton();
     try {
-      if (localStorage.getItem('nova_sidebar_hidden') === '1' && !window.matchMedia('(max-width:600px)').matches) {
+      var persisted = localStorage.getItem('sidebar_collapsed_v1') === '1' || localStorage.getItem('nova_sidebar_hidden') === '1';
+      if (persisted && !window.matchMedia('(max-width:600px)').matches) {
         aside.classList.add('collapsed');
         document.body.classList.add('sidebar-hidden');
+        document.body.classList.add('sidebar-collapsed');
       }
     } catch (_) {}
     updateToggle();
   }
 
+  function ensureToggleButton() {
+    var btn = document.getElementById('sidebar-toggle-shared');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'sidebar-toggle-shared';
+      btn.className = 'sidebar-toggle';
+      btn.type = 'button';
+      btn.onclick = toggleSidebar;
+      document.body.appendChild(btn);
+    }
+    btn.innerHTML = '<span class="toggle-icon">&lsaquo;</span>';
+  }
+
   function updateToggle() {
-    var btn = document.querySelector('.sidebar-float-toggle');
+    var btn = document.querySelector('.sidebar-toggle');
     var aside = document.getElementById('sidebar');
     if (!btn || !aside) return;
-    var hidden = aside.classList.contains('collapsed') && !window.matchMedia('(max-width:600px)').matches;
-    btn.innerHTML = hidden ? '&gt;' : '&lt;';
+    var hidden = (aside.classList.contains('collapsed') || document.body.classList.contains('sidebar-collapsed')) && !window.matchMedia('(max-width:600px)').matches;
+    btn.innerHTML = '<span class="toggle-icon">&lsaquo;</span>';
     btn.setAttribute('aria-label', hidden ? 'Tampilkan menu' : 'Sembunyikan menu');
   }
 
@@ -194,7 +218,11 @@
     var hidden = !aside.classList.contains('collapsed');
     aside.classList.toggle('collapsed', hidden);
     document.body.classList.toggle('sidebar-hidden', hidden);
-    try { localStorage.setItem('nova_sidebar_hidden', hidden ? '1' : '0'); } catch (_) {}
+    document.body.classList.toggle('sidebar-collapsed', hidden);
+    try {
+      localStorage.setItem('sidebar_collapsed_v1', hidden ? '1' : '0');
+      localStorage.setItem('nova_sidebar_hidden', hidden ? '1' : '0');
+    } catch (_) {}
     updateToggle();
   }
 

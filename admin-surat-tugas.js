@@ -3861,7 +3861,6 @@ async function uploadPreviewDocx(blob, suratId) {
     throw new Error(`Upload preview gagal: ${msg}`);
   }
   schedulePreviewCleanup(filename);
-  cleanupOrphanPreviewFiles();
   return filename;
 }
 
@@ -3923,6 +3922,7 @@ async function cleanupOrphanPreviewFiles() {
     files.forEach(f => {
       // Filename pattern: "{suratId}_{timestamp}.docx"
       const m = f.name && f.name.match(/_(\d+)\.docx$/);
+      if (f.name && /^pak_/.test(f.name)) return;
       if (m && parseInt(m[1], 10) < expiredBefore) deletePreviewFile(f.name);
     });
   } catch (e) { /* fire-and-forget */ }
@@ -5840,7 +5840,5 @@ async function init() {
   // Dijalankan setelah loadSurat selesai biar tidak ada race kalau RLS lambat.
   loadMAKSuggestions();
 
-  // Bersihkan file preview orphan (>10 menit) di Supabase Storage. Fire-and-forget.
-  cleanupOrphanPreviewFiles();
 }
 init();

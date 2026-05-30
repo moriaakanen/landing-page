@@ -119,8 +119,14 @@
   .table-scroll::-webkit-scrollbar-track{background:var(--bg)}
   .table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
   .table-scroll::-webkit-scrollbar-thumb:hover{background:#a9a298}
+  .table-scroll-top{overflow-x:auto;overflow-y:hidden;border-bottom:1px solid var(--border);background:#fafaf8}
+  .table-scroll-top::-webkit-scrollbar{height:10px}
+  .table-scroll-top::-webkit-scrollbar-track{background:var(--bg)}
+  .table-scroll-top::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
+  .table-scroll-top::-webkit-scrollbar-thumb:hover{background:#a9a298}
+  .table-scroll-top-inner{height:1px}
 
-  table.xls-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1220px;table-layout:fixed}
+  table.xls-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1406px;table-layout:fixed}
   table.xls-table thead th{
     background:#f9f5e9;padding:12px 12px;text-align:left;font-size:11px;font-weight:800;
     color:var(--navy);letter-spacing:.6px;text-transform:uppercase;
@@ -150,7 +156,7 @@
   /* Lebar kolom bulk */
   .col-check    { width:42px;  text-align:center }
   .col-no       { width:44px;  text-align:center }
-  .col-perihal  { width:auto;  min-width:220px }
+  .col-perihal  { width:240px }
   .col-waktu    { width:200px }
   .col-tujuan   { width:170px }
   .col-nama     { width:260px }
@@ -169,8 +175,9 @@
   .action-buttons{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   .btn-send-row{background:var(--navy);color:white;border-color:var(--navy)}
   .btn-send-row:hover{background:var(--navy2);border-color:var(--navy2);color:white}
-  .btn-sm.danger{color:var(--red);border-color:#fecaca;background:#fff}
+  .btn-sm.danger{color:var(--red);border:1px solid #fecaca;background:#fff}
   .btn-sm.danger:hover{background:#fef2f2;border-color:var(--red)}
+  .btn-sm.danger.delete-draft-row{border:1px solid #fecaca;background:#fff}
   .bulk-check{width:15px;height:15px;accent-color:var(--navy);cursor:pointer;flex-shrink:0}
   .del-row{background:none;border:none;cursor:pointer;color:#c9c4bb;font-size:14px;padding:3px 6px;border-radius:4px;transition:color .15s,background .15s;line-height:1}
   .del-row:hover{color:var(--red);background:#fef2f2}
@@ -399,7 +406,10 @@
         </div>
       </div>
       <div class="bulk-table-outer">
-        <div class="table-scroll">
+        <div class="table-scroll-top" id="bulk-scroll-top" aria-hidden="true">
+          <div class="table-scroll-top-inner" id="bulk-scroll-top-inner"></div>
+        </div>
+        <div class="table-scroll" id="bulk-table-scroll">
           <table class="xls-table">
             <thead><tr>
               <th class="col-check">&#10003;</th>
@@ -547,7 +557,7 @@ function submittedRowHTML(s){
     <td class="col-nama"><div class="readonly-cell">${esc(pegawai)||'<span class="readonly-empty">Belum ada pegawai</span>'}</div></td>
     <td class="col-pok"><div class="readonly-cell">${esc(s.pembebanan)||'\u2014'}</div></td>
     <td class="col-status">${badgeHTML(s.status)}</td>
-    <td class="col-aksi"><div class="action-buttons"><button class="btn-sm" onclick="showDetail(${JSON.stringify(s.id)})">Detail</button><button class="btn-sm danger" onclick="deleteSubmittedSurat(${JSON.stringify(s.id)})">Delete</button></div></td>
+    <td class="col-aksi"><div class="action-buttons"><button class="btn-sm" onclick="showDetail(${JSON.stringify(s.id)})">Detail</button>${s.status==='selesai'?'':`<button class="btn-sm danger" onclick="deleteSubmittedSurat(${JSON.stringify(s.id)})">Delete</button>`}</div></td>
   </tr>`;
 }
 function renderSubmittedRows(){
@@ -559,7 +569,34 @@ function renderSubmittedRows(){
   }
   refreshSortHeaders();
   reNumberRows();
+  setupBulkTopScrollbar();
 }
+function setupBulkTopScrollbar(){
+  const top=document.getElementById('bulk-scroll-top');
+  const topInner=document.getElementById('bulk-scroll-top-inner');
+  const bottom=document.getElementById('bulk-table-scroll');
+  if(!top||!topInner||!bottom)return;
+  const table=bottom.querySelector('table');
+  const tableWidth=table?table.scrollWidth:bottom.scrollWidth;
+  topInner.style.width=tableWidth+'px';
+  top.style.display=tableWidth>bottom.clientWidth?'':'none';
+  if(top._syncBound)return;
+  let syncing=false;
+  top.addEventListener('scroll',()=>{
+    if(syncing)return;
+    syncing=true;
+    bottom.scrollLeft=top.scrollLeft;
+    requestAnimationFrame(()=>{syncing=false;});
+  });
+  bottom.addEventListener('scroll',()=>{
+    if(syncing)return;
+    syncing=true;
+    top.scrollLeft=bottom.scrollLeft;
+    requestAnimationFrame(()=>{syncing=false;});
+  });
+  top._syncBound=true;
+}
+window.addEventListener('resize',()=>setupBulkTopScrollbar());
 async function deleteSubmittedSurat(id){
   const s=suratMap[id];
   if(!s)return;
@@ -1334,7 +1371,7 @@ function renderRowHTML(id){
     ${cellPegawaiMultiHTML('pegawai_multi',[],[])}
     ${cellTextHTML('pembebanan','','cth: 054.01.GG\u2026','pok')}
     <td class="col-status">${badgeHTML('draft')}</td>
-    <td class="col-aksi"><div class="action-buttons"><button class="btn-sm btn-send-row" type="button" onclick="submitSingleRow(this)">Kirim</button><button class="btn-sm danger del-row" type="button">Delete</button></div></td>
+    <td class="col-aksi"><div class="action-buttons"><button class="btn-sm btn-send-row" type="button" onclick="submitSingleRow(this)">Kirim</button><button class="btn-sm danger delete-draft-row" type="button">Delete</button></div></td>
   </tr>`;
 }
 /* ════════════════════════════════════════════════════════════════════
@@ -1481,7 +1518,7 @@ function addRows(n){
   // Wire up listeners untuk baris baru
   tbody.querySelectorAll('tr[data-row-id]:not([data-wired])').forEach(tr=>{
     tr.dataset.wired='1';
-    const delBtn=tr.querySelector('.del-row');
+    const delBtn=tr.querySelector('.delete-draft-row');
     if(delBtn)delBtn.addEventListener('click',()=>{deleteRow(tr);snapshotDraft();});
     tr.querySelectorAll('textarea.xls-cell').forEach(ta=>{
       autoGrow(ta);
@@ -1496,6 +1533,7 @@ function addRows(n){
   });
   reNumberRows();
   updateBulkCounters();
+  setupBulkTopScrollbar();
 }
 function deleteRow(tr){
   if(!tr)return;
@@ -1504,6 +1542,7 @@ function deleteRow(tr){
   reNumberRows();
   syncCheckAll();
   updateBulkCounters();
+  setupBulkTopScrollbar();
 }
 function deleteChecked(){
   const checked=Array.from(document.querySelectorAll('#bulk-tbody tr[data-row-id] .bulk-check:checked'));
