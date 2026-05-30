@@ -49,11 +49,11 @@
   @keyframes bellShake{0%,100%{transform:rotate(0)}20%{transform:rotate(-12deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}}
   .notif-badge{position:absolute;top:5px;right:4px;min-width:17px;height:17px;padding:0 4px;background:#dc2626;color:#fff;border-radius:100px;font-size:9.5px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--navy,#0d2340);font-variant-numeric:tabular-nums;letter-spacing:-.2px;pointer-events:none}
   .notif-badge[hidden]{display:none !important}
-  :where(.menu-toggle){display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:6px;cursor:pointer;color:#fff;font-size:16px;margin-left:4px;font-family:inherit}
+  :where(.menu-toggle){display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,.07);border:none;border-radius:6px;cursor:pointer;color:#fff;font-size:16px;margin-left:4px;font-family:inherit}
   :where(.menu-toggle:hover){background:rgba(255,255,255,.12)}
   body.sidebar-hidden :where(.topbar-brand){width:auto}
   @media(max-width:768px){:where(.topbar-time){display:none}}
-  @media(max-width:600px){:where(.menu-toggle){display:flex!important}}
+  @media(max-width:600px){:where(.menu-toggle){display:none!important}}
   `;
   if (!document.getElementById('9201-topbar-css')) {
     var style = document.createElement('style');

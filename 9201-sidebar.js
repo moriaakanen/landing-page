@@ -23,6 +23,7 @@
 
   var SIDEBAR_CSS = `
   :where(.sidebar){
+    position:relative;
     background:linear-gradient(180deg,#ffffff 0%,#fbfaf7 100%)!important;
     border-right:1px solid rgba(13,35,64,.09)!important;
     box-shadow:8px 0 30px rgba(13,35,64,.035);
@@ -32,13 +33,21 @@
   }
   :where(.sidebar.collapsed){
     width:0!important;min-width:0!important;padding-left:0!important;padding-right:0!important;
-    border-right:0!important;box-shadow:none!important;overflow:hidden!important;opacity:0;
+    border-right:0!important;box-shadow:none!important;overflow:hidden!important;
   }
   :where(.sidebar.collapsed.open){
     width:var(--sidebar-w,260px)!important;min-width:var(--sidebar-w,260px)!important;
     padding:16px 12px!important;border-right:1px solid rgba(13,35,64,.09)!important;
     box-shadow:8px 0 30px rgba(13,35,64,.035)!important;overflow-y:auto!important;opacity:1;
   }
+  .sidebar-float-toggle{
+    position:fixed;left:calc(var(--sidebar-w,260px) - 18px);top:80px;z-index:260;width:36px;height:36px;
+    border:1px solid rgba(13,35,64,.12);border-radius:999px;background:#fff;color:var(--navy,#0d2340);
+    box-shadow:0 10px 28px rgba(13,35,64,.16);font:900 18px/1 'Plus Jakarta Sans',sans-serif;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;transition:left .24s ease,transform .18s ease,box-shadow .18s ease,background .18s ease;
+  }
+  .sidebar-float-toggle:hover{background:#fffaf0;box-shadow:0 14px 32px rgba(13,35,64,.2);transform:translateY(-1px)}
+  body.sidebar-hidden .sidebar-float-toggle{left:14px}
   :where(.sidebar-section-label),:where(.nav-group-label),:where(.nav-item-icon){display:none!important}
   :where(.nav-item){
     min-height:42px;padding:0 14px!important;border-left:0!important;border-radius:10px;
@@ -67,24 +76,27 @@
     box-shadow:0 0 0 4px rgba(200,168,75,.18);
   }
   .nav-collapse-label{flex:1;text-align:left}
-  .nav-collapse-caret{font-size:12px;color:#778195;transition:transform .18s ease}
-  .nav-collapse-toggle.open .nav-collapse-caret{transform:rotate(180deg)}
+  .nav-collapse-caret{
+    width:28px;height:28px;border:1px solid rgba(13,35,64,.14);border-radius:999px;background:#fff;
+    color:var(--navy,#0d2340);display:inline-flex;align-items:center;justify-content:center;
+    transition:transform .18s ease,background .18s ease,border-color .18s ease;flex:0 0 auto;
+  }
+  .nav-collapse-caret::before{
+    content:'';width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;
+    transform:rotate(45deg) translateY(-2px);display:block;
+  }
+  .nav-collapse-toggle.open .nav-collapse-caret{transform:rotate(180deg);border-color:rgba(200,168,75,.55);background:#fffdf5}
   .nav-submenu{display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s ease}
   .nav-submenu.open{grid-template-rows:1fr}
   .nav-submenu-inner{overflow:hidden;padding-top:4px}
   .nav-submenu .nav-item{min-height:38px;margin-left:10px;padding-left:12px!important;font-size:12.5px!important}
-  .sidebar-hide-btn{
-    width:100%;border:1px solid rgba(13,35,64,.1);background:#fff;border-radius:10px;color:#738095;
-    font:700 11px/1 'Plus Jakarta Sans',sans-serif;text-transform:uppercase;letter-spacing:.08em;
-    padding:10px 12px;margin-bottom:10px;cursor:pointer;transition:all .18s;
-  }
-  .sidebar-hide-btn:hover{border-color:rgba(13,35,64,.22);color:var(--navy,#0d2340);background:#f8f6ef}
   :where(.sidebar-footer){
     border-top:1px solid rgba(13,35,64,.08)!important;margin:14px 2px 0!important;padding:14px 8px 0!important;
     font-size:10.5px!important;line-height:1.65!important;color:#8790a1!important;
   }
   :where(.sidebar-footer strong){display:none!important}
   @media(max-width:600px){
+    .sidebar-float-toggle{left:14px;top:80px}
     :where(.sidebar){padding:14px 12px!important}
     :where(.sidebar.collapsed){width:var(--sidebar-w,260px)!important;opacity:1;padding:14px 12px!important}
   }
@@ -112,7 +124,7 @@
   }
 
   function buildSidebar(activeKey) {
-    var html = '<button class="sidebar-hide-btn" type="button" onclick="Sidebar9201.toggleSidebar()">Sembunyikan Menu</button>';
+    var html = '<button class="sidebar-float-toggle" type="button" onclick="Sidebar9201.toggleSidebar()" aria-label="Sembunyikan menu">&lt;</button>';
 
     NAV_USER_ITEMS.forEach(function (item) {
       html += buildItem(item, activeKey);
@@ -121,7 +133,7 @@
     var adminOpen = NAV_ADMIN_ITEMS.some(function (item) { return item.key === activeKey; });
     html += '<div id="admin-nav" class="nav-admin-shell" style="display:none">';
     html += '<button class="nav-collapse-toggle' + (adminOpen ? ' open' : '') + '" type="button" onclick="Sidebar9201.toggleAdmin()">' +
-      '<span class="nav-collapse-label">Administrasi</span><span class="nav-collapse-caret">v</span></button>';
+      '<span class="nav-collapse-label">Administrasi</span><span class="nav-collapse-caret" aria-hidden="true"></span></button>';
     html += '<div class="nav-submenu' + (adminOpen ? ' open' : '') + '" id="admin-submenu"><div class="nav-submenu-inner">';
     NAV_ADMIN_ITEMS.forEach(function (item) {
       html += buildItem(item, activeKey);
@@ -151,6 +163,16 @@
         document.body.classList.add('sidebar-hidden');
       }
     } catch (_) {}
+    updateToggle();
+  }
+
+  function updateToggle() {
+    var btn = document.querySelector('.sidebar-float-toggle');
+    var aside = document.getElementById('sidebar');
+    if (!btn || !aside) return;
+    var hidden = aside.classList.contains('collapsed') && !window.matchMedia('(max-width:600px)').matches;
+    btn.innerHTML = hidden ? '&gt;' : '&lt;';
+    btn.setAttribute('aria-label', hidden ? 'Tampilkan menu' : 'Sembunyikan menu');
   }
 
   function toggleAdmin() {
@@ -173,6 +195,7 @@
     aside.classList.toggle('collapsed', hidden);
     document.body.classList.toggle('sidebar-hidden', hidden);
     try { localStorage.setItem('nova_sidebar_hidden', hidden ? '1' : '0'); } catch (_) {}
+    updateToggle();
   }
 
   if (document.getElementById('sidebar')) {
