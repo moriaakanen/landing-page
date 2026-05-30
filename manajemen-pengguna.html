@@ -730,7 +730,12 @@
       document.getElementById('modal-strength-wrap').style.display='none';
       newUserRoles=['user']; selectNewRole('user');
       await loadPengguna();
-    } catch(e) { showModalAlert('tambah',`Gagal menambahkan pengguna: ${e.message}`); }
+    } catch(e) {
+      const extra = /buat_pengguna|schema cache/i.test(e.message)
+        ? ' Jalankan supabase-manajemen-pengguna-rpc.sql di Supabase SQL Editor lalu reload schema cache.'
+        : '';
+      showModalAlert('tambah',`Gagal menambahkan pengguna: ${e.message}${extra}`);
+    }
     finally { btn.disabled=false; btn.classList.remove('loading'); }
   }
 
