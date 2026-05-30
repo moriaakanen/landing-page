@@ -417,7 +417,7 @@
             <thead>
               <tr>
                 <th class="col-check">&#10003;</th>
-                <th class="col-no sortable sorted" onclick="setSuratSort('created_at')">No <span class="sort-arrow">▾</span></th>
+                <th class="col-no sortable sorted" onclick="setSuratSort('no')">No <span class="sort-arrow">▾</span></th>
                 <th class="col-perihal sortable" onclick="setSuratSort('perihal')">Perihal * <span class="sort-arrow">↕</span></th>
                 <th class="col-waktu sortable" onclick="setSuratSort('waktu')">Waktu Pelaksanaan <span class="sort-arrow">↕</span></th>
                 <th class="col-tujuan sortable" onclick="setSuratSort('tujuan')">Tempat Tujuan <span class="sort-arrow">↕</span></th>
@@ -486,8 +486,8 @@
 // `esc`, `logout`, `novaCheckSession`, `novaRpc`, `BULAN`, dan `SUPABASE_HEADERS`
 // di-load dari 9201-shared.js — tidak lagi dideklarasi ulang di sini.
 const H = SUPABASE_HEADERS; // alias singkat untuk dipakai di file ini
-let SESSION=null;let allPegawai=[];let allSurat=[];const suratMap={};
-let suratSortState={col:'created_at',dir:'desc'};
+let SESSION=null;let allPegawai=[];let allSurat=[];const suratMap={};let suratOrderMap={};
+let suratSortState={col:'no',dir:'desc'};
 /* #7: Persist active tab antar refresh.
    Pattern sessionStorage — hanya scope tab browser (hilang saat tutup browser/tab).
    Per-user juga supaya kalau ganti akun di browser yang sama, default
@@ -518,11 +518,12 @@ function restoreActiveTab(){
 }
 function fmtWaktu(mulai,selesai){if(!mulai)return'\u2014';const a=new Date(mulai+'T00:00:00');if(!selesai||selesai===mulai){return`${a.getDate()} ${BULAN[a.getMonth()]} ${a.getFullYear()}`;}const b=new Date(selesai+'T00:00:00');if(a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()){return`${a.getDate()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}if(a.getFullYear()===b.getFullYear()){return`${a.getDate()} ${BULAN[a.getMonth()]} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}return`${a.getDate()} ${BULAN[a.getMonth()]} ${a.getFullYear()} s.d. ${b.getDate()} ${BULAN[b.getMonth()]} ${b.getFullYear()}`;}
 async function loadPegawai(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/data_pegawai?select=id,nama,pegawai_nip,status_kepegawaian,tanggal_pensiun,foto_url&order=nama.asc`,{headers:H});if(!res.ok)throw new Error();allPegawai=await res.json();}catch(e){console.error('Gagal load pegawai',e);}}
-async function loadSurat(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?user_id=eq.${encodeURIComponent(SESSION.id)}&order=created_at.desc`,{headers:H});if(!res.ok)throw new Error();allSurat=await res.json();updateStats();renderSubmittedRows();const tcList=document.getElementById('tc-list');if(tcList)tcList.textContent=allSurat.length;}catch(e){showBulkAlert('Gagal memuat riwayat surat tugas.','error');}}
+async function loadSurat(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?user_id=eq.${encodeURIComponent(SESSION.id)}&order=created_at.asc`,{headers:H});if(!res.ok)throw new Error();const ascList=await res.json();suratOrderMap={};ascList.forEach((s,i)=>{suratOrderMap[s.id]=i+1;});allSurat=ascList.slice().reverse();updateStats();renderSubmittedRows();const tcList=document.getElementById('tc-list');if(tcList)tcList.textContent=allSurat.length;}catch(e){showBulkAlert('Gagal memuat riwayat surat tugas.','error');}}
 function updateStats(){document.getElementById('st-total').textContent=allSurat.length;document.getElementById('st-menunggu').textContent=allSurat.filter(s=>s.status==='menunggu').length;document.getElementById('st-selesai').textContent=allSurat.filter(s=>s.status==='selesai').length;}
 function badgeHTML(status){const m={menunggu:['menunggu','Menunggu'],selesai:['selesai','Selesai']};const[cls,lbl]=m[status]||['draft',esc(status)||'Draft'];return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;}
 function renderTable(data){document.getElementById('table-count').textContent=`${data.length} surat`;if(!data.length){document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">\ud83d\udced</div><div class="table-empty-text">Belum ada surat tugas.</div></div>';return;}data.forEach(s=>{suratMap[s.id]=s;});const r=data.map(s=>`<tr><td style="max-width:220px;white-space:normal;word-break:break-word;line-height:1.5">${esc(s.perihal)||'\u2014'}</td><td style="white-space:nowrap;font-size:12px">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td><td>${esc(s.tujuan)||'\u2014'}</td><td><span style="font-size:11px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td><td>${badgeHTML(s.status)}</td><td><button class="btn-sm" onclick="showDetail(${JSON.stringify(s.id)})">Detail</button></td></tr>`).join('');document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu Pelaksanaan</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th></th></tr></thead><tbody>${r}</tbody></table>`;}
 function sortValueSurat(s,col){
+  if(col==='no')return suratOrderMap[s.id]||0;
   if(col==='created_at')return Date.parse(s.created_at||s.tanggal_surat||s.tanggal_berangkat||'')||0;
   if(col==='waktu')return Date.parse(s.tanggal_berangkat||'')||0;
   if(col==='pegawai')return (s.pegawai_list||[]).join(' ').toLowerCase();
@@ -548,7 +549,7 @@ function refreshSortHeaders(){
 }
 function setSuratSort(col){
   if(suratSortState.col===col)suratSortState.dir=suratSortState.dir==='asc'?'desc':'asc';
-  else{suratSortState.col=col;suratSortState.dir=['created_at','waktu'].includes(col)?'desc':'asc';}
+  else{suratSortState.col=col;suratSortState.dir=['no','created_at','waktu'].includes(col)?'desc':'asc';}
   renderSubmittedRows();
 }
 function roCell(field,val){
@@ -558,9 +559,10 @@ function roCell(field,val){
 function submittedRowHTML(s){
   suratMap[s.id]=s;
   const pegawai=(s.pegawai_list||[]).join(', ');
+  const urutNo=suratOrderMap[s.id]||'\u2014';
   return`<tr class="submitted-row" data-surat-id="${escAttr(s.id)}" data-status="${escAttr(s.status||'')}">
     <td class="col-check"></td>
-    <td class="col-no">1</td>
+    <td class="col-no" data-fixed-no="1">${urutNo}</td>
     <td class="col-perihal">${roCell('perihal',s.perihal)}</td>
     <td class="col-waktu">${roCell('waktu',fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td>
     <td class="col-tujuan">${roCell('tujuan',s.tujuan)}</td>
@@ -1620,11 +1622,12 @@ function updateBulkCounters(){
   document.getElementById('tc-bulk').textContent=total;
 }
 function reNumberRows(){
-  const rows=document.querySelectorAll('#bulk-tbody tr');
+  const rows=document.querySelectorAll('#bulk-tbody tr[data-row-id]');
   const total=rows.length;
+  const base=allSurat.length;
   rows.forEach((tr,i)=>{
     const td=tr.querySelector('td.col-no');
-    if(td)td.textContent=total-i;
+    if(td)td.textContent=base+total-i;
   });
 }
 function clearAll(){
