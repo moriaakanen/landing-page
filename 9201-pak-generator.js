@@ -132,10 +132,39 @@
     return res.arrayBuffer();
   }
 
+  function embeddedTemplateBase64() {
+    return (typeof window !== 'undefined' && window.PAK_TEMPLATE_DOCX_BASE64)
+      ? String(window.PAK_TEMPLATE_DOCX_BASE64)
+      : '';
+  }
+
+  function base64ToArrayBuffer(base64) {
+    if (typeof atob !== 'function') {
+      throw new Error('decoder base64 browser tidak tersedia');
+    }
+    const binary = atob(String(base64 || '').replace(/\s+/g, ''));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+  }
+
   async function loadTemplateBuffer() {
     if (_templateBufferCache) return _templateBufferCache;
 
     const errors = [];
+    const embedded = embeddedTemplateBase64();
+    if (embedded) {
+      try {
+        _templateBufferCache = base64ToArrayBuffer(embedded);
+        return _templateBufferCache;
+      } catch (e) {
+        errors.push(`embedded: ${e.message || e}`);
+        console.warn('[PakGen] Template embedded gagal dibaca, coba Supabase:', e);
+      }
+    }
+
     try {
       _templateBufferCache = await loadTemplateBufferViaXhr(TEMPLATE_URL);
       return _templateBufferCache;
