@@ -89,7 +89,7 @@
   .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;}
   .btn-modal-close{padding:8px 18px;background:var(--navy);color:white;border:none;border-radius:6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s;}
   .btn-modal-close:hover{background:var(--navy2)}
-  .bulk-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .bulk-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(13,35,64,.04)}
   .bulk-toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .bulk-toolbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .btn-outline{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--white);border:1.5px solid var(--border2);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;transition:all .2s;white-space:nowrap}
@@ -113,20 +113,24 @@
   /* ════════════════════════════════════════════════════
      EXCEL-LIKE TABLE (bulk input, class xls-table)
   ════════════════════════════════════════════════════ */
-  .bulk-table-outer{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.05)}
-  .table-scroll{overflow-x:auto;overflow-y:visible}
+  .bulk-table-outer{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 8px 28px rgba(13,35,64,.08)}
+  .table-scroll{overflow:auto;max-height:calc(100vh - 360px)}
   .table-scroll::-webkit-scrollbar{height:10px}
   .table-scroll::-webkit-scrollbar-track{background:var(--bg)}
   .table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
   .table-scroll::-webkit-scrollbar-thumb:hover{background:#a9a298}
 
-  table.xls-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1260px;table-layout:fixed}
+  table.xls-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1220px;table-layout:fixed}
   table.xls-table thead th{
-    background:#f9f8f5;padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;
-    color:var(--navy);letter-spacing:.5px;text-transform:uppercase;
+    background:#f9f5e9;padding:12px 12px;text-align:left;font-size:11px;font-weight:800;
+    color:var(--navy);letter-spacing:.6px;text-transform:uppercase;
     border-bottom:2px solid var(--border);border-right:1px solid var(--border);
     white-space:nowrap;position:sticky;top:0;z-index:5;
   }
+  table.xls-table thead th.sortable{cursor:pointer;user-select:none}
+  table.xls-table thead th.sortable:hover{background:#f4eddb}
+  table.xls-table thead th.sorted{color:#0a1f3d;background:#f3ead2}
+  .sort-arrow{display:inline-flex;margin-left:5px;font-size:10px;color:var(--gold-dark,#a98222)}
   table.xls-table thead th:last-child{border-right:none}
   table.xls-table tbody tr{transition:background .15s}
   table.xls-table tbody tr:hover{background:#fafaf8}
@@ -134,7 +138,7 @@
   table.xls-table tbody tr.has-error{background:#fff8f8}
   table.xls-table tbody tr.has-error:hover{background:#fff3f3}
   table.xls-table tbody td{
-    padding:0;font-size:12.5px;color:var(--text);vertical-align:middle;
+    padding:0;font-size:12.5px;color:var(--text);vertical-align:middle;height:56px;
     border-bottom:1px solid var(--border);border-right:1px solid var(--border);
     background:transparent;
   }
@@ -146,26 +150,27 @@
   /* Lebar kolom bulk */
   .col-check    { width:42px;  text-align:center }
   .col-no       { width:44px;  text-align:center }
-  .col-del      { width:38px;  text-align:center }
   .col-perihal  { width:auto;  min-width:220px }
   .col-waktu    { width:200px }
   .col-tujuan   { width:170px }
   .col-nama     { width:260px }
   .col-pok      { width:150px }
   .col-status   { width:130px }
-  .col-aksi     { width:110px }
+  .col-aksi     { width:170px }
 
   td.col-no{text-align:center;font-weight:700;color:var(--muted);font-size:12px;padding:11px 4px;background:#fafaf8;vertical-align:middle}
   td.col-check{text-align:center;padding:11px 4px;background:#fafaf8;vertical-align:middle}
-  td.col-del{text-align:center;padding:11px 4px;background:#fafaf8;vertical-align:middle}
   td.col-status,td.col-aksi{padding:8px 10px;vertical-align:middle;background:#fff}
   tr.submitted-row td{background:#fffdf8}
   tr.submitted-row:hover td{background:#fbf7ee}
   .readonly-cell{min-height:42px;padding:9px 10px;display:flex;align-items:center;color:var(--navy);font-size:12.5px;line-height:1.45;word-break:break-word}
   .readonly-cell.muted{color:var(--muted);font-style:italic}
   .readonly-empty{color:var(--muted);font-style:italic}
-  .btn-send-row{width:100%;justify-content:center;background:var(--navy);color:white;border-color:var(--navy)}
+  .action-buttons{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .btn-send-row{background:var(--navy);color:white;border-color:var(--navy)}
   .btn-send-row:hover{background:var(--navy2);border-color:var(--navy2);color:white}
+  .btn-sm.danger{color:var(--red);border-color:#fecaca;background:#fff}
+  .btn-sm.danger:hover{background:#fef2f2;border-color:var(--red)}
   .bulk-check{width:15px;height:15px;accent-color:var(--navy);cursor:pointer;flex-shrink:0}
   .del-row{background:none;border:none;cursor:pointer;color:#c9c4bb;font-size:14px;padding:3px 6px;border-radius:4px;transition:color .15s,background .15s;line-height:1}
   .del-row:hover{color:var(--red);background:#fef2f2}
@@ -386,10 +391,11 @@
           <div class="selected-pill zero" id="selected-pill">0 dipilih</div>
         </div>
         <div class="bulk-toolbar-right">
-          <button class="btn-outline danger" id="btn-del-checked" onclick="deleteChecked()" style="display:none">&#128465; Hapus Dipilih</button>
           <button class="btn-outline" onclick="addRows(5)">&#65291; 5 Baris</button>
           <button class="btn-outline" onclick="addRows(1)">&#65291; 1 Baris</button>
-          <button class="btn-outline" onclick="clearAll()">&#8634; Reset</button>
+          <button class="btn-primary" id="btn-send" onclick="submitChecked()" disabled>
+            <span id="btn-send-text">Kirim yang Dipilih (0)</span>
+          </button>
         </div>
       </div>
       <div class="bulk-table-outer">
@@ -397,30 +403,24 @@
           <table class="xls-table">
             <thead><tr>
               <th class="col-check">&#10003;</th>
-              <th class="col-no">No</th>
-              <th class="col-del"></th>
-              <th class="col-perihal">Perihal *</th>
-              <th class="col-waktu">Waktu Pelaksanaan</th>
-              <th class="col-tujuan">Tempat Tujuan</th>
-              <th class="col-nama">Nama Pegawai *</th>
-              <th class="col-pok">POK <span style="font-weight:400;color:var(--muted);font-size:10px">(opsional)</span></th>
-              <th class="col-status">Status</th>
+              <th class="col-no sortable sorted" onclick="setSuratSort('created_at')">No <span class="sort-arrow">▾</span></th>
+              <th class="col-perihal sortable" onclick="setSuratSort('perihal')">Perihal * <span class="sort-arrow">↕</span></th>
+              <th class="col-waktu sortable" onclick="setSuratSort('waktu')">Waktu Pelaksanaan <span class="sort-arrow">↕</span></th>
+              <th class="col-tujuan sortable" onclick="setSuratSort('tujuan')">Tempat Tujuan <span class="sort-arrow">↕</span></th>
+              <th class="col-nama sortable" onclick="setSuratSort('pegawai')">Nama Pegawai * <span class="sort-arrow">↕</span></th>
+              <th class="col-pok sortable" onclick="setSuratSort('pembebanan')">POK <span style="font-weight:400;color:var(--muted);font-size:10px">(opsional)</span><span class="sort-arrow">↕</span></th>
+              <th class="col-status sortable" onclick="setSuratSort('status')">Status <span class="sort-arrow">↕</span></th>
               <th class="col-aksi">Aksi</th>
             </tr></thead>
             <tbody id="bulk-tbody"></tbody>
           </table>
         </div>
-        <div class="add-row-bar">
-          <button class="btn-outline" onclick="addRows(1)" style="font-size:12px;padding:6px 12px">&#65291; Tambah Baris</button>
+        <div class="add-row-bar" style="display:none">
           <span style="font-size:11px;color:var(--muted)" id="row-count-label">0 baris</span>
         </div>
-        <div class="action-bar">
+        <div class="action-bar" style="display:none">
           <div class="action-bar-info"><strong id="ab-checked">0</strong> surat dipilih &nbsp;&middot;&nbsp; <strong id="ab-total">0</strong> total baris</div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <button class="btn-outline" onclick="addRows(1)">&#65291; Tambah Baris</button>
-            <button class="btn-primary" id="btn-send" onclick="submitChecked()" disabled>
-              <span id="btn-send-text">Kirim yang Dipilih (0)</span>
-            </button>
           </div>
         </div>
       </div>
@@ -472,6 +472,7 @@
 // di-load dari 9201-shared.js — tidak lagi dideklarasi ulang di sini.
 const H = SUPABASE_HEADERS; // alias singkat untuk dipakai di file ini
 let SESSION=null;let allPegawai=[];let allSurat=[];const suratMap={};
+let suratSortState={col:'created_at',dir:'desc'};
 /* #7: Persist active tab antar refresh.
    Pattern sessionStorage — hanya scope tab browser (hilang saat tutup browser/tab).
    Per-user juga supaya kalau ganti akun di browser yang sama, default
@@ -505,20 +506,48 @@ async function loadSurat(){try{const res=await fetch(`${SUPABASE_URL}/rest/v1/su
 function updateStats(){document.getElementById('st-total').textContent=allSurat.length;document.getElementById('st-menunggu').textContent=allSurat.filter(s=>s.status==='menunggu').length;document.getElementById('st-selesai').textContent=allSurat.filter(s=>s.status==='selesai').length;}
 function badgeHTML(status){const m={menunggu:['menunggu','Menunggu'],selesai:['selesai','Selesai']};const[cls,lbl]=m[status]||['draft',esc(status)||'Draft'];return`<span class="badge ${cls}"><span class="badge-dot"></span>${lbl}</span>`;}
 function renderTable(data){document.getElementById('table-count').textContent=`${data.length} surat`;if(!data.length){document.getElementById('table-area').innerHTML='<div class="table-empty"><div class="table-empty-icon">\ud83d\udced</div><div class="table-empty-text">Belum ada surat tugas.</div></div>';return;}data.forEach(s=>{suratMap[s.id]=s;});const r=data.map(s=>`<tr><td style="max-width:220px;white-space:normal;word-break:break-word;line-height:1.5">${esc(s.perihal)||'\u2014'}</td><td style="white-space:nowrap;font-size:12px">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</td><td>${esc(s.tujuan)||'\u2014'}</td><td><span style="font-size:11px;color:var(--muted)">${(s.pegawai_list||[]).length} orang</span></td><td>${badgeHTML(s.status)}</td><td><button class="btn-sm" onclick="showDetail(${JSON.stringify(s.id)})">Detail</button></td></tr>`).join('');document.getElementById('table-area').innerHTML=`<table class="list-table"><thead><tr><th>Perihal</th><th>Waktu Pelaksanaan</th><th>Tujuan</th><th>Pegawai</th><th>Status</th><th></th></tr></thead><tbody>${r}</tbody></table>`;}
+function sortValueSurat(s,col){
+  if(col==='created_at')return Date.parse(s.created_at||s.tanggal_surat||s.tanggal_berangkat||'')||0;
+  if(col==='waktu')return Date.parse(s.tanggal_berangkat||'')||0;
+  if(col==='pegawai')return (s.pegawai_list||[]).join(' ').toLowerCase();
+  return String(s[col]||'').toLowerCase();
+}
+function sortedSubmittedRows(){
+  const {col,dir}=suratSortState;
+  return allSurat.slice().sort((a,b)=>{
+    const av=sortValueSurat(a,col),bv=sortValueSurat(b,col);
+    const cmp=typeof av==='number'&&typeof bv==='number'?av-bv:String(av).localeCompare(String(bv),'id');
+    return dir==='asc'?cmp:-cmp;
+  });
+}
+function refreshSortHeaders(){
+  document.querySelectorAll('table.xls-table thead th.sortable').forEach(th=>{
+    const attr=(th.getAttribute('onclick')||'').match(/setSuratSort\('([^']+)'\)/);
+    const col=attr&&attr[1];
+    const active=col===suratSortState.col;
+    th.classList.toggle('sorted',active);
+    const arrow=th.querySelector('.sort-arrow');
+    if(arrow)arrow.textContent=active?(suratSortState.dir==='asc'?'▴':'▾'):'↕';
+  });
+}
+function setSuratSort(col){
+  if(suratSortState.col===col)suratSortState.dir=suratSortState.dir==='asc'?'desc':'asc';
+  else{suratSortState.col=col;suratSortState.dir=['created_at','waktu'].includes(col)?'desc':'asc';}
+  renderSubmittedRows();
+}
 function submittedRowHTML(s){
   suratMap[s.id]=s;
   const pegawai=(s.pegawai_list||[]).join(', ');
   return`<tr class="submitted-row" data-surat-id="${escAttr(s.id)}">
     <td class="col-check"></td>
     <td class="col-no">1</td>
-    <td class="col-del"></td>
     <td class="col-perihal"><div class="readonly-cell">${esc(s.perihal)||'\u2014'}</div></td>
     <td class="col-waktu"><div class="readonly-cell">${esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali))}</div></td>
     <td class="col-tujuan"><div class="readonly-cell">${esc(s.tujuan)||'\u2014'}</div></td>
     <td class="col-nama"><div class="readonly-cell">${esc(pegawai)||'<span class="readonly-empty">Belum ada pegawai</span>'}</div></td>
     <td class="col-pok"><div class="readonly-cell">${esc(s.pembebanan)||'\u2014'}</div></td>
     <td class="col-status">${badgeHTML(s.status)}</td>
-    <td class="col-aksi"><button class="btn-sm" onclick="showDetail(${JSON.stringify(s.id)})">Detail</button></td>
+    <td class="col-aksi"><div class="action-buttons"><button class="btn-sm" onclick="showDetail(${JSON.stringify(s.id)})">Detail</button><button class="btn-sm danger" onclick="deleteSubmittedSurat(${JSON.stringify(s.id)})">Delete</button></div></td>
   </tr>`;
 }
 function renderSubmittedRows(){
@@ -526,9 +555,29 @@ function renderSubmittedRows(){
   if(!tbody)return;
   tbody.querySelectorAll('tr.submitted-row').forEach(tr=>tr.remove());
   if(allSurat.length){
-    tbody.insertAdjacentHTML('afterbegin',allSurat.map(submittedRowHTML).join(''));
+    tbody.insertAdjacentHTML('afterbegin',sortedSubmittedRows().map(submittedRowHTML).join(''));
   }
+  refreshSortHeaders();
   reNumberRows();
+}
+async function deleteSubmittedSurat(id){
+  const s=suratMap[id];
+  if(!s)return;
+  if(!confirm(`Hapus surat "${s.perihal||'tanpa perihal'}"?`))return;
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(SESSION.id)}`,{method:'DELETE',headers:{...H,'Prefer':'return=minimal'}});
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      throw new Error(err.message||`HTTP ${res.status}`);
+    }
+    allSurat=allSurat.filter(x=>String(x.id)!==String(id));
+    delete suratMap[id];
+    updateStats();
+    renderSubmittedRows();
+    showBulkAlert('Surat tugas berhasil dihapus.','success');
+  }catch(e){
+    showBulkAlert(`Gagal menghapus surat: ${e.message}.`,'error');
+  }
 }
 function filterTable(){const q=document.getElementById('search-input').value.toLowerCase();const st=document.getElementById('filter-status').value;const f=allSurat.filter(s=>(!q||(s.perihal||'').toLowerCase().includes(q)||(s.tujuan||'').toLowerCase().includes(q))&&(!st||s.status===st));renderTable(f);document.getElementById('table-count').textContent=`${f.length} surat`;}
 function showDetail(id){const s=suratMap[id];if(!s)return;const field=(label,val)=>`<div><div class="modal-field-label">${label}</div><div class="modal-field-val">${val||'\u2014'}</div></div>`;document.getElementById('modal-body').innerHTML=`${field('Perihal',esc(s.perihal))}${field('Waktu Pelaksanaan',esc(fmtWaktu(s.tanggal_berangkat,s.tanggal_kembali)))}${field('Tujuan',esc(s.tujuan))}${field('Status',badgeHTML(s.status))}${field('Pegawai',(s.pegawai_list||[]).map(esc).join(', ')||'\u2014')}${s.pembebanan?field('POK',esc(s.pembebanan)):''}${s.nomor_surat?field('Nomor Surat',esc(s.nomor_surat)):''} ${s.tanggal_surat?field('Tanggal Surat',esc(s.tanggal_surat)):''}`;document.getElementById('detail-modal').style.display='flex';}
@@ -1279,14 +1328,13 @@ function renderRowHTML(id){
   return`<tr data-row-id="${id}">
     <td class="col-check"><input type="checkbox" class="bulk-check" onchange="onRowCheck(this)"></td>
     <td class="col-no">1</td>
-    <td class="col-del"><button class="del-row" type="button" title="Hapus baris">\u2715</button></td>
     ${cellTextareaHTML('perihal','','Perihal surat tugas\u2026')}
     ${cellDateRangeHTML('waktu','','')}
     ${cellTextareaHTML('tujuan','','Kota / instansi')}
     ${cellPegawaiMultiHTML('pegawai_multi',[],[])}
     ${cellTextHTML('pembebanan','','cth: 054.01.GG\u2026','pok')}
     <td class="col-status">${badgeHTML('draft')}</td>
-    <td class="col-aksi"><button class="btn-sm btn-send-row" type="button" onclick="submitSingleRow(this)">Kirim</button></td>
+    <td class="col-aksi"><div class="action-buttons"><button class="btn-sm btn-send-row" type="button" onclick="submitSingleRow(this)">Kirim</button><button class="btn-sm danger del-row" type="button">Delete</button></div></td>
   </tr>`;
 }
 /* ════════════════════════════════════════════════════════════════════
@@ -1499,7 +1547,8 @@ function updateBulkCounters(){
   const btn=document.getElementById('btn-send');
   btn.disabled=checked===0;
   document.getElementById('btn-send-text').textContent=`Kirim yang Dipilih (${checked})`;
-  document.getElementById('btn-del-checked').style.display=checked>0?'':'none';
+  const delChecked=document.getElementById('btn-del-checked');
+  if(delChecked)delChecked.style.display=checked>0?'':'none';
   document.getElementById('row-count-label').textContent=`${total} baris draft`;
   document.getElementById('tc-bulk').textContent=total;
 }
