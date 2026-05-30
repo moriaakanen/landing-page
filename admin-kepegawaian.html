@@ -587,7 +587,6 @@
             </div>
           </div>
         </div>
-        <div class="form-help" id="pak-period-help">Pilih bulan awal dan bulan akhir pada tahun yang sama.</div>
       </div>
       <div class="form-group">
         <label>Tanggal Pengajuan</label>
@@ -617,7 +616,6 @@
             </div>
           </div>
         </div>
-        <div class="form-help">Default hari ini. Minimal harus lebih dari akhir periode (mis. periode Jan s.d Mar 2025 → tanggal pengajuan minimal 1 April 2025).</div>
       </div>
       <div class="form-group">
         <label>Penandatangan</label>
@@ -635,7 +633,6 @@
             <div class="pak-person-list" id="pak-person-list"></div>
           </div>
         </div>
-        <div class="form-help">Pilih pegawai yang akan menandatangani surat. Jabatan akan otomatis diambil dari riwayat jabatan terbaru.</div>
       </div>
         </section>
       <aside class="pak-preview" id="pak-preview">
@@ -1964,7 +1961,7 @@ function getPakDefaultPeriod() {
         start,
         disabledBefore: pakMonthKey(latestAKMonth.year, latestAKMonth.month),
         latestEnd: latestAKMonth,
-        label: `PAK terakhir: ${akPeriodText(s.latestAK)}`,
+        label: akPeriodText(s.latestAK),
         latestEndDate: pakLastDayDate(latestAKMonth.year, latestAKMonth.month),
       };
     }
@@ -2116,8 +2113,8 @@ function initPakPeriodPicker() {
 
   const note = document.getElementById('pak-period-note');
   note.innerHTML = defaults.latestEnd
-    ? `<strong>Pengajuan terakhir: ${esc(fmtTglID(defaults.latestEndDate))}</strong><br>${esc(defaults.label)}. Bulan yang sudah punya PAK atau sudah diajukan tidak bisa dipilih.`
-    : 'Belum ada riwayat pengajuan PAK untuk pegawai ini. Pilih periode awal pengajuan.';
+    ? `<strong>Periode terakhir: ${esc(defaults.label)}</strong>`
+    : 'Belum ada periode sebelumnya.';
   note.classList.add('show');
 
   setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart, PAK_PERIOD_PICKER.appliedEnd);

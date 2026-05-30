@@ -742,7 +742,6 @@
             </div>
           </div>
         </div>
-        <div class="form-help" id="pak-period-help">Pilih bulan awal dan bulan akhir pada tahun yang sama.</div>
       </div>
 
       <!-- --- INPUT: Tanggal Pengajuan ----------------------- -->
@@ -766,10 +765,6 @@
             <div class="pak-date-actions"><button type="button" onclick="selectPakDateToday()">Hari ini</button><button type="button" onclick="closePakDatePicker()">Terapkan</button></div>
           </div>
         </div>
-        <div class="form-help">
-          Default hari ini. Minimal harus lebih dari akhir periode (mis.
-          periode Jan s.d Mar 2025 -> tanggal pengajuan minimal 1 April 2025).
-        </div>
       </div>
 
       <!-- --- INPUT: Penandatangan --------------------------- -->
@@ -785,10 +780,6 @@
             <div class="pak-person-search"><span></span><input id="pak-person-search-input" type="text" placeholder="Cari nama atau NIP..." oninput="renderPakPersonOptions()"></div>
             <div class="pak-person-list" id="pak-person-list"></div>
           </div>
-        </div>
-        <div class="form-help">
-          Pilih pegawai yang akan menandatangani surat. Jabatan akan
-          otomatis diambil dari riwayat jabatan terbaru.
         </div>
       </div>
         </section>
@@ -1499,7 +1490,7 @@ function getPakDefaultPeriod(){
     if(latestAKMonth){
       const start=pakNextMonth(latestAKMonth.year,latestAKMonth.month);
       const disabledBefore=pakMonthKey(latestAKMonth.year,latestAKMonth.month);
-      return {start,disabledBefore,latestEnd:latestAKMonth,latestEndDate:pakLastDayDate(latestAKMonth.year,latestAKMonth.month),label:`PAK terakhir: ${akPeriodText(STATE_PROFIL.latestAK)}`};
+      return {start,disabledBefore,latestEnd:latestAKMonth,latestEndDate:pakLastDayDate(latestAKMonth.year,latestAKMonth.month),label:akPeriodText(STATE_PROFIL.latestAK)};
     }
     const maxFallback=pakMonthFromKey(pakMaxPeriodKey());
     const start={year:maxFallback.year,month:maxFallback.month};
@@ -1538,7 +1529,7 @@ function initPakPeriodPicker(){
   const d=getPakDefaultPeriod(), start=d.start;
   Object.assign(PAK_PERIOD_PICKER,{year:start.year,start:{...start},end:{...start},appliedStart:{...start},appliedEnd:{...start},disabledBefore:d.disabledBefore,latestEnd:d.latestEnd,pendingEndConfirm:false});
   const note=document.getElementById('pak-period-note');
-  note.innerHTML=d.latestEnd?`<strong>Pengajuan terakhir: ${esc(fmtTglID(d.latestEndDate))}</strong><br>${esc(d.label)}. Bulan yang sudah punya PAK atau sudah diajukan tidak bisa dipilih.`:'Belum ada riwayat pengajuan PAK. Pilih periode awal pengajuan.';
+  note.innerHTML=d.latestEnd?`<strong>Periode terakhir: ${esc(d.label)}</strong>`:'Belum ada periode sebelumnya.';
   note.classList.add('show');
   setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart, PAK_PERIOD_PICKER.appliedEnd);
   renderPakMonthPicker();

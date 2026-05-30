@@ -149,8 +149,7 @@
     html += '</div></div></div>';
 
     html += '<div class="sidebar-footer">' +
-      'BPS Kabupaten Raja Ampat<br>' +
-      '2026 Pemerintah RI' +
+      'BPS Kabupaten Raja Ampat' +
       '<div id="admin-footer-badge" style="display:none;margin-top:6px">' +
       '<span class="admin-badge" id="sidebar-admin-badge">Administrator</span>' +
       '</div>' +
