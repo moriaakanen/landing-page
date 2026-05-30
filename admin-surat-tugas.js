@@ -5832,14 +5832,9 @@ async function init() {
   initRoleSwitcher(SESSION, true);
   Promise.all([loadPegawai(), loadMitra(), loadRiwayatJabatan(), loadRiwayatPangkatGolongan(), loadRiwayatGelar(), loadUsers(), loadSurat()]);
 
-  // Pre-warm: load library docxtemplater + 3 template di background
-  // supaya klik Preview pertama tidak terhambat fetch template.
-  // Cache key adalah URL, jadi load 3 tipe (T1/T2/T3) yang URL-nya unik.
-  ensureDocxtemplaterLoaded().then(() => {
-    loadTemplateBuffer('surat_tugas_spd_kendaraan_menginap').catch(() => {});           // T1
-    loadTemplateBuffer('surat_tugas_lampiran').catch(() => {});                         // T2
-    loadTemplateBuffer('surat_tugas_lampiran_spd_kendaraan_menginap').catch(() => {});  // T3
-  });
+  // Panaskan library saja. Template .docx tidak diambil saat halaman dibuka
+  // supaya download manager tidak menangkap request storage sebagai unduhan.
+  ensureDocxtemplaterLoaded().catch(() => {});
 
   // Load history POK (MAK Pembebanan) untuk autocomplete dropdown.
   // Dijalankan setelah loadSurat selesai biar tidak ada race kalau RLS lambat.
