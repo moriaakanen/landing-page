@@ -442,6 +442,36 @@
   .pak-preview-divider{grid-column:1/-1;height:1px;background:var(--border);margin:4px 0}
   .pak-preview-error{padding:10px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:7px;color:var(--red);font-size:12px;line-height:1.5}
   .pak-preview-loading{font-size:12px;color:var(--muted);font-style:italic;padding:6px 0}
+
+  .modal.modal-pak{max-width:1040px;max-height:calc(100vh - 28px)}
+  .modal-pak .modal-body{padding:16px 20px 18px;overflow:visible}
+  #pak-modal .pak-intro-note{font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:14px;background:linear-gradient(180deg,#fff,#fafaf6);padding:12px 14px;border-radius:10px;border:1px solid var(--border)}
+  #pak-modal .pak-compose-grid{display:grid;grid-template-columns:minmax(360px,.95fr) minmax(320px,1.05fr);gap:16px;align-items:start}
+  #pak-modal .pak-compose-panel,#pak-modal .pak-preview{border:1px solid var(--border);border-radius:12px;background:#fff;box-shadow:0 12px 32px rgba(13,35,64,.08)}
+  #pak-modal .pak-compose-panel{padding:15px;background:linear-gradient(180deg,#fff 0%,#fffdf8 100%)}
+  #pak-modal .pak-preview{display:block!important;margin:0;padding:15px;min-height:100%;position:sticky;top:12px;background:linear-gradient(180deg,#ffffff 0%,#fbfaf6 100%)}
+  #pak-modal .pak-panel-head,#pak-modal .pak-preview-head{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+  #pak-modal .pak-panel-title,#pak-modal .pak-preview-head-title{font-size:11px;font-weight:800;color:var(--navy);letter-spacing:.65px;text-transform:uppercase}
+  #pak-modal .pak-panel-icon,#pak-modal .pak-preview-head-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:linear-gradient(135deg,var(--navy),var(--navy2));box-shadow:0 8px 20px rgba(13,35,64,.16);position:relative;color:#fff}
+  #pak-modal .pak-panel-icon.form::before{content:'';width:13px;height:16px;border:2px solid rgba(255,255,255,.9);border-radius:3px;box-shadow:inset 0 5px 0 rgba(255,255,255,.18)}
+  #pak-modal .pak-panel-icon.form::after{content:'';position:absolute;width:12px;height:2px;background:var(--gold);border-radius:2px;transform:translateY(2px)}
+  #pak-modal .pak-preview-head-icon::before{content:'AK';font-size:10px;font-weight:900;letter-spacing:.5px;color:var(--gold)}
+  #pak-modal .pak-form-panel .form-group{margin-bottom:13px}
+  #pak-modal .pak-form-panel .form-group:last-child{margin-bottom:0}
+  #pak-modal .pak-period-note{border-radius:9px;border-left:0;border:1px solid #bfdbfe;background:#eff6ff;margin-bottom:9px;padding:10px 12px}
+  #pak-modal .pak-period-trigger,#pak-modal .pak-person-trigger,#pak-modal .pak-date-trigger{min-height:40px;border-radius:9px;background:#fff}
+  #pak-modal .pak-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  #pak-modal .pak-preview-item{min-width:0;padding:9px 10px;border:1px solid rgba(13,35,64,.08);border-radius:9px;background:rgba(255,255,255,.72)}
+  #pak-modal .pak-preview-item.full{grid-column:1/-1}
+  #pak-modal .pak-preview-divider{grid-column:1/-1;height:1px;background:var(--border);margin:1px 0}
+  #pak-modal .pak-preview-value.big{font-size:25px;color:var(--navy)}
+  #pak-modal .pak-preview-placeholder{min-height:190px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px;color:var(--muted);font-size:12.5px;line-height:1.5;border:1px dashed var(--border2);border-radius:10px;background:rgba(255,255,255,.58);padding:18px}
+  #pak-modal .pak-preview-placeholder::before{content:'AK';width:42px;height:42px;border-radius:14px;background:var(--gold-light);color:var(--gold-dark);display:flex;align-items:center;justify-content:center;font-weight:900;letter-spacing:.5px}
+  @media(max-width:900px){
+    .modal.modal-pak{max-width:760px}
+    #pak-modal .pak-compose-grid{grid-template-columns:1fr}
+    #pak-modal .pak-preview{position:static}
+  }
   .summary-form{display:flex;flex-direction:column;gap:14px}
   .summary-readbox{min-height:42px;padding:10px 12px;border:1.5px solid var(--border2);border-radius:8px;background:#fffdf8;color:var(--navy);font-size:13px;font-weight:500;display:flex;align-items:center}
   .summary-actions-note{font-size:11px;color:var(--muted);line-height:1.45;margin-top:-6px}
@@ -674,12 +704,18 @@
       <button class="modal-close" onclick="closePakModal()" type="button">x</button>
     </div>
     <div class="modal-body">
-      <p style="font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:14px;background:#fafaf6;padding:10px 12px;border-radius:7px;border:1px solid var(--border)">
+      <div class="pak-intro-note">
         Sistem akan menghitung AK secara otomatis dari predikat kinerja
         Anda di periode yang dipilih, lalu menghasilkan dokumen pengajuan
         siap ditandatangani.
-      </p>
+      </div>
 
+      <div class="pak-compose-grid">
+        <section class="pak-compose-panel pak-form-panel">
+          <div class="pak-panel-head">
+            <span class="pak-panel-icon form" aria-hidden="true"></span>
+            <div class="pak-panel-title">Data Pengajuan</div>
+          </div>
       <!-- --- INPUT: Periode --------------------------------- -->
       <div class="form-group">
         <label>Periode Pengajuan</label>
@@ -755,16 +791,18 @@
           otomatis diambil dari riwayat jabatan terbaru.
         </div>
       </div>
+        </section>
 
       <!-- --- PREVIEW: Calculated values (real-time) -------- -->
-      <div class="pak-preview" id="pak-preview" style="display:none">
+      <aside class="pak-preview" id="pak-preview">
         <div class="pak-preview-head">
           <div class="pak-preview-head-icon"></div>
           <div class="pak-preview-head-title">Ringkasan Perhitungan</div>
         </div>
         <div id="pak-preview-content">
-          <div class="pak-preview-loading">Menghitung...</div>
+          <div class="pak-preview-placeholder">Lengkapi periode, tanggal pengajuan, dan penandatangan untuk melihat ringkasan AK.</div>
         </div>
+      </aside>
       </div>
     </div>
     <div class="modal-footer">
@@ -1746,7 +1784,8 @@ async function openPakModal(editRow = null) {
     return;
   }
   // Reset preview & button
-  document.getElementById('pak-preview').style.display = 'none';
+  document.getElementById('pak-preview').style.display = 'block';
+  document.getElementById('pak-preview-content').innerHTML = '<div class="pak-preview-placeholder">Lengkapi periode, tanggal pengajuan, dan penandatangan untuk melihat ringkasan AK.</div>';
   document.getElementById('btn-submit-pak').disabled   = true;
   document.querySelector('#pak-modal .modal-title').innerHTML = PAK_EDIT_ROW ? 'Edit <em>Pengajuan PAK</em>' : 'Ajukan <em>PAK</em> Baru';
   document.getElementById('btn-submit-pak').textContent = PAK_EDIT_ROW ? 'Simpan Perubahan' : 'Generate & Kirim';
@@ -1816,9 +1855,10 @@ async function computePakPreview() {
   const tgl          = document.getElementById('pak-input-tgl').value;
   const penandatangan_nip = document.getElementById('pak-input-penandatangan').value;
 
-  // Validasi minimal - kalau belum lengkap, hide preview
+  // Validasi minimal - kalau belum lengkap, tampilkan state kosong ringkas
   if (!bulan_start || !bulan_end || !tahun || !tgl || !penandatangan_nip) {
-    previewEl.style.display = 'none';
+    previewEl.style.display = 'block';
+    contentEl.innerHTML = '<div class="pak-preview-placeholder">Lengkapi periode, tanggal pengajuan, dan penandatangan untuk melihat ringkasan AK.</div>';
     return;
   }
   if (bulan_start > bulan_end) {
