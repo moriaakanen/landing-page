@@ -416,6 +416,8 @@
   #pak-modal .pak-form-panel .form-group:last-child{margin-bottom:0}
   #pak-modal .pak-period-note{border-radius:9px;border-left:0;border:1px solid #bfdbfe;background:#eff6ff;margin-bottom:9px;padding:10px 12px}
   #pak-modal .pak-period-trigger,#pak-modal .pak-person-trigger,#pak-modal .pak-date-trigger{min-height:40px;border-radius:9px;background:#fff}
+  #pak-modal .pak-person-popover{top:auto;bottom:calc(100% + 8px);max-height:380px}
+  #pak-modal .pak-person-list{max-height:310px}
   #pak-modal .pak-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
   #pak-modal .pak-preview-item{min-width:0;padding:9px 10px;border:1px solid rgba(13,35,64,.08);border-radius:9px;background:rgba(255,255,255,.72)}
   #pak-modal .pak-preview-item.full{grid-column:1/-1}
@@ -692,7 +694,7 @@
           <div class="pak-preview-spin"></div>
           <div>Menyiapkan dokumen...</div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px">
-            Render via Microsoft Word Online (5–15 detik pertama kali)
+            Dokumen dibuat lokal di browser, tanpa membuka file dari Supabase.
           </div>
         </div>
       </div>
@@ -2456,32 +2458,43 @@ async function computePakPreview() {
     STATE.pakResolvedContext = ctx;
 
     const m = ctx._meta;
-    const periodeText = PakGenerator.resolvePeriodeText
-      ? PakGenerator.resolvePeriodeText(parseInt(bs), parseInt(be), parseInt(th))
-      : `${BULAN[bs-1]} s.d ${BULAN[be-1]} ${th}`;
+    const modeBadge = m.mode_hitung === 'tahunan'
+      ? '<span class="status-pill selesai" style="margin-left:6px">Tahunan</span>'
+      : '<span class="status-pill menunggu" style="margin-left:6px">Bulanan</span>';
 
     contentEl.innerHTML = `
       <div class="pak-preview-grid">
+        <div class="pak-preview-item full">
+          <div class="pak-preview-label">Pegawai</div>
+          <div class="pak-preview-value">${esc(m.nama_display)} ${modeBadge}</div>
+        </div>
+        <div class="pak-preview-item full">
+          <div class="pak-preview-label">${esc((m.jabatan_tmt || '').split('/')[0] || 'Jabatan')}</div>
+          <div class="pak-preview-value">${esc(m.pangkat_golongan_tmt || '-')}</div>
+        </div>
+        <div class="pak-preview-divider"></div>
         <div class="pak-preview-item">
-          <div class="pak-preview-label">Periode</div>
-          <div class="pak-preview-value">${esc(periodeText)}</div>
+          <div class="pak-preview-label">Predikat</div>
+          <div class="pak-preview-value">${esc(ctx.predikat || '-')}${
+            ctx.predikat_2 ? ` <span class="pak-preview-value muted">(+ ${esc(ctx.predikat_2)})</span>` : ''
+          }</div>
         </div>
         <div class="pak-preview-item">
-          <div class="pak-preview-label">Mode Hitung</div>
-          <div class="pak-preview-value" style="text-transform:capitalize">${esc(m.mode_hitung)}</div>
+          <div class="pak-preview-label">Penandatangan</div>
+          <div class="pak-preview-value">${esc(m.penandatangan_nama || '-')}</div>
         </div>
         <div class="pak-preview-divider"></div>
         <div class="pak-preview-item">
           <div class="pak-preview-label">AK Sebelumnya</div>
-          <div class="pak-preview-value">${esc(fmtAK(m.ak_n1_num))}</div>
+          <div class="pak-preview-value">${esc(ctx.ak_n1 || fmtAK(m.ak_n1_num))}</div>
         </div>
         <div class="pak-preview-item">
-          <div class="pak-preview-label">AK Didapat</div>
-          <div class="pak-preview-value" style="color:var(--success)">+ ${esc(fmtAK(m.ak_didapat))}</div>
+          <div class="pak-preview-label">AK Didapat (akb)</div>
+          <div class="pak-preview-value">${esc(ctx.akb || fmtAK(m.ak_didapat))}</div>
         </div>
         <div class="pak-preview-item full">
           <div class="pak-preview-label">AK Total Baru</div>
-          <div class="pak-preview-value big">${esc(fmtAK(m.ak_tot_num))}</div>
+          <div class="pak-preview-value big">${esc(ctx.ak_tot || fmtAK(m.ak_tot_num))}</div>
         </div>
       </div>`;
 
@@ -2698,7 +2711,7 @@ async function previewPengajuan(pakId) {
       <div class="pak-preview-spin"></div>
       <div>Menyiapkan dokumen...</div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px">
-        Render via Microsoft Word Online (5–15 detik pertama kali)
+        Dokumen dibuat lokal di browser, tanpa membuka file dari Supabase.
       </div>
     </div>`;
 
@@ -2864,14 +2877,14 @@ function openPengajuanSummary(id) {
 
 async function openPakEditModal(id) {
   const p = STATE.pengajuanPAK.find(x => x.id === id);
-  if (!p || (p.status || 'menunggu') !== 'menunggu') return showToast('Hanya pengajuan menunggu yang bisa diedit', 'error');
+  if (!p || String(p.status || 'menunggu').toLowerCase() === 'selesai') return showToast('Pengajuan yang sudah selesai tidak bisa diedit', 'error');
   closePengajuanSummary();
   await openPakModal(p);
 }
 
 async function savePengajuanSummary(id) {
   const p = STATE.pengajuanPAK.find(x => x.id === id);
-  if (!p || (p.status || 'menunggu') !== 'menunggu') return;
+  if (!p || String(p.status || 'menunggu').toLowerCase() === 'selesai') return;
   const tahun = Number(document.getElementById('sum-tahun').value);
   const bulan_start = Number(document.getElementById('sum-bulan-start').value);
   const bulan_end = Number(document.getElementById('sum-bulan-end').value);
@@ -2891,7 +2904,7 @@ async function savePengajuanSummary(id) {
 
 async function deletePengajuan(id) {
   const p = STATE.pengajuanPAK.find(x => x.id === id);
-  if (!p || (p.status || 'menunggu') !== 'menunggu') return showToast('Hanya pengajuan menunggu yang bisa dihapus', 'error');
+  if (!p || String(p.status || 'menunggu').toLowerCase() === 'selesai') return showToast('Pengajuan yang sudah selesai tidak bisa dihapus', 'error');
   if (!confirm('Batalkan pengajuan PAK ini?')) return;
   try {
     await mutatePengajuanRow('DELETE', id);

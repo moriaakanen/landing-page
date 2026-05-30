@@ -103,18 +103,60 @@
     return false;
   }
 
+  function loadTemplateBufferViaXhr(url) {
+    return new Promise((resolve, reject) => {
+      if (typeof XMLHttpRequest === 'undefined') {
+        reject(new Error('XMLHttpRequest tidak tersedia'));
+        return;
+      }
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'arraybuffer';
+      xhr.timeout = 25000;
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300 && xhr.response) {
+          resolve(xhr.response);
+          return;
+        }
+        reject(new Error(`HTTP ${xhr.status || 0}`));
+      };
+      xhr.onerror = () => reject(new Error('koneksi ke Supabase Storage gagal'));
+      xhr.ontimeout = () => reject(new Error('koneksi ke Supabase Storage timeout'));
+      xhr.send();
+    });
+  }
+
+  async function loadTemplateBufferViaFetch(url) {
+    const res = await fetch(url, { cache: 'no-store', mode: 'cors' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.arrayBuffer();
+  }
+
   async function loadTemplateBuffer() {
     if (_templateBufferCache) return _templateBufferCache;
-    const res = await fetch(TEMPLATE_URL);
-    if (!res.ok) {
-      throw new Error(
-        `Gagal memuat template PAK (HTTP ${res.status}). ` +
-        `Pastikan file template-konversi-pk-ke-ak.docx sudah di-upload ` +
-        `ke Supabase Storage bucket "template" dan dapat diakses publik.`
-      );
+
+    const errors = [];
+    try {
+      _templateBufferCache = await loadTemplateBufferViaXhr(TEMPLATE_URL);
+      return _templateBufferCache;
+    } catch (e) {
+      errors.push(`XHR: ${e.message || e}`);
+      console.warn('[PakGen] Load template via XHR gagal, coba fetch:', e);
     }
-    _templateBufferCache = await res.arrayBuffer();
-    return _templateBufferCache;
+
+    try {
+      _templateBufferCache = await loadTemplateBufferViaFetch(TEMPLATE_URL);
+      return _templateBufferCache;
+    } catch (e) {
+      errors.push(`fetch: ${e.message || e}`);
+      console.warn('[PakGen] Load template via fetch gagal:', e);
+    }
+
+    throw new Error(
+      'Gagal memuat template PAK dari Supabase Storage. ' +
+      'Pastikan koneksi internet aktif dan download manager/browser extension tidak memblokir request dokumen .docx. ' +
+      `Detail: ${errors.join(' | ')}`
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -161,7 +203,12 @@
   // ═══════════════════════════════════════════════════════════════════
 
   async function fetchJson(path) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: SUPABASE_HEADERS });
+    let res;
+    try {
+      res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: SUPABASE_HEADERS });
+    } catch (e) {
+      throw new Error(`Gagal menghubungi Supabase untuk data PAK. Detail: ${e.message || e}`);
+    }
     if (!res.ok) {
       throw new Error(`Fetch ${path} gagal (HTTP ${res.status})`);
     }
