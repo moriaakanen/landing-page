@@ -128,11 +128,13 @@
 
   table.xls-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1406px;table-layout:fixed}
   table.xls-table thead th{
-    background:#f9f5e9;padding:12px 12px;text-align:left;font-size:11px;font-weight:800;
+    background:#f9f5e9;padding:12px 12px;text-align:center;font-size:11px;font-weight:800;
     color:var(--navy);letter-spacing:.6px;text-transform:uppercase;
     border-bottom:2px solid var(--border);border-right:1px solid var(--border);
     white-space:nowrap;position:sticky;top:0;z-index:5;
   }
+  table.xls-table thead tr.scrollbar-header-row th{top:43px;z-index:6;padding:0;background:#fafaf8;border-bottom:1px solid var(--border)}
+  table.xls-table thead tr.scrollbar-header-row th .table-scroll-top{border-bottom:0}
   table.xls-table thead th.sortable{cursor:pointer;user-select:none}
   table.xls-table thead th.sortable:hover{background:#f4eddb}
   table.xls-table thead th.sorted{color:#0a1f3d;background:#f3ead2}
@@ -406,22 +408,28 @@
         </div>
       </div>
       <div class="bulk-table-outer">
-        <div class="table-scroll-top" id="bulk-scroll-top" aria-hidden="true">
-          <div class="table-scroll-top-inner" id="bulk-scroll-top-inner"></div>
-        </div>
         <div class="table-scroll" id="bulk-table-scroll">
           <table class="xls-table">
-            <thead><tr>
-              <th class="col-check">&#10003;</th>
-              <th class="col-no sortable sorted" onclick="setSuratSort('created_at')">No <span class="sort-arrow">▾</span></th>
-              <th class="col-perihal sortable" onclick="setSuratSort('perihal')">Perihal * <span class="sort-arrow">↕</span></th>
-              <th class="col-waktu sortable" onclick="setSuratSort('waktu')">Waktu Pelaksanaan <span class="sort-arrow">↕</span></th>
-              <th class="col-tujuan sortable" onclick="setSuratSort('tujuan')">Tempat Tujuan <span class="sort-arrow">↕</span></th>
-              <th class="col-nama sortable" onclick="setSuratSort('pegawai')">Nama Pegawai * <span class="sort-arrow">↕</span></th>
-              <th class="col-pok sortable" onclick="setSuratSort('pembebanan')">POK <span style="font-weight:400;color:var(--muted);font-size:10px">(opsional)</span><span class="sort-arrow">↕</span></th>
-              <th class="col-status sortable" onclick="setSuratSort('status')">Status <span class="sort-arrow">↕</span></th>
-              <th class="col-aksi">Aksi</th>
-            </tr></thead>
+            <thead>
+              <tr>
+                <th class="col-check">&#10003;</th>
+                <th class="col-no sortable sorted" onclick="setSuratSort('created_at')">No <span class="sort-arrow">▾</span></th>
+                <th class="col-perihal sortable" onclick="setSuratSort('perihal')">Perihal * <span class="sort-arrow">↕</span></th>
+                <th class="col-waktu sortable" onclick="setSuratSort('waktu')">Waktu Pelaksanaan <span class="sort-arrow">↕</span></th>
+                <th class="col-tujuan sortable" onclick="setSuratSort('tujuan')">Tempat Tujuan <span class="sort-arrow">↕</span></th>
+                <th class="col-nama sortable" onclick="setSuratSort('pegawai')">Nama Pegawai * <span class="sort-arrow">↕</span></th>
+                <th class="col-pok sortable" onclick="setSuratSort('pembebanan')">POK <span style="font-weight:400;color:var(--muted);font-size:10px">(opsional)</span><span class="sort-arrow">↕</span></th>
+                <th class="col-status sortable" onclick="setSuratSort('status')">Status <span class="sort-arrow">↕</span></th>
+                <th class="col-aksi">Aksi</th>
+              </tr>
+              <tr class="scrollbar-header-row">
+                <th colspan="9">
+                  <div class="table-scroll-top" id="bulk-scroll-top" aria-hidden="true">
+                    <div class="table-scroll-top-inner" id="bulk-scroll-top-inner"></div>
+                  </div>
+                </th>
+              </tr>
+            </thead>
             <tbody id="bulk-tbody"></tbody>
           </table>
         </div>
@@ -565,7 +573,7 @@ function renderSubmittedRows(){
   if(!tbody)return;
   tbody.querySelectorAll('tr.submitted-row').forEach(tr=>tr.remove());
   if(allSurat.length){
-    tbody.insertAdjacentHTML('afterbegin',sortedSubmittedRows().map(submittedRowHTML).join(''));
+    tbody.insertAdjacentHTML('beforeend',sortedSubmittedRows().map(submittedRowHTML).join(''));
   }
   refreshSortHeaders();
   reNumberRows();
@@ -1513,7 +1521,7 @@ function addRows(n){
   const tbody=document.getElementById('bulk-tbody');
   for(let i=0;i<n;i++){
     rowIdCounter++;
-    tbody.insertAdjacentHTML('beforeend',renderRowHTML(rowIdCounter));
+    tbody.insertAdjacentHTML('afterbegin',renderRowHTML(rowIdCounter));
   }
   // Wire up listeners untuk baris baru
   tbody.querySelectorAll('tr[data-row-id]:not([data-wired])').forEach(tr=>{
@@ -1592,9 +1600,11 @@ function updateBulkCounters(){
   document.getElementById('tc-bulk').textContent=total;
 }
 function reNumberRows(){
-  document.querySelectorAll('#bulk-tbody tr').forEach((tr,i)=>{
+  const rows=document.querySelectorAll('#bulk-tbody tr');
+  const total=rows.length;
+  rows.forEach((tr,i)=>{
     const td=tr.querySelector('td.col-no');
-    if(td)td.textContent=i+1;
+    if(td)td.textContent=total-i;
   });
 }
 function clearAll(){
