@@ -1062,6 +1062,9 @@
   //
   // Bucket: dipakai sama dengan surat-tugas — 'surat-tugas-preview'.
   // Filename pakai prefix 'pak_' supaya tidak bentrok dengan surat tugas.
+  // URL request storage meng-encode titik pada ".docx" menjadi "%2E" supaya
+  // download manager tidak mudah menangkap request upload/sign/delete sebagai
+  // download dokumen. Nama object di Storage tetap berakhiran .docx.
   // Cleanup logic admin-surat-tugas.js (regex /_(\d+)\.docx$/) tetap match
   // file PAK karena timestamp ada di akhir.
   //
@@ -1076,6 +1079,10 @@
   const PREVIEW_SIGNED_URL_TTL_SEC = Math.ceil(PREVIEW_TTL_MS / 1000);
   const _previewCleanupTimers = {};
 
+  function storageObjectPath(filename) {
+    return encodeURIComponent(filename).replace(/\./g, '%2E');
+  }
+
   /**
    * Upload Blob .docx ke Supabase Storage, return filename.
    * @param {Blob}        blob   - hasil dari renderDoc(context)
@@ -1084,17 +1091,25 @@
    */
   async function uploadPreviewDocx(blob, pakId) {
     const filename = `pak_${pakId || 'tmp'}_${Date.now()}.docx`;
-    const url = `${SUPABASE_URL}/storage/v1/object/${PREVIEW_BUCKET}/${filename}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'x-upsert': 'true',
-      },
-      body: blob,
-    });
+    const url = `${SUPABASE_URL}/storage/v1/object/${PREVIEW_BUCKET}/${storageObjectPath(filename)}`;
+    let res;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'x-upsert': 'true',
+        },
+        body: blob,
+      });
+    } catch (e) {
+      throw new Error(
+        'Upload preview ke Supabase gagal. Jika download manager aktif, pastikan ia tidak menangkap request storage. ' +
+        `Detail: ${e.message || e}`
+      );
+    }
     if (!res.ok) {
       let msg = `HTTP ${res.status}`;
       try { const err = await res.json(); msg = err.message || err.error || msg; } catch(_) {}
@@ -1112,19 +1127,26 @@
    */
   async function getPreviewSignedUrl(filename, expiresInSec) {
     const exp = expiresInSec || PREVIEW_SIGNED_URL_TTL_SEC;
-    const url = `${SUPABASE_URL}/storage/v1/object/sign/${PREVIEW_BUCKET}/${filename}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ expiresIn: exp }),
-    });
+    const url = `${SUPABASE_URL}/storage/v1/object/sign/${PREVIEW_BUCKET}/${storageObjectPath(filename)}`;
+    let res;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ expiresIn: exp }),
+      });
+    } catch (e) {
+      throw new Error(`Gagal membuat signed URL preview. Detail: ${e.message || e}`);
+    }
     if (!res.ok) throw new Error(`Gagal membuat signed URL (HTTP ${res.status})`);
     const data = await res.json();
-    return `${SUPABASE_URL}/storage/v1${data.signedURL}`;
+    if (!data || !data.signedURL) throw new Error('Supabase tidak mengembalikan signed URL preview.');
+    const signedPath = String(data.signedURL).replace(filename, storageObjectPath(filename));
+    return `${SUPABASE_URL}/storage/v1${signedPath}`;
   }
 
   /**
@@ -1134,7 +1156,7 @@
     if (!filename) return;
     clearPreviewCleanupTimer(filename);
     try {
-      await fetch(`${SUPABASE_URL}/storage/v1/object/${PREVIEW_BUCKET}/${filename}`, {
+      await fetch(`${SUPABASE_URL}/storage/v1/object/${PREVIEW_BUCKET}/${storageObjectPath(filename)}`, {
         method: 'DELETE',
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -1164,7 +1186,7 @@
   }
 
   function getPreviewTimestamp(filename) {
-    const m = filename && String(filename).match(/_(\d+)\.docx$/);
+    const m = filename && String(filename).match(/_(\d+)(?:\.docx|_docx)$/);
     return m ? parseInt(m[1], 10) : null;
   }
 
