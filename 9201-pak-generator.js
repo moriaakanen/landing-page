@@ -1211,6 +1211,7 @@
     const context  = await resolveContext(opts);
     const blob     = await renderDoc(context);
     const pakId    = (opts && opts.pakId) || (opts && opts.id) || 'tmp';
+    cleanupExpiredPreviewFiles();
     const filename = await uploadPreviewDocx(blob, pakId);
     const signedUrl = await getPreviewSignedUrl(filename);
     const viewerUrl = buildOfficeViewerUrl(signedUrl);

@@ -694,7 +694,7 @@
           <div class="pak-preview-spin"></div>
           <div>Menyiapkan dokumen...</div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px">
-            Dokumen dibuat lokal di browser, tanpa membuka file dari Supabase.
+            Dokumen yang sama dengan tombol download akan dibuka via Office Online.
           </div>
         </div>
       </div>
@@ -720,8 +720,8 @@
 
 <!-- Library PAK -->
 <script src="9201-pak-data.js"></script>
-<script src="9201-pak-template.js?v=20260530-xdm"></script>
-<script src="9201-pak-generator.js?v=20260530-xdm"></script>
+<script src="9201-pak-template.js?v=20260531-office"></script>
+<script src="9201-pak-generator.js?v=20260531-office"></script>
 
 <script>
 'use strict';
@@ -2712,12 +2712,12 @@ async function previewPengajuan(pakId) {
       <div class="pak-preview-spin"></div>
       <div>Menyiapkan dokumen...</div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px">
-        Dokumen dibuat lokal di browser, tanpa membuka file dari Supabase.
+        Dokumen yang sama dengan tombol download akan dibuka via Office Online.
       </div>
     </div>`;
 
   try {
-    const context = await PakGenerator.resolveContext({
+    const preview = await PakGenerator.generatePreviewUrl({
       pegawai_nip: p.pegawai_nip,
       bulan_start: p.bulan_start,
       bulan_end:   p.bulan_end,
@@ -2727,21 +2727,19 @@ async function previewPengajuan(pakId) {
       nomor_urut: p.nomor_urut,
       pakId: pakId,
     });
-    const blob = await PakGenerator.renderDoc(context);
+    const { blob, filename, viewerUrl } = preview;
 
-    _pakPreviewState.uploadedFilename = null;
+    _pakPreviewState.uploadedFilename = filename;
     _pakPreviewState.currentBlob = blob;
     btnDl.disabled = false;
 
     container.innerHTML = `
-      <div class="pak-preview-loading" style="background:#fff">
-        <div style="font-size:36px;color:var(--success)">✓</div>
-        <div><strong>Dokumen preview sudah siap.</strong></div>
-        <div style="font-size:12px;color:var(--muted);max-width:420px;line-height:1.6;text-align:center">
-          File tidak dibuka otomatis dari Supabase agar download manager tidak memunculkan pop up.
-          Gunakan tombol <strong>Download .docx</strong> untuk membuka dokumen.
-        </div>
-      </div>`;
+      <iframe
+        class="pak-preview-iframe"
+        title="Preview Pengajuan PAK"
+        src="${esc(viewerUrl)}"
+        allowfullscreen>
+      </iframe>`;
   } catch (e) {
     console.error('[admin-pak] preview error:', e);
     container.innerHTML = `

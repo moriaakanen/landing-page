@@ -850,7 +850,7 @@
           <div class="pak-preview-spin"></div>
           <div>Menyiapkan dokumen...</div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px">
-            Dokumen dibuat lokal di browser, tanpa membuka file dari Supabase.
+            Dokumen yang sama dengan tombol download akan dibuka via Office Online.
           </div>
         </div>
       </div>
@@ -878,8 +878,8 @@
 <script src="9201-role-switcher.js"></script>
 <script src="9201-notifikasi.js"></script>
 <script src="9201-pak-data.js"></script>
-<script src="9201-pak-template.js?v=20260530-xdm"></script>
-<script src="9201-pak-generator.js?v=20260530-xdm"></script>
+<script src="9201-pak-template.js?v=20260531-office"></script>
+<script src="9201-pak-generator.js?v=20260531-office"></script>
 <script>
 // ===============================================================
 // PROFIL SAYA - versi modern. Logika fetch profil dirombak menjadi
@@ -2152,7 +2152,7 @@ async function downloadPengajuan(id) {
 }
 
 /* ====================================================================
-   PREVIEW PAK (USER) - local browser render
+   PREVIEW PAK (USER) - Office Online viewer
    -----------------------------------------------------------------
    Pola sama dengan admin-kepegawaian.html. User bisa lihat preview
    tanpa harus download dulu. Dokumen otomatis dihapus 10 menit
@@ -2200,12 +2200,12 @@ async function previewPengajuan(id) {
       <div class="pak-preview-spin"></div>
       <div>Menyiapkan dokumen...</div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px">
-        Dokumen dibuat lokal di browser, tanpa membuka file dari Supabase.
+        Dokumen yang sama dengan tombol download akan dibuka via Office Online.
       </div>
     </div>`;
 
   try {
-    const context = await PakGenerator.resolveContext({
+    const preview = await PakGenerator.generatePreviewUrl({
       pegawai_nip:       p.pegawai_nip,
       tahun_periode:     p.tahun_periode,
       bulan_start:       p.bulan_start,
@@ -2215,23 +2215,21 @@ async function previewPengajuan(id) {
       nomor_urut:        p.nomor_urut,
       pakId: id,
     });
-    const blob = await PakGenerator.renderDoc(context);
+    const { blob, context, filename, viewerUrl } = preview;
 
-    _pakPreviewState.uploadedFilename = null;
+    _pakPreviewState.uploadedFilename = filename;
     _pakPreviewState.currentBlob = blob;
     _pakPreviewState.currentNamaDisplay = (context._meta && context._meta.nama_display) || 'Pegawai';
     _pakPreviewState.currentPeriode = context.periode || '';
     btnDl.disabled = false;
 
     container.innerHTML = `
-      <div class="pak-preview-loading" style="background:#fff">
-        <div style="font-size:36px;color:var(--success)">✓</div>
-        <div><strong>Dokumen preview sudah siap.</strong></div>
-        <div style="font-size:12px;color:var(--muted);max-width:420px;line-height:1.6;text-align:center">
-          File tidak dibuka otomatis dari Supabase agar download manager tidak memunculkan pop up.
-          Gunakan tombol <strong>Download .docx</strong> untuk membuka dokumen.
-        </div>
-      </div>`;
+      <iframe
+        class="pak-preview-iframe"
+        title="Preview Pengajuan PAK"
+        src="${esc(viewerUrl)}"
+        allowfullscreen>
+      </iframe>`;
   } catch (e) {
     console.error('[PAK] previewPengajuan error:', e);
     container.innerHTML = `
