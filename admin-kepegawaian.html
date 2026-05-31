@@ -258,6 +258,9 @@
   .pak-preview-error{padding:48px 24px;text-align:center;color:var(--red);background:#fff;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
   .pak-preview-error-icon{font-size:40px;opacity:.55}
   .pak-preview-iframe{width:100%;flex:1;min-height:65vh;border:0;display:block;background:#fff}
+  .pak-docx-preview{width:100%;min-height:65vh;background:#d9d9d9;padding:22px 12px 34px;overflow:auto}
+  .pak-docx-preview .docx-wrapper{background:transparent!important;padding:0!important}
+  .pak-docx-preview section.docx{box-shadow:0 12px 34px rgba(13,35,64,.18);margin:0 auto 18px!important}
   .btn-preview-action{background:var(--navy);color:#fff;border-color:var(--navy)}
   .btn-preview-action:hover{background:var(--navy2)}
 
@@ -720,8 +723,8 @@
 
 <!-- Library PAK -->
 <script src="9201-pak-data.js"></script>
-<script src="9201-pak-template.js?v=20260530-xdm"></script>
-<script src="9201-pak-generator.js?v=20260530-xdm"></script>
+<script src="9201-pak-template.js?v=20260531-preview"></script>
+<script src="9201-pak-generator.js?v=20260531-preview"></script>
 
 <script>
 'use strict';
@@ -2734,14 +2737,11 @@ async function previewPengajuan(pakId) {
     btnDl.disabled = false;
 
     container.innerHTML = `
-      <div class="pak-preview-loading" style="background:#fff">
-        <div style="font-size:36px;color:var(--success)">✓</div>
-        <div><strong>Dokumen preview sudah siap.</strong></div>
-        <div style="font-size:12px;color:var(--muted);max-width:420px;line-height:1.6;text-align:center">
-          File tidak dibuka otomatis dari Supabase agar download manager tidak memunculkan pop up.
-          Gunakan tombol <strong>Download .docx</strong> untuk membuka dokumen.
-        </div>
+      <div class="pak-preview-loading">
+        <div class="pak-preview-spin"></div>
+        <div>Merender preview dokumen...</div>
       </div>`;
+    await PakGenerator.renderDocPreview(blob, container);
   } catch (e) {
     console.error('[admin-pak] preview error:', e);
     container.innerHTML = `
