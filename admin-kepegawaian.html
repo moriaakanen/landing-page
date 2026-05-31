@@ -258,9 +258,6 @@
   .pak-preview-error{padding:48px 24px;text-align:center;color:var(--red);background:#fff;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
   .pak-preview-error-icon{font-size:40px;opacity:.55}
   .pak-preview-iframe{width:100%;flex:1;min-height:65vh;border:0;display:block;background:#fff}
-  .pak-docx-preview{width:100%;min-height:65vh;background:#d9d9d9;padding:22px 12px 34px;overflow:auto}
-  .pak-docx-preview .docx-wrapper{background:transparent!important;padding:0!important}
-  .pak-docx-preview section.docx{box-shadow:0 12px 34px rgba(13,35,64,.18);margin:0 auto 18px!important}
   .btn-preview-action{background:var(--navy);color:#fff;border-color:var(--navy)}
   .btn-preview-action:hover{background:var(--navy2)}
 
@@ -697,7 +694,7 @@
           <div class="pak-preview-spin"></div>
           <div>Menyiapkan dokumen...</div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px">
-            Dokumen dibuat lokal di browser, tanpa membuka file dari Supabase.
+            Dokumen yang sama dengan tombol download akan dibuka via Office Online.
           </div>
         </div>
       </div>
@@ -723,8 +720,8 @@
 
 <!-- Library PAK -->
 <script src="9201-pak-data.js"></script>
-<script src="9201-pak-template.js?v=20260531-preview"></script>
-<script src="9201-pak-generator.js?v=20260531-preview"></script>
+<script src="9201-pak-template.js?v=20260531-office"></script>
+<script src="9201-pak-generator.js?v=20260531-office"></script>
 
 <script>
 'use strict';
@@ -2715,12 +2712,12 @@ async function previewPengajuan(pakId) {
       <div class="pak-preview-spin"></div>
       <div>Menyiapkan dokumen...</div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px">
-        Dokumen dibuat lokal di browser, tanpa membuka file dari Supabase.
+        Dokumen yang sama dengan tombol download akan dibuka via Office Online.
       </div>
     </div>`;
 
   try {
-    const context = await PakGenerator.resolveContext({
+    const preview = await PakGenerator.generatePreviewUrl({
       pegawai_nip: p.pegawai_nip,
       bulan_start: p.bulan_start,
       bulan_end:   p.bulan_end,
@@ -2730,18 +2727,19 @@ async function previewPengajuan(pakId) {
       nomor_urut: p.nomor_urut,
       pakId: pakId,
     });
-    const blob = await PakGenerator.renderDoc(context);
+    const { blob, filename, viewerUrl } = preview;
 
-    _pakPreviewState.uploadedFilename = null;
+    _pakPreviewState.uploadedFilename = filename;
     _pakPreviewState.currentBlob = blob;
     btnDl.disabled = false;
 
     container.innerHTML = `
-      <div class="pak-preview-loading">
-        <div class="pak-preview-spin"></div>
-        <div>Merender preview dokumen...</div>
-      </div>`;
-    await PakGenerator.renderDocPreview(blob, container);
+      <iframe
+        class="pak-preview-iframe"
+        title="Preview Pengajuan PAK"
+        src="${esc(viewerUrl)}"
+        allowfullscreen>
+      </iframe>`;
   } catch (e) {
     console.error('[admin-pak] preview error:', e);
     container.innerHTML = `

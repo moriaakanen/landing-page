@@ -103,28 +103,6 @@
     return false;
   }
 
-  async function ensurePreviewLibLoaded() {
-    const hasPreview = window.docx && typeof window.docx.renderAsync === 'function';
-    if (hasPreview) return true;
-
-    const CDNS = [
-      'https://cdn.jsdelivr.net/npm/docx-preview@0.3.6/dist/docx-preview.min.js',
-      'https://unpkg.com/docx-preview@0.3.6/dist/docx-preview.min.js',
-    ];
-
-    for (const src of CDNS) {
-      try {
-        await loadScript(src);
-        if (window.docx && typeof window.docx.renderAsync === 'function') {
-          return true;
-        }
-      } catch (e) {
-        console.warn('[PakGen] Renderer preview DOCX gagal, coba berikutnya:', e.message);
-      }
-    }
-    return false;
-  }
-
   function loadTemplateBufferViaXhr(url) {
     return new Promise((resolve, reject) => {
       if (typeof XMLHttpRequest === 'undefined') {
@@ -1047,37 +1025,6 @@
     });
   }
 
-  async function renderDocPreview(blob, container) {
-    if (!blob || !container) {
-      throw new Error('Dokumen preview belum siap.');
-    }
-    const ok = await ensurePreviewLibLoaded();
-    if (!ok) {
-      throw new Error(
-        'Renderer preview DOCX gagal dimuat. Periksa koneksi internet/firewall, lalu refresh halaman.'
-      );
-    }
-
-    container.innerHTML = '';
-    const host = document.createElement('div');
-    host.className = 'pak-docx-preview';
-    container.appendChild(host);
-
-    await window.docx.renderAsync(blob, host, null, {
-      className: 'docx',
-      inWrapper: true,
-      ignoreWidth: false,
-      ignoreHeight: false,
-      breakPages: true,
-      renderHeaders: true,
-      renderFooters: true,
-      renderFootnotes: true,
-      renderEndnotes: true,
-      useBase64URL: true,
-    });
-    return host;
-  }
-
   /**
    * Convenience: resolveContext + renderDoc + saveAs.
    *
@@ -1264,6 +1211,7 @@
     const context  = await resolveContext(opts);
     const blob     = await renderDoc(context);
     const pakId    = (opts && opts.pakId) || (opts && opts.id) || 'tmp';
+    cleanupExpiredPreviewFiles();
     const filename = await uploadPreviewDocx(blob, pakId);
     const signedUrl = await getPreviewSignedUrl(filename);
     const viewerUrl = buildOfficeViewerUrl(signedUrl);
@@ -1277,7 +1225,6 @@
     TEMPLATE_URL,
     resolveContext,
     renderDoc,
-    renderDocPreview,
     generateAndDownload,
     // Preview API (mirror admin-surat-tugas.js):
     uploadPreviewDocx,
