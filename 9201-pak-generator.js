@@ -1021,6 +1021,17 @@
       throw new Error(`Template error: ${msg}`);
     }
 
+    const renderedXmlFile = doc.getZip().file('word/document.xml');
+    if (!renderedXmlFile) {
+      throw new Error('Template PAK tidak valid: word/document.xml tidak ditemukan.');
+    }
+    const remainingTags = (renderedXmlFile.asText().match(/\{[^{}]+\}/g) || [])
+      .filter(tag => !tag.startsWith('{@'));
+    if (remainingTags.length) {
+      const uniqueTags = [...new Set(remainingTags)].slice(0, 8).join(', ');
+      throw new Error(`Template PAK belum ter-render sempurna. Tag tersisa: ${uniqueTags}`);
+    }
+
     return doc.getZip().generate({
       type: 'blob',
       mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
