@@ -657,7 +657,7 @@
       pegawai, gelarRow, pangkatRow, jabatanRow,
       predTahunan, predBulanan,
       lastPengajuan, lastAK,
-      penandatanganPegawai, penandatanganJabatan,
+      penandatanganPegawai, penandatanganGelar, penandatanganJabatan,
     ] = await Promise.all([
       fetchPegawai(pegawai_nip),
       fetchLatestBeforeOrEq('riwayat_gelar', pegawai_nip, tgl_pengajuan),
@@ -668,6 +668,7 @@
       fetchLastPengajuan(pegawai_nip),
       fetchLastAK(pegawai_nip, tgl_pengajuan),
       fetchPegawai(penandatangan_nip).catch(() => null),
+      fetchLatestBeforeOrEq('riwayat_gelar', penandatangan_nip, tgl_pengajuan).catch(() => null),
       fetchLatestBeforeOrEq('riwayat_jabatan', penandatangan_nip, tgl_pengajuan, { jenis: 'utama' }),
     ]);
 
@@ -866,7 +867,8 @@
       `${jabatanRow.jabatan || '—'}/${fmtTglID(jabatanRow.tmt) || '—'}`;
 
     // ─── Penandatangan (pakai pattern surat tugas) ───────────
-    const ttdNama        = penandatanganPegawai ? ((window.pegawaiNama ? window.pegawaiNama(penandatanganPegawai) : (penandatanganPegawai.nama || penandatanganPegawai.NAMA)) || '') : '';
+    const ttdNama        = (penandatanganGelar && penandatanganGelar.gelar)
+                            || (penandatanganPegawai ? ((window.pegawaiNama ? window.pegawaiNama(penandatanganPegawai) : (penandatanganPegawai.nama || penandatanganPegawai.NAMA)) || '') : '');
     const ttdJabRaw      = penandatanganJabatan ? (penandatanganJabatan.jabatan || '') : '';
     const ttdJabFinal    = (typeof transformJabatanPenandatangan === 'function')
                             ? transformJabatanPenandatangan(ttdJabRaw)
@@ -907,6 +909,7 @@
       persen:      persen_str,
       persen_2:    persen_2_str,
       koef:        fmtAKNumberID(koef),
+      koef_2:      predikat_2_str ? fmtAKNumberID(koef) : '',
       ak:          fmt(ak_num),
       ak_2:        ak_2_num ? fmt(ak_2_num) : '',
       tgl_pengajuan: fmtTglID(tgl_pengajuan),
