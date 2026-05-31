@@ -879,8 +879,8 @@
 <script src="9201-role-switcher.js"></script>
 <script src="9201-notifikasi.js"></script>
 <script src="9201-pak-data.js"></script>
-<script src="9201-pak-template.js?v=20260601-koef2fix"></script>
-<script src="9201-pak-generator.js?v=20260601-koef2fix"></script>
+<script src="9201-pak-template.js?v=20260601-paksnapshot"></script>
+<script src="9201-pak-generator.js?v=20260601-paksnapshot"></script>
 <script>
 // ===============================================================
 // PROFIL SAYA - versi modern. Logika fetch profil dirombak menjadi
@@ -1634,8 +1634,8 @@ async function openPengajuanSummary(id) {
   const editableHint = isPending ? '<span class="hint">Edit</span>' : '';
   const readboxClass = isPending ? 'summary-readbox editable' : 'summary-readbox';
   const editAttr = isPending ? ` onclick="openPakEditModal(${id})" role="button" tabindex="0"` : '';
-  const pegawaiNamaText = STATE_PROFIL.profil && (pegawaiNama(STATE_PROFIL.profil) || STATE_PROFIL.profil.nama)
-    ? (pegawaiNama(STATE_PROFIL.profil) || STATE_PROFIL.profil.nama)
+  const pegawaiNamaText = STATE_PROFIL.pegawai && (pegawaiNama(STATE_PROFIL.pegawai) || STATE_PROFIL.pegawai.nama)
+    ? (pegawaiNama(STATE_PROFIL.pegawai) || STATE_PROFIL.pegawai.nama)
     : (p.pegawai_nip || STATE_PROFIL.nip || '-');
   const modeBadge = p.mode_hitung === 'tahunan'
     ? '<span class="status-pill selesai" style="margin-left:6px">Tahunan</span>'
@@ -2140,6 +2140,7 @@ async function downloadPengajuan(id) {
       tgl_pengajuan:     p.tgl_pengajuan,
       penandatangan_nip: p.penandatangan_nip,
       nomor_urut:        p.nomor_urut,
+      snapshot:          { ak_n1: p.ak_n1, ak_didapat: p.ak_didapat, ak_total: p.ak_total },
     });
     const blob = await PakGenerator.renderDoc(ctx);
     const filename = `Konversi PK ke AK - ${ctx._meta.nama_display} - ${ctx.periode}.docx`;
@@ -2215,6 +2216,7 @@ async function previewPengajuan(id) {
       penandatangan_nip: p.penandatangan_nip,
       nomor_urut:        p.nomor_urut,
       pakId: id,
+      snapshot:          { ak_n1: p.ak_n1, ak_didapat: p.ak_didapat, ak_total: p.ak_total },
     });
     const { blob, context, filename, viewerUrl } = preview;
 
