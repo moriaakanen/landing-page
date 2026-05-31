@@ -6,7 +6,8 @@
 --    - periode_tahun
 --    - periode_bulan_awal
 --    - periode_bulan_akhir
---    - periode_label
+--    Catatan: periode_label tidak di-insert manual karena di beberapa database
+--    kolom ini berupa generated/default column.
 -- 2. Kolom tmt diisi tanggal terakhir bulan akhir periode.
 --    Contoh: Januari s.d Desember 2025 -> 2025-12-31.
 
@@ -30,11 +31,6 @@ declare
   v_bulan_end integer;
   v_ak_total numeric;
   v_tmt date;
-  v_periode_label text;
-  v_months text[] := array[
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-  ];
   v_result jsonb;
 begin
   select exists (
@@ -85,20 +81,13 @@ begin
 
   v_tmt := (make_date(v_tahun, v_bulan_end, 1) + interval '1 month - 1 day')::date;
 
-  if v_bulan_start = v_bulan_end then
-    v_periode_label := v_months[v_bulan_start] || ' ' || v_tahun::text;
-  else
-    v_periode_label := v_months[v_bulan_start] || ' s.d ' || v_months[v_bulan_end] || ' ' || v_tahun::text;
-  end if;
-
   insert into public.riwayat_angka_kredit (
     pegawai_nip,
     angka_kredit,
     tmt,
     periode_tahun,
     periode_bulan_awal,
-    periode_bulan_akhir,
-    periode_label
+    periode_bulan_akhir
   )
   values (
     v_pegawai_nip,
@@ -106,8 +95,7 @@ begin
     v_tmt,
     v_tahun,
     v_bulan_start,
-    v_bulan_end,
-    v_periode_label
+    v_bulan_end
   );
 
   update public.pengajuan_pak p
