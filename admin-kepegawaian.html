@@ -766,8 +766,8 @@
 
 <!-- Library PAK -->
 <script src="9201-pak-data.js"></script>
-<script src="9201-pak-template.js?v=20260601-koef2fix"></script>
-<script src="9201-pak-generator.js?v=20260601-koef2fix"></script>
+<script src="9201-pak-template.js?v=20260601-paksnapshot"></script>
+<script src="9201-pak-generator.js?v=20260601-paksnapshot"></script>
 
 <script>
 'use strict';
@@ -2695,6 +2695,7 @@ async function downloadPengajuan(pakId) {
       tgl_pengajuan: p.tgl_pengajuan,
       penandatangan_nip: p.penandatangan_nip,
       nomor_urut: p.nomor_urut,
+      snapshot: { ak_n1: p.ak_n1, ak_didapat: p.ak_didapat, ak_total: p.ak_total },
     });
     const blob = await PakGenerator.renderDoc(ctx);
     const safeName = (pegawaiNama(STATE.pegawaiByNIP[p.pegawai_nip]) || p.pegawai_nip).replace(/[^\w\s-]/g, '_');
@@ -2772,6 +2773,7 @@ async function previewPengajuan(pakId) {
       penandatangan_nip: p.penandatangan_nip,
       nomor_urut: p.nomor_urut,
       pakId: pakId,
+      snapshot: { ak_n1: p.ak_n1, ak_didapat: p.ak_didapat, ak_total: p.ak_total },
     });
     const { blob, filename, viewerUrl } = preview;
 

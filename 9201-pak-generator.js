@@ -636,6 +636,10 @@
    *   - nomor_urut:         number  (kalau preview, generator akan output
    *                                  "{no}" placeholder; di flow real,
    *                                  caller passing no urut dari RPC create)
+   *   - snapshot:           optional { ak_n1, ak_didapat, ak_total }.
+   *                                  Dipakai saat re-generate dokumen dari
+   *                                  row pengajuan_pak agar hasil preview
+   *                                  tetap sama setelah pengajuan di-approve.
    * @returns {Promise<object>}  Object dengan SEMUA tag + _meta untuk UI
    */
   async function resolveContext(opts) {
@@ -643,6 +647,7 @@
       pegawai_nip, tahun_periode, bulan_start, bulan_end,
       tgl_pengajuan, penandatangan_nip,
       nomor_urut,
+      snapshot,
     } = opts;
 
     if (!pegawai_nip) throw new Error('pegawai_nip wajib');
@@ -776,12 +781,27 @@
       };
     }
 
-    const akb = r3(ak_num + ak_2_num);
+    const toSnapshotNumber = value => {
+      if (value === null || value === undefined || value === '') return null;
+      if (typeof value === 'number') return Number.isFinite(value) ? r3(value) : null;
+      const raw = String(value).trim();
+      const normalized = raw.includes(',')
+        ? raw.replace(/\./g, '').replace(',', '.')
+        : raw;
+      const n = Number(normalized);
+      return Number.isFinite(n) ? r3(n) : null;
+    };
+    const snapAkN1 = snapshot ? toSnapshotNumber(snapshot.ak_n1) : null;
+    const snapAkDidapat = snapshot ? toSnapshotNumber(snapshot.ak_didapat) : null;
+    const snapAkTotal = snapshot ? toSnapshotNumber(snapshot.ak_total) : null;
+    const hasCompleteSnapshot = snapAkN1 !== null && snapAkDidapat !== null && snapAkTotal !== null;
+
+    const akb = hasCompleteSnapshot ? snapAkDidapat : r3(ak_num + ak_2_num);
 
     // ─── Hitung {ak_n1} ──────────────────────────────────────
     // riwayat_angka_kredit terbaru dengan tmt ≤ tgl_pengajuan. Default 0.
-    const ak_n1 = lastAK ? r3(Number(lastAK.angka_kredit) || 0) : 0;
-    const ak_tot = r3(ak_n1 + akb);
+    const ak_n1 = hasCompleteSnapshot ? snapAkN1 : (lastAK ? r3(Number(lastAK.angka_kredit) || 0) : 0);
+    const ak_tot = hasCompleteSnapshot ? snapAkTotal : r3(ak_n1 + akb);
 
     // ─── Hitung {n1}, {n}, {n2} ──────────────────────────────
     // n  = tahun_periode
