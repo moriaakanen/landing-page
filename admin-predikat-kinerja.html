@@ -134,15 +134,19 @@
   .status-default{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
   .performance-table{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
   .performance-table.annual-table{overflow:hidden}
-  .performance-table.annual-table table{min-width:0;table-layout:fixed}
-  .performance-table.annual-table th,.performance-table.annual-table td{white-space:normal}
-  .performance-table.monthly-table table{min-width:0;table-layout:fixed}
-  .performance-table.monthly-table th,.performance-table.monthly-table td{white-space:normal}
+  .performance-table.annual-table table,.performance-table.monthly-table table{min-width:0;table-layout:fixed}
+  .performance-table.annual-table th,.performance-table.annual-table td,.performance-table.monthly-table th,.performance-table.monthly-table td{white-space:normal}
+  .performance-table.annual-table th:nth-child(1),.performance-table.annual-table td:nth-child(1),
   .performance-table.monthly-table th:nth-child(1),.performance-table.monthly-table td:nth-child(1){width:18%}
+  .performance-table.annual-table th:nth-child(2),.performance-table.annual-table td:nth-child(2),
+  .performance-table.annual-table th:nth-child(3),.performance-table.annual-table td:nth-child(3),
+  .performance-table.annual-table th:nth-child(4),.performance-table.annual-table td:nth-child(4),
   .performance-table.monthly-table th:nth-child(2),.performance-table.monthly-table td:nth-child(2),
   .performance-table.monthly-table th:nth-child(3),.performance-table.monthly-table td:nth-child(3),
   .performance-table.monthly-table th:nth-child(4),.performance-table.monthly-table td:nth-child(4){width:14%}
+  .performance-table.annual-table th:nth-child(5),.performance-table.annual-table td:nth-child(5),
   .performance-table.monthly-table th:nth-child(5),.performance-table.monthly-table td:nth-child(5){width:22%}
+  .performance-table.annual-table th:nth-child(6),.performance-table.annual-table td:nth-child(6),
   .performance-table.monthly-table th:nth-child(6),.performance-table.monthly-table td:nth-child(6){width:18%}
   table{width:100%;border-collapse:collapse;min-width:760px}
   th{background:#faf9f6;text-align:left;padding:10px 12px;font-size:10px;font-weight:900;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}

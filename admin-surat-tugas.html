@@ -187,6 +187,23 @@
   .btn-table-head.btn-table-head-gold:hover:not(:disabled){background:#b89438;border-color:#b89438}
   .btn-table-head.btn-table-head-gold:disabled{opacity:.45}
 
+  .import-preview-panel{background:#f8fafc;border:1px solid #dbe4f0;border-radius:10px;padding:12px 14px;font-size:12px;color:#34445c;line-height:1.55;margin-bottom:14px}
+  .import-preview-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+  .import-stat{background:#fff;border:1px solid var(--border);border-radius:9px;padding:10px 12px;min-width:0}
+  .import-stat-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .import-stat-value{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--navy);line-height:1.1;margin-top:3px}
+  .import-preview-table-wrap{border:1px solid var(--border);border-radius:10px;overflow:auto;background:#fff;max-height:46vh}
+  .import-preview-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1100px}
+  .import-preview-table th{position:sticky;top:0;z-index:1;background:#faf9f6;color:var(--navy);font-size:10px;text-transform:uppercase;letter-spacing:.55px;text-align:left;padding:10px;border-bottom:1px solid var(--border);white-space:nowrap}
+  .import-preview-table td{font-size:11.5px;color:#233653;vertical-align:top;padding:10px;border-bottom:1px solid var(--border);line-height:1.45}
+  .import-preview-table tr:last-child td{border-bottom:none}
+  .import-status-pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 8px;font-size:10.5px;font-weight:700;white-space:nowrap}
+  .import-status-pill.ready{background:#dcfce7;color:#166534}
+  .import-status-pill.warn{background:#fef3c7;color:#92400e}
+  .import-warning-list{margin:0;padding-left:16px;color:#8a4a12}
+  .import-muted{color:var(--muted)}
+  @media (max-width:760px){.import-preview-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
   /* BULK APPROVE — custom checkbox color sekarang via class .ck-success
      yang didefinisikan di 9201-shared.js. Tidak perlu accent-color/outline
      lagi. */
@@ -738,11 +755,11 @@
              #5: tombol Export & Import Excel ditambah di sebelah Tambah. -->
         <div class="table-head-actions">
           <button class="btn-table-head" onclick="addNewSurat()" title="Tambah surat tugas baru sebagai admin">+ Tambah</button>
-          <button class="btn-table-head" onclick="exportSuratToExcel()" title="Export semua surat ke file Excel (.xlsx)">⬇ Export Excel</button>
-          <button class="btn-table-head" onclick="document.getElementById('inp-import-excel').click()" title="Import surat dari file Excel — langsung jadi surat 'menunggu'">⬆ Import Excel</button>
+          <button class="btn-table-head" onclick="exportSuratToExcel()" title="Export semua surat ke file Excel (.xlsx)">⬇ Export</button>
+          <button class="btn-table-head" onclick="document.getElementById('inp-import-excel').click()" title="Import surat dari file Excel dan cek dulu sebelum diterapkan">⬆ Import</button>
           <input type="file" id="inp-import-excel" accept=".xlsx,.xls" style="display:none" onchange="importSuratFromExcel(this)">
-          <button class="btn-table-head btn-table-head-gold" id="btn-bulk-download" onclick="bulkDownloadSelected()" disabled title="Pilih dulu surat yang ingin di-download">📥 Download Terpilih</button>
-          <button class="btn-table-head" style="background:rgba(26,122,74,.9);border-color:rgba(26,122,74,.7);color:#fff" id="btn-bulk-approve" onclick="openBulkApprove()" disabled title="Pilih dulu surat menunggu yang ingin disetujui">✅ Setujui Terpilih</button>
+          <button class="btn-table-head btn-table-head-gold" id="btn-bulk-download" onclick="bulkDownloadSelected()" disabled title="Pilih dulu surat yang ingin di-download">📥 Download</button>
+          <button class="btn-table-head" style="background:rgba(26,122,74,.9);border-color:rgba(26,122,74,.7);color:#fff" id="btn-bulk-approve" onclick="openBulkApprove()" disabled title="Pilih dulu surat menunggu yang ingin disetujui">✅ Setujui</button>
           <button class="btn-table-head" onclick="loadSurat()" title="Muat ulang data">↺ Muat Ulang</button>
         </div>
       </div>
@@ -815,6 +832,52 @@
 <!-- POPUP AUTOCOMPLETE TIPE (single-select dari TIPE_OPTIONS) -->
 <div class="tp-ac-popup" id="tp-ac-popup">
   <div class="tp-ac-list" id="tp-ac-list"></div>
+</div>
+
+<!-- MODAL PREVIEW IMPORT SURAT TUGAS -->
+<div class="modal-overlay" id="modal-import-surat" style="display:none" onclick="if(event.target===this)closeSuratImportModal()">
+  <div class="modal modal-wide">
+    <div class="modal-header detail">
+      <span class="modal-title">Preview <em>Import Surat Tugas</em></span>
+      <button class="modal-close" onclick="closeSuratImportModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="import-preview-panel">
+        Cek hasil baca Excel sebelum data disimpan. Kolom <strong>Lamanya Tugas</strong> diabaikan,
+        <strong>Tujuan / Tugas</strong> dibaca sebagai perihal, dan <strong>Program</strong> + <strong>MAK Pembebanan</strong>
+        digabung menjadi POK.
+      </div>
+      <div class="import-preview-stats">
+        <div class="import-stat"><div class="import-stat-label">Baris Dibaca</div><div class="import-stat-value" id="surat-import-total">0</div></div>
+        <div class="import-stat"><div class="import-stat-label">Siap Import</div><div class="import-stat-value" id="surat-import-ready">0</div></div>
+        <div class="import-stat"><div class="import-stat-label">Warning</div><div class="import-stat-value" id="surat-import-warn">0</div></div>
+        <div class="import-stat"><div class="import-stat-label">File</div><div class="import-stat-value" id="surat-import-file" style="font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;line-height:1.35">-</div></div>
+      </div>
+      <div class="import-preview-table-wrap">
+        <table class="import-preview-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>No</th>
+              <th>Nomor</th>
+              <th>Tanggal Surat</th>
+              <th>Waktu Pelaksanaan</th>
+              <th>Perihal</th>
+              <th>Nama</th>
+              <th>POK</th>
+              <th>Penandatangan</th>
+              <th>Catatan</th>
+            </tr>
+          </thead>
+          <tbody id="surat-import-preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeSuratImportModal()">Batal</button>
+      <button class="btn-primary" id="btn-surat-import-submit" onclick="submitSuratImport()" disabled>Terapkan Import</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL APPROVE -->
