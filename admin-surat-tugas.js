@@ -3881,6 +3881,10 @@ async function getPreviewSignedUrl(filename, expiresInSec = PREVIEW_SIGNED_URL_T
   return `${SUPABASE_URL}/storage/v1${data.signedURL}`;
 }
 
+function buildPreviewViewerUrl(signedUrl) {
+  return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(signedUrl)}`;
+}
+
 async function deletePreviewFile(filename) {
   if (!filename) return;
   clearPreviewCleanupTimer(filename);
@@ -3931,11 +3935,6 @@ async function cleanupOrphanPreviewFiles() {
 }
 
 function ensureLibrariesLoaded() {
-  // docx-preview dipakai oleh openPreview() untuk render docx blob ke HTML.
-  // Library di-load di admin-surat-tugas.html.
-  if (typeof window.docxPreview === 'undefined' || typeof window.docxPreview.renderAsync !== 'function') {
-    throw new Error('Library docx-preview gagal dimuat. Periksa koneksi dan refresh halaman.');
-  }
   if (typeof saveAs === 'undefined') {
     throw new Error('Library FileSaver gagal dimuat. Refresh halaman.');
   }
@@ -4340,7 +4339,7 @@ async function openPreview(suratId) {
     <div class="preview-loading-spin"></div>
     <div>Menyiapkan dokumen…</div>
     <div style="font-size:11px;color:var(--muted);margin-top:6px">
-      Render preview langsung di browser
+      Dokumen yang sama dengan tombol download akan dibuka via Office Online.
     </div>
   </div>`;
 
@@ -4348,19 +4347,17 @@ async function openPreview(suratId) {
     ensureLibrariesLoaded();
     const blob = await buildSuratTugasDoc(surat, visumOpts);
     _previewBlob = blob;
-    container.innerHTML = '';
-    await window.docxPreview.renderAsync(blob, container, null, {
-      className: 'docx',
-      inWrapper: true,
-      ignoreWidth: false,
-      ignoreHeight: false,
-      ignoreFonts: false,
-      breakPages: true,
-      renderHeaders: true,
-      renderFooters: true,
-      renderFootnotes: true,
-      renderEndnotes: true,
-    });
+    const filename = await uploadPreviewDocx(blob, surat.id);
+    _previewUploadedPath = filename;
+    const signedUrl = await getPreviewSignedUrl(filename);
+    const viewerUrl = buildPreviewViewerUrl(signedUrl);
+
+    container.innerHTML = `
+      <iframe src="${esc(viewerUrl)}"
+        style="width:100%;height:80vh;min-height:600px;border:0;display:block;background:#fff"
+        title="Preview Surat Tugas"
+        allowfullscreen>
+      </iframe>`;
   } catch (e) {
     console.error(e);
     container.innerHTML = `<div class="preview-error">
