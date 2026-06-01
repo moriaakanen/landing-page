@@ -5149,8 +5149,6 @@ async function ensureDocxtemplaterLoaded() {
      - tipe null/invalid → throw dengan pesan jelas
 ═══════════════════════════════════════════════════════════════════════ */
 
-const _templateBufferCache = {};   // url → ArrayBuffer
-
 async function loadTemplateBuffer(tipe) {
   const url = tipeTemplateUrl(tipe);
   if (!url) {
@@ -5160,10 +5158,9 @@ async function loadTemplateBuffer(tipe) {
       `dan set ulang tipe.`
     );
   }
-  if (_templateBufferCache[url]) return _templateBufferCache[url];
-
-  console.log('[9201] Memuat template (tipe=' + tipe + ') dari:', url);
-  const res = await fetch(url);
+  const liveUrl = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
+  console.log('[9201] Memuat template terbaru (tipe=' + tipe + ') dari:', url);
+  const res = await fetch(liveUrl, { cache: 'no-store', mode: 'cors' });
   if (!res.ok) {
     throw new Error(
       `Gagal memuat template untuk tipe "${tipe}" (HTTP ${res.status}). ` +
@@ -5171,7 +5168,6 @@ async function loadTemplateBuffer(tipe) {
     );
   }
   const buf = await res.arrayBuffer();
-  _templateBufferCache[url] = buf;
   console.log('[9201] Template loaded:', buf.byteLength, 'bytes');
   return buf;
 }
