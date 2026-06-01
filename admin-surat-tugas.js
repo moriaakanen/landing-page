@@ -2162,8 +2162,7 @@ function makAcRenderList() {
   list.innerHTML = makACState.filtered.map((s, i) => `
     <div class="mak-ac-item${i === makACState.focusIdx ? ' focused' : ''}"
          data-idx="${i}"
-         onmousedown="event.preventDefault()"
-         onclick="pickMAK(${jsArg(s.mak)})">
+         onpointerdown="event.preventDefault(); pickMAK(${jsArg(s.mak)})">
       <div class="mak-ac-item-code">${esc(s.mak)}<span class="mak-ac-item-count">${s.count}×</span></div>
       ${s.ringkasan ? `<div class="mak-ac-item-desc">${esc(s.ringkasan)}</div>` : ''}
     </div>
@@ -2371,7 +2370,7 @@ function tpAcRender() {
       o.value === currentVal ? 'selected' : '',
       i === tpState.focusIdx ? 'focused' : '',
     ].filter(Boolean).join(' ');
-    return `<div class="${cls}" data-idx="${i}" onmousedown="event.preventDefault()" onclick="pickTipe(${jsArg(o.value)})">${esc(o.label)}</div>`;
+    return `<div class="${cls}" data-idx="${i}" onpointerdown="event.preventDefault(); pickTipe(${jsArg(o.value)})">${esc(o.label)}</div>`;
   }).join('');
 }
 
@@ -4081,11 +4080,379 @@ function extractFieldForExport(s, col) {
   return String(v);
 }
 
+let suratImportState = {
+  fileName: '',
+  rows: [],
+  payloads: [],
+  warnings: [],
+};
+
+const SURAT_IMPORT_ALIASES = {
+  nomor_surat: ['nomor surat', 'nomor surat tugas'],
+  tanggal_surat: ['tanggal surat', 'tanggal surat tugas'],
+  tanggal_berangkat: ['tanggal berangkat'],
+  tanggal_kembali: ['tanggal kembali'],
+  waktu_pelaksanaan_text: ['waktu pelaksanaan', 'waktu pelaksanaan custom', 'waktu'],
+  perihal: ['perihal', 'tujuan/tugas', 'tujuan / tugas', 'tujuan tugas', 'tugas'],
+  tujuan: ['tempat tujuan', 'tujuan'],
+  pegawai_list: ['pegawai', 'nama'],
+  bertugas_sebagai: ['bertugas sebagai'],
+  menimbang_custom: ['menimbang'],
+  alat_angkutan: ['alat angkutan'],
+  pembebanan: ['pok', 'pok (pembebanan)', 'mak pembebanan', 'pembebanan'],
+  _program: ['program'],
+  penandatangan_nama: ['penandatangan'],
+  tipe: ['tipe', 'tipe surat'],
+  jumlah_responden: ['jumlah responden'],
+  tempat_terbit: ['tempat terbit'],
+};
+
+function normalizeImportHeader(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/\s*\/\s*/g, '/')
+    .trim();
+}
+
+function buildSuratImportHeaderMap(headerRow) {
+  const aliasMap = {};
+  Object.entries(SURAT_IMPORT_ALIASES).forEach(([field, aliases]) => {
+    aliases.forEach(alias => { aliasMap[normalizeImportHeader(alias)] = field; });
+  });
+  EXCEL_COLUMNS.forEach(col => {
+    if (col.importable) aliasMap[normalizeImportHeader(col.header)] = col.field;
+  });
+
+  const colIdxMap = {};
+  headerRow.forEach((header, index) => {
+    const field = aliasMap[normalizeImportHeader(header)];
+    if (field && colIdxMap[field] === undefined) colIdxMap[field] = index;
+  });
+  return colIdxMap;
+}
+
+function findSuratImportHeaderRow(aoa) {
+  const maxRows = Math.min(10, aoa.length);
+  for (let i = 0; i < maxRows; i++) {
+    const map = buildSuratImportHeaderMap(aoa[i] || []);
+    if (map.perihal !== undefined || map.nomor_surat !== undefined || map.pegawai_list !== undefined) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function normalizeImportPersonName(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\b(s\.?\s*tr\.?\s*stat\.?|a\.?\s*md\.?\s*stat\.?|m\.?\s*ec\.?\s*dev\.?|s\.?\s*e\.?|s\.?\s*s\.?\s*t\.?|sst)\b/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function makePegawaiNameMatcher() {
+  const entries = [];
+  const byKey = {};
+  pegawaiList.forEach(p => {
+    const nama = String(pegawaiNama(p) || '').trim();
+    const nip = String(pegawaiNip(p) || '').trim();
+    if (!nama || !nip) return;
+    const keys = [
+      nama.toLowerCase(),
+      normalizeImportPersonName(nama),
+    ].filter(Boolean);
+    keys.forEach(key => { if (!byKey[key]) byKey[key] = p; });
+    entries.push({ key: normalizeImportPersonName(nama), pegawai: p });
+  });
+  entries.sort((a, b) => b.key.length - a.key.length);
+  return { byKey, entries };
+}
+
+function matchImportPeople(raw, matcher) {
+  const text = String(raw || '').trim();
+  if (!text) return { people: [], unmatched: [] };
+  const exact = matcher.byKey[text.toLowerCase()] || matcher.byKey[normalizeImportPersonName(text)];
+  if (exact) return { people: [exact], unmatched: [] };
+
+  const normalizedRaw = normalizeImportPersonName(text);
+  const found = [];
+  const seen = new Set();
+  matcher.entries.forEach(entry => {
+    if (!entry.key || entry.key.length < 4) return;
+    if (normalizedRaw.includes(entry.key)) {
+      const nip = String(pegawaiNip(entry.pegawai) || '');
+      if (nip && !seen.has(nip)) {
+        seen.add(nip);
+        found.push(entry.pegawai);
+      }
+    }
+  });
+
+  if (found.length) return { people: found, unmatched: [] };
+
+  const parts = text.split(/[;\n]+|,(?=\s*[A-Z])/).map(s => s.trim()).filter(Boolean);
+  const partMatches = [];
+  const unmatched = [];
+  parts.forEach(part => {
+    const p = matcher.byKey[part.toLowerCase()] || matcher.byKey[normalizeImportPersonName(part)];
+    if (p) partMatches.push(p);
+    else unmatched.push(part);
+  });
+  return { people: partMatches, unmatched: unmatched.length ? unmatched : [text] };
+}
+
+function combineProgramMak(program, mak) {
+  const cleanProgram = String(program || '').trim().replace(/\.$/, '');
+  const cleanMak = String(mak || '').trim().replace(/^\./, '');
+  if (!cleanProgram) return cleanMak || '';
+  if (!cleanMak) return cleanProgram || '';
+  if (cleanMak.toLowerCase().startsWith(`${cleanProgram.toLowerCase()}.`)) return cleanMak;
+  return `${cleanProgram}.${cleanMak}`.replace(/\.+/g, '.');
+}
+
+function makeIsoDate(year, month, day) {
+  year = Number(year); month = Number(month); day = Number(day);
+  if (!year || month < 1 || month > 12 || day < 1 || day > 31) return '';
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function extractDatesFromIndonesianText(raw) {
+  const text = String(raw || '').toLowerCase();
+  const dates = new Set();
+  const addDate = (day, monthName, year) => {
+    const month = BULAN_KEYS[String(monthName || '').toLowerCase()];
+    const iso = makeIsoDate(year, month, day);
+    if (iso) dates.add(iso);
+  };
+
+  const rangeRe = /(\d{1,2})(?:\s+([a-z]+))?(?:\s+(\d{4}))?\s*(?:s\.?\s*d\.?|sd|s\/d|sampai|-)\s*(\d{1,2})\s+([a-z]+)\s+(\d{4})/gi;
+  let match;
+  while ((match = rangeRe.exec(text))) {
+    const endMonth = match[5];
+    const endYear = match[6];
+    addDate(match[1], match[2] || endMonth, match[3] || endYear);
+    addDate(match[4], endMonth, endYear);
+  }
+
+  const fullDateRe = /(\d{1,2})\s+([a-z]+)\s+(\d{4})/gi;
+  while ((match = fullDateRe.exec(text))) {
+    addDate(match[1], match[2], match[3]);
+  }
+
+  const isoRe = /(\d{4})-(\d{1,2})-(\d{1,2})/g;
+  while ((match = isoRe.exec(text))) {
+    const iso = makeIsoDate(match[1], match[2], match[3]);
+    if (iso) dates.add(iso);
+  }
+
+  const single = normalizeImportDate(raw);
+  if (single) dates.add(single);
+  return Array.from(dates).sort();
+}
+
+function parseImportWaktu(raw) {
+  const dates = extractDatesFromIndonesianText(raw);
+  if (!dates.length) return { mulai: '', selesai: '' };
+  return {
+    mulai: dates[0],
+    selesai: dates[dates.length - 1],
+  };
+}
+
+function renderSuratImportPreview() {
+  const rows = suratImportState.rows || [];
+  const payloads = suratImportState.payloads || [];
+  const warnings = suratImportState.warnings || [];
+  const body = document.getElementById('surat-import-preview-body');
+  const submit = document.getElementById('btn-surat-import-submit');
+  document.getElementById('surat-import-total').textContent = rows.length;
+  document.getElementById('surat-import-ready').textContent = payloads.length;
+  document.getElementById('surat-import-warn').textContent = warnings.length;
+  document.getElementById('surat-import-file').textContent = suratImportState.fileName || '-';
+
+  body.innerHTML = rows.map(row => {
+    const hasWarn = row.warnings.length > 0;
+    return `<tr>
+      <td><span class="import-status-pill ${hasWarn ? 'warn' : 'ready'}">${hasWarn ? 'Cek' : 'Siap'}</span></td>
+      <td>${esc(row.rowNum)}</td>
+      <td>${esc(row.payload.nomor_surat || '-')}</td>
+      <td>${esc(row.payload.tanggal_surat ? fmtTgl(row.payload.tanggal_surat) : '-')}</td>
+      <td>${esc(row.waktuLabel || '-')}</td>
+      <td>${esc(row.payload.perihal || '-')}</td>
+      <td>${row.payload.pegawai_list.length ? esc(row.payload.pegawai_list.join(', ')) : '<span class="import-muted">Belum match</span>'}</td>
+      <td>${esc(row.payload.pembebanan || '-')}</td>
+      <td>${esc(row.payload.penandatangan_nama || '-')}</td>
+      <td>${row.warnings.length ? `<ul class="import-warning-list">${row.warnings.map(w => `<li>${esc(w)}</li>`).join('')}</ul>` : '<span class="import-muted">-</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  if (submit) submit.disabled = payloads.length === 0;
+}
+
+function closeSuratImportModal() {
+  suratImportState = { fileName: '', rows: [], payloads: [], warnings: [] };
+  const modal = document.getElementById('modal-import-surat');
+  if (modal) modal.style.display = 'none';
+}
+
+async function importSuratFromExcel(inputEl) {
+  const file = inputEl.files && inputEl.files[0];
+  inputEl.value = '';
+  if (!file) return;
+
+  try {
+    showPageAlert('Memuat library Excel...', 'info');
+    await ensureSheetJSLoaded();
+
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array', cellDates: false });
+    if (!wb.SheetNames.length) throw new Error('File Excel tidak berisi sheet apapun.');
+
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+    if (aoa.length < 2) throw new Error('File Excel kosong atau hanya berisi header.');
+
+    const headerRowIndex = findSuratImportHeaderRow(aoa);
+    if (headerRowIndex < 0) throw new Error('Header import tidak ditemukan. Pastikan ada kolom Nomor Surat, Tujuan / Tugas, atau Nama.');
+
+    const colIdxMap = buildSuratImportHeaderMap(aoa[headerRowIndex] || []);
+    if (colIdxMap.perihal === undefined) {
+      throw new Error('Kolom Perihal atau Tujuan / Tugas tidak ditemukan.');
+    }
+
+    const matcher = makePegawaiNameMatcher();
+    const rows = [];
+    const payloads = [];
+    const warnings = [];
+
+    aoa.slice(headerRowIndex + 1).forEach((row, idx) => {
+      const rowNum = headerRowIndex + idx + 2;
+      const cell = (field) => {
+        const ci = colIdxMap[field];
+        if (ci === undefined) return '';
+        const value = row[ci];
+        return value == null ? '' : String(value).trim();
+      };
+
+      const nomor = cell('nomor_surat');
+      const perihal = cell('perihal');
+      const tujuan = cell('tujuan');
+      const pegawaiRaw = cell('pegawai_list');
+      if (!nomor && !perihal && !tujuan && !pegawaiRaw) return;
+
+      const rowWarnings = [];
+      const peopleMatch = matchImportPeople(pegawaiRaw, matcher);
+      if (pegawaiRaw && !peopleMatch.people.length) rowWarnings.push(`Pegawai belum match: ${peopleMatch.unmatched.join(', ')}`);
+
+      const ttdRaw = cell('penandatangan_nama');
+      const ttdMatch = matchImportPeople(ttdRaw, matcher);
+      const ttd = ttdMatch.people[0] || null;
+      if (ttdRaw && !ttd) rowWarnings.push(`Penandatangan belum match: ${ttdRaw}`);
+
+      const waktuRaw = cell('waktu_pelaksanaan_text');
+      const waktuParsed = parseImportWaktu(waktuRaw);
+      const tanggalBerangkat = normalizeImportDate(cell('tanggal_berangkat')) || waktuParsed.mulai || null;
+      const tanggalKembali = normalizeImportDate(cell('tanggal_kembali')) || waktuParsed.selesai || tanggalBerangkat || null;
+      const tanggalSurat = normalizeImportDate(cell('tanggal_surat')) || null;
+      if (!tanggalSurat) rowWarnings.push('Tanggal surat belum terbaca');
+      if (waktuRaw && !tanggalBerangkat) rowWarnings.push('Waktu pelaksanaan belum terbaca sebagai tanggal');
+
+      const jrRaw = cell('jumlah_responden');
+      const jr = jrRaw ? parseInt(jrRaw, 10) : null;
+      const bertugasRaw = cell('bertugas_sebagai');
+      const bertugasArr = bertugasRaw ? bertugasRaw.split(',').map(s => s.trim()) : null;
+      const matchedNames = peopleMatch.people.map(p => pegawaiNama(p));
+      const matchedNips = peopleMatch.people.map(p => String(pegawaiNip(p)));
+      const payload = {
+        user_id: SESSION.id,
+        status: 'menunggu',
+        nomor_surat: nomor || null,
+        tanggal_surat: tanggalSurat,
+        tanggal_berangkat: tanggalBerangkat,
+        tanggal_kembali: tanggalKembali,
+        waktu_pelaksanaan_text: waktuRaw || null,
+        perihal: perihal,
+        tujuan: tujuan || null,
+        pegawai_nip: matchedNips,
+        pegawai_list: matchedNames,
+        menimbang_custom: cell('menimbang_custom') || null,
+        alat_angkutan: cell('alat_angkutan') || null,
+        pembebanan: combineProgramMak(cell('_program'), cell('pembebanan')) || null,
+        penandatangan_nip: ttd ? String(pegawaiNip(ttd)) : null,
+        penandatangan_nama: ttd ? pegawaiNama(ttd) : null,
+        tempat_terbit: cell('tempat_terbit') || 'Waisai',
+        tipe: cell('tipe') || null,
+        jumlah_responden: (isFinite(jr) && jr >= 0) ? jr : null,
+        bertugas_sebagai: (bertugasArr && matchedNames.length >= 2 && bertugasArr.some(Boolean)) ? bertugasArr : null,
+        created_at: new Date().toISOString(),
+      };
+
+      payloads.push(payload);
+      warnings.push(...rowWarnings.map(w => `Baris ${rowNum}: ${w}`));
+      rows.push({
+        rowNum,
+        payload,
+        warnings: rowWarnings,
+        waktuLabel: tanggalBerangkat ? fmtWaktu(tanggalBerangkat, tanggalKembali) : waktuRaw,
+      });
+    });
+
+    if (!payloads.length) throw new Error('Tidak ada baris data valid yang bisa di-import.');
+
+    suratImportState = { fileName: file.name, rows, payloads, warnings };
+    renderSuratImportPreview();
+    openModal('modal-import-surat');
+    showPageAlert(`Preview import siap: ${payloads.length} baris dibaca.`, 'success');
+  } catch (e) {
+    console.error('[9201] preview import gagal:', e);
+    showPageAlert(`Gagal membaca import: ${e.message}`, 'error');
+  }
+}
+
+async function submitSuratImport() {
+  const payloads = suratImportState.payloads || [];
+  if (!payloads.length) {
+    showPageAlert('Tidak ada data import yang siap diterapkan.', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-surat-import-submit');
+  const oldText = btn ? btn.textContent : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+  }
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas`, {
+      method: 'POST',
+      headers: { ...H, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payloads),
+    });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const j = await res.json(); msg = j.message || msg; } catch(_) {}
+      throw new Error(msg);
+    }
+    const count = payloads.length;
+    closeSuratImportModal();
+    showPageAlert(`Berhasil import ${count} surat tugas dengan status menunggu.`, 'success');
+    await loadSurat();
+  } catch (e) {
+    console.error('[9201] import gagal:', e);
+    showPageAlert(`Gagal import: ${e.message}`, 'error');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = oldText || 'Terapkan Import';
+    }
+  }
+}
+
 /**
  * IMPORT: Read file Excel, parse, match pegawai by NAMA, INSERT ke DB
  * sebagai surat 'menunggu'. Trigger dari onchange event input file.
  */
-async function importSuratFromExcel(inputEl) {
+async function importSuratFromExcelLegacy(inputEl) {
   const file = inputEl.files && inputEl.files[0];
   // Reset value supaya kalau user pilih file yang sama lagi, onchange tetap fire
   inputEl.value = '';
@@ -4420,10 +4787,10 @@ function updateBulkDownloadCounter() {
 
   if (btn) {
     if (checked.length === 0) {
-      btn.textContent = '📥 Download Terpilih';
+      btn.textContent = '📥 Download';
       btn.disabled    = true;
     } else {
-      btn.textContent = `📥 Download Terpilih (${checked.length})`;
+      btn.textContent = `📥 Download (${checked.length})`;
       btn.disabled    = false;
     }
   }
@@ -4485,10 +4852,10 @@ function updateBulkApproveCounter() {
 
   if (btn) {
     if (checked.length === 0) {
-      btn.textContent = '✅ Setujui Terpilih';
+      btn.textContent = '✅ Setujui';
       btn.disabled    = true;
     } else {
-      btn.textContent = `✅ Setujui Terpilih (${checked.length})`;
+      btn.textContent = `✅ Setujui (${checked.length})`;
       btn.disabled    = false;
     }
   }
