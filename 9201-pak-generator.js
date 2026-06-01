@@ -279,6 +279,34 @@
     return rows[0] || null;
   }
 
+  async function fetchActiveJabatanLainnya(nip, tglRef) {
+    const q = `riwayat_jabatan?pegawai_nip=eq.${encodeURIComponent(nip)}`
+            + `&jenis=eq.lainnya`
+            + `&tmt=lte.${encodeURIComponent(tglRef)}`
+            + `&or=(tmt_selesai.is.null,tmt_selesai.gte.${encodeURIComponent(tglRef)})`
+            + `&order=tmt.desc`;
+    return fetchJson(q);
+  }
+
+  function normalizeJabatanText(jab) {
+    return String(jab || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  }
+
+  function isKepalaBpsRajaAmpat(jab) {
+    return normalizeJabatanText(jab) === 'kepala bps kabupaten raja ampat';
+  }
+
+  function isPltKepalaBps(jab) {
+    const j = normalizeJabatanText(jab).replace(/\./g, '');
+    return /^plt\s+kepala\s+(bps|badan pusat statistik)(\b|$)/.test(j);
+  }
+
+  function resolvePakPenandatanganJabatan(jabatanUtama, jabatanLainnyaRows) {
+    if (isKepalaBpsRajaAmpat(jabatanUtama)) return 'Kepala BPS Kabupaten Raja Ampat';
+    const activePlt = (jabatanLainnyaRows || []).find(row => isPltKepalaBps(row && row.jabatan));
+    return activePlt ? 'Plt. Kepala BPS Kabupaten Raja Ampat' : 'Plh. Kepala BPS Kabupaten Raja Ampat';
+  }
+
   async function fetchPredikatTahunan(nip, tahun) {
     const rows = await fetchJson(
       `predikat_kinerja_tahunan?pegawai_nip=eq.${encodeURIComponent(nip)}`
@@ -662,7 +690,7 @@
       pegawai, gelarRow, pangkatRow, jabatanRow,
       predTahunan, predBulanan,
       lastPengajuan, lastAK,
-      penandatanganPegawai, penandatanganGelar, penandatanganJabatan,
+      penandatanganPegawai, penandatanganGelar, penandatanganJabatan, penandatanganJabatanLainnya,
     ] = await Promise.all([
       fetchPegawai(pegawai_nip),
       fetchLatestBeforeOrEq('riwayat_gelar', pegawai_nip, tgl_pengajuan),
@@ -675,6 +703,7 @@
       fetchPegawai(penandatangan_nip).catch(() => null),
       fetchLatestBeforeOrEq('riwayat_gelar', penandatangan_nip, tgl_pengajuan).catch(() => null),
       fetchLatestBeforeOrEq('riwayat_jabatan', penandatangan_nip, tgl_pengajuan, { jenis: 'utama' }),
+      fetchActiveJabatanLainnya(penandatangan_nip, tgl_pengajuan).catch(() => []),
     ]);
 
     // ─── Validasi data minimal ────────────────────────────────
@@ -890,9 +919,7 @@
     const ttdNama        = (penandatanganGelar && penandatanganGelar.gelar)
                             || (penandatanganPegawai ? ((window.pegawaiNama ? window.pegawaiNama(penandatanganPegawai) : (penandatanganPegawai.nama || penandatanganPegawai.NAMA)) || '') : '');
     const ttdJabRaw      = penandatanganJabatan ? (penandatanganJabatan.jabatan || '') : '';
-    const ttdJabFinal    = (typeof transformJabatanPenandatangan === 'function')
-                            ? transformJabatanPenandatangan(ttdJabRaw)
-                            : ttdJabRaw;
+    const ttdJabFinal    = resolvePakPenandatanganJabatan(ttdJabRaw, penandatanganJabatanLainnya);
 
     // ─── Nomor surat ────────────────────────────────────────
     // Kalau caller passing nomor_urut → format final.
@@ -901,7 +928,8 @@
     const noStr = (typeof nomor_urut === 'number' && nomor_urut > 0)
       ? padNomor(nomor_urut)
       : '___';
-    const yyyy = String(tahun_periode);
+    const tglPengajuanDate = parseISODate(tgl_pengajuan);
+    const yyyy = tglPengajuanDate ? String(tglPengajuanDate.getFullYear()) : String(tahun_periode);
     const nomor_surat_1 = `9201.${noStr}/Konv/ST/${yyyy}`;
     const nomor_surat_2 = `9201.${noStr}/Akm/ST/${yyyy}`;
     const nomor_surat_3 = `9201.${noStr}/PAK/ST/${yyyy}`;

@@ -884,8 +884,8 @@
 <script src="9201-role-switcher.js"></script>
 <script src="9201-notifikasi.js"></script>
 <script src="9201-pak-data.js"></script>
-<script src="9201-pak-template.js?v=20260601-paksnapshot"></script>
-<script src="9201-pak-generator.js?v=20260601-paksnapshot"></script>
+<script src="9201-pak-template.js?v=20260601-pakrules"></script>
+<script src="9201-pak-generator.js?v=20260601-pakrules"></script>
 <script>
 // ===============================================================
 // PROFIL SAYA - versi modern. Logika fetch profil dirombak menjadi
@@ -1780,7 +1780,25 @@ function selectPakDateToday(){ const t=new Date(), iso=pakISODate(t.getFullYear(
 function initPakPersonPicker(){ document.getElementById('pak-input-penandatangan').value=''; document.getElementById('pak-person-trigger-text').textContent='Pilih pegawai...'; document.getElementById('pak-person-trigger').classList.remove('has-value'); document.getElementById('pak-person-search-input').value=''; renderPakPersonOptions(); }
 function togglePakPersonPicker(force){ const w=document.querySelector('.pak-person-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-person-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPeriodPicker();closePakDatePicker();renderPakPersonOptions();setTimeout(()=>document.getElementById('pak-person-search-input').focus(),0);} }
 function closePakPersonPicker(){ togglePakPersonPicker(false); }
-function renderPakPersonOptions(){ const input=document.getElementById('pak-person-search-input'); if(!input)return; const q=input.value.toLowerCase().trim(), selected=document.getElementById('pak-input-penandatangan').value, refDate=pakPersonRefDate(), rows=(_pegawaiListCache||[]).filter(p=>pegawaiNip(p)).map(p=>({...p,_pakDisabled:isPakPegawaiPensiunAt(p,refDate),_pakDisabledReason:pakStatusPegawaiLabel(p,refDate)})).filter(p=>!q||`${pegawaiNama(p)||''} ${pegawaiNip(p)||''}`.toLowerCase().includes(q)).slice(0,80), list=document.getElementById('pak-person-list'); if(!rows.length){list.innerHTML='<div class="pak-person-empty">Tidak ada pegawai yang cocok.</div>';return;} list.innerHTML=rows.map(p=>{ const nip=pegawaiNip(p), nama=pegawaiNama(p)||nip, disabled=!!p._pakDisabled; const handler=esc('event.stopPropagation();selectPakPerson('+jsArg(nip)+', '+jsArg(nama)+')'); const avatar=window.Avatar9201?window.Avatar9201.renderAvatar(p,nama,'pak-person-avatar'):`<span class="pak-person-avatar">${esc(initialsOf(nama))}</span>`; const badge=disabled?'<span class="pak-person-badge pensiun">PENSIUN</span>':'<span class="pak-person-badge pegawai">PEGAWAI</span>'; const sub=disabled?(p._pakDisabledReason||'Pensiun'):`NIP ${nip}`; return `<button type="button" class="pak-person-option ${String(nip)===String(selected)?'active':''} ${disabled?'disabled':''}" onclick="${handler}">${avatar}<span class="pak-person-main"><span class="pak-person-name">${esc(nama)}${badge}</span><span class="pak-person-nip">${esc(sub)}</span></span></button>`; }).join(''); }
+function renderPakPersonOptions(){
+  const input=document.getElementById('pak-person-search-input'); if(!input)return;
+  const q=input.value.toLowerCase().trim(), selected=document.getElementById('pak-input-penandatangan').value, refDate=pakPersonRefDate();
+  const rows=(_pegawaiListCache||[])
+    .filter(p=>pegawaiNip(p))
+    .map(p=>({...p,_pakDisabled:isPakPegawaiPensiunAt(p,refDate),_pakDisabledReason:pakStatusPegawaiLabel(p,refDate)}))
+    .filter(p=>!q||`${pegawaiNama(p)||''} ${pegawaiNip(p)||''}`.toLowerCase().includes(q))
+    .slice(0,80);
+  const list=document.getElementById('pak-person-list');
+  if(!rows.length){list.innerHTML='<div class="pak-person-empty">Tidak ada pegawai yang cocok.</div>';return;}
+  list.innerHTML=rows.map(p=>{
+    const nip=pegawaiNip(p), nama=pegawaiNama(p)||nip, disabled=!!p._pakDisabled;
+    const handler=esc('event.stopPropagation();selectPakPerson('+jsArg(nip)+', '+jsArg(nama)+')');
+    const avatar=window.Avatar9201?window.Avatar9201.renderAvatar(p,nama,'pak-person-avatar'):`<span class="pak-person-avatar">${esc(initialsOf(nama))}</span>`;
+    const badge=disabled?'<span class="pak-person-badge pensiun">PENSIUN</span>':'<span class="pak-person-badge pegawai">PEGAWAI</span>';
+    const sub=disabled?(p._pakDisabledReason||'Pensiun'):'';
+    return `<button type="button" class="pak-person-option ${String(nip)===String(selected)?'active':''} ${disabled?'disabled':''}" onclick="${handler}">${avatar}<span class="pak-person-main"><span class="pak-person-name">${esc(nama)}${badge}</span>${sub?`<span class="pak-person-nip">${esc(sub)}</span>`:''}</span></button>`;
+  }).join('');
+}
 function selectPakPerson(nip,nama){ const blocked=getPakSignerBlockedMessage(nip,pakPersonRefDate()); if(blocked){ alert(blocked); return; } document.getElementById('pak-input-penandatangan').value=nip; document.getElementById('pak-person-trigger-text').textContent=nama; document.getElementById('pak-person-trigger').classList.add('has-value'); closePakPersonPicker(); onPakInputChange(); }
 
 function pakPeriodFromRow(p) {
