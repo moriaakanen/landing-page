@@ -154,36 +154,39 @@
     if (_templateBufferCache) return _templateBufferCache;
 
     const errors = [];
+    const liveTemplateUrl = `${TEMPLATE_URL}${TEMPLATE_URL.includes('?') ? '&' : '?'}v=${Date.now()}`;
+
+    try {
+      _templateBufferCache = await loadTemplateBufferViaFetch(liveTemplateUrl);
+      return _templateBufferCache;
+    } catch (e) {
+      errors.push(`fetch Supabase: ${e.message || e}`);
+      console.warn('[PakGen] Load template terbaru via fetch gagal, coba XHR:', e);
+    }
+
+    try {
+      _templateBufferCache = await loadTemplateBufferViaXhr(liveTemplateUrl);
+      return _templateBufferCache;
+    } catch (e) {
+      errors.push(`XHR Supabase: ${e.message || e}`);
+      console.warn('[PakGen] Load template terbaru via XHR gagal, coba embedded:', e);
+    }
+
     const embedded = embeddedTemplateBase64();
     if (embedded) {
       try {
         _templateBufferCache = base64ToArrayBuffer(embedded);
+        console.warn('[PakGen] Memakai template embedded karena template Supabase tidak bisa dimuat.');
         return _templateBufferCache;
       } catch (e) {
         errors.push(`embedded: ${e.message || e}`);
-        console.warn('[PakGen] Template embedded gagal dibaca, coba Supabase:', e);
+        console.warn('[PakGen] Template embedded gagal dibaca:', e);
       }
     }
 
-    try {
-      _templateBufferCache = await loadTemplateBufferViaXhr(TEMPLATE_URL);
-      return _templateBufferCache;
-    } catch (e) {
-      errors.push(`XHR: ${e.message || e}`);
-      console.warn('[PakGen] Load template via XHR gagal, coba fetch:', e);
-    }
-
-    try {
-      _templateBufferCache = await loadTemplateBufferViaFetch(TEMPLATE_URL);
-      return _templateBufferCache;
-    } catch (e) {
-      errors.push(`fetch: ${e.message || e}`);
-      console.warn('[PakGen] Load template via fetch gagal:', e);
-    }
-
     throw new Error(
-      'Gagal memuat template PAK dari Supabase Storage. ' +
-      'Pastikan koneksi internet aktif dan download manager/browser extension tidak memblokir request dokumen .docx. ' +
+      'Gagal memuat template PAK. ' +
+      'Pastikan template Supabase Storage bisa diakses dan download manager/browser extension tidak memblokir request dokumen .docx. ' +
       `Detail: ${errors.join(' | ')}`
     );
   }
