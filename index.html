@@ -896,6 +896,7 @@
 <script src="9201-pak-data.js"></script>
 <script src="9201-pak-template.js?v=20260601-pakrules"></script>
 <script src="9201-pak-generator.js?v=20260601-paktemplate-live"></script>
+<script src="9201-pak-ui.js?v=20260601-pakui"></script>
 <script>
 // ===============================================================
 // PROFIL SAYA - versi modern. Logika fetch profil dirombak menjadi
@@ -1599,7 +1600,7 @@ function initPakPeriodPicker(){
   setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart, PAK_PERIOD_PICKER.appliedEnd);
   renderPakMonthPicker();
 }
-function togglePakPeriodPicker(force){ const w=document.querySelector('.pak-period-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-month-popover').setAttribute('aria-hidden',String(!open)); if(open){closePakPersonPicker();closePakDatePicker();renderPakMonthPicker();} }
+function togglePakPeriodPicker(force){ const w=document.querySelector('.pak-period-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); const pop=document.getElementById('pak-month-popover'); w.classList.toggle('open',open); pop.setAttribute('aria-hidden',String(!open)); if(open){closePakPersonPicker();closePakDatePicker();renderPakMonthPicker(); if(window.PakUi) window.PakUi.positionPopover(w,pop,{maxHeight:338});} }
 function closePakPeriodPicker(){ togglePakPeriodPicker(false); }
 function shiftPakMonthYear(delta){ PAK_PERIOD_PICKER.year+=delta; PAK_PERIOD_PICKER.start=null; PAK_PERIOD_PICKER.end=null; PAK_PERIOD_PICKER.pendingEndConfirm=false; renderPakMonthPicker(); }
 function selectPakMonth(month){
@@ -1772,7 +1773,7 @@ function renderPakMonthPicker(){
 }
 function clearPakPeriodSelection(){ Object.assign(PAK_PERIOD_PICKER,{start:null,end:null,appliedStart:null,appliedEnd:null,pendingEndConfirm:false}); setPakPeriodInputs(null,null); renderPakMonthPicker(); onPakInputChange(); }
 function applyPakPeriodSelection(){ if(!PAK_PERIOD_PICKER.start){ alert('Pilih bulan awal periode'); return; } if(!PAK_PERIOD_PICKER.end) PAK_PERIOD_PICKER.end={...PAK_PERIOD_PICKER.start}; if(PAK_PERIOD_PICKER.start.year!==PAK_PERIOD_PICKER.end.year){ alert('Periode tidak boleh berbeda tahun'); return; } if(pakMonthKey(PAK_PERIOD_PICKER.end.year,PAK_PERIOD_PICKER.end.month)>pakMaxPeriodKey()){ alert('Periode tidak boleh melewati bulan sebelum bulan berjalan'); return; } PAK_PERIOD_PICKER.pendingEndConfirm=false; PAK_PERIOD_PICKER.appliedStart={...PAK_PERIOD_PICKER.start}; PAK_PERIOD_PICKER.appliedEnd={...PAK_PERIOD_PICKER.end}; setPakPeriodInputs(PAK_PERIOD_PICKER.appliedStart,PAK_PERIOD_PICKER.appliedEnd); closePakPeriodPicker(); onPakInputChange(); }
-function togglePakDatePicker(force){ const w=document.querySelector('.pak-date-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); w.classList.toggle('open',open); document.getElementById('pak-date-popover').setAttribute('aria-hidden',String(!open)); if(open){PAK_DATE_PICKER.lastClicked='';closePakPeriodPicker();closePakPersonPicker();renderPakDatePicker();} }
+function togglePakDatePicker(force){ const w=document.querySelector('.pak-date-picker-wrap'); if(!w)return; const open=typeof force==='boolean'?force:!w.classList.contains('open'); const pop=document.getElementById('pak-date-popover'); w.classList.toggle('open',open); pop.setAttribute('aria-hidden',String(!open)); if(open){PAK_DATE_PICKER.lastClicked='';closePakPeriodPicker();closePakPersonPicker();renderPakDatePicker(); if(window.PakUi) window.PakUi.positionPopover(w,pop,{maxHeight:330});} }
 function closePakDatePicker(){ togglePakDatePicker(false); }
 function shiftPakDateMonth(delta){ const d=new Date(PAK_DATE_PICKER.year,PAK_DATE_PICKER.month-1+delta,1); PAK_DATE_PICKER.year=d.getFullYear(); PAK_DATE_PICKER.month=d.getMonth()+1; PAK_DATE_PICKER.lastClicked=''; renderPakDatePicker(); }
 function renderPakDatePicker(){

@@ -784,6 +784,7 @@
 <script src="9201-pak-data.js"></script>
 <script src="9201-pak-template.js?v=20260601-pakrules"></script>
 <script src="9201-pak-generator.js?v=20260601-paktemplate-live"></script>
+<script src="9201-pak-ui.js?v=20260601-pakui"></script>
 
 <script>
 'use strict';
@@ -2119,14 +2120,16 @@ function setPakDateValue(value, minValue) {
 function togglePakDatePicker(force) {
   const wrap = document.querySelector('.pak-date-picker-wrap');
   if (!wrap) return;
+  const popover = document.getElementById('pak-date-popover');
   const shouldOpen = typeof force === 'boolean' ? force : !wrap.classList.contains('open');
   wrap.classList.toggle('open', shouldOpen);
-  document.getElementById('pak-date-popover').setAttribute('aria-hidden', String(!shouldOpen));
+  popover.setAttribute('aria-hidden', String(!shouldOpen));
   if (shouldOpen) {
     PAK_DATE_PICKER.lastClicked = '';
     closePakPeriodPicker();
     closePakPersonPicker();
     renderPakDatePicker();
+    if (window.PakUi) window.PakUi.positionPopover(wrap, popover, { maxHeight: 330 });
   }
 }
 
@@ -2217,13 +2220,15 @@ function initPakPeriodPicker() {
 function togglePakPeriodPicker(force) {
   const wrap = document.querySelector('.pak-period-picker-wrap');
   if (!wrap) return;
+  const popover = document.getElementById('pak-month-popover');
   const shouldOpen = typeof force === 'boolean' ? force : !wrap.classList.contains('open');
   wrap.classList.toggle('open', shouldOpen);
-  document.getElementById('pak-month-popover').setAttribute('aria-hidden', String(!shouldOpen));
+  popover.setAttribute('aria-hidden', String(!shouldOpen));
   if (shouldOpen) {
     closePakPersonPicker();
     closePakDatePicker();
     renderPakMonthPicker();
+    if (window.PakUi) window.PakUi.positionPopover(wrap, popover, { maxHeight: 338 });
   }
 }
 
