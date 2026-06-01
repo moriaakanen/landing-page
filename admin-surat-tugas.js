@@ -2965,6 +2965,7 @@ function closeModal(id) {
   // Reset state khusus modal preview
   if (id === 'modal-preview') {
     _previewVisumOpts = null;
+    _previewBlob = null;
   }
   // Reset state edit-bertugas saat modal ditutup
   if (id === 'modal-edit-bertugas') {
@@ -3804,6 +3805,7 @@ const PREVIEW_TTL_MS = 10 * 60 * 1000;
 const PREVIEW_SIGNED_URL_TTL_SEC = Math.ceil(PREVIEW_TTL_MS / 1000);
 const _previewCleanupTimers = {};
 let _previewUploadedPath = null;
+let _previewBlob = null;
 // Opts visum yg sedang aktif untuk modal preview saat ini. Dipakai oleh
 // downloadFromPreview() dan openInWordForPrint() agar tombol-tombol di
 // modal preview pakai jumlah responden yang sama dengan preview yg sedang
@@ -4323,6 +4325,7 @@ async function openPreview(suratId) {
   // tanya ulang. _previewVisumOpts hanya hidup selama modal preview
   // terbuka — di-reset saat modal ditutup.
   _previewVisumOpts = visumOpts;
+  _previewBlob = null;
 
   openModal('modal-preview');
 
@@ -4337,23 +4340,27 @@ async function openPreview(suratId) {
     <div class="preview-loading-spin"></div>
     <div>Menyiapkan dokumen…</div>
     <div style="font-size:11px;color:var(--muted);margin-top:6px">
-      Render via Microsoft Word Online (5–15 detik pertama kali)
+      Render preview langsung di browser
     </div>
   </div>`;
 
   try {
     ensureLibrariesLoaded();
     const blob = await buildSuratTugasDoc(surat, visumOpts);
-    const filename = await uploadPreviewDocx(blob, surat.id);
-    _previewUploadedPath = filename;
-    const fileUrl = await getPreviewSignedUrl(filename);
-
-    const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
-    container.innerHTML = `
-      <iframe src="${viewerUrl}"
-        style="width:100%;height:80vh;min-height:600px;border:0;display:block;background:#fff"
-        allow="fullscreen"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+    _previewBlob = blob;
+    container.innerHTML = '';
+    await window.docxPreview.renderAsync(blob, container, null, {
+      className: 'docx',
+      inWrapper: true,
+      ignoreWidth: false,
+      ignoreHeight: false,
+      ignoreFonts: false,
+      breakPages: true,
+      renderHeaders: true,
+      renderFooters: true,
+      renderFootnotes: true,
+      renderEndnotes: true,
+    });
   } catch (e) {
     console.error(e);
     container.innerHTML = `<div class="preview-error">
@@ -4776,7 +4783,8 @@ async function downloadFromPreview() {
   const opts = _previewVisumOpts || {};
   try {
     ensureLibrariesLoaded();
-    const blob = await buildSuratTugasDoc(currentPreviewSurat, opts);
+    const blob = _previewBlob || await buildSuratTugasDoc(currentPreviewSurat, opts);
+    _previewBlob = blob;
     saveAs(blob, buildFileName(currentPreviewSurat));
     showPageAlert(`📥 Berhasil di-download: ${buildFileName(currentPreviewSurat)}`, 'success');
     closeModal('modal-preview');
