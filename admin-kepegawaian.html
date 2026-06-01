@@ -354,10 +354,15 @@
   .pak-person-list{max-height:260px;overflow-y:auto;padding:6px}
   .pak-person-option{width:100%;display:flex;align-items:center;gap:10px;padding:10px;border:none;border-radius:9px;background:transparent;text-align:left;cursor:pointer;font-family:inherit;transition:background .15s}
   .pak-person-option:hover,.pak-person-option.active{background:#faf4e3}
+  .pak-person-option.disabled{opacity:.68;cursor:not-allowed;background:#fff7f7}
+  .pak-person-option.disabled:hover{background:#fff1f1}
   .pak-person-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);font-family:'Fraunces',serif;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;overflow:hidden}
   .pak-person-main{min-width:0;flex:1}
   .pak-person-name{font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pak-person-nip{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+  .pak-person-badge{display:inline-flex;align-items:center;margin-left:6px;padding:2px 6px;border-radius:999px;font-size:9px;font-weight:800;letter-spacing:.5px;vertical-align:middle}
+  .pak-person-badge.pensiun{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+  .pak-person-badge.pegawai{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
   .pak-person-empty{padding:20px 12px;text-align:center;color:var(--muted);font-size:12px;line-height:1.5}
 
   /* Custom PAK date picker */
@@ -1004,6 +1009,34 @@ function isPensiunPegawai(p) {
 function pensiunLabel(p) {
   if (!isPensiunPegawai(p)) return '';
   return p.tanggal_pensiun ? `Pensiun per ${fmtTglID(p.tanggal_pensiun)}` : 'Pensiun';
+}
+
+function tanggalPensiunPegawai(p) {
+  return String(p && (p.tanggal_pensiun || p.tmt_pensiun || '') || '').slice(0, 10);
+}
+
+function isPegawaiPensiunAt(p, isoRef) {
+  if (!p || pegStatus(p) !== 'pensiun') return false;
+  const tglPensiun = tanggalPensiunPegawai(p);
+  if (!tglPensiun) return true;
+  return String(isoRef || pakTodayISO()).slice(0, 10) >= tglPensiun;
+}
+
+function statusPegawaiAtLabel(p, isoRef) {
+  if (!isPegawaiPensiunAt(p, isoRef)) return '';
+  const tglPensiun = tanggalPensiunPegawai(p);
+  return tglPensiun ? `Pensiun per ${fmtTglID(tglPensiun)}` : 'Pensiun';
+}
+
+function pakPersonRefDate() {
+  return document.getElementById('pak-input-tgl')?.value || pakTodayISO();
+}
+
+function getPakSignerBlockedMessage(nip, isoRef) {
+  const p = (STATE.pegawaiList || []).find(x => String(pegawaiNip(x)) === String(nip));
+  if (!p) return '';
+  const reason = statusPegawaiAtLabel(p, isoRef);
+  return reason ? `${pegawaiNama(p) || nip} tidak bisa menjadi penandatangan karena ${reason}.` : '';
 }
 
 function nipAppointmentKey(nip) {
@@ -2337,8 +2370,14 @@ function closePakPersonPicker() {
 function renderPakPersonOptions() {
   const q = (document.getElementById('pak-person-search-input')?.value || '').toLowerCase().trim();
   const selected = document.getElementById('pak-input-penandatangan').value;
+  const refDate = pakPersonRefDate();
   const rows = STATE.pegawaiList
     .filter(p => pegawaiNip(p))
+    .map(p => ({
+      ...p,
+      _pakDisabled: isPegawaiPensiunAt(p, refDate),
+      _pakDisabledReason: statusPegawaiAtLabel(p, refDate),
+    }))
     .filter(p => !q || `${pegawaiNama(p) || ''} ${pegawaiNip(p) || ''}`.toLowerCase().includes(q))
     .slice(0, 80);
 
@@ -2352,20 +2391,30 @@ function renderPakPersonOptions() {
     const nip = pegawaiNip(p);
     const nama = pegawaiNama(p) || nip;
     const active = String(nip) === String(selected);
+    const disabled = !!p._pakDisabled;
+    const badge = disabled
+      ? '<span class="pak-person-badge pensiun">PENSIUN</span>'
+      : '<span class="pak-person-badge pegawai">PEGAWAI</span>';
+    const subLine = disabled ? (p._pakDisabledReason || 'Pensiun') : `NIP ${nip}`;
     return `
-      <button type="button" class="pak-person-option ${active ? 'active' : ''}" onclick="${escAttr(`event.stopPropagation();selectPakPerson(${jsArg(nip)}, ${jsArg(nama)})`)}">
+      <button type="button" class="pak-person-option ${active ? 'active' : ''} ${disabled ? 'disabled' : ''}" onclick="${escAttr(`event.stopPropagation();selectPakPerson(${jsArg(nip)}, ${jsArg(nama)})`)}">
         ${window.Avatar9201
           ? window.Avatar9201.renderAvatar(p, nama, 'pak-person-avatar')
           : `<span class="pak-person-avatar">${esc(initialsFromName(nama))}</span>`}
         <span class="pak-person-main">
-          <span class="pak-person-name">${esc(nama)}</span>
-          <span class="pak-person-nip">${esc(nip)}</span>
+          <span class="pak-person-name">${esc(nama)}${badge}</span>
+          <span class="pak-person-nip">${esc(subLine)}</span>
         </span>
       </button>`;
   }).join('');
 }
 
 function selectPakPerson(nip, nama) {
+  const blocked = getPakSignerBlockedMessage(nip, pakPersonRefDate());
+  if (blocked) {
+    showToast(blocked, 'error');
+    return;
+  }
   document.getElementById('pak-input-penandatangan').value = nip;
   document.getElementById('pak-person-trigger-text').textContent = nama;
   document.getElementById('pak-person-trigger').classList.add('has-value');
@@ -2485,6 +2534,13 @@ async function computePakPreview() {
     submitBtn.disabled = true;
     return;
   }
+  const signerBlocked = getPakSignerBlockedMessage(ttd, tgl);
+  if (signerBlocked) {
+    previewEl.style.display = 'block';
+    contentEl.innerHTML = `<div class="pak-preview-error">${esc(signerBlocked)}</div>`;
+    submitBtn.disabled = true;
+    return;
+  }
 
   previewEl.style.display = 'block';
   contentEl.innerHTML = '<div class="pak-preview-loading">Menghitung...</div>';
@@ -2578,6 +2634,8 @@ async function submitPak() {
     showToast(tgl > pakTodayISO() ? 'Tanggal pengajuan tidak boleh lebih dari hari ini' : `Tanggal pengajuan minimal ${fmtTglID(minTgl)}`, 'error');
     return;
   }
+  const signerBlocked = getPakSignerBlockedMessage(ttd, tgl);
+  if (signerBlocked) { showToast(signerBlocked, 'error'); return; }
 
   const submitBtn = document.getElementById('btn-submit-pak');
   submitBtn.disabled = true;
