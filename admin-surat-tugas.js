@@ -1084,6 +1084,7 @@ function setupTopScrollbar() {
   const head = document.querySelector('.table-wrap .table-head');
   const headH = head ? Math.ceil(head.getBoundingClientRect().height) : 48;
   document.documentElement.style.setProperty('--st-table-head-h', `${headH}px`);
+  bindMainScrollForStickyHeader();
 
   const tableEl    = bottom.querySelector('table');
   const tableWidth = tableEl ? tableEl.scrollWidth : bottom.scrollWidth;
@@ -1125,7 +1126,16 @@ function setupTopScrollbar() {
 function updateTableStickyState() {
   const wrap = document.querySelector('.table-wrap');
   if (!wrap) return;
-  wrap.classList.toggle('table-is-stuck', wrap.getBoundingClientRect().top <= 0);
+  const scroller = document.querySelector('.main');
+  const scrollerTop = scroller ? scroller.getBoundingClientRect().top : 0;
+  wrap.classList.toggle('table-is-stuck', wrap.getBoundingClientRect().top <= scrollerTop);
+}
+
+function bindMainScrollForStickyHeader() {
+  const scroller = document.querySelector('.main');
+  if (!scroller || scroller._stickyHeaderBound) return;
+  scroller.addEventListener('scroll', updateTableStickyState, { passive: true });
+  scroller._stickyHeaderBound = true;
 }
 
 window.addEventListener('resize', () => {
@@ -2001,6 +2011,7 @@ let makACState = {
   inputEl:  null,
   filtered: [],
   focusIdx: -1,
+  suppressUntil: 0,
 };
 
 async function loadMAKSuggestions() {
@@ -2071,6 +2082,7 @@ function cellMAKHTML(id, val, editable) {
 }
 
 function onMAKFocus(inp) {
+  if (Date.now() < makACState.suppressUntil) return;
   openMakAc(inp);
 }
 
@@ -2085,6 +2097,7 @@ function onMAKBlur(inp) {
 }
 
 function onMAKInput(inp) {
+  if (Date.now() < makACState.suppressUntil) return;
   makACState.inputEl = inp;
   if (!document.getElementById('mak-ac-popup').classList.contains('open')) {
     openMakAc(inp);
@@ -2198,12 +2211,16 @@ function makAcRenderFocus() {
 
 function pickMAK(mak) {
   const inp = makACState.inputEl;
+  makACState.suppressUntil = Date.now() + 250;
   if (inp) {
     inp.value = mak;
     inp.classList.remove('err');
     inp.dispatchEvent(new Event('input', { bubbles: true }));
     const tr = inp.closest('tr[data-surat-id]');
     if (tr) snapshotAdminDraft(tr.dataset.suratId);
+    setTimeout(() => {
+      if (document.activeElement === inp) inp.blur();
+    }, 0);
   }
   closeMakAc();
 }
@@ -2225,6 +2242,7 @@ let tpState = {
   inputEl: null,
   filtered: [],
   focusIdx: -1,
+  suppressUntil: 0,
 };
 
 function onTpCellClick(e, cellEl) {
@@ -2235,6 +2253,7 @@ function onTpCellClick(e, cellEl) {
 }
 
 function onTpInputFocus(inp) {
+  if (Date.now() < tpState.suppressUntil) return;
   const cellEl = inp.closest('.tp-cell');
   if (cellEl) cellEl.classList.add('focused');
   openTpAc(cellEl, inp);
@@ -2253,6 +2272,7 @@ function onTpInputBlur(inp) {
 }
 
 function onTpInput(e, inp) {
+  if (Date.now() < tpState.suppressUntil) return;
   const cellEl = inp.closest('.tp-cell');
   if (cellEl) cellEl.classList.remove('err');
   tpState.cellEl  = cellEl;
@@ -2406,6 +2426,7 @@ function tpAcRenderFocus() {
 function pickTipe(value) {
   const cellEl = tpState.cellEl;
   if (!cellEl) { closeTpAc(); return; }
+  tpState.suppressUntil = Date.now() + 250;
   cellEl.dataset.value = value || '';
   cellEl.classList.remove('err');
   // Re-render: hapus tag lama, tambahkan tag baru, kosongkan input, hilangkan placeholder
@@ -2421,6 +2442,9 @@ function pickTipe(value) {
   }
   const tr = cellEl.closest('tr[data-surat-id]');
   if (tr) snapshotAdminDraft(tr.dataset.suratId);
+  setTimeout(() => {
+    if (inp && document.activeElement === inp) inp.blur();
+  }, 0);
   closeTpAc();
 }
 
