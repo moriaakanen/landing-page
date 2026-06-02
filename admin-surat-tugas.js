@@ -2032,13 +2032,16 @@ let makACState = {
 
 async function loadMAKSuggestions() {
   try {
-    const url = `${SUPABASE_URL}/rest/v1/surat_tugas?select=pembebanan&pembebanan=not.is.null`;
-    const res = await fetch(url, { headers: H });
-    if (!res.ok) {
-      console.warn(`[9201] loadMAKSuggestions HTTP ${res.status}`);
-      return;
+    let rows = Array.isArray(allSurat) && allSurat.length ? allSurat : null;
+    if (!rows) {
+      const url = `${SUPABASE_URL}/rest/v1/surat_tugas?select=pembebanan&pembebanan=not.is.null`;
+      const res = await fetch(url, { headers: H });
+      if (!res.ok) {
+        console.warn(`[9201] loadMAKSuggestions HTTP ${res.status}`);
+        return;
+      }
+      rows = await res.json();
     }
-    const rows = await res.json();
     // Hitung frekuensi pemakaian per MAK valid
     const counts = {};
     rows.forEach(r => {
@@ -2209,7 +2212,8 @@ function makAcRenderList() {
   list.innerHTML = makACState.filtered.map((s, i) => `
     <div class="mak-ac-item${i === makACState.focusIdx ? ' focused' : ''}"
          data-idx="${i}"
-         data-mak="${escAttr(s.mak)}">
+         data-mak="${escAttr(s.mak)}"
+         onmousedown="event.preventDefault();event.stopPropagation();pickMAK(${jsArg(s.mak)});return false">
       <div class="mak-ac-item-code">${esc(s.mak)}<span class="mak-ac-item-count">${s.count}×</span></div>
       ${s.ringkasan ? `<div class="mak-ac-item-desc">${esc(s.ringkasan)}</div>` : ''}
     </div>
@@ -2428,7 +2432,7 @@ function tpAcRender() {
       o.value === currentVal ? 'selected' : '',
       i === tpState.focusIdx ? 'focused' : '',
     ].filter(Boolean).join(' ');
-    return `<div class="${cls}" data-idx="${i}" data-value="${escAttr(o.value)}">${esc(o.label)}</div>`;
+    return `<div class="${cls}" data-idx="${i}" data-value="${escAttr(o.value)}" onmousedown="event.preventDefault();event.stopPropagation();pickTipe(${jsArg(o.value)});return false">${esc(o.label)}</div>`;
   }).join('');
 }
 
@@ -2837,26 +2841,6 @@ function closeAllPopups() {
   closeMakAc();
   closeTpAc();
 }
-
-document.addEventListener('mousedown', (e) => {
-  const target = e.target;
-  if (!target || !target.closest) return;
-
-  const makItem = target.closest('#mak-ac-list .mak-ac-item');
-  if (makItem) {
-    e.preventDefault();
-    e.stopPropagation();
-    pickMAK(makItem.dataset.mak || '');
-    return;
-  }
-
-  const tipeItem = target.closest('#tp-ac-list .tp-ac-item');
-  if (tipeItem) {
-    e.preventDefault();
-    e.stopPropagation();
-    pickTipe(tipeItem.dataset.value || '');
-  }
-});
 
 /* ════════════════════════════════════════════════════════════════════
    COLLECT FIELDS dari row sebelum approve
@@ -6306,14 +6290,13 @@ async function init() {
   if (!SESSION) return;
   Topbar9201.setUser(SESSION);
   initRoleSwitcher(SESSION, true);
-  Promise.all([loadPegawai(), loadMitra(), loadRiwayatJabatan(), loadRiwayatPangkatGolongan(), loadRiwayatGelar(), loadUsers(), loadSurat()]);
+  await Promise.all([loadPegawai(), loadMitra(), loadRiwayatJabatan(), loadRiwayatPangkatGolongan(), loadRiwayatGelar(), loadUsers(), loadSurat()]);
 
   // Panaskan library saja. Template .docx tidak diambil saat halaman dibuka
   // supaya download manager tidak menangkap request storage sebagai unduhan.
   ensureDocxtemplaterLoaded().catch(() => {});
 
-  // Load history POK (MAK Pembebanan) untuk autocomplete dropdown.
-  // Dijalankan setelah loadSurat selesai biar tidak ada race kalau RLS lambat.
+  // Load history POK dari allSurat yang sudah dimuat agar tidak request surat_tugas dua kali.
   loadMAKSuggestions();
 
 }
