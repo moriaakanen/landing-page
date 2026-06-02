@@ -1094,6 +1094,7 @@ function setupTopScrollbar() {
   if (tableWidth <= bottom.clientWidth) {
     top.style.display = 'none';
     document.documentElement.style.setProperty('--st-table-header-top', `${headH}px`);
+    updateTableStickyState();
     return;
   }
   top.style.display = '';
@@ -1117,10 +1118,21 @@ function setupTopScrollbar() {
     });
     top._syncBound = true;
   }
+  updateTableStickyState();
 }
 
 // Re-sync saat window di-resize (lebar tabel & overflow bisa berubah)
-window.addEventListener('resize', () => setupTopScrollbar());
+function updateTableStickyState() {
+  const wrap = document.querySelector('.table-wrap');
+  if (!wrap) return;
+  wrap.classList.toggle('table-is-stuck', wrap.getBoundingClientRect().top <= 0);
+}
+
+window.addEventListener('resize', () => {
+  setupTopScrollbar();
+  updateTableStickyState();
+});
+window.addEventListener('scroll', updateTableStickyState, true);
 
 function autoGrow(el) {
   if (!el || !el.style) return;
@@ -2168,7 +2180,7 @@ function makAcRenderList() {
   list.innerHTML = makACState.filtered.map((s, i) => `
     <div class="mak-ac-item${i === makACState.focusIdx ? ' focused' : ''}"
          data-idx="${i}"
-         onpointerdown="event.preventDefault(); pickMAK(${jsArg(s.mak)})">
+         data-mak="${escAttr(s.mak)}">
       <div class="mak-ac-item-code">${esc(s.mak)}<span class="mak-ac-item-count">${s.count}×</span></div>
       ${s.ringkasan ? `<div class="mak-ac-item-desc">${esc(s.ringkasan)}</div>` : ''}
     </div>
@@ -2378,7 +2390,7 @@ function tpAcRender() {
       o.value === currentVal ? 'selected' : '',
       i === tpState.focusIdx ? 'focused' : '',
     ].filter(Boolean).join(' ');
-    return `<div class="${cls}" data-idx="${i}" onpointerdown="event.preventDefault(); pickTipe(${jsArg(o.value)})">${esc(o.label)}</div>`;
+    return `<div class="${cls}" data-idx="${i}" data-value="${escAttr(o.value)}">${esc(o.label)}</div>`;
   }).join('');
 }
 
@@ -2781,6 +2793,26 @@ function closeAllPopups() {
   closeMakAc();
   closeTpAc();
 }
+
+document.addEventListener('mousedown', (e) => {
+  const target = e.target;
+  if (!target || !target.closest) return;
+
+  const makItem = target.closest('#mak-ac-list .mak-ac-item');
+  if (makItem) {
+    e.preventDefault();
+    e.stopPropagation();
+    pickMAK(makItem.dataset.mak || '');
+    return;
+  }
+
+  const tipeItem = target.closest('#tp-ac-list .tp-ac-item');
+  if (tipeItem) {
+    e.preventDefault();
+    e.stopPropagation();
+    pickTipe(tipeItem.dataset.value || '');
+  }
+});
 
 /* ════════════════════════════════════════════════════════════════════
    COLLECT FIELDS dari row sebelum approve
