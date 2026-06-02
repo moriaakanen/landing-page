@@ -4152,12 +4152,13 @@ function normalizeImportPersonName(value) {
     .trim();
 }
 
-function makePegawaiNameMatcher() {
+function makePegawaiNameMatcher(includeMitra = false) {
   const entries = [];
   const byKey = {};
-  pegawaiList.forEach(p => {
-    const nama = String(pegawaiNama(p) || '').trim();
-    const nip = String(pegawaiNip(p) || '').trim();
+
+  const addPerson = (p, nama, nip) => {
+    nama = String(nama || '').trim();
+    nip = String(nip || '').trim();
     if (!nama || !nip) return;
     const keys = [
       nama.toLowerCase(),
@@ -4165,7 +4166,19 @@ function makePegawaiNameMatcher() {
     ].filter(Boolean);
     keys.forEach(key => { if (!byKey[key]) byKey[key] = p; });
     entries.push({ key: normalizeImportPersonName(nama), pegawai: p });
+  };
+
+  pegawaiList.forEach(p => {
+    addPerson(p, pegawaiNama(p), pegawaiNip(p));
   });
+
+  if (includeMitra) {
+    mitraList.forEach(m => {
+      const nip = formatMitraNip(m.tahun, m.id);
+      addPerson({ ...m, nama: m.nama, pegawai_nip: nip, _isMitra: true }, m.nama, nip);
+    });
+  }
+
   entries.sort((a, b) => b.key.length - a.key.length);
   return { byKey, entries };
 }
@@ -4322,7 +4335,8 @@ async function importSuratFromExcel(inputEl) {
       throw new Error('Kolom Perihal atau Tujuan / Tugas tidak ditemukan.');
     }
 
-    const matcher = makePegawaiNameMatcher();
+    const participantMatcher = makePegawaiNameMatcher(true);
+    const signerMatcher = makePegawaiNameMatcher(false);
     const rows = [];
     const payloads = [];
     const warnings = [];
@@ -4343,11 +4357,11 @@ async function importSuratFromExcel(inputEl) {
       if (!nomor && !perihal && !tujuan && !pegawaiRaw) return;
 
       const rowWarnings = [];
-      const peopleMatch = matchImportPeople(pegawaiRaw, matcher);
+      const peopleMatch = matchImportPeople(pegawaiRaw, participantMatcher);
       if (pegawaiRaw && !peopleMatch.people.length) rowWarnings.push(`Pegawai belum match: ${peopleMatch.unmatched.join(', ')}`);
 
       const ttdRaw = cell('penandatangan_nama');
-      const ttdMatch = matchImportPeople(ttdRaw, matcher);
+      const ttdMatch = matchImportPeople(ttdRaw, signerMatcher);
       const ttd = ttdMatch.people[0] || null;
       if (ttdRaw && !ttd) rowWarnings.push(`Penandatangan belum match: ${ttdRaw}`);
 
