@@ -165,8 +165,8 @@
   /* ════════════════════════════════════════════════════
      EXCEL-LIKE TABLE
   ════════════════════════════════════════════════════ */
-  .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(13,35,64,.05)}
-  .table-head{background:var(--navy);padding:11px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:visible;box-shadow:0 1px 4px rgba(13,35,64,.05);position:relative}
+  .table-head{background:var(--navy);padding:11px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:80;border-radius:10px 10px 0 0}
   .table-head-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.8px;text-transform:uppercase}
   .table-head-count{font-size:11px;color:rgba(255,255,255,.35)}
   /* #4: container tombol di sebelah kanan table-head */
@@ -233,7 +233,7 @@
      scroll ke baris terakhir dulu kalau mau geser tabel horizontal.
      Visibility di-control oleh JS (setupTopScrollbar) — kalau tabel tidak
      overflow, JS akan set display:none. */
-  .table-scroll-top{overflow-x:auto;overflow-y:hidden;border-bottom:1px solid var(--border);background:#fafaf8}
+  .table-scroll-top{overflow-x:auto;overflow-y:hidden;border-bottom:1px solid var(--border);background:#fafaf8;position:sticky;top:var(--st-table-head-h,48px);z-index:75}
   .table-scroll-top::-webkit-scrollbar{height:10px}
   .table-scroll-top::-webkit-scrollbar-track{background:var(--bg)}
   .table-scroll-top::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
@@ -245,7 +245,7 @@
     background:#f9f8f5;padding:9px 10px;text-align:center;font-size:10.5px;font-weight:700;
     color:var(--navy);letter-spacing:.5px;text-transform:uppercase;
     border-bottom:2px solid var(--border);border-right:1px solid var(--border);
-    white-space:nowrap;position:sticky;top:0;z-index:5;
+    white-space:nowrap;position:sticky;top:var(--st-table-header-top,60px);z-index:70;
   }
   /* col-nomor-surat dan col-tgl-surat: white-space diatur di blok text-align di atas */
   table.list-table thead th:last-child{border-right:none}

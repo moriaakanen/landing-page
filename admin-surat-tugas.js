@@ -485,7 +485,7 @@ async function loadSurat() {
   document.getElementById('table-area').innerHTML = `<div style="padding:24px"><div class="skel" style="height:44px;border-radius:6px;margin-bottom:8px"></div><div class="skel" style="height:44px;border-radius:6px;margin-bottom:8px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div>`;
   document.getElementById('table-count').textContent = 'Memuat...';
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?select=*&order=created_at.asc`, { headers: H });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?select=*&order=created_at.asc,id.asc`, { headers: H });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const ascList = await res.json();
     suratOrderMap = {};
@@ -1081,6 +1081,9 @@ function setupTopScrollbar() {
   const topInner = document.getElementById('table-scroll-top-inner');
   const bottom   = document.getElementById('table-area');
   if (!top || !topInner || !bottom) return;
+  const head = document.querySelector('.table-wrap .table-head');
+  const headH = head ? Math.ceil(head.getBoundingClientRect().height) : 48;
+  document.documentElement.style.setProperty('--st-table-head-h', `${headH}px`);
 
   const tableEl    = bottom.querySelector('table');
   const tableWidth = tableEl ? tableEl.scrollWidth : bottom.scrollWidth;
@@ -1090,9 +1093,12 @@ function setupTopScrollbar() {
   // (mis. layar lebar / data sedikit kolomnya)
   if (tableWidth <= bottom.clientWidth) {
     top.style.display = 'none';
+    document.documentElement.style.setProperty('--st-table-header-top', `${headH}px`);
     return;
   }
   top.style.display = '';
+  const topH = Math.ceil(top.getBoundingClientRect().height) || 11;
+  document.documentElement.style.setProperty('--st-table-header-top', `${headH + topH}px`);
 
   // Pasang sync listener satu kali saja (idempotent — pakai flag di element)
   if (!top._syncBound) {
@@ -2184,6 +2190,8 @@ function pickMAK(mak) {
     inp.value = mak;
     inp.classList.remove('err');
     inp.dispatchEvent(new Event('input', { bubbles: true }));
+    const tr = inp.closest('tr[data-surat-id]');
+    if (tr) snapshotAdminDraft(tr.dataset.suratId);
   }
   closeMakAc();
 }
@@ -2399,6 +2407,8 @@ function pickTipe(value) {
     inp.value = '';
     inp.placeholder = value ? '' : 'Pilih tipe...';
   }
+  const tr = cellEl.closest('tr[data-surat-id]');
+  if (tr) snapshotAdminDraft(tr.dataset.suratId);
   closeTpAc();
 }
 
@@ -2412,6 +2422,8 @@ function clearTipe(cellEl) {
     inp.placeholder = 'Pilih tipe...';
     inp.focus();
   }
+  const tr = cellEl.closest('tr[data-surat-id]');
+  if (tr) snapshotAdminDraft(tr.dataset.suratId);
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -4340,6 +4352,7 @@ async function importSuratFromExcel(inputEl) {
     const rows = [];
     const payloads = [];
     const warnings = [];
+    const importBaseTime = Date.now();
 
     aoa.slice(headerRowIndex + 1).forEach((row, idx) => {
       const rowNum = headerRowIndex + idx + 2;
@@ -4379,6 +4392,7 @@ async function importSuratFromExcel(inputEl) {
       const bertugasArr = bertugasRaw ? bertugasRaw.split(',').map(s => s.trim()) : null;
       const matchedNames = peopleMatch.people.map(p => pegawaiNama(p));
       const matchedNips = peopleMatch.people.map(p => String(pegawaiNip(p)));
+      const importIndex = payloads.length;
       const payload = {
         user_id: SESSION.id,
         status: 'menunggu',
@@ -4400,7 +4414,7 @@ async function importSuratFromExcel(inputEl) {
         tipe: cell('tipe') || null,
         jumlah_responden: (isFinite(jr) && jr >= 0) ? jr : null,
         bertugas_sebagai: (bertugasArr && matchedNames.length >= 2 && bertugasArr.some(Boolean)) ? bertugasArr : null,
-        created_at: new Date().toISOString(),
+        created_at: new Date(importBaseTime + importIndex).toISOString(),
       };
 
       payloads.push(payload);
