@@ -239,15 +239,17 @@
   .table-scroll-top::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
   .table-scroll-top::-webkit-scrollbar-thumb:hover{background:#a9a298}
   .table-scroll-top-inner{height:1px}
+  .table-sticky-cols{display:none;overflow:hidden;background:#f9f8f5;border-bottom:2px solid var(--border);position:sticky;top:var(--st-table-header-top,60px);z-index:74}
+  .table-wrap.table-is-stuck .table-sticky-cols{display:block}
+  .table-sticky-cols table.list-table{margin:0}
 
   table.list-table{width:100%;border-collapse:separate;border-spacing:0;min-width:2223px;table-layout:fixed}
   table.list-table thead th{
     background:#f9f8f5;padding:9px 10px;text-align:center;font-size:10.5px;font-weight:700;
     color:var(--navy);letter-spacing:.5px;text-transform:uppercase;
     border-bottom:2px solid var(--border);border-right:1px solid var(--border);
-    white-space:nowrap;position:sticky;top:0;z-index:70;
+    white-space:nowrap;
   }
-  .table-wrap.table-is-stuck table.list-table thead th{top:var(--st-table-header-top,60px)}
   /* col-nomor-surat dan col-tgl-surat: white-space diatur di blok text-align di atas */
   table.list-table thead th:last-child{border-right:none}
 
@@ -770,6 +772,7 @@
       <div class="table-scroll-top" id="table-scroll-top" aria-hidden="true">
         <div class="table-scroll-top-inner" id="table-scroll-top-inner"></div>
       </div>
+      <div class="table-sticky-cols" id="table-sticky-cols"></div>
       <div class="table-scroll" id="table-area">
         <table class="list-table">
           <thead><tr>

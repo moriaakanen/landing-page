@@ -1080,6 +1080,7 @@ function setupTopScrollbar() {
   const top      = document.getElementById('table-scroll-top');
   const topInner = document.getElementById('table-scroll-top-inner');
   const bottom   = document.getElementById('table-area');
+  const sticky   = document.getElementById('table-sticky-cols');
   if (!top || !topInner || !bottom) return;
   const head = document.querySelector('.table-wrap .table-head');
   const headH = head ? Math.ceil(head.getBoundingClientRect().height) : 48;
@@ -1089,6 +1090,7 @@ function setupTopScrollbar() {
   const tableEl    = bottom.querySelector('table');
   const tableWidth = tableEl ? tableEl.scrollWidth : bottom.scrollWidth;
   topInner.style.width = tableWidth + 'px';
+  syncStickyColumnHeader(tableEl, tableWidth);
 
   // Sembunyikan top scrollbar kalau tabel tidak overflow horizontal
   // (mis. layar lebar / data sedikit kolomnya)
@@ -1109,12 +1111,14 @@ function setupTopScrollbar() {
       if (syncing) return;
       syncing = true;
       bottom.scrollLeft = top.scrollLeft;
+      if (sticky) sticky.scrollLeft = top.scrollLeft;
       requestAnimationFrame(() => { syncing = false; });
     });
     bottom.addEventListener('scroll', () => {
       if (syncing) return;
       syncing = true;
       top.scrollLeft = bottom.scrollLeft;
+      if (sticky) sticky.scrollLeft = bottom.scrollLeft;
       requestAnimationFrame(() => { syncing = false; });
     });
     top._syncBound = true;
@@ -1123,6 +1127,18 @@ function setupTopScrollbar() {
 }
 
 // Re-sync saat window di-resize (lebar tabel & overflow bisa berubah)
+function syncStickyColumnHeader(tableEl, tableWidth) {
+  const sticky = document.getElementById('table-sticky-cols');
+  if (!sticky || !tableEl) return;
+  const thead = tableEl.querySelector('thead');
+  if (!thead) {
+    sticky.innerHTML = '';
+    return;
+  }
+  sticky.innerHTML = `<table class="list-table" style="width:${tableWidth}px"><thead>${thead.innerHTML}</thead></table>`;
+  sticky.scrollLeft = document.getElementById('table-area')?.scrollLeft || 0;
+}
+
 function updateTableStickyState() {
   const wrap = document.querySelector('.table-wrap');
   if (!wrap) return;
@@ -2211,7 +2227,7 @@ function makAcRenderFocus() {
 
 function pickMAK(mak) {
   const inp = makACState.inputEl;
-  makACState.suppressUntil = Date.now() + 250;
+  makACState.suppressUntil = Date.now() + 800;
   if (inp) {
     inp.value = mak;
     inp.classList.remove('err');
@@ -2223,6 +2239,8 @@ function pickMAK(mak) {
     }, 0);
   }
   closeMakAc();
+  setTimeout(closeMakAc, 0);
+  setTimeout(closeMakAc, 120);
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -2426,7 +2444,7 @@ function tpAcRenderFocus() {
 function pickTipe(value) {
   const cellEl = tpState.cellEl;
   if (!cellEl) { closeTpAc(); return; }
-  tpState.suppressUntil = Date.now() + 250;
+  tpState.suppressUntil = Date.now() + 800;
   cellEl.dataset.value = value || '';
   cellEl.classList.remove('err');
   // Re-render: hapus tag lama, tambahkan tag baru, kosongkan input, hilangkan placeholder
@@ -2446,6 +2464,8 @@ function pickTipe(value) {
     if (inp && document.activeElement === inp) inp.blur();
   }, 0);
   closeTpAc();
+  setTimeout(closeTpAc, 0);
+  setTimeout(closeTpAc, 120);
 }
 
 function clearTipe(cellEl) {
