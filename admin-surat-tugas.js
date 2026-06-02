@@ -853,7 +853,7 @@ function getAdminDraftKey(suratId) {
   return `nova_st_admin_draft_${uid}_${suratId}`;
 }
 function snapshotAdminDraft(suratId) {
-  const values = collectRow(suratId);
+  const values = collectRowFields(suratId);
   if (!values) return;
   // Cek apakah ada perubahan substansial dari original. Kalau row kosong
   // total (mungkin baru), tetap save supaya state baru di-preserve.
@@ -2209,11 +2209,12 @@ function makAcRenderList() {
     list.innerHTML = `<div class="mak-ac-empty">Tidak ada riwayat yang cocok.<br><span style="font-size:10.5px">Anda tetap bisa mengetik MAK baru langsung di field.</span></div>`;
     return;
   }
+  const targetId = makACState.inputEl ? (makACState.inputEl.dataset.id || '') : '';
   list.innerHTML = makACState.filtered.map((s, i) => `
     <div class="mak-ac-item${i === makACState.focusIdx ? ' focused' : ''}"
          data-idx="${i}"
          data-mak="${escAttr(s.mak)}"
-         onmousedown="event.preventDefault();event.stopPropagation();pickMAK(${jsArg(s.mak)});return false">
+         onmousedown="event.preventDefault();pickMAKForId(${jsArg(targetId)},${jsArg(s.mak)});return false">
       <div class="mak-ac-item-code">${esc(s.mak)}<span class="mak-ac-item-count">${s.count}×</span></div>
       ${s.ringkasan ? `<div class="mak-ac-item-desc">${esc(s.ringkasan)}</div>` : ''}
     </div>
@@ -2229,8 +2230,13 @@ function makAcRenderFocus() {
   }
 }
 
-function pickMAK(mak) {
-  const inp = makACState.inputEl;
+function makAcPick(idx) {
+  const item = makACState.filtered[idx];
+  if (!item) return;
+  pickMAK(item.mak);
+}
+
+function pickMAKForInput(inp, mak) {
   makACState.suppressUntil = Date.now() + 800;
   if (inp) {
     inp.value = mak;
@@ -2245,6 +2251,15 @@ function pickMAK(mak) {
   closeMakAc();
   setTimeout(closeMakAc, 0);
   setTimeout(closeMakAc, 120);
+}
+
+function pickMAKForId(id, mak) {
+  const inp = id ? document.querySelector(`.mak-input[data-id="${CSS.escape(String(id))}"]`) : makACState.inputEl;
+  pickMAKForInput(inp, mak);
+}
+
+function pickMAK(mak) {
+  pickMAKForInput(makACState.inputEl, mak);
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -2426,13 +2441,14 @@ function tpAcRender() {
     return;
   }
   const currentVal = tpState.cellEl ? (tpState.cellEl.dataset.value || '') : '';
+  const targetId = tpState.cellEl ? (tpState.cellEl.dataset.id || '') : '';
   list.innerHTML = tpState.filtered.map((o, i) => {
     const cls = [
       'tp-ac-item',
       o.value === currentVal ? 'selected' : '',
       i === tpState.focusIdx ? 'focused' : '',
     ].filter(Boolean).join(' ');
-    return `<div class="${cls}" data-idx="${i}" data-value="${escAttr(o.value)}" onmousedown="event.preventDefault();event.stopPropagation();pickTipe(${jsArg(o.value)});return false">${esc(o.label)}</div>`;
+    return `<div class="${cls}" data-idx="${i}" data-value="${escAttr(o.value)}" onmousedown="event.preventDefault();pickTipeForId(${jsArg(targetId)},${jsArg(o.value)});return false">${esc(o.label)}</div>`;
   }).join('');
 }
 
@@ -2445,8 +2461,13 @@ function tpAcRenderFocus() {
   }
 }
 
-function pickTipe(value) {
-  const cellEl = tpState.cellEl;
+function tpAcPick(idx) {
+  const item = tpState.filtered[idx];
+  if (!item) return;
+  pickTipe(item.value);
+}
+
+function pickTipeForCell(cellEl, value) {
   if (!cellEl) { closeTpAc(); return; }
   tpState.suppressUntil = Date.now() + 800;
   cellEl.dataset.value = value || '';
@@ -2470,6 +2491,15 @@ function pickTipe(value) {
   closeTpAc();
   setTimeout(closeTpAc, 0);
   setTimeout(closeTpAc, 120);
+}
+
+function pickTipeForId(id, value) {
+  const cellEl = id ? document.querySelector(`.tp-cell[data-id="${CSS.escape(String(id))}"]`) : tpState.cellEl;
+  pickTipeForCell(cellEl, value);
+}
+
+function pickTipe(value) {
+  pickTipeForCell(tpState.cellEl, value);
 }
 
 function clearTipe(cellEl) {
