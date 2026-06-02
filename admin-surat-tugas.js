@@ -11,6 +11,10 @@
      - window.docxPreview, saveAs, docxtemplater, PizZip (libs eksternal)
 ═══════════════════════════════════════════════════════════════════════ */
 
+const ADMIN_SURAT_TUGAS_BUILD = '2026-06-02.5';
+window.ADMIN_SURAT_TUGAS_BUILD = ADMIN_SURAT_TUGAS_BUILD;
+console.info('[9201] admin-surat-tugas build', ADMIN_SURAT_TUGAS_BUILD);
+
 const H = SUPABASE_HEADERS;
 
 /* ═════════════════════════════════════════════════════════════════════
@@ -979,12 +983,7 @@ function applyAdminDraftToRow(suratId) {
   // Tipe (custom dropdown — pakai data-value pada .tp-cell)
   const tpCell = row.querySelector('.tp-cell[data-field="tipe"]');
   if (tpCell && v.tipe) {
-    tpCell.dataset.value = v.tipe;
-    const tpDisplay = tpCell.querySelector('.tp-display');
-    if (tpDisplay && typeof tipeLabel === 'function') {
-      tpDisplay.textContent = tipeLabel(v.tipe);
-      tpDisplay.classList.remove('placeholder');
-    }
+    setTipeCellValue(tpCell, v.tipe);
   }
   return true;
 }
@@ -1250,6 +1249,23 @@ function buildTipeTag(val) {
     <span class="tp-tag-text">${esc(label)}</span>
     <button type="button" class="tp-tag-x" onclick="onTpTagRemove(event, this)">×</button>
   </span>`;
+}
+
+function setTipeCellValue(cellEl, value) {
+  if (!cellEl) return null;
+  const cleanValue = value || '';
+  cellEl.dataset.value = cleanValue;
+  cellEl.classList.remove('err');
+  cellEl.querySelectorAll('.tp-tag').forEach(tag => tag.remove());
+  const inp = cellEl.querySelector('.tp-input');
+  if (cleanValue) {
+    cellEl.insertAdjacentHTML('afterbegin', buildTipeTag(cleanValue));
+  }
+  if (inp) {
+    inp.value = '';
+    inp.placeholder = cleanValue ? '' : 'Pilih tipe...';
+  }
+  return inp;
 }
 
 function cellDateHTML(id, field, isoVal, editable, placeholder) {
@@ -2209,16 +2225,23 @@ function makAcRenderList() {
     list.innerHTML = `<div class="mak-ac-empty">Tidak ada riwayat yang cocok.<br><span style="font-size:10.5px">Anda tetap bisa mengetik MAK baru langsung di field.</span></div>`;
     return;
   }
-  const targetId = makACState.inputEl ? (makACState.inputEl.dataset.id || '') : '';
   list.innerHTML = makACState.filtered.map((s, i) => `
     <div class="mak-ac-item${i === makACState.focusIdx ? ' focused' : ''}"
          data-idx="${i}"
          data-mak="${escAttr(s.mak)}"
-         onmousedown="event.preventDefault();pickMAKForId(${jsArg(targetId)},${jsArg(s.mak)});return false">
+         onmousedown="onMakSuggestionMouseDown(event,this)">
       <div class="mak-ac-item-code">${esc(s.mak)}<span class="mak-ac-item-count">${s.count}×</span></div>
       ${s.ringkasan ? `<div class="mak-ac-item-desc">${esc(s.ringkasan)}</div>` : ''}
     </div>
   `).join('');
+}
+
+function onMakSuggestionMouseDown(event, itemEl) {
+  event.preventDefault();
+  event.stopPropagation();
+  const idx = Number(itemEl && itemEl.dataset ? itemEl.dataset.idx : -1);
+  if (Number.isInteger(idx) && idx >= 0) makAcPick(idx);
+  return false;
 }
 
 function makAcRenderFocus() {
@@ -2253,8 +2276,14 @@ function pickMAKForInput(inp, mak) {
   setTimeout(closeMakAc, 120);
 }
 
+function findByDataId(selector, id) {
+  if (id === undefined || id === null || id === '') return null;
+  return Array.from(document.querySelectorAll(selector))
+    .find(el => String(el.dataset.id || '') === String(id)) || null;
+}
+
 function pickMAKForId(id, mak) {
-  const inp = id ? document.querySelector(`.mak-input[data-id="${CSS.escape(String(id))}"]`) : makACState.inputEl;
+  const inp = findByDataId('.mak-input', id) || makACState.inputEl;
   pickMAKForInput(inp, mak);
 }
 
@@ -2441,15 +2470,22 @@ function tpAcRender() {
     return;
   }
   const currentVal = tpState.cellEl ? (tpState.cellEl.dataset.value || '') : '';
-  const targetId = tpState.cellEl ? (tpState.cellEl.dataset.id || '') : '';
   list.innerHTML = tpState.filtered.map((o, i) => {
     const cls = [
       'tp-ac-item',
       o.value === currentVal ? 'selected' : '',
       i === tpState.focusIdx ? 'focused' : '',
     ].filter(Boolean).join(' ');
-    return `<div class="${cls}" data-idx="${i}" data-value="${escAttr(o.value)}" onmousedown="event.preventDefault();pickTipeForId(${jsArg(targetId)},${jsArg(o.value)});return false">${esc(o.label)}</div>`;
+    return `<div class="${cls}" data-idx="${i}" data-value="${escAttr(o.value)}" onmousedown="onTipeSuggestionMouseDown(event,this)">${esc(o.label)}</div>`;
   }).join('');
+}
+
+function onTipeSuggestionMouseDown(event, itemEl) {
+  event.preventDefault();
+  event.stopPropagation();
+  const idx = Number(itemEl && itemEl.dataset ? itemEl.dataset.idx : -1);
+  if (Number.isInteger(idx) && idx >= 0) tpAcPick(idx);
+  return false;
 }
 
 function tpAcRenderFocus() {
@@ -2470,19 +2506,7 @@ function tpAcPick(idx) {
 function pickTipeForCell(cellEl, value) {
   if (!cellEl) { closeTpAc(); return; }
   tpState.suppressUntil = Date.now() + 800;
-  cellEl.dataset.value = value || '';
-  cellEl.classList.remove('err');
-  // Re-render: hapus tag lama, tambahkan tag baru, kosongkan input, hilangkan placeholder
-  const existing = cellEl.querySelector('.tp-tag');
-  if (existing) existing.remove();
-  const inp = cellEl.querySelector('.tp-input');
-  if (value) {
-    cellEl.insertAdjacentHTML('afterbegin', buildTipeTag(value));
-  }
-  if (inp) {
-    inp.value = '';
-    inp.placeholder = value ? '' : 'Pilih tipe...';
-  }
+  const inp = setTipeCellValue(cellEl, value);
   const tr = cellEl.closest('tr[data-surat-id]');
   if (tr) snapshotAdminDraft(tr.dataset.suratId);
   setTimeout(() => {
@@ -2494,7 +2518,7 @@ function pickTipeForCell(cellEl, value) {
 }
 
 function pickTipeForId(id, value) {
-  const cellEl = id ? document.querySelector(`.tp-cell[data-id="${CSS.escape(String(id))}"]`) : tpState.cellEl;
+  const cellEl = findByDataId('.tp-cell', id) || tpState.cellEl;
   pickTipeForCell(cellEl, value);
 }
 
@@ -3443,16 +3467,7 @@ function reapplyMenungguDirty(snapshot) {
     if (entry.tipe !== undefined) {
       const tp = tr.querySelector('.tp-cell');
       if (tp) {
-        tp.dataset.value = entry.tipe || '';
-        tp.querySelectorAll('.tp-tag').forEach(t => t.remove());
-        const inp = tp.querySelector('.tp-input');
-        if (entry.tipe) {
-          tp.insertAdjacentHTML('afterbegin', buildTipeTag(entry.tipe));
-        }
-        if (inp) {
-          inp.value = '';
-          inp.placeholder = entry.tipe ? '' : 'Pilih tipe...';
-        }
+        setTipeCellValue(tp, entry.tipe);
       }
     }
 
