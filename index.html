@@ -242,6 +242,9 @@
   .cal-event.surat{box-shadow:0 4px 10px rgba(13,35,64,.14)}
   .cal-event.is-range-start,.cal-event.is-range-mid,.cal-event.is-range-end{border-radius:6px}
   .cal-event.is-range-single{border-radius:5px}
+  .cal-event.is-continuation-start{border-radius:0;clip-path:polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%)}
+  .cal-event.is-continuation-end{border-radius:0;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%)}
+  .cal-event.is-continuation-start.is-continuation-end{clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,8px 100%,0 50%)}
   .cal-event.is-range-single .cal-event-label{text-overflow:ellipsis}
   .cal-more{z-index:5;align-self:start;justify-self:end;margin-right:6px;max-width:calc(100% - 12px);font-size:9px;color:var(--muted);background:rgba(250,250,246,.9);border-radius:6px;padding:1px 4px;text-align:right;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   @media(max-width:768px){
@@ -2517,15 +2520,43 @@ function eventOccursOnDate(ev, dateKey) {
   if (ev.range_start && ev.range_end) return dateKey >= ev.range_start && dateKey <= ev.range_end;
   return ev.tanggal === dateKey;
 }
+function calendarDurationDays(ev) {
+  if (!ev) return 1;
+  const start = parseDateKey(ev.range_start || ev.tanggal);
+  const end = parseDateKey(ev.range_end || ev.range_start || ev.tanggal);
+  if (!start || !end || end < start) return 1;
+  return Math.max(1, Math.round((end - start) / 86400000) + 1);
+}
+function calendarGlobalEventPriority(ev, dateKey) {
+  const startsToday = !ev || !ev.range_start || ev.range_start === dateKey;
+  return startsToday ? 0 : 1;
+}
+function compareCalendarSuratEvents(a, b, dateKey) {
+  const ap = calendarGlobalEventPriority(a, dateKey);
+  const bp = calendarGlobalEventPriority(b, dateKey);
+  if (ap !== bp) return ap - bp;
+  const ad = calendarDurationDays(a);
+  const bd = calendarDurationDays(b);
+  if (ad !== bd) return ad - bd;
+  const as = a.range_start || a.tanggal || '';
+  const bs = b.range_start || b.tanggal || '';
+  if (as !== bs) return as.localeCompare(bs);
+  return String(a.judul || '').localeCompare(String(b.judul || ''), 'id');
+}
 function calendarRangeClass(ev, dateKey) {
   if (!ev || !ev.range_start || !ev.range_end || ev.range_start === ev.range_end) return 'is-range-single';
-  const d = parseDateKey(dateKey);
-  const starts = dateKey === ev.range_start || (d && d.getDay() === 0);
-  const ends = dateKey === ev.range_end || (d && d.getDay() === 6);
+  const starts = dateKey === ev.range_start;
+  const ends = dateKey === ev.range_end;
   if (starts && ends) return 'is-range-single';
   if (starts) return 'is-range-start';
   if (ends) return 'is-range-end';
   return 'is-range-mid';
+}
+function calendarContinuationClass(bar) {
+  if (!bar || !bar.ev) return '';
+  const before = bar.ev.range_start && bar.startDate > bar.ev.range_start;
+  const after = bar.ev.range_end && bar.endDate < bar.ev.range_end;
+  return (before ? ' is-continuation-start' : '') + (after ? ' is-continuation-end' : '');
 }
 function calendarMeasureText(text) {
   if (!window._calTextMeasureCtx) {
@@ -2685,7 +2716,19 @@ function sortCalendarEvents(a, b) {
   const bw = b.waktu || (b.source === 'surat' ? '99:99' : '');
   if (aw !== bw) return aw.localeCompare(bw);
   if (a.source !== b.source) return a.source === 'personal' ? -1 : 1;
+  if (a.source === 'surat' && b.source === 'surat') {
+    const ad = calendarDurationDays(a);
+    const bd = calendarDurationDays(b);
+    if (ad !== bd) return ad - bd;
+  }
   return String(a.judul || '').localeCompare(String(b.judul || ''), 'id');
+}
+
+function sortCalendarEventsForDate(a, b, dateKey) {
+  if (calMode === 'global' && a.source === 'surat' && b.source === 'surat') {
+    return compareCalendarSuratEvents(a, b, dateKey);
+  }
+  return sortCalendarEvents(a, b);
 }
 
 function getMonthData(year, month) {
@@ -2719,25 +2762,35 @@ function setCalendarMode(mode) {
   renderCalendar();
 }
 
+function calendarUniqueEventsForWeek(weekDays) {
+  const unique = [];
+  const seen = {};
+  weekDays.forEach(dateKey => {
+    calCachedEvents
+      .filter(ev => eventOccursOnDate(ev, dateKey))
+      .sort(sortCalendarEvents)
+      .forEach(ev => {
+        const key = eventKey(ev);
+        if (!seen[key]) {
+          seen[key] = true;
+          unique.push(ev);
+        }
+      });
+  });
+  return unique;
+}
+
 function buildCalendarSlots(days) {
+  if (calMode === 'global') return buildGlobalCalendarSlots(days);
+  return buildCalendarSlotsLegacy(days);
+}
+
+function buildCalendarSlotsLegacy(days) {
   const result = { _bars: [] };
   const maxSlots = window.innerWidth <= 600 ? 1 : (window.innerWidth <= 768 ? 2 : 4);
   for (let week = 0; week < 6; week++) {
     const weekDays = days.slice(week * 7, week * 7 + 7).map(day => formatDateKey(day.y, day.m, day.d));
-    const unique = [];
-    const seen = {};
-    weekDays.forEach(dateKey => {
-      calCachedEvents
-        .filter(ev => eventOccursOnDate(ev, dateKey))
-        .sort(sortCalendarEvents)
-        .forEach(ev => {
-          const key = eventKey(ev);
-          if (!seen[key]) {
-            seen[key] = true;
-            unique.push(ev);
-          }
-        });
-    });
+    const unique = calendarUniqueEventsForWeek(weekDays);
     unique.sort((a, b) => {
       const as = a.range_start || a.tanggal || '';
       const bs = b.range_start || b.tanggal || '';
@@ -2781,6 +2834,67 @@ function buildCalendarSlots(days) {
   return result;
 }
 
+function buildGlobalCalendarSlots(days) {
+  const result = { _bars: [] };
+  const maxSlots = window.innerWidth <= 600 ? 1 : (window.innerWidth <= 768 ? 2 : 4);
+  for (let week = 0; week < 6; week++) {
+    const weekDays = days.slice(week * 7, week * 7 + 7).map(day => formatDateKey(day.y, day.m, day.d));
+    const unique = calendarUniqueEventsForWeek(weekDays);
+    const slots = Array.from({ length: maxSlots }, () => ({}));
+    weekDays.forEach(dateKey => { result[dateKey] = { slots:Array(maxSlots).fill(null), overflow:0 }; });
+
+    weekDays.forEach((dateKey, dayIdx) => {
+      const visibleToday = {};
+      for (let slot = 0; slot < maxSlots; slot++) {
+        const key = slots[slot][dateKey];
+        if (key) visibleToday[key] = true;
+      }
+
+      const candidates = unique
+        .filter(ev => eventOccursOnDate(ev, dateKey) && !visibleToday[eventKey(ev)])
+        .sort((a, b) => compareCalendarSuratEvents(a, b, dateKey));
+
+      candidates.forEach(ev => {
+        const key = eventKey(ev);
+        let target = -1;
+        for (let slot = 0; slot < maxSlots; slot++) {
+          if (!slots[slot][dateKey]) {
+            target = slot;
+            break;
+          }
+        }
+        if (target === -1) {
+          result[dateKey].overflow += 1;
+          return;
+        }
+
+        let lastIdx = dayIdx;
+        for (let nextIdx = dayIdx + 1; nextIdx < weekDays.length; nextIdx++) {
+          const nextDate = weekDays[nextIdx];
+          if (!eventOccursOnDate(ev, nextDate) || slots[target][nextDate]) break;
+          lastIdx = nextIdx;
+        }
+
+        result._bars.push({
+          ev,
+          week,
+          slot: target,
+          startCol: dayIdx + 1,
+          span: Math.max(1, lastIdx - dayIdx + 1),
+          startDate: dateKey,
+          endDate: weekDays[lastIdx],
+        });
+        for (let fillIdx = dayIdx; fillIdx <= lastIdx; fillIdx++) {
+          const fillDate = weekDays[fillIdx];
+          slots[target][fillDate] = key;
+          result[fillDate].slots[target] = ev;
+        }
+      });
+    });
+  }
+  return result;
+}
+
 function renderCalendar() {
   var year  = calCurrentDate.getFullYear();
   var month = calCurrentDate.getMonth();
@@ -2800,7 +2914,7 @@ function renderCalendar() {
     var col = (i % 7) + 1;
     var row = Math.floor(i / 7) + 1;
     var isToday = dateKey === todayKey;
-    var dayEvents = calCachedEvents.filter(e => eventOccursOnDate(e, dateKey)).sort(sortCalendarEvents);
+    var dayEvents = calCachedEvents.filter(e => eventOccursOnDate(e, dateKey)).sort((a, b) => sortCalendarEventsForDate(a, b, dateKey));
     var hasEvents = dayEvents.length > 0;
     var cls = 'cal-day' + (day.other ? ' other-month':'') + (isToday ? ' today':'') + (hasEvents ? ' has-events':'');
     html += '<div class="' + cls + '" style="grid-column:' + col + ';grid-row:' + row + '" onclick="openModalForDate(\'' + dateKey + '\')">';
@@ -2824,7 +2938,8 @@ function renderCalendar() {
     if (!ev) return;
     var c = EVENT_COLORS[ev.warna] || EVENT_COLORS['#c8a84b'];
     var rangeCls = calendarRangeClass(ev, bar.startDate);
-    var eventCls = 'cal-event ' + rangeCls + (ev.source === 'surat' ? ' surat' : '');
+    var continuationCls = calendarContinuationClass(bar);
+    var eventCls = 'cal-event ' + rangeCls + continuationCls + (ev.source === 'surat' ? ' surat' : '');
     var top = 31 + (bar.slot * 21);
     var label = escapeHtml(barLabels[idx] || '');
     html += '<div class="' + eventCls + '" style="grid-column:' + bar.startCol + ' / span ' + bar.span + ';grid-row:' + (bar.week + 1) + ';margin: ' + top + 'px 6px 0 6px;background:' + (c.solid || ev.warna || '#c8a84b') + ';color:' + (c.fg || '#fff') + '"><span class="cal-event-label">' + label + '</span></div>';
@@ -3076,7 +3191,7 @@ async function deleteCurrentEvent() {
 }
 
 function renderDayEventList(dateKey) {
-  var events = calCachedEvents.filter(e => e.tanggal === dateKey).sort(sortCalendarEvents);
+  var events = calCachedEvents.filter(e => e.tanggal === dateKey).sort((a, b) => sortCalendarEventsForDate(a, b, dateKey));
   var container = document.getElementById('day-events-list');
   var html = '<div class="event-list-titlebar">' + (calMode === 'global' ? 'Agenda bersama' : 'Agenda hari ini') + ' (' + events.length + ')</div>';
   if (!events.length) {
