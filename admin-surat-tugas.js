@@ -11,7 +11,7 @@
      - window.docxPreview, saveAs, docxtemplater, PizZip (libs eksternal)
 ═══════════════════════════════════════════════════════════════════════ */
 
-const ADMIN_SURAT_TUGAS_BUILD = '2026-06-02.5';
+const ADMIN_SURAT_TUGAS_BUILD = '2026-06-17.1';
 window.ADMIN_SURAT_TUGAS_BUILD = ADMIN_SURAT_TUGAS_BUILD;
 console.info('[9201] admin-surat-tugas build', ADMIN_SURAT_TUGAS_BUILD);
 
@@ -174,6 +174,9 @@ function tipeTemplateUrl(tipe) {
 
 let SESSION = null;
 let allSurat = [];                // descending by created_at (untuk display di table)
+const SURAT_PAGE_SIZE = 100;
+let suratPage = 1;
+let filteredSurat = [];
 let suratMap = {};                // id → object
 let suratOrderMap = {};           // id → urutan global ascending (1-based)
 let pegawaiList = [];             // dari "data_pegawai"
@@ -485,9 +488,12 @@ function getPengajuNama(s) {
   return u.full_name || u.username || '';
 }
 
-async function loadSurat() {
+async function loadSurat(options = {}) {
+  const resetPage = !!options.resetPage;
   document.getElementById('table-area').innerHTML = `<div style="padding:24px"><div class="skel" style="height:44px;border-radius:6px;margin-bottom:8px"></div><div class="skel" style="height:44px;border-radius:6px;margin-bottom:8px"></div><div class="skel" style="height:44px;border-radius:6px"></div></div>`;
   document.getElementById('table-count').textContent = 'Memuat...';
+  const pager = document.getElementById('table-pagination');
+  if (pager) pager.hidden = true;
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/surat_tugas?select=*&order=created_at.asc,id.asc`, { headers: H });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -497,11 +503,13 @@ async function loadSurat() {
     allSurat = ascList.slice().reverse();
     suratMap = {};
     allSurat.forEach(s => { suratMap[s.id] = s; });
+    if (resetPage) suratPage = 1;
     updateStats();
-    filterTable();
+    filterTable({ resetPage: false });
   } catch(e) {
     document.getElementById('table-area').innerHTML = `<div class="table-empty"><div class="table-empty-icon">⚠️</div><div class="table-empty-text">Gagal memuat data: ${esc(e.message)}</div></div>`;
     document.getElementById('table-count').textContent = 'Error';
+    renderPagination(0);
   }
 }
 
@@ -561,7 +569,7 @@ async function addNewSurat() {
     // Reload tabel — pakai pattern dirty-preserve yg sama dgn submitApprove
     // supaya edit di baris menunggu lain (kalau ada) tidak hilang.
     const dirtySnapshot = captureMenungguDirty(null);
-    await loadSurat();
+    await loadSurat({ resetPage: true });
     reapplyMenungguDirty(dirtySnapshot);
 
     // Scroll & focus ke baris baru, isi sel pertama (perihal) supaya admin
@@ -596,14 +604,78 @@ function updateStats() {
   document.getElementById('st-selesai').textContent  = allSurat.filter(s => s.status === 'selesai').length;
 }
 
-function filterTable() {
+function filterTable(options = {}) {
+  const resetPage = !!options.resetPage;
   const q  = document.getElementById('search-input').value.toLowerCase();
   const st = document.getElementById('filter-status').value;
   let f = allSurat;
   if (q)  f = f.filter(s => (s.perihal||'').toLowerCase().includes(q) || (s.tujuan||'').toLowerCase().includes(q));
   if (st) f = f.filter(s => s.status === st);
   f = sortData(f);
-  renderTable(f);
+  filteredSurat = f;
+
+  const totalPages = Math.max(1, Math.ceil(filteredSurat.length / SURAT_PAGE_SIZE));
+  if (resetPage) suratPage = 1;
+  if (suratPage > totalPages) suratPage = totalPages;
+  if (suratPage < 1) suratPage = 1;
+
+  const start = (suratPage - 1) * SURAT_PAGE_SIZE;
+  const pageRows = filteredSurat.slice(start, start + SURAT_PAGE_SIZE);
+  renderTable(pageRows, filteredSurat.length);
+}
+
+function goSuratPage(page) {
+  const nextPage = Number(page);
+  if (!Number.isFinite(nextPage)) return;
+  suratPage = Math.max(1, Math.floor(nextPage));
+  filterTable({ resetPage: false });
+  const wrap = document.querySelector('.table-wrap');
+  if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildPageList(current, total) {
+  const pages = new Set([1, total]);
+  for (let p = current - 2; p <= current + 2; p++) {
+    if (p >= 1 && p <= total) pages.add(p);
+  }
+  const sorted = Array.from(pages).sort((a, b) => a - b);
+  const out = [];
+  sorted.forEach((p, i) => {
+    if (i > 0 && p - sorted[i - 1] > 1) out.push('gap');
+    out.push(p);
+  });
+  return out;
+}
+
+function renderPagination(totalFiltered) {
+  const pager = document.getElementById('table-pagination');
+  if (!pager) return;
+  const total = Number(totalFiltered) || 0;
+  if (!total || total <= SURAT_PAGE_SIZE) {
+    pager.hidden = true;
+    pager.innerHTML = '';
+    return;
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / SURAT_PAGE_SIZE));
+  const start = (suratPage - 1) * SURAT_PAGE_SIZE + 1;
+  const end = Math.min(total, suratPage * SURAT_PAGE_SIZE);
+  const pageItems = buildPageList(suratPage, totalPages).map(item => {
+    if (item === 'gap') return '<span class="pager-gap">...</span>';
+    const active = item === suratPage ? ' active' : '';
+    return `<button type="button" class="pager-btn${active}" onclick="goSuratPage(${item})" ${item === suratPage ? 'aria-current="page"' : ''}>${item}</button>`;
+  }).join('');
+
+  pager.hidden = false;
+  pager.innerHTML = `
+    <div class="pager-summary">Menampilkan ${start}-${end} dari ${total} surat</div>
+    <div class="pager-actions">
+      <button type="button" class="pager-btn pager-nav" onclick="goSuratPage(1)" ${suratPage <= 1 ? 'disabled' : ''}>Awal</button>
+      <button type="button" class="pager-btn pager-nav" onclick="goSuratPage(${suratPage - 1})" ${suratPage <= 1 ? 'disabled' : ''}>Sebelumnya</button>
+      ${pageItems}
+      <button type="button" class="pager-btn pager-nav" onclick="goSuratPage(${suratPage + 1})" ${suratPage >= totalPages ? 'disabled' : ''}>Berikutnya</button>
+      <button type="button" class="pager-btn pager-nav" onclick="goSuratPage(${totalPages})" ${suratPage >= totalPages ? 'disabled' : ''}>Akhir</button>
+    </div>`;
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -682,7 +754,7 @@ function setSort(col) {
     // Kolom yang "secara intuitif" lebih bermakna descending
     sortState.dir = ['no', 'tanggal_surat', 'waktu'].includes(col) ? 'desc' : 'asc';
   }
-  filterTable();
+  filterTable({ resetPage: true });
 }
 
 function sortHeader(col, label, cssClass) {
@@ -1013,8 +1085,16 @@ function restoreAllAdminDrafts() {
   }
 }
 
-function renderTable(data) {
-  document.getElementById('table-count').textContent = `${data.length} surat`;
+function renderTable(data, totalFiltered = data.length) {
+  const total = Number(totalFiltered) || 0;
+  renderPagination(total);
+  if (total) {
+    const start = (suratPage - 1) * SURAT_PAGE_SIZE + 1;
+    const end = Math.min(total, start + data.length - 1);
+    document.getElementById('table-count').textContent = `${start}-${end} dari ${total} surat`;
+  } else {
+    document.getElementById('table-count').textContent = '0 surat';
+  }
   if (!data.length) {
     document.getElementById('table-area').innerHTML = `<div class="table-empty"><div class="table-empty-icon">📭</div><div class="table-empty-text">Tidak ada surat tugas ditemukan.</div></div>`;
     return;
@@ -4570,7 +4650,7 @@ async function submitSuratImport() {
     const count = payloads.length;
     closeSuratImportModal();
     showPageAlert(`Berhasil import ${count} surat tugas dengan status menunggu.`, 'success');
-    await loadSurat();
+    await loadSurat({ resetPage: true });
   } catch (e) {
     console.error('[9201] import gagal:', e);
     showPageAlert(`Gagal import: ${e.message}`, 'error');
@@ -4772,7 +4852,7 @@ async function importSuratFromExcelLegacy(inputEl) {
       console.warn('[9201 Import] Warnings:\n' + warnings.join('\n'));
     }
     // Reload data untuk tampilkan row baru
-    await loadSurat();
+    await loadSurat({ resetPage: true });
   } catch (e) {
     console.error('[9201] import gagal:', e);
     showPageAlert(`Gagal import: ${e.message}`, 'error');
