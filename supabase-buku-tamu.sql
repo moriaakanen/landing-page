@@ -1,6 +1,6 @@
 -- Buku Tamu PST BPS Kabupaten Raja Ampat
 -- Jalankan file ini di Supabase SQL Editor sebelum memakai form Buku Tamu
--- pada login.html.
+-- pada buku-tamu.html.
 
 create table if not exists public.buku_tamu (
   id bigserial primary key,
@@ -35,7 +35,7 @@ create table if not exists public.buku_tamu (
   created_at timestamptz not null default now()
 );
 
-comment on table public.buku_tamu is 'Catatan kunjungan PST BPS Kabupaten Raja Ampat dari form publik login page.';
+comment on table public.buku_tamu is 'Catatan kunjungan PST BPS Kabupaten Raja Ampat dari halaman publik buku-tamu.html.';
 comment on column public.buku_tamu.no_hp is 'Nomor kontak pengunjung untuk tindak lanjut layanan PST.';
 comment on column public.buku_tamu.asal_instansi is 'Asal instansi, sekolah, kampus, atau alamat pengunjung.';
 comment on column public.buku_tamu.tanggal_kunjungan is 'Tanggal kunjungan lokal Asia/Jayapura.';
@@ -54,7 +54,46 @@ for insert
 to anon, authenticated
 with check (true);
 
+create or replace view public.buku_tamu_public as
+select
+  id,
+  nama,
+  case
+    when length(no_hp_digits) = 0 then '-'
+    when length(no_hp_digits) <= 4 then repeat('*', length(no_hp_digits))
+    else left(no_hp_digits, 3) || repeat('*', greatest(length(no_hp_digits) - 6, 3)) || right(no_hp_digits, 3)
+  end as no_hp_masked,
+  asal_instansi,
+  kategori_pengunjung,
+  layanan,
+  keperluan,
+  jumlah_pengunjung,
+  tanggal_kunjungan,
+  jam_kunjungan,
+  created_at
+from (
+  select
+    id,
+    nama,
+    regexp_replace(coalesce(no_hp, ''), '[^0-9]', '', 'g') as no_hp_digits,
+    asal_instansi,
+    kategori_pengunjung,
+    layanan,
+    keperluan,
+    jumlah_pengunjung,
+    tanggal_kunjungan,
+    jam_kunjungan,
+    created_at
+  from public.buku_tamu
+) masked;
+
+comment on view public.buku_tamu_public is 'View publik untuk menampilkan daftar buku tamu dengan nomor kontak tersamar.';
+
+revoke all on public.buku_tamu_public from anon, authenticated;
+grant select on public.buku_tamu_public to anon, authenticated;
+
 -- Data buku tamu berisi informasi pribadi pengunjung.
 -- Sengaja tidak ada grant SELECT/UPDATE/DELETE untuk anon/authenticated.
--- Jika nanti dibutuhkan halaman rekap admin, sebaiknya buat RPC khusus yang
--- memvalidasi session admin server-side sebelum membuka data.
+-- Halaman publik hanya membaca view buku_tamu_public yang memasking nomor HP.
+-- Jika nanti dibutuhkan halaman rekap admin lengkap, sebaiknya buat RPC khusus
+-- yang memvalidasi session admin server-side sebelum membuka data penuh.
