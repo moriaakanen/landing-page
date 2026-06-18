@@ -157,6 +157,35 @@
     flex-direction: column;
     gap: 18px;
   }
+  .guest-subnav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--white);
+    box-shadow: 0 12px 30px rgba(13,35,64,.08);
+  }
+  .guest-subnav-btn {
+    min-height: 42px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: background .18s, color .18s, box-shadow .18s;
+  }
+  .guest-subnav-btn.active {
+    background: var(--navy);
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(11,31,56,.18);
+  }
+  .guest-panel { display: none; }
+  .guest-panel.active { display: block; }
   .form-card {
     width: 100%;
     background: var(--white);
@@ -530,6 +559,8 @@
     .hero { padding: 30px 24px; }
     .form-side { padding: 0; }
     .content-stack { gap: 0; }
+    .guest-subnav { border-radius: 0; border-left: 0; border-right: 0; box-shadow: none; }
+    .guest-subnav-btn { border-radius: 8px; }
     .form-card, .table-card { border-radius: 0; border-left: 0; border-right: 0; }
     .form-head, .form-body { padding-left: 22px; padding-right: 22px; }
     .grid-2 { grid-template-columns: 1fr; gap: 0; }
@@ -567,7 +598,12 @@
 
   <section class="form-side">
     <div class="content-stack">
-      <div class="form-card">
+      <div class="guest-subnav" role="tablist" aria-label="Menu Buku Tamu">
+        <button class="guest-subnav-btn active" id="submenu-form" type="button" role="tab" aria-selected="true" onclick="setGuestSubmenu('form')">Isi Buku Tamu</button>
+        <button class="guest-subnav-btn" id="submenu-list" type="button" role="tab" aria-selected="false" onclick="setGuestSubmenu('list')">Daftar Kunjungan</button>
+      </div>
+
+      <div class="form-card guest-panel active" id="guest-panel-form" role="tabpanel" aria-labelledby="submenu-form">
         <div id="guest-form-wrap">
           <div class="form-head">
             <div class="top-actions">
@@ -666,12 +702,13 @@
           <p class="success-msg" id="success-message">Terima kasih. Silakan melanjutkan ke layanan PST.</p>
           <div class="actions">
             <button class="btn-secondary" type="button" onclick="resetGuestBook()">Isi Lagi</button>
+            <button class="btn-secondary" type="button" onclick="setGuestSubmenu('list')">Daftar Kunjungan</button>
             <a class="btn-primary" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="login.html">Ke Login Portal</a>
           </div>
         </div>
       </div>
 
-      <div class="table-card">
+      <div class="table-card guest-panel" id="guest-panel-list" role="tabpanel" aria-labelledby="submenu-list">
         <div class="table-head">
           <div>
             <div class="table-title">Daftar Kunjungan</div>
@@ -704,6 +741,8 @@
 <script>
   const GUEST_TABLE = 'buku_tamu';
   const GUEST_PUBLIC_VIEW = 'buku_tamu_public';
+  let activeGuestSubmenu = 'form';
+  let guestTableLoaded = false;
 
   function pad2(n) { return String(n).padStart(2, '0'); }
   function escapeHtml(value) {
@@ -750,6 +789,26 @@
     const btn = document.getElementById('btn-guest-submit');
     btn.disabled = value;
     btn.classList.toggle('loading', value);
+  }
+  function setGuestSubmenu(menu, opts = {}) {
+    const target = menu === 'list' ? 'list' : 'form';
+    activeGuestSubmenu = target;
+    document.getElementById('submenu-form').classList.toggle('active', target === 'form');
+    document.getElementById('submenu-form').setAttribute('aria-selected', String(target === 'form'));
+    document.getElementById('submenu-list').classList.toggle('active', target === 'list');
+    document.getElementById('submenu-list').setAttribute('aria-selected', String(target === 'list'));
+    document.getElementById('guest-panel-form').classList.toggle('active', target === 'form');
+    document.getElementById('guest-panel-list').classList.toggle('active', target === 'list');
+    if (!opts.keepHash) {
+      history.replaceState(null, '', target === 'list' ? '#daftar-kunjungan' : '#isi-buku-tamu');
+    }
+    if (target === 'list') {
+      if (!guestTableLoaded || opts.forceLoad) loadGuestTable();
+    } else {
+      syncGuestClock();
+      const formVisible = document.getElementById('guest-form-wrap').style.display !== 'none';
+      if (formVisible) setTimeout(() => document.getElementById('guest-name')?.focus(), 30);
+    }
   }
   function setTableLoading(value) {
     const btn = document.getElementById('btn-refresh-table');
@@ -842,8 +901,10 @@
         throw new Error(raw || 'Gagal memuat data buku tamu.');
       }
       renderGuestTable(await res.json());
+      guestTableLoaded = true;
     } catch (error) {
       console.error('[Buku Tamu] load table error:', error);
+      guestTableLoaded = false;
       state.className = 'table-state error';
       state.style.display = '';
       state.textContent = error.message || 'Gagal memuat data buku tamu.';
@@ -910,7 +971,7 @@
       document.getElementById('guest-form-wrap').style.display = 'none';
       document.getElementById('success-message').textContent = `Terima kasih, ${payload.nama}. Silakan melanjutkan ke layanan PST.`;
       document.getElementById('success-screen').classList.add('show');
-      loadGuestTable();
+      guestTableLoaded = false;
     } catch (error) {
       console.error('[Buku Tamu] insert error:', error);
       showAlert(error.message || 'Gagal menyimpan buku tamu. Periksa koneksi internet Anda.', 'error');
@@ -931,11 +992,14 @@
 
   syncGuestClock();
   setInterval(syncGuestClock, 30000);
-  loadGuestTable();
-  document.getElementById('guest-name').focus();
+  setGuestSubmenu(location.hash === '#daftar-kunjungan' ? 'list' : 'form', { keepHash: true });
+  window.addEventListener('hashchange', () => {
+    setGuestSubmenu(location.hash === '#daftar-kunjungan' ? 'list' : 'form', { keepHash: true });
+  });
   document.addEventListener('keydown', event => {
     if (event.key !== 'Enter' || event.target.tagName === 'TEXTAREA') return;
-    if (event.target.closest('.table-card') || event.target.tagName === 'BUTTON' || event.target.tagName === 'A') return;
+    if (activeGuestSubmenu !== 'form') return;
+    if (event.target.tagName === 'BUTTON' || event.target.tagName === 'A') return;
     if (document.getElementById('guest-form-wrap').style.display === 'none') return;
     event.preventDefault();
     handleGuestSubmit();
