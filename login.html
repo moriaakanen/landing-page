@@ -173,6 +173,34 @@
     line-height: 1.65;
   }
 
+  .mode-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    padding: 5px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fbfaf7;
+  }
+  .mode-btn {
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 12px;
+    transition: background .18s, color .18s, box-shadow .18s;
+  }
+  .mode-btn.active {
+    background: var(--navy);
+    color: #fff;
+    box-shadow: 0 5px 16px rgba(11,31,56,.18);
+  }
+
   .alert {
     padding: 11px 13px;
     border-radius: 7px;
@@ -224,11 +252,81 @@
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .form-input::placeholder { color: #b8b3ac; }
-  .form-input:focus {
+  .form-input.no-icon { padding-left: 13px; }
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
     border-color: var(--navy);
     box-shadow: 0 0 0 3px rgba(11, 31, 56, 0.08);
   }
-  .form-input.error { border-color: var(--red); }
+  .form-input.error,
+  .form-select.error,
+  .form-textarea.error { border-color: var(--red); }
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    background: var(--white);
+    border: 1.5px solid var(--border2);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .form-select {
+    appearance: none;
+    padding: 12px 38px 12px 13px;
+    cursor: pointer;
+  }
+  .form-textarea {
+    min-height: 96px;
+    resize: vertical;
+    line-height: 1.55;
+    padding: 12px 13px;
+  }
+  .select-wrap::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid var(--muted);
+    border-bottom: 1.5px solid var(--muted);
+    transform: translateY(-65%) rotate(45deg);
+    pointer-events: none;
+  }
+  .guest-note {
+    border: 1px solid #d9e8ef;
+    background: #f2f9fb;
+    color: #244b5d;
+    border-radius: 8px;
+    padding: 11px 12px;
+    margin-bottom: 18px;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .guest-time {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 11px;
+    margin: -8px 0 18px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+    background: #fbfaf7;
+  }
+  .guest-time strong { color: var(--navy); font-weight: 700; }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    gap: 12px;
+  }
   .toggle-pass {
     position: absolute;
     right: 11px;
@@ -358,6 +456,29 @@
     line-height: 1.8;
     text-align: center;
   }
+  .success-actions {
+    display: none;
+    gap: 8px;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .btn-secondary {
+    width: 100%;
+    padding: 11px 12px;
+    background: #fbfaf7;
+    color: var(--navy);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .18s, border-color .18s;
+  }
+  .btn-secondary:hover {
+    background: var(--bg);
+    border-color: var(--gold);
+  }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
@@ -379,6 +500,10 @@
     .page { grid-template-columns: 1fr; }
     .stage { display: none; }
     .form-side { padding: 48px 24px; align-items: flex-start; padding-top: 64px; }
+  }
+  @media (max-width: 420px) {
+    .form-row { grid-template-columns: 1fr; }
+    .guest-time { align-items: flex-start; flex-direction: column; }
   }
 </style>
 </head>
@@ -531,6 +656,11 @@
   <div class="form-side">
     <div class="form-wrap">
 
+      <div class="mode-switch" id="mode-switch" role="tablist" aria-label="Pilihan akses">
+        <button class="mode-btn active" id="mode-login" type="button" onclick="switchMode('login')" role="tab" aria-selected="true">Login</button>
+        <button class="mode-btn" id="mode-guest" type="button" onclick="switchMode('guest')" role="tab" aria-selected="false">Buku Tamu</button>
+      </div>
+
       <div id="login-section">
         <div class="secure-pill"><span class="s-dot"></span> Koneksi Aman & Terenkripsi</div>
 
@@ -579,11 +709,117 @@
         </div>
       </div>
 
+      <div id="guest-section" style="display:none">
+        <div class="secure-pill"><span class="s-dot"></span> Buku Tamu PST</div>
+
+        <h2 class="form-title">Buku <em>Tamu</em></h2>
+        <p class="form-sub">Isi data kunjungan sebelum memasuki layanan PST BPS Kabupaten Raja Ampat.</p>
+
+        <div class="guest-note">
+          Data ini digunakan untuk pencatatan kunjungan dan tindak lanjut layanan PST.
+        </div>
+
+        <div class="guest-time">
+          <span>Tanggal dan jam kunjungan</span>
+          <strong id="guest-clock">-</strong>
+        </div>
+
+        <div class="alert" id="guest-alert-box">
+          <span id="guest-alert-icon"></span>
+          <span id="guest-alert-text"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nama Pengunjung <span>*</span></label>
+          <input type="text" class="form-input no-icon" id="guest-name"
+            placeholder="Nama lengkap pengunjung"
+            autocomplete="name">
+          <span class="error-msg" id="err-guest-name">Nama pengunjung wajib diisi</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">No. HP/WhatsApp <span>*</span></label>
+            <input type="tel" class="form-input no-icon" id="guest-phone"
+              placeholder="Contoh: 081234567890"
+              autocomplete="tel">
+            <span class="error-msg" id="err-guest-phone">Nomor kontak wajib diisi</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Jumlah <span>*</span></label>
+            <input type="number" class="form-input no-icon" id="guest-count"
+              min="1" max="50" value="1" inputmode="numeric">
+            <span class="error-msg" id="err-guest-count">Jumlah minimal 1 orang</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Asal Instansi/Alamat <span>*</span></label>
+          <input type="text" class="form-input no-icon" id="guest-origin"
+            placeholder="Instansi, sekolah, kampus, atau alamat"
+            autocomplete="organization">
+          <span class="error-msg" id="err-guest-origin">Asal instansi atau alamat wajib diisi</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Kategori Pengunjung <span>*</span></label>
+          <div class="input-wrap select-wrap">
+            <select class="form-select" id="guest-category">
+              <option value="">Pilih kategori...</option>
+              <option value="Umum">Umum</option>
+              <option value="Pelajar/Mahasiswa">Pelajar/Mahasiswa</option>
+              <option value="Instansi Pemerintah">Instansi Pemerintah</option>
+              <option value="Swasta">Swasta</option>
+              <option value="Media">Media</option>
+              <option value="Internal BPS">Internal BPS</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          <span class="error-msg" id="err-guest-category">Kategori pengunjung wajib dipilih</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Layanan PST <span>*</span></label>
+          <div class="input-wrap select-wrap">
+            <select class="form-select" id="guest-service">
+              <option value="">Pilih layanan...</option>
+              <option value="Konsultasi Statistik">Konsultasi Statistik</option>
+              <option value="Permintaan Data">Permintaan Data</option>
+              <option value="Publikasi/Perpustakaan">Publikasi/Perpustakaan</option>
+              <option value="Rekomendasi Statistik">Rekomendasi Statistik</option>
+              <option value="Pengaduan Layanan">Pengaduan Layanan</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          <span class="error-msg" id="err-guest-service">Layanan PST wajib dipilih</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Keperluan <span>*</span></label>
+          <textarea class="form-textarea" id="guest-purpose"
+            placeholder="Tuliskan kebutuhan data, publikasi, konsultasi, atau tujuan kunjungan"></textarea>
+          <span class="error-msg" id="err-guest-purpose">Keperluan wajib diisi</span>
+        </div>
+
+        <button class="btn-submit" id="btn-guest-submit" onclick="handleGuestSubmit()">
+          <span id="btn-guest-text">Simpan Buku Tamu</span>
+        </button>
+
+        <div class="form-footer">
+          Setelah data tersimpan, pengunjung dapat melanjutkan ke layanan PST.
+        </div>
+      </div>
+
       <div class="success-screen" id="success-screen">
         <div class="success-icon-wrap">✓</div>
         <div class="success-title" id="success-title">Berhasil Masuk</div>
         <p class="success-msg" id="success-msg">Identitas terverifikasi. Mengalihkan...</p>
         <div class="progress-wrap"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="success-actions" id="success-actions">
+          <button class="btn-secondary" type="button" onclick="resetGuestBook()">Isi Buku Tamu Lagi</button>
+          <button class="btn-secondary" type="button" onclick="switchMode('login')">Kembali ke Login</button>
+        </div>
       </div>
 
     </div>
@@ -595,11 +831,14 @@
 <script>
   const MAX_ATTEMPTS    = 5;
   const LOCKOUT_MINUTES = 10;
+  const GUEST_TABLE     = 'buku_tamu';
+  let activeMode        = 'login';
 
   // Redirect jika sudah login
   try {
     const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
-    if (s && s.expires_at && Date.now() < s.expires_at) {
+    const wantsGuestMode = window.location.hash === '#buku-tamu';
+    if (!wantsGuestMode && s && s.expires_at && Date.now() < s.expires_at) {
       window.location.replace(s.must_change_password ? 'ganti-password.html' : 'index.html');
     }
   } catch(e) { localStorage.removeItem('nova_user'); }
@@ -655,7 +894,7 @@
   }
   function clearErrors() {
     document.querySelectorAll('.error-msg').forEach(e => e.classList.remove('show'));
-    document.querySelectorAll('.form-input').forEach(i => i.classList.remove('error'));
+    document.querySelectorAll('.form-input,.form-select,.form-textarea').forEach(i => i.classList.remove('error'));
     clearAlert();
   }
 
@@ -663,6 +902,156 @@
     const btn = document.getElementById('btn-submit');
     btn.disabled = v;
     btn.classList.toggle('loading', v);
+  }
+
+  function showGuestAlert(msg, type = 'error') {
+    const icons = { error: '!', success: 'OK', warning: '!' };
+    document.getElementById('guest-alert-icon').textContent = icons[type] || '!';
+    document.getElementById('guest-alert-text').textContent = msg;
+    document.getElementById('guest-alert-box').className = `alert ${type} show`;
+  }
+  function clearGuestAlert() { document.getElementById('guest-alert-box').className = 'alert'; }
+
+  function showGuestErr(errId, inputId) {
+    document.getElementById(errId).classList.add('show');
+    document.getElementById(inputId).classList.add('error');
+  }
+  function clearGuestErrors() {
+    document.querySelectorAll('#guest-section .error-msg').forEach(e => e.classList.remove('show'));
+    document.querySelectorAll('#guest-section .form-input,#guest-section .form-select,#guest-section .form-textarea').forEach(i => i.classList.remove('error'));
+    clearGuestAlert();
+  }
+
+  function setGuestLoading(v) {
+    const btn = document.getElementById('btn-guest-submit');
+    btn.disabled = v;
+    btn.classList.toggle('loading', v);
+  }
+
+  function setLocationHashForMode(mode) {
+    const url = new URL(window.location.href);
+    url.hash = mode === 'guest' ? 'buku-tamu' : '';
+    history.replaceState(null, '', url.pathname + url.search + url.hash);
+  }
+
+  function switchMode(mode, opts = {}) {
+    activeMode = mode === 'guest' ? 'guest' : 'login';
+    const isGuest = activeMode === 'guest';
+    document.getElementById('mode-login').classList.toggle('active', !isGuest);
+    document.getElementById('mode-login').setAttribute('aria-selected', String(!isGuest));
+    document.getElementById('mode-guest').classList.toggle('active', isGuest);
+    document.getElementById('mode-guest').setAttribute('aria-selected', String(isGuest));
+    document.getElementById('login-section').style.display = isGuest ? 'none' : '';
+    document.getElementById('guest-section').style.display = isGuest ? '' : 'none';
+    document.getElementById('mode-switch').style.display = '';
+    document.getElementById('success-screen').classList.remove('show');
+    document.getElementById('success-actions').style.display = 'none';
+    document.querySelector('.progress-wrap').style.display = '';
+    document.getElementById('progress-fill').style.width = '0';
+    if (!opts.keepHash) setLocationHashForMode(activeMode);
+    if (isGuest) {
+      clearGuestErrors();
+      syncGuestClock();
+      setTimeout(() => document.getElementById('guest-name')?.focus(), 30);
+    } else {
+      clearErrors();
+      updateAttemptInfo();
+      checkLockout();
+      setTimeout(() => document.getElementById('input-username')?.focus(), 30);
+    }
+  }
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function getLocalDateKey(date = new Date()) {
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+  }
+  function getLocalTimeValue(date = new Date()) {
+    return `${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
+  }
+  function syncGuestClock() {
+    const el = document.getElementById('guest-clock');
+    if (!el) return;
+    const now = new Date();
+    const tanggal = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    const jam = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+    el.textContent = `${tanggal}, ${jam}`;
+  }
+
+  function readGuestPayload() {
+    const jumlah = Number(document.getElementById('guest-count').value || 1);
+    const now = new Date();
+    return {
+      nama: document.getElementById('guest-name').value.trim(),
+      no_hp: document.getElementById('guest-phone').value.trim(),
+      asal_instansi: document.getElementById('guest-origin').value.trim(),
+      kategori_pengunjung: document.getElementById('guest-category').value,
+      layanan: document.getElementById('guest-service').value,
+      keperluan: document.getElementById('guest-purpose').value.trim(),
+      jumlah_pengunjung: jumlah,
+      tanggal_kunjungan: getLocalDateKey(now),
+      jam_kunjungan: getLocalTimeValue(now),
+    };
+  }
+
+  async function handleGuestSubmit() {
+    clearGuestErrors();
+    const payload = readGuestPayload();
+    let valid = true;
+    if (!payload.nama || payload.nama.length < 2) { showGuestErr('err-guest-name', 'guest-name'); valid = false; }
+    if (!payload.no_hp || !/^[0-9+\-\s()]{6,30}$/.test(payload.no_hp)) { showGuestErr('err-guest-phone', 'guest-phone'); valid = false; }
+    if (!Number.isInteger(payload.jumlah_pengunjung) || payload.jumlah_pengunjung < 1 || payload.jumlah_pengunjung > 50) { showGuestErr('err-guest-count', 'guest-count'); valid = false; }
+    if (!payload.asal_instansi || payload.asal_instansi.length < 2) { showGuestErr('err-guest-origin', 'guest-origin'); valid = false; }
+    if (!payload.kategori_pengunjung) { showGuestErr('err-guest-category', 'guest-category'); valid = false; }
+    if (!payload.layanan) { showGuestErr('err-guest-service', 'guest-service'); valid = false; }
+    if (!payload.keperluan || payload.keperluan.length < 3) { showGuestErr('err-guest-purpose', 'guest-purpose'); valid = false; }
+    if (!valid) {
+      showGuestAlert('Lengkapi data yang wajib diisi terlebih dahulu.', 'error');
+      return;
+    }
+
+    setGuestLoading(true);
+    try {
+      const baseUrl = window.SUPABASE_URL || SUPABASE_URL;
+      const baseHeaders = window.SUPABASE_HEADERS || SUPABASE_HEADERS;
+      const res = await fetch(`${baseUrl}/rest/v1/${GUEST_TABLE}`, {
+        method: 'POST',
+        headers: { ...baseHeaders, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const raw = await res.text();
+        if (res.status === 404 || /Could not find|schema cache|buku_tamu/i.test(raw)) {
+          throw new Error('Tabel buku_tamu belum tersedia. Jalankan file supabase-buku-tamu.sql di SQL Editor Supabase, lalu reload halaman ini.');
+        }
+        throw new Error(raw || 'Gagal menyimpan buku tamu.');
+      }
+      showGuestSuccess(payload.nama);
+    } catch(e) {
+      console.error('[Buku Tamu] insert error:', e);
+      showGuestAlert(e.message || 'Gagal menyimpan buku tamu. Periksa koneksi internet Anda.', 'error');
+    } finally {
+      setGuestLoading(false);
+    }
+  }
+
+  function showGuestSuccess(name) {
+    document.getElementById('mode-switch').style.display = 'none';
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('guest-section').style.display = 'none';
+    const sc = document.getElementById('success-screen');
+    sc.classList.add('show');
+    document.getElementById('success-title').textContent = 'Buku Tamu Tersimpan';
+    document.getElementById('success-msg').textContent = `Terima kasih, ${name}. Silakan melanjutkan ke layanan PST.`;
+    document.querySelector('.progress-wrap').style.display = 'none';
+    document.getElementById('success-actions').style.display = 'flex';
+  }
+
+  function resetGuestBook() {
+    ['guest-name','guest-phone','guest-origin','guest-purpose'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('guest-count').value = '1';
+    document.getElementById('guest-category').value = '';
+    document.getElementById('guest-service').value = '';
+    switchMode('guest', { keepHash: true });
   }
 
   async function handleLogin() {
@@ -745,12 +1134,17 @@
   }
 
   function showSuccessScreen(title, msg, redirect, delay) {
+    document.getElementById('mode-switch').style.display = 'none';
     document.getElementById('login-section').style.display = 'none';
+    document.getElementById('guest-section').style.display = 'none';
     const sc = document.getElementById('success-screen');
     sc.classList.add('show');
     document.getElementById('success-title').textContent = title;
     document.getElementById('success-msg').textContent = msg;
+    document.getElementById('success-actions').style.display = 'none';
+    document.querySelector('.progress-wrap').style.display = '';
     const fill = document.getElementById('progress-fill');
+    fill.style.width = '0';
     fill.style.transition = `width ${delay}ms linear`;
     setTimeout(() => { fill.style.width = '100%'; }, 50);
     setTimeout(() => { window.location.replace(redirect); }, delay);
@@ -766,8 +1160,23 @@
   }
 
   updateAttemptInfo();
+  syncGuestClock();
+  setInterval(syncGuestClock, 30000);
+  switchMode(window.location.hash === '#buku-tamu' ? 'guest' : 'login', { keepHash: true });
   checkLockout();
-  document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+  window.addEventListener('hashchange', () => {
+    switchMode(window.location.hash === '#buku-tamu' ? 'guest' : 'login', { keepHash: true });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    if (activeMode === 'guest') {
+      if (e.target && e.target.tagName === 'TEXTAREA') return;
+      e.preventDefault();
+      handleGuestSubmit();
+    } else {
+      handleLogin();
+    }
+  });
 </script>
 </body>
 </html>
