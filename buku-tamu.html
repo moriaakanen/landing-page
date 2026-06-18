@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230d2340'/><path d='M8 18Q8 12 13 11h6q4 1 4 5t-4 5l-5 1q-6 0-6-4Z' fill='%23c8a84b'/><circle cx='20' cy='11' r='3.2' fill='%23c8a84b'/></svg>">
+<title>9201 - Buku Tamu PST</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f6f1;
+    --white: #ffffff;
+    --navy: #0b1f38;
+    --navy2: #15304f;
+    --gold: #c8a14b;
+    --gold-soft: #ead9a6;
+    --sea: #1f6378;
+    --text: #15192a;
+    --muted: #6b7280;
+    --border: #e8e2d7;
+    --border2: #d6cdbf;
+    --red: #b8362b;
+    --success: #1a7a4a;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(340px, .85fr) minmax(520px, 1.15fr);
+  }
+  .hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 74% 18%, rgba(242,193,121,.42), transparent 22%),
+      linear-gradient(160deg, #081a31 0%, #102c47 48%, #1f6378 100%);
+    color: #fff;
+    padding: 46px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    isolation: isolate;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: auto -10% -12% -12%;
+    height: 44%;
+    background:
+      linear-gradient(10deg, rgba(4,13,24,.96), rgba(4,13,24,.78)),
+      radial-gradient(ellipse at 20% 0%, rgba(200,161,75,.22), transparent 42%);
+    clip-path: polygon(0 46%, 8% 35%, 18% 44%, 27% 28%, 39% 43%, 50% 30%, 63% 48%, 75% 34%, 86% 45%, 100% 32%, 100% 100%, 0 100%);
+    z-index: -1;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-mark {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+    color: var(--navy);
+    display: grid;
+    place-items: center;
+    font-weight: 900;
+    box-shadow: 0 12px 32px rgba(200,161,75,.28);
+  }
+  .brand-name {
+    font-family: 'Fraunces', serif;
+    font-size: 31px;
+    line-height: 1;
+  }
+  .brand-sub {
+    margin-top: 7px;
+    color: rgba(255,255,255,.62);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+  }
+  .hero-copy { max-width: 440px; }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gold-soft);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 28px;
+    height: 1px;
+    background: var(--gold);
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(38px, 6vw, 62px);
+    line-height: .98;
+    font-weight: 400;
+    letter-spacing: -.2px;
+  }
+  h1 em {
+    color: var(--gold-soft);
+    font-style: italic;
+    font-weight: 300;
+  }
+  .hero-desc {
+    margin-top: 18px;
+    color: rgba(255,255,255,.72);
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .hero-card {
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(255,255,255,.08);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 16px;
+    max-width: 400px;
+  }
+  .hero-card strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #fff;
+    font-size: 13px;
+  }
+  .hero-card span {
+    color: rgba(255,255,255,.7);
+    font-size: 12px;
+    line-height: 1.65;
+  }
+  .form-side {
+    padding: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .form-card {
+    width: 100%;
+    max-width: 680px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 22px 60px rgba(13,35,64,.12);
+    overflow: hidden;
+  }
+  .form-head {
+    padding: 28px 30px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .top-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: #f2f9fb;
+    border: 1px solid #d9e8ef;
+    color: #244b5d;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--success);
+  }
+  .login-link {
+    color: var(--navy);
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    border-bottom: 1px solid var(--gold);
+  }
+  .form-title {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 400;
+    color: var(--navy);
+    line-height: 1.2;
+  }
+  .form-title em {
+    color: var(--gold);
+    font-style: italic;
+    font-weight: 300;
+  }
+  .form-sub {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .form-body { padding: 24px 30px 30px; }
+  .visit-time {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: 1px solid #d9e8ef;
+    background: #f2f9fb;
+    color: #244b5d;
+    font-size: 12px;
+  }
+  .visit-time strong {
+    color: var(--navy);
+    text-align: right;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(140px,.38fr);
+    gap: 14px;
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--navy);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+  }
+  .form-label span { color: var(--red); margin-left: 2px; }
+  .input-wrap { position: relative; }
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    border: 1.5px solid var(--border2);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .18s, box-shadow .18s;
+  }
+  .form-input,
+  .form-select { height: 44px; padding: 0 13px; }
+  .form-select {
+    appearance: none;
+    padding-right: 38px;
+    cursor: pointer;
+  }
+  .form-textarea {
+    min-height: 112px;
+    padding: 12px 13px;
+    line-height: 1.6;
+    resize: vertical;
+  }
+  .select-wrap::after {
+    content: '';
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid var(--muted);
+    border-bottom: 1.5px solid var(--muted);
+    transform: translateY(-65%) rotate(45deg);
+    pointer-events: none;
+  }
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(11,31,56,.08);
+  }
+  .form-input.error,
+  .form-select.error,
+  .form-textarea.error { border-color: var(--red); }
+  .error-msg {
+    display: none;
+    margin-top: 6px;
+    color: var(--red);
+    font-size: 11px;
+  }
+  .error-msg.show { display: block; }
+  .alert {
+    display: none;
+    margin-bottom: 16px;
+    padding: 12px 13px;
+    border-radius: 9px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .alert.show { display: block; }
+  .alert.error {
+    background: #fdf3f1;
+    border: 1px solid #f5c8c0;
+    color: #962919;
+  }
+  .alert.success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+  }
+  .actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 8px;
+  }
+  .btn-primary,
+  .btn-secondary {
+    height: 44px;
+    border-radius: 9px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background .18s, border-color .18s, transform .15s, box-shadow .18s;
+  }
+  .btn-primary {
+    flex: 1;
+    border: none;
+    background: var(--navy);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(11,31,56,.18);
+    position: relative;
+  }
+  .btn-primary:hover { background: var(--navy2); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: .62; cursor: not-allowed; transform: none; }
+  .btn-primary.loading { color: transparent; }
+  .btn-primary.loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 17px;
+    height: 17px;
+    border: 2px solid rgba(255,255,255,.35);
+    border-top-color: #fff;
+    border-radius: 999px;
+    animation: spin .75s linear infinite;
+  }
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    padding: 0 15px;
+    border: 1px solid var(--border2);
+    background: #fbfaf7;
+    color: var(--navy);
+    text-decoration: none;
+  }
+  .btn-secondary:hover { border-color: var(--gold); background: var(--bg); }
+  .success-screen {
+    display: none;
+    text-align: center;
+    padding: 42px 32px;
+  }
+  .success-screen.show { display: block; }
+  .success-icon {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 18px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: #f0fdf4;
+    border: 2px solid #bbf7d0;
+    color: var(--success);
+    font-size: 28px;
+    font-weight: 900;
+  }
+  .success-title {
+    font-family: 'Fraunces', serif;
+    font-size: 25px;
+    color: var(--navy);
+  }
+  .success-msg {
+    margin: 10px auto 22px;
+    max-width: 430px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.75;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 960px) {
+    .page { grid-template-columns: 1fr; }
+    .hero { min-height: 360px; gap: 52px; }
+    .form-side { padding: 24px; }
+  }
+  @media (max-width: 560px) {
+    .hero { padding: 30px 24px; }
+    .form-side { padding: 0; }
+    .form-card { border-radius: 0; border-left: 0; border-right: 0; }
+    .form-head, .form-body { padding-left: 22px; padding-right: 22px; }
+    .grid-2 { grid-template-columns: 1fr; gap: 0; }
+    .visit-time { align-items: flex-start; flex-direction: column; }
+    .visit-time strong { text-align: left; }
+    .actions { flex-direction: column; align-items: stretch; }
+    .btn-secondary { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="hero">
+    <div class="brand">
+      <div class="brand-mark">9201</div>
+      <div>
+        <div class="brand-name">PST</div>
+        <div class="brand-sub">BPS Kabupaten Raja Ampat</div>
+      </div>
+    </div>
+
+    <div class="hero-copy">
+      <div class="eyebrow">Buku Tamu</div>
+      <h1>Selamat datang di <em>PST</em></h1>
+      <p class="hero-desc">Setiap pengunjung mengisi buku tamu sebelum menerima layanan. Data kunjungan membantu petugas mencatat kebutuhan layanan dan tindak lanjut dengan lebih rapi.</p>
+    </div>
+
+    <div class="hero-card">
+      <strong>Pelayanan Statistik Terpadu</strong>
+      <span>Pastikan nomor kontak aktif agar petugas dapat menghubungi kembali jika ada data atau publikasi yang perlu ditindaklanjuti.</span>
+    </div>
+  </section>
+
+  <section class="form-side">
+    <div class="form-card">
+      <div id="guest-form-wrap">
+        <div class="form-head">
+          <div class="top-actions">
+            <div class="pill"><span class="pill-dot"></span> Form Kunjungan PST</div>
+            <a class="login-link" href="login.html">Login Portal</a>
+          </div>
+          <h2 class="form-title">Isi <em>Buku Tamu</em></h2>
+          <p class="form-sub">Lengkapi data berikut sebelum memasuki ruang layanan PST BPS Kabupaten Raja Ampat.</p>
+        </div>
+
+        <div class="form-body">
+          <div class="visit-time">
+            <span>Tanggal dan jam kunjungan</span>
+            <strong id="guest-clock">-</strong>
+          </div>
+
+          <div class="alert" id="guest-alert"></div>
+
+          <div class="form-group">
+            <label class="form-label" for="guest-name">Nama Pengunjung <span>*</span></label>
+            <input type="text" class="form-input" id="guest-name" maxlength="120" placeholder="Nama lengkap pengunjung" autocomplete="name">
+            <span class="error-msg" id="err-guest-name">Nama pengunjung wajib diisi</span>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label" for="guest-phone">No. HP/WhatsApp <span>*</span></label>
+              <input type="tel" class="form-input" id="guest-phone" maxlength="30" placeholder="Contoh: 081234567890" autocomplete="tel">
+              <span class="error-msg" id="err-guest-phone">Nomor kontak wajib diisi dengan benar</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="guest-count">Jumlah <span>*</span></label>
+              <input type="number" class="form-input" id="guest-count" min="1" max="50" value="1" inputmode="numeric">
+              <span class="error-msg" id="err-guest-count">Jumlah minimal 1 orang</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guest-origin">Asal Instansi/Alamat <span>*</span></label>
+            <input type="text" class="form-input" id="guest-origin" maxlength="160" placeholder="Instansi, sekolah, kampus, atau alamat" autocomplete="organization">
+            <span class="error-msg" id="err-guest-origin">Asal instansi atau alamat wajib diisi</span>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label" for="guest-category">Kategori Pengunjung <span>*</span></label>
+              <div class="input-wrap select-wrap">
+                <select class="form-select" id="guest-category">
+                  <option value="">Pilih kategori...</option>
+                  <option value="Umum">Umum</option>
+                  <option value="Pelajar/Mahasiswa">Pelajar/Mahasiswa</option>
+                  <option value="Instansi Pemerintah">Instansi Pemerintah</option>
+                  <option value="Swasta">Swasta</option>
+                  <option value="Media">Media</option>
+                  <option value="Internal BPS">Internal BPS</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+              <span class="error-msg" id="err-guest-category">Kategori pengunjung wajib dipilih</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="guest-service">Layanan PST <span>*</span></label>
+              <div class="input-wrap select-wrap">
+                <select class="form-select" id="guest-service">
+                  <option value="">Pilih layanan...</option>
+                  <option value="Konsultasi Statistik">Konsultasi Statistik</option>
+                  <option value="Permintaan Data">Permintaan Data</option>
+                  <option value="Publikasi/Perpustakaan">Publikasi/Perpustakaan</option>
+                  <option value="Rekomendasi Statistik">Rekomendasi Statistik</option>
+                  <option value="Pengaduan Layanan">Pengaduan Layanan</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+              <span class="error-msg" id="err-guest-service">Layanan PST wajib dipilih</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guest-purpose">Keperluan <span>*</span></label>
+            <textarea class="form-textarea" id="guest-purpose" maxlength="500" placeholder="Tuliskan kebutuhan data, publikasi, konsultasi, atau tujuan kunjungan"></textarea>
+            <span class="error-msg" id="err-guest-purpose">Keperluan wajib diisi</span>
+          </div>
+
+          <div class="actions">
+            <a class="btn-secondary" href="login.html">Kembali</a>
+            <button class="btn-primary" id="btn-guest-submit" type="button" onclick="handleGuestSubmit()">Simpan Buku Tamu</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="success-screen" id="success-screen">
+        <div class="success-icon">OK</div>
+        <div class="success-title">Buku Tamu Tersimpan</div>
+        <p class="success-msg" id="success-message">Terima kasih. Silakan melanjutkan ke layanan PST.</p>
+        <div class="actions">
+          <button class="btn-secondary" type="button" onclick="resetGuestBook()">Isi Lagi</button>
+          <a class="btn-primary" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="login.html">Ke Login Portal</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script>
+  const GUEST_TABLE = 'buku_tamu';
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function getLocalDateKey(date = new Date()) {
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+  }
+  function getLocalTimeValue(date = new Date()) {
+    return `${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
+  }
+  function syncGuestClock() {
+    const el = document.getElementById('guest-clock');
+    if (!el) return;
+    const now = new Date();
+    const tanggal = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    const jam = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+    el.textContent = `${tanggal}, ${jam}`;
+  }
+  function showAlert(message, type = 'error') {
+    const el = document.getElementById('guest-alert');
+    el.textContent = message;
+    el.className = `alert ${type} show`;
+  }
+  function clearAlert() {
+    document.getElementById('guest-alert').className = 'alert';
+  }
+  function showErr(errId, inputId) {
+    document.getElementById(errId).classList.add('show');
+    document.getElementById(inputId).classList.add('error');
+  }
+  function clearErrors() {
+    document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+    document.querySelectorAll('.form-input,.form-select,.form-textarea').forEach(el => el.classList.remove('error'));
+    clearAlert();
+  }
+  function setLoading(value) {
+    const btn = document.getElementById('btn-guest-submit');
+    btn.disabled = value;
+    btn.classList.toggle('loading', value);
+  }
+  function readPayload() {
+    const now = new Date();
+    return {
+      nama: document.getElementById('guest-name').value.trim(),
+      no_hp: document.getElementById('guest-phone').value.trim(),
+      asal_instansi: document.getElementById('guest-origin').value.trim(),
+      kategori_pengunjung: document.getElementById('guest-category').value,
+      layanan: document.getElementById('guest-service').value,
+      keperluan: document.getElementById('guest-purpose').value.trim(),
+      jumlah_pengunjung: Number(document.getElementById('guest-count').value || 1),
+      tanggal_kunjungan: getLocalDateKey(now),
+      jam_kunjungan: getLocalTimeValue(now),
+    };
+  }
+  function validatePayload(payload) {
+    let valid = true;
+    if (!payload.nama || payload.nama.length < 2) { showErr('err-guest-name', 'guest-name'); valid = false; }
+    if (!payload.no_hp || !/^[0-9+\-\s()]{6,30}$/.test(payload.no_hp)) { showErr('err-guest-phone', 'guest-phone'); valid = false; }
+    if (!Number.isInteger(payload.jumlah_pengunjung) || payload.jumlah_pengunjung < 1 || payload.jumlah_pengunjung > 50) { showErr('err-guest-count', 'guest-count'); valid = false; }
+    if (!payload.asal_instansi || payload.asal_instansi.length < 2) { showErr('err-guest-origin', 'guest-origin'); valid = false; }
+    if (!payload.kategori_pengunjung) { showErr('err-guest-category', 'guest-category'); valid = false; }
+    if (!payload.layanan) { showErr('err-guest-service', 'guest-service'); valid = false; }
+    if (!payload.keperluan || payload.keperluan.length < 3) { showErr('err-guest-purpose', 'guest-purpose'); valid = false; }
+    return valid;
+  }
+  async function handleGuestSubmit() {
+    clearErrors();
+    const payload = readPayload();
+    if (!validatePayload(payload)) {
+      showAlert('Lengkapi data yang wajib diisi terlebih dahulu.', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
+        throw new Error('Konfigurasi Supabase belum tersedia.');
+      }
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${GUEST_TABLE}`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const raw = await res.text();
+        if (res.status === 404 || /Could not find|schema cache|buku_tamu/i.test(raw)) {
+          throw new Error('Tabel buku_tamu belum tersedia. Jalankan supabase-buku-tamu.sql di SQL Editor Supabase, lalu reload halaman ini.');
+        }
+        throw new Error(raw || 'Gagal menyimpan buku tamu.');
+      }
+      document.getElementById('guest-form-wrap').style.display = 'none';
+      document.getElementById('success-message').textContent = `Terima kasih, ${payload.nama}. Silakan melanjutkan ke layanan PST.`;
+      document.getElementById('success-screen').classList.add('show');
+    } catch (error) {
+      console.error('[Buku Tamu] insert error:', error);
+      showAlert(error.message || 'Gagal menyimpan buku tamu. Periksa koneksi internet Anda.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+  function resetGuestBook() {
+    ['guest-name','guest-phone','guest-origin','guest-purpose'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('guest-count').value = '1';
+    document.getElementById('guest-category').value = '';
+    document.getElementById('guest-service').value = '';
+    document.getElementById('success-screen').classList.remove('show');
+    document.getElementById('guest-form-wrap').style.display = '';
+    syncGuestClock();
+    document.getElementById('guest-name').focus();
+  }
+
+  syncGuestClock();
+  setInterval(syncGuestClock, 30000);
+  document.getElementById('guest-name').focus();
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || event.target.tagName === 'TEXTAREA') return;
+    event.preventDefault();
+    handleGuestSubmit();
+  });
+</script>
+</body>
+</html>
