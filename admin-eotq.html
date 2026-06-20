@@ -167,6 +167,7 @@ button,input,select,textarea{font:inherit}
 .rank-no{font-family:'Fraunces',serif;font-size:28px;color:var(--gold-dark);font-weight:600}
 .rank-name{font-weight:900;color:var(--navy);line-height:1.35;margin-top:4px}
 .rank-score{font-size:12px;color:var(--muted);margin-top:7px}
+.monitor-wrap{display:flex;flex-direction:column;gap:12px;margin-top:12px}.monitor-card{border:1px solid var(--border);border-radius:14px;background:#fff;overflow:hidden}.monitor-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;background:linear-gradient(180deg,#fffdf8,#faf9f4);border-bottom:1px solid var(--border)}.monitor-name{font-weight:900;color:var(--navy);line-height:1.35}.monitor-sub{font-size:11.5px;color:var(--muted);margin-top:2px}.monitor-stats{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.mini-pill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:10.5px;font-weight:900;background:#fff;color:var(--muted)}.mini-pill.ok{background:#ecfdf5;border-color:#a7f3d0;color:#047857}.mini-pill.wait{background:#fff7ed;border-color:#fed7aa;color:#9a3412}.monitor-table-wrap{overflow:auto}.monitor-table{width:100%;border-collapse:collapse;min-width:760px}.monitor-table th{background:#fbfaf7;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.75px;text-align:left;padding:10px;border-bottom:1px solid var(--border)}.monitor-table td{border-bottom:1px solid var(--border);padding:10px;vertical-align:top;font-size:12px;line-height:1.5}.monitor-table tr:last-child td{border-bottom:0}.voter-name{font-weight:900;color:var(--navy)}.score-strong{font-weight:900;color:var(--navy);font-size:13px}.answer-list{display:flex;flex-direction:column;gap:5px;max-width:520px}.answer-item{border:1px solid #e8e3da;border-radius:9px;background:#fbfaf7;padding:7px 8px}.answer-question{font-weight:800;color:var(--navy);font-size:11.5px}.answer-value,.small-note{color:var(--muted);font-size:11.5px;margin-top:2px}.status-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font-size:10.5px;font-weight:900}.status-badge.done{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}.status-badge.pending{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
 .footer-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
 @media(max-width:1100px){.workspace{grid-template-columns:1fr}.cycle-list{max-height:none}.grid.two,.grid.three,.summary-grid{grid-template-columns:1fr 1fr}.leaderboard{grid-template-columns:1fr}.builder-grid{grid-template-columns:1fr}.rating-preview{grid-template-columns:repeat(5,minmax(48px,1fr))}}
 @media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.page-header{display:block}.stepper,.grid.two,.grid.three,.summary-grid,.nominee-picker{grid-template-columns:1fr}.range-card{grid-template-columns:1fr}.range-bridge{height:34px;border-left:0;border-right:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}.option-row{grid-template-columns:24px minmax(0,1fr) 88px 30px;gap:6px}.builder-footer{align-items:flex-start}.builder-actions{width:100%}.builder-actions .btn{flex:1}.rating-preview{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -410,6 +411,8 @@ function renderPublishStep(){
     <div class="btn-row"><button class="btn ghost" type="button" onclick="setCycleStatus('draft')">Simpan sebagai Draft</button><button class="btn primary" type="button" onclick="setCycleStatus('published')" ${ready ? '' : 'disabled'}>Publish Penilaian</button><button class="btn danger" type="button" onclick="setCycleStatus('archived')">Archive</button></div>
     <div class="section-title" style="margin-top:18px">Leaderboard Sementara</div>
     ${renderLeaderboard(ranked)}
+    <div class="section-title" style="margin-top:18px">Monitoring Penilaian</div>
+    ${renderAssessmentMonitor()}
     <div class="footer-actions"><button class="btn ghost" type="button" onclick="goStep('questions')">Kembali ke Kuesioner</button></div>
   </section>`;
 }
@@ -571,6 +574,77 @@ function renderLeaderboard(rows){
   return `<div class="leaderboard">${rows.slice(0,3).map((r, idx) => `<article class="rank-card">
     <div class="rank-no">#${idx+1}</div><div class="rank-name">${esc(r.nominee.pegawai_nama)}</div><div class="rank-score">${r.average.toFixed(2)} rata-rata dari ${r.votes} penilai</div>
   </article>`).join('')}</div>`;
+}
+
+function isActiveEmployee(p){
+  const status = String(p && p.status_kepegawaian || 'aktif').toLowerCase();
+  return !['pensiun','mutasi','meninggal'].some(x => status.includes(x));
+}
+
+function eligibleVotersFor(nominee){
+  return (STATE.employees || [])
+    .filter(isActiveEmployee)
+    .filter(p => String(pegawaiNip(p)) !== String(nominee.pegawai_nip));
+}
+
+function responseForVoterNominee(voter, nominee){
+  const nip = String(pegawaiNip(voter) || '');
+  const id = String(voter && voter.id || '');
+  const name = String(pegawaiNama(voter) || '').toLowerCase();
+  return (STATE.bundle.responses || []).find(r => {
+    if(String(r.nominee_id) !== String(nominee.id)) return false;
+    const byNip = nip && String(r.voter_nip || '') === nip;
+    const byId = id && String(r.voter_user_id || '') === id;
+    const byName = name && String(r.voter_name || '').toLowerCase() === name;
+    return byNip || byId || byName;
+  });
+}
+
+function formatScore(value){
+  const n = Number(value);
+  return Number.isFinite(n) ? n.toFixed(2).replace(/\.00$/,'') : '-';
+}
+
+function answerValueText(value){
+  if(Array.isArray(value)) return value.join(', ') || '-';
+  if(value == null || value === '') return '-';
+  if(typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+function renderAnswerList(response){
+  if(!response) return '<span class="small-note">Belum ada nilai dari pegawai ini.</span>';
+  const answers = Array.isArray(response.answers) ? response.answers : [];
+  if(!answers.length) return '<span class="small-note">Nilai tersimpan tanpa rincian jawaban.</span>';
+  return `<div class="answer-list">${answers.map(a => `<div class="answer-item">
+    <div class="answer-question">${esc(a.question || 'Pertanyaan')}</div>
+    <div class="answer-value">${esc(answerValueText(a.value))} - skor ${esc(formatScore(a.score))}</div>
+  </div>`).join('')}</div>`;
+}
+
+function renderAssessmentMonitor(){
+  const nominees = STATE.bundle.nominees || [];
+  if(!nominees.length) return '<div class="empty"><strong>Belum ada nominasi</strong>Monitoring akan muncul setelah nominasi ditambahkan.</div>';
+  return `<div class="monitor-wrap">${nominees.map(n => {
+    const voters = eligibleVotersFor(n);
+    const rows = voters.map(voter => ({ voter, response: responseForVoterNominee(voter, n) }));
+    const done = rows.filter(r => r.response).length;
+    const pending = rows.length - done;
+    return `<article class="monitor-card">
+      <div class="monitor-head">
+        <div><div class="monitor-name">${esc(n.pegawai_nama)}</div><div class="monitor-sub">${esc(n.pegawai_nip)} - dinilai oleh ${rows.length} pegawai aktif</div></div>
+        <div class="monitor-stats"><span class="mini-pill ok">${done} sudah</span><span class="mini-pill wait">${pending} belum</span></div>
+      </div>
+      <div class="monitor-table-wrap"><table class="monitor-table"><thead><tr><th>Penilai</th><th>Status</th><th>Nilai</th><th>Rincian Jawaban</th></tr></thead><tbody>
+        ${rows.map(row => `<tr>
+          <td><div class="voter-name">${esc(pegawaiNama(row.voter))}</div><div class="monitor-sub">${esc(pegawaiNip(row.voter) || '-')}</div></td>
+          <td>${row.response ? '<span class="status-badge done">Sudah menilai</span>' : '<span class="status-badge pending">Belum menilai</span>'}</td>
+          <td><span class="score-strong">${row.response ? esc(formatScore(row.response.total_score)) : '-'}</span></td>
+          <td>${renderAnswerList(row.response)}</td>
+        </tr>`).join('')}
+      </tbody></table></div>
+    </article>`;
+  }).join('')}</div>`;
 }
 
 function newCycle(){
