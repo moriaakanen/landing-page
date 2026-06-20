@@ -96,7 +96,10 @@
     const start = cycle && cycle.start_at ? new Date(cycle.start_at) : null;
     const end = cycle && cycle.end_at ? new Date(cycle.end_at) : null;
     const announce = cycle && cycle.announce_at ? new Date(cycle.announce_at) : end;
+    const status = String(cycle && cycle.status || 'draft').toLowerCase();
     if (!cycle) return { key: 'empty', label: 'Belum Ada', open: false, results: false };
+    if (status === 'archived') return { key: 'archived', label: 'Arsip', open: false, results: false };
+    if (status !== 'published') return { key: 'draft', label: 'Draft', open: false, results: false };
     if (!start || !end) return { key: 'draft', label: 'Belum Mulai', open: false, results: false };
     if (start && now < start) return { key: 'draft', label: 'Belum Mulai', open: false, results: false };
     if (start && end && now >= start && now <= end) return { key: 'open', label: 'Penilaian Aktif', open: true, results: false };
