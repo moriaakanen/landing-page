@@ -1,7 +1,8 @@
 -- Employee of the Quarter (EoTQ)
 -- Jalankan di Supabase SQL Editor sebelum memakai menu Admin > EoTQ.
--- Aplikasi ini memakai auth custom/localStorage + anon REST key, sehingga
--- RLS sengaja dinonaktifkan mengikuti pola tabel operasional lain di portal.
+-- Aplikasi ini memakai auth custom/localStorage + anon REST key. Supabase
+-- tetap diberi RLS policy permisif agar request REST dari aplikasi tidak
+-- ditolak oleh policy Storage/Database saat tabel dibuat dengan RLS aktif.
 
 create table if not exists public.eotq_cycles (
   id bigserial primary key,
@@ -95,10 +96,46 @@ create trigger trg_eotq_responses_updated_at
 before update on public.eotq_responses
 for each row execute function public.set_eotq_updated_at();
 
-alter table public.eotq_cycles disable row level security;
-alter table public.eotq_nominees disable row level security;
-alter table public.eotq_questions disable row level security;
-alter table public.eotq_responses disable row level security;
+alter table public.eotq_cycles enable row level security;
+alter table public.eotq_nominees enable row level security;
+alter table public.eotq_questions enable row level security;
+alter table public.eotq_responses enable row level security;
+
+drop policy if exists eotq_cycles_select on public.eotq_cycles;
+drop policy if exists eotq_cycles_insert on public.eotq_cycles;
+drop policy if exists eotq_cycles_update on public.eotq_cycles;
+drop policy if exists eotq_cycles_delete on public.eotq_cycles;
+create policy eotq_cycles_select on public.eotq_cycles for select to anon, authenticated using (true);
+create policy eotq_cycles_insert on public.eotq_cycles for insert to anon, authenticated with check (true);
+create policy eotq_cycles_update on public.eotq_cycles for update to anon, authenticated using (true) with check (true);
+create policy eotq_cycles_delete on public.eotq_cycles for delete to anon, authenticated using (true);
+
+drop policy if exists eotq_nominees_select on public.eotq_nominees;
+drop policy if exists eotq_nominees_insert on public.eotq_nominees;
+drop policy if exists eotq_nominees_update on public.eotq_nominees;
+drop policy if exists eotq_nominees_delete on public.eotq_nominees;
+create policy eotq_nominees_select on public.eotq_nominees for select to anon, authenticated using (true);
+create policy eotq_nominees_insert on public.eotq_nominees for insert to anon, authenticated with check (true);
+create policy eotq_nominees_update on public.eotq_nominees for update to anon, authenticated using (true) with check (true);
+create policy eotq_nominees_delete on public.eotq_nominees for delete to anon, authenticated using (true);
+
+drop policy if exists eotq_questions_select on public.eotq_questions;
+drop policy if exists eotq_questions_insert on public.eotq_questions;
+drop policy if exists eotq_questions_update on public.eotq_questions;
+drop policy if exists eotq_questions_delete on public.eotq_questions;
+create policy eotq_questions_select on public.eotq_questions for select to anon, authenticated using (true);
+create policy eotq_questions_insert on public.eotq_questions for insert to anon, authenticated with check (true);
+create policy eotq_questions_update on public.eotq_questions for update to anon, authenticated using (true) with check (true);
+create policy eotq_questions_delete on public.eotq_questions for delete to anon, authenticated using (true);
+
+drop policy if exists eotq_responses_select on public.eotq_responses;
+drop policy if exists eotq_responses_insert on public.eotq_responses;
+drop policy if exists eotq_responses_update on public.eotq_responses;
+drop policy if exists eotq_responses_delete on public.eotq_responses;
+create policy eotq_responses_select on public.eotq_responses for select to anon, authenticated using (true);
+create policy eotq_responses_insert on public.eotq_responses for insert to anon, authenticated with check (true);
+create policy eotq_responses_update on public.eotq_responses for update to anon, authenticated using (true) with check (true);
+create policy eotq_responses_delete on public.eotq_responses for delete to anon, authenticated using (true);
 
 grant select, insert, update, delete on public.eotq_cycles to anon, authenticated;
 grant select, insert, update, delete on public.eotq_nominees to anon, authenticated;
