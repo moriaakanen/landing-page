@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9201 - Pegawai Terbaik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,300;0,500;0,600;1,300;1,500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--gold-dark:#a78a3a;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--red:#c0392b;--success:#1a7a4a;--blue:#1d4ed8;--sidebar-w:260px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}body{height:100%;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden}button,input,select,textarea{font:inherit}.layout{display:flex;flex:1;min-height:0}.sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}.main{flex:1;overflow:auto;padding:32px 38px 56px}.page-header{position:relative;overflow:hidden;border:1px solid rgba(200,168,75,.35);border-radius:18px;background:linear-gradient(135deg,#0d2340 0%,#163358 58%,#2b4164 100%);padding:28px;margin-bottom:18px;box-shadow:0 18px 45px rgba(13,35,64,.18)}.page-header::after{content:'';position:absolute;right:-90px;top:-120px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(200,168,75,.36),rgba(200,168,75,0) 68%)}.page-eyebrow{position:relative;z-index:1;font-size:11px;font-weight:900;color:rgba(245,237,218,.82);letter-spacing:2.2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:8px}.page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}.page-title{position:relative;z-index:1;font-family:'Fraunces',serif;font-size:clamp(28px,4vw,46px);font-weight:300;color:#fff;line-height:1.1}.page-title em{font-style:italic;color:var(--gold);font-weight:400}.page-desc{position:relative;z-index:1;color:rgba(255,255,255,.72);font-size:13px;line-height:1.7;margin-top:10px;max-width:720px}.alert{display:none;margin-bottom:16px;padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.55}.alert.show{display:block}.alert.success{background:#ecfdf5;border:1px solid #a7f3d0;color:#047857}.alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}.alert.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.status-strip{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px;margin-bottom:18px}.status-card{background:#fff;border:1px solid var(--border);border-radius:13px;padding:15px;box-shadow:0 2px 10px rgba(13,35,64,.045)}.status-label{font-size:10.5px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}.status-value{font-family:'Fraunces',serif;font-size:22px;color:var(--navy);font-weight:500;margin-top:4px}.status-value.small{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;line-height:1.45}.state-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:900;border:1px solid var(--border);margin-top:6px}.state-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}.state-pill.open{background:#ecfdf5;color:#047857;border-color:#a7f3d0}.state-pill.closed{background:#fffbeb;color:#92400e;border-color:#fde68a}.state-pill.announced{background:var(--gold-light);color:var(--gold-dark);border-color:rgba(200,168,75,.45)}.state-pill.draft{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+.section-title{font-size:11px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin:20px 0 12px}.section-title::before{content:'';width:18px;height:2px;background:var(--gold);border-radius:2px}.empty{padding:34px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7;border:1px dashed var(--border2);border-radius:14px;background:#fff}.empty strong{display:block;font-family:'Fraunces',serif;font-size:22px;color:var(--navy);font-weight:500;margin-bottom:6px}.nominee-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}.nominee-card{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(13,35,64,.055)}.nominee-head{padding:16px;display:flex;gap:12px;align-items:flex-start;background:linear-gradient(180deg,#fff,#fffdf7);border-bottom:1px solid var(--border)}.avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:800;font-size:17px;flex-shrink:0}.nominee-name{font-weight:900;color:var(--navy);font-size:16px;line-height:1.3}.nominee-nip{font-size:11.5px;color:var(--muted);margin-top:3px}.nominee-note{font-size:12px;color:var(--muted);line-height:1.55;margin-top:8px}.self-mark,.done-mark{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font-size:10.5px;font-weight:900;margin-top:8px}.self-mark{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}.done-mark{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}.nominee-body{padding:15px;display:flex;flex-direction:column;gap:13px}.question{border:1px solid var(--border);border-radius:12px;padding:12px;background:#faf9f6}.question-title{font-size:12.5px;font-weight:900;color:var(--navy);line-height:1.45}.question-meta{font-size:10.5px;color:var(--muted);font-weight:800;margin-top:3px}.answer-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.choice{position:relative}.choice input{position:absolute;opacity:0;pointer-events:none}.choice span{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 11px;border:1.5px solid var(--border2);border-radius:9px;background:#fff;color:var(--navy);font-size:12px;font-weight:900;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}.choice input:checked+span{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 6px 14px rgba(13,35,64,.16)}.text-answer{width:100%;border:1.5px solid var(--border2);border-radius:10px;background:#fff;color:var(--navy);outline:none;padding:10px 11px;min-height:80px;resize:vertical}.text-answer:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}.submit-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--border);padding:12px 15px;background:#faf9f6}.btn{border:1.5px solid var(--border2);border-radius:9px;background:#fff;color:var(--navy);font-weight:900;font-size:12.5px;padding:9px 14px;cursor:pointer;transition:background .15s,border-color .15s,transform .12s}.btn:hover:not(:disabled){border-color:var(--navy);background:#fff;transform:translateY(-1px)}.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}.btn.primary:hover:not(:disabled){background:var(--navy2)}.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}.small-note{font-size:11.5px;color:var(--muted);line-height:1.5}
+.podium-wrap{background:linear-gradient(135deg,#fff8df,#fff 58%,#eef4ff);border:1px solid rgba(200,168,75,.45);border-radius:20px;padding:22px;box-shadow:0 16px 48px rgba(13,35,64,.12);overflow:hidden;position:relative}.podium-wrap::after{content:'';position:absolute;right:-80px;bottom:-120px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(200,168,75,.22),rgba(200,168,75,0) 70%)}.podium{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1.18fr 1fr;gap:14px;align-items:end}.winner{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;text-align:center;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;box-shadow:0 8px 26px rgba(13,35,64,.08)}.winner.top1{min-height:270px;border-color:rgba(200,168,75,.65);box-shadow:0 16px 40px rgba(200,168,75,.18)}.medal{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:var(--navy);font-family:'Fraunces',serif;font-size:24px;font-weight:800;box-shadow:0 9px 18px rgba(200,168,75,.25);margin-bottom:12px}.winner:nth-child(1) .medal{background:#d1d5db}.winner:nth-child(3) .medal{background:#d97706;color:#fff}.winner-avatar{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);display:grid;place-items:center;font-family:'Fraunces',serif;font-size:22px;font-weight:800;margin-bottom:10px}.winner-name{font-weight:900;color:var(--navy);line-height:1.35}.winner-score{font-size:12px;color:var(--muted);margin-top:8px}.ranking-table{margin-top:16px;background:#fff;border:1px solid var(--border);border-radius:13px;overflow:hidden}table{width:100%;border-collapse:collapse}th{background:#faf9f6;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;text-align:left;padding:10px 12px}td{border-top:1px solid var(--border);padding:11px 12px;font-size:12.5px}.rank-name{font-weight:900;color:var(--navy)}
+@media(max-width:980px){.status-strip{grid-template-columns:1fr}.podium{grid-template-columns:1fr}.winner,.winner.top1{min-height:0}.nominee-grid{grid-template-columns:1fr}}@media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.page-header{padding:22px}}
+</style>
+</head>
+<body>
+<div id="topbar-mount"></div>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" data-active="pegawai-terbaik"></aside>
+  <main class="main">
+    <header class="page-header">
+      <div class="page-eyebrow">Apresiasi Pegawai</div>
+      <h1 class="page-title">Pegawai <em>Terbaik</em></h1>
+      <p class="page-desc">Berikan penilaian yang jujur untuk nominasi Employee of the Quarter. Hasil akhir akan diumumkan setelah periode penilaian ditutup.</p>
+    </header>
+    <div class="alert" id="alert"></div>
+    <section class="status-strip" id="status-strip"></section>
+    <section id="content"></section>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="9201-shared.js"></script>
+<script src="9201-avatar.js"></script>
+<script src="9201-topbar.js"></script>
+<script src="9201-sidebar.js"></script>
+<script src="9201-role-switcher.js"></script>
+<script src="9201-notifikasi.js"></script>
+<script src="9201-eotq.js"></script>
+<script>
+'use strict';
+let SESSION = null;
+let CURRENT_PEGAWAI = null;
+let STATE = { cycle:null, nominees:[], questions:[], responses:[] };
+const $ = id => document.getElementById(id);
+const clean = v => String(v == null ? '' : v);
+const initials = name => clean(name).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase() || 'PG';
+
+function showAlert(message, type='info'){ const el=$('alert'); el.textContent=message; el.className=`alert show ${type}`; }
+function clearAlert(){ $('alert').className='alert'; $('alert').textContent=''; }
+function currentNip(){ return CURRENT_PEGAWAI ? pegawaiNip(CURRENT_PEGAWAI) : (SESSION && SESSION.username || ''); }
+function currentName(){ return CURRENT_PEGAWAI ? pegawaiNama(CURRENT_PEGAWAI) : (SESSION && (SESSION.full_name || SESSION.username) || ''); }
+
+async function loadPage(){
+  clearAlert();
+  try{
+    const cycles = await Eotq9201.loadCycles();
+    const chosen = chooseCycle(cycles || []);
+    if(!chosen){ renderNoCycle(); return; }
+    STATE = await Eotq9201.loadCycleBundle(chosen.id);
+    render();
+  }catch(e){
+    console.error(e);
+    showAlert(`Gagal memuat Pegawai Terbaik: ${e.message}. Jika ini pertama kali, jalankan supabase-eotq.sql.`, 'error');
+  }
+}
+
+function chooseCycle(cycles){
+  const now = new Date();
+  const published = cycles.filter(c => String(c.status || 'draft') !== 'archived');
+  const open = published.find(c => Eotq9201.cycleState(c, now).key === 'open');
+  if(open) return open;
+  const announced = published.filter(c => Eotq9201.cycleState(c, now).results).sort((a,b)=>new Date(b.announce_at || b.end_at)-new Date(a.announce_at || a.end_at))[0];
+  if(announced) return announced;
+  return published.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0] || null;
+}
+
+function renderNoCycle(){
+  $('status-strip').innerHTML = '';
+  $('content').innerHTML = '<div class="empty"><strong>Belum ada EoTQ</strong>Admin belum membuka periode Employee of the Quarter.</div>';
+}
+
+function render(){
+  const c = STATE.cycle;
+  const st = Eotq9201.cycleState(c);
+  $('status-strip').innerHTML = `
+    <div class="status-card"><div class="status-label">Periode</div><div class="status-value">${esc(c.quarter_label || c.title || '-')}</div><span class="state-pill ${esc(st.key)}">${esc(st.label)}</span></div>
+    <div class="status-card"><div class="status-label">Jadwal Penilaian</div><div class="status-value small">${esc(Eotq9201.fmtDateTime(c.start_at))}<br>s.d ${esc(Eotq9201.fmtDateTime(c.end_at))}</div></div>
+    <div class="status-card"><div class="status-label">Pengumuman</div><div class="status-value small">${esc(Eotq9201.fmtDateTime(c.announce_at || c.end_at))}</div></div>`;
+  if(st.results) renderResults();
+  else if(st.open) renderVoting();
+  else renderWaiting(st);
+}
+
+function renderWaiting(st){
+  const message = st.key === 'closed'
+    ? 'Penilaian sudah ditutup. Hasil akan tampil saat waktu pengumuman tiba.'
+    : 'Periode penilaian belum dimulai. Silakan kembali sesuai jadwal.';
+  $('content').innerHTML = `<div class="empty"><strong>${esc(st.label)}</strong>${esc(message)}</div>`;
+}
+
+function responseFor(nomineeId){
+  return STATE.responses.find(r => String(r.nominee_id) === String(nomineeId) && String(r.voter_user_id) === String(SESSION.id));
+}
+
+function renderVoting(){
+  if(!STATE.nominees.length || !STATE.questions.length){
+    $('content').innerHTML = '<div class="empty"><strong>Form belum siap</strong>Admin belum melengkapi nominasi atau pertanyaan.</div>';
+    return;
+  }
+  $('content').innerHTML = `<div class="section-title">Form Penilaian Nominasi</div><div class="nominee-grid">${STATE.nominees.map(renderNomineeForm).join('')}</div>`;
+}
+
+function renderNomineeForm(n){
+  const isSelf = String(n.pegawai_nip) === String(currentNip());
+  const existing = responseFor(n.id);
+  return `<article class="nominee-card">
+    <div class="nominee-head">
+      <div class="avatar">${esc(initials(n.pegawai_nama))}</div>
+      <div style="min-width:0;flex:1">
+        <div class="nominee-name">${esc(n.pegawai_nama)}</div>
+        <div class="nominee-nip">${esc(n.pegawai_nip)}</div>
+        ${n.note?`<div class="nominee-note">${esc(n.note)}</div>`:''}
+        ${isSelf?'<span class="self-mark">Tidak bisa menilai diri sendiri</span>': existing?'<span class="done-mark">Penilaian tersimpan, masih bisa diperbarui</span>':''}
+      </div>
+    </div>
+    <form onsubmit="submitVote(event, ${n.id})">
+      <div class="nominee-body">${STATE.questions.map(q => renderQuestion(n.id, q, existing)).join('')}</div>
+      <div class="submit-row"><span class="small-note">${isSelf?'Nominasi milik Anda dikunci otomatis.':'Nilai dapat diedit selama periode aktif.'}</span><button class="btn primary" type="submit" ${isSelf?'disabled':''}>${existing?'Update Nilai':'Simpan Nilai'}</button></div>
+    </form>
+  </article>`;
+}
+
+function existingValue(existing, qid){
+  const a = existing && Array.isArray(existing.answers) ? existing.answers.find(x => String(x.question_id) === String(qid)) : null;
+  return a ? a.value : null;
+}
+
+function renderQuestion(nomineeId, q, existing){
+  const name = `n${nomineeId}_q${q.id}`;
+  const val = existingValue(existing, q.id);
+  let input = '';
+  if(q.type === 'rating'){
+    input = `<div class="answer-row">${[1,2,3,4,5].map(v => `<label class="choice"><input type="radio" name="${name}" value="${v}" ${Number(val)===v?'checked':''}><span>${v}</span></label>`).join('')}</div>`;
+  }else if(q.type === 'single'){
+    input = `<div class="answer-row">${(q.options||[]).map(o => `<label class="choice"><input type="radio" name="${name}" value="${esc(o.label)}" ${String(val)===String(o.label)?'checked':''}><span>${esc(o.label)}</span></label>`).join('')}</div>`;
+  }else if(q.type === 'multi'){
+    const selected = Array.isArray(val) ? val : [];
+    input = `<div class="answer-row">${(q.options||[]).map(o => `<label class="choice"><input type="checkbox" name="${name}" value="${esc(o.label)}" ${selected.includes(o.label)?'checked':''}><span>${esc(o.label)}</span></label>`).join('')}</div>`;
+  }else{
+    input = `<textarea class="text-answer" name="${name}" placeholder="Tulis jawaban singkat...">${esc(val || '')}</textarea>`;
+  }
+  return `<div class="question"><div class="question-title">${esc(q.question)}${q.required?' *':''}</div><div class="question-meta">Bobot ${esc(q.weight)} - ${esc(typeLabel(q.type))}</div>${input}</div>`;
+}
+
+function typeLabel(type){ const t = Eotq9201.QUESTION_TYPES.find(x => x.value === type); return t ? t.label : type; }
+
+async function submitVote(ev, nomineeId){
+  ev.preventDefault();
+  const nominee = STATE.nominees.find(n => String(n.id) === String(nomineeId));
+  if(!nominee || String(nominee.pegawai_nip) === String(currentNip())) return showAlert('Anda tidak bisa menilai diri sendiri.', 'error');
+  const values = {};
+  for(const q of STATE.questions){
+    const name = `n${nomineeId}_q${q.id}`;
+    let value = null;
+    if(q.type === 'multi') value = Array.from(ev.target.querySelectorAll(`[name="${name}"]:checked`)).map(x => x.value);
+    else {
+      const field = ev.target.querySelector(`[name="${name}"]:checked`) || ev.target.querySelector(`[name="${name}"]`);
+      value = field ? field.value.trim() : '';
+    }
+    if(q.required && (Array.isArray(value) ? value.length === 0 : !value)) return showAlert(`Lengkapi pertanyaan wajib: ${q.question}`, 'error');
+    values[String(q.id)] = value;
+  }
+  const answers = Eotq9201.buildAnswers(STATE.questions, values);
+  const total = Eotq9201.totalScore(answers);
+  try{
+    await Eotq9201.submitResponse({
+      cycle_id: STATE.cycle.id,
+      nominee_id: nomineeId,
+      voter_user_id: String(SESSION.id),
+      voter_nip: currentNip(),
+      voter_name: currentName(),
+      answers,
+      total_score: total,
+    });
+    showAlert(`Penilaian untuk ${nominee.pegawai_nama} tersimpan.`, 'success');
+    STATE = await Eotq9201.loadCycleBundle(STATE.cycle.id);
+    render();
+  }catch(e){ showAlert(`Gagal menyimpan penilaian: ${e.message}`, 'error'); }
+}
+
+function renderResults(){
+  const ranked = Eotq9201.summarize(STATE.nominees, STATE.responses);
+  if(!ranked.length){ $('content').innerHTML = '<div class="empty"><strong>Belum ada hasil</strong>Belum ada nominasi atau jawaban yang bisa dihitung.</div>'; return; }
+  const top = ranked.slice(0,3);
+  const podiumOrder = [top[1], top[0], top[2]].filter(Boolean);
+  $('content').innerHTML = `
+    <div class="section-title">Pengumuman Employee of the Quarter</div>
+    <section class="podium-wrap">
+      <div class="podium">${podiumOrder.map(item => renderWinner(item, ranked.indexOf(item)+1)).join('')}</div>
+    </section>
+    <section class="ranking-table"><table><thead><tr><th>Peringkat</th><th>Nama Pegawai</th><th>Rata-rata</th><th>Total Nilai</th><th>Penilai</th></tr></thead><tbody>
+      ${ranked.map((r,i)=>`<tr><td>#${i+1}</td><td class="rank-name">${esc(r.nominee.pegawai_nama)}</td><td>${r.average.toFixed(2)}</td><td>${r.total.toFixed(2)}</td><td>${r.votes}</td></tr>`).join('')}
+    </tbody></table></section>`;
+}
+
+function renderWinner(item, rank){
+  return `<article class="winner ${rank===1?'top1':''}">
+    <div class="medal">${rank}</div>
+    <div class="winner-avatar">${esc(initials(item.nominee.pegawai_nama))}</div>
+    <div class="winner-name">${esc(item.nominee.pegawai_nama)}</div>
+    <div class="winner-score">${item.average.toFixed(2)} rata-rata - ${item.votes} penilai</div>
+  </article>`;
+}
+
+async function init(){
+  const session = novaCheckSession({ requireAdmin:false });
+  if(!session) return;
+  SESSION = session;
+  if(window.Topbar9201) Topbar9201.setUser(session);
+  initRoleSwitcher(session, false);
+  CURRENT_PEGAWAI = await Eotq9201.loadCurrentPegawai(session).catch(() => null);
+  await loadPage();
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+</script>
+</body>
+</html>
