@@ -9,6 +9,7 @@
 
   var NAV_USER_ITEMS = [
     { key: 'profil', href: 'index.html', label: 'Profil Saya' },
+    { key: 'pegawai-terbaik', href: 'pegawai-terbaik.html', label: 'Pegawai Terbaik' },
     { key: 'surat-tugas', href: 'surat-tugas.html', label: 'Minta Surat Tugas' },
   ];
 
@@ -16,6 +17,7 @@
     { key: 'admin-surat', href: 'admin-surat-tugas.html', label: 'Surat Tugas' },
     { key: 'kepegawaian', href: 'admin-kepegawaian.html', label: 'Kepegawaian' },
     { key: 'predikat-kinerja', href: 'admin-predikat-kinerja.html', label: 'Predikat Kinerja' },
+    { key: 'eotq', href: 'admin-eotq.html', label: 'EoTQ' },
     { key: 'kamus-pok', href: 'manajemen-kamus-pok.html', label: 'Kamus POK' },
     { key: 'manajemen-mitra', href: 'manajemen-mitra.html', label: 'Manajemen Mitra' },
     { key: 'manajemen-pengguna', href: 'manajemen-pengguna.html', label: 'Manajemen Pengguna' },
