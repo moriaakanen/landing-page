@@ -15,8 +15,22 @@ create table if not exists public.eotq_cycles (
   created_by text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint eotq_cycles_status_check check (status in ('draft', 'published', 'archived')),
   constraint eotq_cycles_time_check check (end_at > start_at)
 );
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'eotq_cycles_status_check'
+      and conrelid = 'public.eotq_cycles'::regclass
+  ) then
+    alter table public.eotq_cycles
+      add constraint eotq_cycles_status_check
+      check (status in ('draft', 'published', 'archived'));
+  end if;
+end $$;
 
 create table if not exists public.eotq_nominees (
   id bigserial primary key,
