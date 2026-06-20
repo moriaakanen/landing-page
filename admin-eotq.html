@@ -14,7 +14,8 @@ html{height:100%}body{height:100%;display:flex;flex-direction:column;background:
 .form-section{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;background:linear-gradient(180deg,#fff,#fffdf8)}.section-title{font-size:11px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:12px}.section-title::before{content:'';width:18px;height:2px;background:var(--gold);border-radius:2px}.grid{display:grid;gap:10px}.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:1fr 1fr 1fr}.field label{display:block;font-size:10.5px;font-weight:900;letter-spacing:.55px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}.input,.select,.textarea{width:100%;border:1.5px solid var(--border2);border-radius:9px;background:#fff;color:var(--navy);outline:none;transition:border-color .15s,box-shadow .15s}.input,.select{height:40px;padding:8px 11px}.textarea{min-height:84px;padding:10px 11px;resize:vertical;line-height:1.5}.input:focus,.select:focus,.textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}.hint{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:6px}.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{border:1.5px solid var(--border2);border-radius:8px;background:#fff;color:var(--navy);font-weight:900;font-size:12.5px;padding:9px 13px;cursor:pointer;transition:background .15s,border-color .15s,transform .12s}.btn:hover:not(:disabled){border-color:var(--navy);background:#faf9f6;transform:translateY(-1px)}.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}.btn.primary:hover:not(:disabled){background:var(--navy2)}.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--navy)}.btn.danger{color:#b91c1c;border-color:#fecaca}.btn.danger:hover{background:#fef2f2;border-color:#ef4444}.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
 .nominee-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}.nominee-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff;display:flex;gap:10px;align-items:flex-start}.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:800;flex-shrink:0}.nominee-name{font-weight:900;color:var(--navy);font-size:13px;line-height:1.35}.nominee-nip{font-size:11px;color:var(--muted);margin-top:2px}.nominee-note{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:7px}.nominee-actions{margin-left:auto}.icon-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--red);font-weight:900;cursor:pointer}
 .question-list{display:flex;flex-direction:column;gap:10px}.question-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff}.question-top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}.question-text{font-weight:900;color:var(--navy);font-size:13px;line-height:1.45}.question-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-size:10.5px;font-weight:900}.chip.gold{background:var(--gold-light);border-color:rgba(200,168,75,.4);color:var(--gold-dark)}.question-options{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.55}.leaderboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.rank-card{border:1px solid var(--border);border-radius:14px;padding:14px;background:linear-gradient(180deg,#fff,#faf9f4);min-width:0}.rank-card:first-child{background:linear-gradient(180deg,#fff8df,#fff);border-color:rgba(200,168,75,.55)}.rank-no{font-family:'Fraunces',serif;font-size:28px;color:var(--gold-dark);font-weight:600}.rank-name{font-weight:900;color:var(--navy);line-height:1.35;margin-top:4px}.rank-score{font-size:12px;color:var(--muted);margin-top:7px}.empty{padding:26px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6;border:1px dashed var(--border2);border-radius:12px;background:#fff}.divider{height:1px;background:var(--border);margin:12px 0}
-@media(max-width:1100px){.workspace{grid-template-columns:1fr}.cycle-list{max-height:none}.grid.two,.grid.three{grid-template-columns:1fr}.leaderboard{grid-template-columns:1fr}}@media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.page-header{display:block}}
+.builder-shell{border:1px solid rgba(13,35,64,.12);border-radius:16px;background:#fff;box-shadow:0 10px 28px rgba(13,35,64,.07);overflow:hidden}.builder-accent{height:7px;background:linear-gradient(90deg,var(--gold),#eadb9a 55%,var(--navy))}.builder-body{padding:16px}.builder-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.builder-kicker{font-size:10.5px;font-weight:900;letter-spacing:1.1px;text-transform:uppercase;color:var(--gold-dark)}.builder-mode{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(13,35,64,.12);background:#f8fafc;color:#475569;border-radius:999px;padding:5px 9px;font-size:10.5px;font-weight:900}.builder-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,240px);gap:12px;align-items:end}.question-input{height:48px;border-width:0 0 2px 0!important;border-radius:0!important;padding:8px 4px!important;font-size:18px!important;font-weight:700;background:transparent!important}.question-input:focus{box-shadow:none!important;border-color:var(--gold)!important}.builder-select{height:44px;background:#fbfaf7!important;border-radius:10px!important;font-weight:800}.answer-builder{margin-top:14px;border:1px solid var(--border);border-radius:13px;background:#fbfaf7;padding:12px}.answer-title{font-size:10.5px;font-weight:900;letter-spacing:.75px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}.option-list{display:flex;flex-direction:column;gap:8px}.option-row{display:grid;grid-template-columns:28px minmax(0,1fr) 108px 32px;gap:8px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:11px;padding:8px}.option-marker{width:18px;height:18px;border:2px solid #c7c1b7;border-radius:50%;justify-self:center}.option-marker.multi{border-radius:5px}.option-input,.score-input{width:100%;height:36px;border:1px solid transparent;border-radius:8px;background:#f8fafc;color:var(--navy);padding:7px 9px;outline:none;font-weight:700}.option-input:focus,.score-input:focus{border-color:rgba(13,35,64,.25);background:#fff;box-shadow:0 0 0 3px rgba(13,35,64,.06)}.score-input{text-align:center}.option-remove{width:30px;height:30px;border:0;border-radius:8px;background:#fff1f2;color:#be123c;font-weight:900;cursor:pointer}.option-remove:hover{background:#ffe4e6}.add-option{margin-top:10px;border:1.5px dashed rgba(13,35,64,.22);background:#fff;color:var(--navy);border-radius:10px;padding:9px 12px;font-weight:900;cursor:pointer}.add-option:hover{border-color:var(--gold);background:#fffaf0}.rating-preview{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.rating-chip{min-height:44px;border:1.5px solid var(--border);background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--navy);font-weight:900}.rating-chip span{font-size:10px;color:var(--muted);font-weight:800;margin-top:2px}.text-preview{min-height:88px;border:1.5px dashed var(--border2);border-radius:12px;background:#fff;color:#94a3b8;padding:12px;font-size:13px;line-height:1.6}.builder-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;border-top:1px solid var(--border);padding-top:13px}.builder-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.mini-field{display:flex;align-items:center;gap:8px}.mini-field label{font-size:10.5px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.55px}.mini-field input{width:82px;height:36px;border:1.5px solid var(--border2);border-radius:9px;padding:7px 9px;color:var(--navy);font-weight:800}.switch-row{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:900;color:var(--navy);cursor:pointer}.switch-row input{position:absolute;opacity:0;pointer-events:none}.switch-ui{width:42px;height:24px;border-radius:999px;background:#cbd5e1;position:relative;transition:background .15s}.switch-ui::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(13,35,64,.25);transition:left .15s}.switch-row input:checked+.switch-ui{background:var(--navy)}.switch-row input:checked+.switch-ui::after{left:21px}.builder-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.question-card{border-left:5px solid transparent}.question-card:hover{border-left-color:rgba(200,168,75,.7);box-shadow:0 8px 22px rgba(13,35,64,.055)}.question-top>div:first-child{min-width:0}.question-options{padding:8px 10px;background:#faf9f6;border-radius:9px;border:1px solid var(--border)}
+@media(max-width:1100px){.workspace{grid-template-columns:1fr}.cycle-list{max-height:none}.grid.two,.grid.three{grid-template-columns:1fr}.leaderboard{grid-template-columns:1fr}.builder-grid{grid-template-columns:1fr}.rating-preview{grid-template-columns:repeat(5,minmax(48px,1fr))}}@media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.page-header{display:block}.option-row{grid-template-columns:24px minmax(0,1fr) 88px 30px;gap:6px}.builder-footer{align-items:flex-start}.builder-actions{width:100%}.builder-actions .btn{flex:1}.rating-preview{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:520px){.option-row{grid-template-columns:24px minmax(0,1fr);align-items:start}.score-input{grid-column:2}.option-remove{grid-column:2;justify-self:end}.rating-preview{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -178,17 +179,114 @@ function renderNominees(rows){
   </article>`).join('')}</div>`;
 }
 
+function questionTypeOptions(selected){
+  return Eotq9201.QUESTION_TYPES.map(t => `<option value="${esc(t.value)}" ${selected===t.value?'selected':''}>${esc(t.label)}</option>`).join('');
+}
+
+function defaultQuestionOptions(type){
+  if(!['single','multi'].includes(type)) return [];
+  return [
+    { label:'Sangat Baik', score:5 },
+    { label:'Baik', score:4 },
+    { label:'Cukup', score:3 },
+  ];
+}
+
+function optionRowHtml(opt, index, type){
+  const marker = type === 'multi' ? ' multi' : '';
+  const label = opt && opt.label ? opt.label : `Opsi ${index + 1}`;
+  const score = opt && opt.score != null ? opt.score : 0;
+  return `<div class="option-row" data-option-row>
+    <span class="option-marker${marker}" aria-hidden="true"></span>
+    <input class="option-input question-option-label" value="${esc(label)}" placeholder="Tulis opsi jawaban">
+    <input class="score-input question-option-score" type="number" step="0.1" value="${esc(score)}" aria-label="Skor opsi">
+    <button class="option-remove" type="button" onclick="removeQuestionOption(this)" title="Hapus opsi">x</button>
+  </div>`;
+}
+
+function renderQuestionAnswerArea(q){
+  const type = q && q.type || 'rating';
+  if(type === 'text'){
+    return `<div class="answer-builder" id="question-answer-area">
+      <div class="answer-title">Preview jawaban teks</div>
+      <div class="text-preview">Jawaban panjang pegawai. Tipe ini tidak dihitung otomatis, tetapi tetap tersimpan sebagai catatan penilaian.</div>
+    </div>`;
+  }
+  if(type === 'rating'){
+    return `<div class="answer-builder" id="question-answer-area">
+      <div class="answer-title">Preview skala nilai</div>
+      <div class="rating-preview">${[1,2,3,4,5].map(v => `<div class="rating-chip">${v}<span>nilai</span></div>`).join('')}</div>
+      <div class="hint">Skor akhir skala = nilai yang dipilih x bobot pertanyaan.</div>
+    </div>`;
+  }
+  const options = q && Array.isArray(q.options) && q.options.length ? q.options : defaultQuestionOptions(type);
+  return `<div class="answer-builder" id="question-answer-area">
+    <div class="answer-title">${type === 'multi' ? 'Opsi checkbox berbobot' : 'Opsi pilihan tunggal berbobot'}</div>
+    <div class="option-list" id="question-options-list">${options.map((opt, i) => optionRowHtml(opt, i, type)).join('')}</div>
+    <button class="add-option" type="button" onclick="addQuestionOption()">+ Tambah opsi</button>
+    <div class="hint">Skor opsi akan dikalikan dengan bobot pertanyaan. Untuk checkbox, skor semua opsi yang dipilih akan dijumlahkan.</div>
+  </div>`;
+}
+
 function renderQuestionForm(){
   const q = STATE.editingQuestion;
-  const types = Eotq9201.QUESTION_TYPES.map(t => `<option value="${t.value}" ${q&&q.type===t.value?'selected':''}>${t.label}</option>`).join('');
-  return `<div class="grid two">
-    <div class="field"><label>Pertanyaan</label><input class="input" id="question-text" value="${esc(q && q.question || '')}" placeholder="Contoh: Seberapa besar kontribusi pegawai ini?" required></div>
-    <div class="field"><label>Tipe Jawaban</label><select class="select" id="question-type">${types}</select></div>
-    <div class="field"><label>Bobot Pertanyaan</label><input class="input" id="question-weight" type="number" min="0" step="0.1" value="${esc(q && q.weight != null ? q.weight : 1)}"></div>
-    <div class="field"><label>Wajib Diisi</label><select class="select" id="question-required"><option value="true" ${!q || q.required ? 'selected' : ''}>Wajib</option><option value="false" ${q && !q.required ? 'selected' : ''}>Opsional</option></select></div>
-  </div>
-  <div class="field" style="margin-top:10px"><label>Opsi Jawaban Berbobot</label><textarea class="textarea" id="question-options" placeholder="Untuk pilihan tunggal/ganda. Format: Label|Skor, satu opsi per baris.&#10;Sangat Baik|5&#10;Baik|4">${esc(Eotq9201.optionsToText(q && q.options))}</textarea><div class="hint">Skala 1-5 tidak perlu opsi. Jawaban teks tidak dihitung otomatis.</div></div>
-  <div class="btn-row" style="margin-top:10px"><button class="btn primary" type="button" onclick="saveQuestion()">${q?'Update Pertanyaan':'Tambah Pertanyaan'}</button>${q?'<button class="btn" type="button" onclick="cancelQuestionEdit()">Batal Edit</button>':''}</div>`;
+  const type = q && q.type || 'rating';
+  const required = !q || q.required !== false;
+  return `<div class="builder-shell">
+    <div class="builder-accent"></div>
+    <div class="builder-body">
+      <div class="builder-head">
+        <div>
+          <div class="builder-kicker">${q?'Edit Pertanyaan':'Pertanyaan Baru'}</div>
+          <div class="hint">Bangun pertanyaan seperti form: pilih tipe jawaban, isi opsi, lalu atur bobot.</div>
+        </div>
+        <span class="builder-mode">${q?'Mode edit':'Mode tambah'}</span>
+      </div>
+      <div class="builder-grid">
+        <div class="field"><label>Pertanyaan</label><input class="input question-input" id="question-text" value="${esc(q && q.question || '')}" placeholder="Contoh: Seberapa besar kontribusi pegawai ini?" required></div>
+        <div class="field"><label>Tipe Jawaban</label><select class="select builder-select" id="question-type" onchange="handleQuestionTypeChange()">${questionTypeOptions(type)}</select></div>
+      </div>
+      ${renderQuestionAnswerArea(q || { type })}
+      <div class="builder-footer">
+        <div class="builder-controls">
+          <label class="switch-row"><input id="question-required" type="checkbox" ${required?'checked':''}><span class="switch-ui" aria-hidden="true"></span><span>Wajib diisi</span></label>
+          <div class="mini-field"><label>Bobot</label><input id="question-weight" type="number" min="0" step="0.1" value="${esc(q && q.weight != null ? q.weight : 1)}"></div>
+        </div>
+        <div class="builder-actions"><button class="btn primary" type="button" onclick="saveQuestion()">${q?'Update Pertanyaan':'Tambah Pertanyaan'}</button>${q?'<button class="btn" type="button" onclick="cancelQuestionEdit()">Batal Edit</button>':''}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function collectQuestionOptions(){
+  return Array.from(document.querySelectorAll('[data-option-row]')).map(row => {
+    const label = (row.querySelector('.question-option-label') || {}).value || '';
+    const score = Number((row.querySelector('.question-option-score') || {}).value || 0);
+    return { label: label.trim(), score: Number.isFinite(score) ? score : 0 };
+  }).filter(opt => opt.label);
+}
+
+function handleQuestionTypeChange(){
+  const type = $('question-type').value;
+  const currentOptions = collectQuestionOptions();
+  const draft = { type, options: currentOptions.length ? currentOptions : defaultQuestionOptions(type) };
+  const area = $('question-answer-area');
+  if(area) area.outerHTML = renderQuestionAnswerArea(draft);
+}
+
+function addQuestionOption(){
+  const list = $('question-options-list');
+  if(!list) return;
+  const type = $('question-type') ? $('question-type').value : 'single';
+  const next = list.querySelectorAll('[data-option-row]').length;
+  list.insertAdjacentHTML('beforeend', optionRowHtml({ label:`Opsi ${next + 1}`, score:0 }, next, type));
+}
+
+function removeQuestionOption(btn){
+  const rows = document.querySelectorAll('[data-option-row]');
+  if(rows.length <= 1) return showAlert('Minimal satu opsi jawaban harus tersedia.', 'error');
+  const row = btn && btn.closest ? btn.closest('[data-option-row]') : null;
+  if(row) row.remove();
 }
 
 function renderQuestions(rows){
@@ -275,9 +373,9 @@ async function saveQuestion(){
     cycle_id: cycleId,
     question: $('question-text').value.trim(),
     type,
-    required: $('question-required').value === 'true',
+    required: $('question-required').checked,
     weight: Number($('question-weight').value || 1),
-    options: ['single','multi'].includes(type) ? Eotq9201.parseOptions($('question-options').value) : [],
+    options: ['single','multi'].includes(type) ? collectQuestionOptions() : [],
     sort_order: STATE.editingQuestion ? STATE.editingQuestion.sort_order : STATE.bundle.questions.length + 1,
   };
   if(!payload.question) return showAlert('Isi teks pertanyaan.', 'error');

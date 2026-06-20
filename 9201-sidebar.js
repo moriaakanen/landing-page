@@ -60,8 +60,10 @@
   body.sidebar-collapsed .sidebar-toggle .toggle-icon{transform:rotate(180deg)}
   :where(.sidebar-section-label),:where(.nav-group-label),:where(.nav-item-icon){display:none!important}
   :where(.nav-item){
+    display:flex!important;align-items:center!important;width:100%;box-sizing:border-box;
     min-height:42px;padding:0 14px!important;border-left:0!important;border-radius:10px;
     color:#586174!important;font-size:13px!important;font-weight:700!important;letter-spacing:.01em;
+    text-decoration:none!important;user-select:none;line-height:1.25;white-space:normal;
     background:transparent!important;position:relative;gap:0!important;
   }
   :where(.nav-item)::before{
@@ -98,7 +100,7 @@
   .nav-collapse-toggle.open .nav-collapse-caret{transform:rotate(180deg);border-color:rgba(200,168,75,.55);background:#fffdf5}
   .nav-submenu{display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s ease}
   .nav-submenu.open{grid-template-rows:1fr}
-  .nav-submenu-inner{overflow:hidden;padding-top:4px}
+  .nav-submenu-inner{overflow:hidden;padding-top:4px;display:flex;flex-direction:column;gap:4px}
   .nav-submenu .nav-item{min-height:38px;margin-left:10px;padding-left:12px!important;font-size:12.5px!important}
   :where(.sidebar-footer){
     border-top:1px solid rgba(13,35,64,.08)!important;margin:14px 2px 0!important;padding:14px 8px 0!important;
