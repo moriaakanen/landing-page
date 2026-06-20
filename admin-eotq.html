@@ -9,13 +9,168 @@
 <style>
 :root{--bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--gold-dark:#a78a3a;--text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--red:#c0392b;--success:#1a7a4a;--blue:#1d4ed8;--sidebar-w:260px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{height:100%}body{height:100%;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden}button,input,select,textarea{font:inherit}.layout{display:flex;flex:1;min-height:0}.sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}.main{flex:1;overflow:auto;padding:32px 38px 56px}.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px}.page-eyebrow{font-size:11px;font-weight:800;color:var(--gold-dark);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}.page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}.page-title{font-family:'Fraunces',serif;font-size:clamp(25px,2.8vw,34px);font-weight:300;color:var(--navy);line-height:1.15}.page-title em{font-style:italic;color:var(--gold);font-weight:400}.page-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-top:7px;max-width:760px}.alert{display:none;margin-bottom:16px;padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.55}.alert.show{display:block}.alert.success{background:#ecfdf5;border:1px solid #a7f3d0;color:#047857}.alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}.alert.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
-.workspace{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:16px;align-items:start}.panel{background:var(--white);border:1px solid var(--border);border-radius:13px;box-shadow:0 2px 10px rgba(13,35,64,.045);overflow:hidden}.panel-head{background:var(--navy);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}.panel-title{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.76)}.panel-count{font-size:11px;color:rgba(255,255,255,.46);font-weight:700}.panel-body{padding:14px}.cycle-list{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 360px);overflow:auto;padding-right:2px}.cycle-card{width:100%;border:1px solid var(--border);background:#fff;border-radius:11px;padding:12px;text-align:left;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}.cycle-card:hover{background:#faf9f6}.cycle-card.active{border-color:rgba(200,168,75,.75);background:#fff8e4;box-shadow:inset 3px 0 0 var(--gold)}.cycle-main{font-weight:900;color:var(--navy);font-size:13px;line-height:1.35}.cycle-sub{color:var(--muted);font-size:11px;line-height:1.55;margin-top:4px}.status{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:10.5px;font-weight:900;margin-top:8px}.status::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}.status.open{background:#ecfdf5;color:#047857;border-color:#a7f3d0}.status.draft{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}.status.closed{background:#fffbeb;color:#92400e;border-color:#fde68a}.status.announced{background:var(--gold-light);color:var(--gold-dark);border-color:rgba(200,168,75,.5)}.status.archived{background:#f8fafc;color:#475569;border-color:#e2e8f0}
-.form-section{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;background:linear-gradient(180deg,#fff,#fffdf8)}.section-title{font-size:11px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:12px}.section-title::before{content:'';width:18px;height:2px;background:var(--gold);border-radius:2px}.grid{display:grid;gap:10px}.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:1fr 1fr 1fr}.field label{display:block;font-size:10.5px;font-weight:900;letter-spacing:.55px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}.input,.select,.textarea{width:100%;border:1.5px solid var(--border2);border-radius:9px;background:#fff;color:var(--navy);outline:none;transition:border-color .15s,box-shadow .15s}.input,.select{height:40px;padding:8px 11px}.textarea{min-height:84px;padding:10px 11px;resize:vertical;line-height:1.5}.input:focus,.select:focus,.textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}.hint{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:6px}.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{border:1.5px solid var(--border2);border-radius:8px;background:#fff;color:var(--navy);font-weight:900;font-size:12.5px;padding:9px 13px;cursor:pointer;transition:background .15s,border-color .15s,transform .12s}.btn:hover:not(:disabled){border-color:var(--navy);background:#faf9f6;transform:translateY(-1px)}.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}.btn.primary:hover:not(:disabled){background:var(--navy2)}.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--navy)}.btn.danger{color:#b91c1c;border-color:#fecaca}.btn.danger:hover{background:#fef2f2;border-color:#ef4444}.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
-.nominee-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}.nominee-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff;display:flex;gap:10px;align-items:flex-start}.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:800;flex-shrink:0}.nominee-name{font-weight:900;color:var(--navy);font-size:13px;line-height:1.35}.nominee-nip{font-size:11px;color:var(--muted);margin-top:2px}.nominee-note{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:7px}.nominee-actions{margin-left:auto}.icon-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--red);font-weight:900;cursor:pointer}
-.question-list{display:flex;flex-direction:column;gap:10px}.question-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff}.question-top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}.question-text{font-weight:900;color:var(--navy);font-size:13px;line-height:1.45}.question-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-size:10.5px;font-weight:900}.chip.gold{background:var(--gold-light);border-color:rgba(200,168,75,.4);color:var(--gold-dark)}.question-options{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.55}.leaderboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.rank-card{border:1px solid var(--border);border-radius:14px;padding:14px;background:linear-gradient(180deg,#fff,#faf9f4);min-width:0}.rank-card:first-child{background:linear-gradient(180deg,#fff8df,#fff);border-color:rgba(200,168,75,.55)}.rank-no{font-family:'Fraunces',serif;font-size:28px;color:var(--gold-dark);font-weight:600}.rank-name{font-weight:900;color:var(--navy);line-height:1.35;margin-top:4px}.rank-score{font-size:12px;color:var(--muted);margin-top:7px}.empty{padding:26px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6;border:1px dashed var(--border2);border-radius:12px;background:#fff}.divider{height:1px;background:var(--border);margin:12px 0}
-.builder-shell{border:1px solid rgba(13,35,64,.12);border-radius:16px;background:#fff;box-shadow:0 10px 28px rgba(13,35,64,.07);overflow:hidden}.builder-accent{height:7px;background:linear-gradient(90deg,var(--gold),#eadb9a 55%,var(--navy))}.builder-body{padding:16px}.builder-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.builder-kicker{font-size:10.5px;font-weight:900;letter-spacing:1.1px;text-transform:uppercase;color:var(--gold-dark)}.builder-mode{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(13,35,64,.12);background:#f8fafc;color:#475569;border-radius:999px;padding:5px 9px;font-size:10.5px;font-weight:900}.builder-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,240px);gap:12px;align-items:end}.question-input{height:48px;border-width:0 0 2px 0!important;border-radius:0!important;padding:8px 4px!important;font-size:18px!important;font-weight:700;background:transparent!important}.question-input:focus{box-shadow:none!important;border-color:var(--gold)!important}.builder-select{height:44px;background:#fbfaf7!important;border-radius:10px!important;font-weight:800}.answer-builder{margin-top:14px;border:1px solid var(--border);border-radius:13px;background:#fbfaf7;padding:12px}.answer-title{font-size:10.5px;font-weight:900;letter-spacing:.75px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}.option-list{display:flex;flex-direction:column;gap:8px}.option-row{display:grid;grid-template-columns:28px minmax(0,1fr) 108px 32px;gap:8px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:11px;padding:8px}.option-marker{width:18px;height:18px;border:2px solid #c7c1b7;border-radius:50%;justify-self:center}.option-marker.multi{border-radius:5px}.option-input,.score-input{width:100%;height:36px;border:1px solid transparent;border-radius:8px;background:#f8fafc;color:var(--navy);padding:7px 9px;outline:none;font-weight:700}.option-input:focus,.score-input:focus{border-color:rgba(13,35,64,.25);background:#fff;box-shadow:0 0 0 3px rgba(13,35,64,.06)}.score-input{text-align:center}.option-remove{width:30px;height:30px;border:0;border-radius:8px;background:#fff1f2;color:#be123c;font-weight:900;cursor:pointer}.option-remove:hover{background:#ffe4e6}.add-option{margin-top:10px;border:1.5px dashed rgba(13,35,64,.22);background:#fff;color:var(--navy);border-radius:10px;padding:9px 12px;font-weight:900;cursor:pointer}.add-option:hover{border-color:var(--gold);background:#fffaf0}.rating-preview{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.rating-chip{min-height:44px;border:1.5px solid var(--border);background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--navy);font-weight:900}.rating-chip span{font-size:10px;color:var(--muted);font-weight:800;margin-top:2px}.text-preview{min-height:88px;border:1.5px dashed var(--border2);border-radius:12px;background:#fff;color:#94a3b8;padding:12px;font-size:13px;line-height:1.6}.builder-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;border-top:1px solid var(--border);padding-top:13px}.builder-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.mini-field{display:flex;align-items:center;gap:8px}.mini-field label{font-size:10.5px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.55px}.mini-field input{width:82px;height:36px;border:1.5px solid var(--border2);border-radius:9px;padding:7px 9px;color:var(--navy);font-weight:800}.switch-row{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:900;color:var(--navy);cursor:pointer}.switch-row input{position:absolute;opacity:0;pointer-events:none}.switch-ui{width:42px;height:24px;border-radius:999px;background:#cbd5e1;position:relative;transition:background .15s}.switch-ui::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(13,35,64,.25);transition:left .15s}.switch-row input:checked+.switch-ui{background:var(--navy)}.switch-row input:checked+.switch-ui::after{left:21px}.builder-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.question-card{border-left:5px solid transparent}.question-card:hover{border-left-color:rgba(200,168,75,.7);box-shadow:0 8px 22px rgba(13,35,64,.055)}.question-top>div:first-child{min-width:0}.question-options{padding:8px 10px;background:#faf9f6;border-radius:9px;border:1px solid var(--border)}
-@media(max-width:1100px){.workspace{grid-template-columns:1fr}.cycle-list{max-height:none}.grid.two,.grid.three{grid-template-columns:1fr}.leaderboard{grid-template-columns:1fr}.builder-grid{grid-template-columns:1fr}.rating-preview{grid-template-columns:repeat(5,minmax(48px,1fr))}}@media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.page-header{display:block}.option-row{grid-template-columns:24px minmax(0,1fr) 88px 30px;gap:6px}.builder-footer{align-items:flex-start}.builder-actions{width:100%}.builder-actions .btn{flex:1}.rating-preview{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:520px){.option-row{grid-template-columns:24px minmax(0,1fr);align-items:start}.score-input{grid-column:2}.option-remove{grid-column:2;justify-self:end}.rating-preview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+html{height:100%}
+body{height:100%;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+.layout{display:flex;flex:1;min-height:0}
+.sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.main{flex:1;overflow:auto;padding:32px 38px 56px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px}
+.page-eyebrow{font-size:11px;font-weight:800;color:var(--gold-dark);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
+.page-title{font-family:'Fraunces',serif;font-size:clamp(25px,2.8vw,34px);font-weight:300;color:var(--navy);line-height:1.15}
+.page-title em{font-style:italic;color:var(--gold);font-weight:400}
+.page-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-top:7px;max-width:760px}
+.alert{display:none;margin-bottom:16px;padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.55}
+.alert.show{display:block}
+.alert.success{background:#ecfdf5;border:1px solid #a7f3d0;color:#047857}
+.alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.alert.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.btn{border:1.5px solid var(--border2);border-radius:8px;background:#fff;color:var(--navy);font-weight:900;font-size:12.5px;padding:9px 13px;cursor:pointer;transition:background .15s,border-color .15s,transform .12s;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn:hover:not(:disabled){border-color:var(--navy);background:#faf9f6;transform:translateY(-1px)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.primary:hover:not(:disabled){background:var(--navy2)}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+.btn.danger{color:#b91c1c;border-color:#fecaca}
+.btn.danger:hover:not(:disabled){background:#fef2f2;border-color:#ef4444}
+.btn.ghost{background:#fbfaf7}
+.btn:disabled{opacity:.52;cursor:not-allowed;transform:none}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.workspace{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:16px;align-items:start}
+.panel{background:var(--white);border:1px solid var(--border);border-radius:13px;box-shadow:0 2px 10px rgba(13,35,64,.045);overflow:hidden}
+.panel-head{background:var(--navy);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.panel-title{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.76)}
+.panel-count{font-size:11px;color:rgba(255,255,255,.46);font-weight:700}
+.panel-body{padding:14px}
+.cycle-list{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 360px);overflow:auto;padding-right:2px}
+.cycle-card{width:100%;border:1px solid var(--border);background:#fff;border-radius:11px;padding:12px;text-align:left;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}
+.cycle-card:hover{background:#faf9f6}
+.cycle-card.active{border-color:rgba(200,168,75,.75);background:#fff8e4;box-shadow:inset 3px 0 0 var(--gold)}
+.cycle-main{font-weight:900;color:var(--navy);font-size:13px;line-height:1.35}
+.cycle-sub{color:var(--muted);font-size:11px;line-height:1.55;margin-top:4px}
+.status{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:10.5px;font-weight:900;margin-top:8px}
+.status::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.status.open{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+.status.draft{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+.status.closed{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.status.announced{background:var(--gold-light);color:var(--gold-dark);border-color:rgba(200,168,75,.5)}
+.status.archived{background:#f8fafc;color:#475569;border-color:#e2e8f0}
+.empty{padding:28px;text-align:center;color:var(--muted);font-size:13px;line-height:1.65;border:1px dashed var(--border2);border-radius:12px;background:#fff}
+.empty strong{display:block;color:var(--navy);font-size:16px;margin-bottom:5px}
+.wizard-shell{display:flex;flex-direction:column;gap:14px}
+.wizard-top{border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#fff,#fffdf8);padding:14px}
+.wizard-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.wizard-title h2{font-family:'Fraunces',serif;font-size:25px;font-weight:500;color:var(--navy);line-height:1.2}
+.wizard-title p{font-size:12px;color:var(--muted);line-height:1.55;margin-top:4px}
+.stepper{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.step-btn{border:1px solid var(--border);background:#fff;border-radius:11px;padding:10px;text-align:left;cursor:pointer;color:var(--muted);transition:background .15s,border-color .15s,box-shadow .15s}
+.step-btn:disabled{cursor:not-allowed;opacity:.5}
+.step-btn.active{border-color:rgba(200,168,75,.65);background:#fff8e4;box-shadow:inset 0 -3px 0 var(--gold)}
+.step-kicker{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.75px}
+.step-no{width:22px;height:22px;border-radius:999px;background:#f1f5f9;color:#475569;display:grid;place-items:center;font-size:11px}
+.step-btn.active .step-no{background:var(--navy);color:#fff}
+.step-label{font-size:12.5px;font-weight:900;color:var(--navy);margin-top:6px}
+.step-note{font-size:10.8px;color:var(--muted);margin-top:2px;line-height:1.45}
+.form-section{border:1px solid var(--border);border-radius:14px;padding:16px;background:linear-gradient(180deg,#fff,#fffdf8)}
+.section-title{font-size:11px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.section-title::before{content:'';width:18px;height:2px;background:var(--gold);border-radius:2px}
+.grid{display:grid;gap:10px}
+.grid.two{grid-template-columns:1fr 1fr}
+.grid.three{grid-template-columns:1fr 1fr 1fr}
+.field label{display:block;font-size:10.5px;font-weight:900;letter-spacing:.55px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.input,.select,.textarea{width:100%;border:1.5px solid var(--border2);border-radius:9px;background:#fff;color:var(--navy);outline:none;transition:border-color .15s,box-shadow .15s}
+.input,.select{height:42px;padding:8px 11px}
+.textarea{min-height:84px;padding:10px 11px;resize:vertical;line-height:1.5}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,35,64,.08)}
+.hint{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:6px}
+.range-card{border:1.5px solid var(--border2);border-radius:14px;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr);align-items:stretch;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)}
+.range-part{padding:12px;background:#fffdf8}
+.range-part label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10.5px;font-weight:900;color:var(--muted);letter-spacing:.55px;text-transform:uppercase;margin-bottom:7px}
+.range-part label::after{content:'';width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);background:linear-gradient(180deg,#fff,#f7f4ec)}
+.range-part input{width:100%;height:40px;border:0;border-bottom:2px solid var(--gold);background:transparent;color:var(--navy);font-weight:800;outline:none;padding:4px 0}
+.range-bridge{height:100%;display:grid;place-items:center;background:linear-gradient(180deg,#fff,#fbfaf7);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.range-bridge span{width:28px;height:2px;background:var(--gold);position:relative}
+.range-bridge span::before,.range-bridge span::after{content:'';position:absolute;top:50%;width:7px;height:7px;border-radius:50%;background:var(--gold);transform:translateY(-50%)}
+.range-bridge span::before{left:-2px}
+.range-bridge span::after{right:-2px}
+.nominee-picker{display:grid;grid-template-columns:minmax(220px,1fr) minmax(180px,1fr) auto;gap:10px;align-items:end}
+.nominee-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:12px}
+.nominee-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff;display:flex;gap:10px;align-items:flex-start}
+.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold);display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:800;flex-shrink:0}
+.nominee-name{font-weight:900;color:var(--navy);font-size:13px;line-height:1.35}
+.nominee-nip{font-size:11px;color:var(--muted);margin-top:2px}
+.nominee-note{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:7px}
+.nominee-actions{margin-left:auto}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--red);font-weight:900;cursor:pointer}
+.question-list{display:flex;flex-direction:column;gap:10px}
+.question-card{border:1px solid var(--border);border-left:5px solid transparent;border-radius:12px;padding:12px;background:#fff;transition:border-color .15s,box-shadow .15s}
+.question-card:hover{border-left-color:rgba(200,168,75,.7);box-shadow:0 8px 22px rgba(13,35,64,.055)}
+.question-top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.question-top>div:first-child{min-width:0}
+.question-text{font-weight:900;color:var(--navy);font-size:13px;line-height:1.45}
+.question-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-size:10.5px;font-weight:900}
+.chip.gold{background:var(--gold-light);border-color:rgba(200,168,75,.4);color:var(--gold-dark)}
+.question-options{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.55;padding:8px 10px;background:#faf9f6;border-radius:9px;border:1px solid var(--border)}
+.builder-shell{border:1px solid rgba(13,35,64,.12);border-radius:16px;background:#fff;box-shadow:0 10px 28px rgba(13,35,64,.07);overflow:hidden}
+.builder-accent{height:7px;background:linear-gradient(90deg,var(--gold),#eadb9a 55%,var(--navy))}
+.builder-body{padding:16px}
+.builder-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.builder-kicker{font-size:10.5px;font-weight:900;letter-spacing:1.1px;text-transform:uppercase;color:var(--gold-dark)}
+.builder-mode{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(13,35,64,.12);background:#f8fafc;color:#475569;border-radius:999px;padding:5px 9px;font-size:10.5px;font-weight:900}
+.builder-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,240px);gap:12px;align-items:end}
+.question-input{height:48px;border-width:0 0 2px 0!important;border-radius:0!important;padding:8px 4px!important;font-size:18px!important;font-weight:700;background:transparent!important}
+.question-input:focus{box-shadow:none!important;border-color:var(--gold)!important}
+.builder-select{height:44px;background:#fbfaf7!important;border-radius:10px!important;font-weight:800}
+.answer-builder{margin-top:14px;border:1px solid var(--border);border-radius:13px;background:#fbfaf7;padding:12px}
+.answer-title{font-size:10.5px;font-weight:900;letter-spacing:.75px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.option-list{display:flex;flex-direction:column;gap:8px}
+.option-row{display:grid;grid-template-columns:28px minmax(0,1fr) 108px 32px;gap:8px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:11px;padding:8px}
+.option-marker{width:18px;height:18px;border:2px solid #c7c1b7;border-radius:50%;justify-self:center}
+.option-marker.multi{border-radius:5px}
+.option-input,.score-input{width:100%;height:36px;border:1px solid transparent;border-radius:8px;background:#f8fafc;color:var(--navy);padding:7px 9px;outline:none;font-weight:700}
+.option-input:focus,.score-input:focus{border-color:rgba(13,35,64,.25);background:#fff;box-shadow:0 0 0 3px rgba(13,35,64,.06)}
+.score-input{text-align:center}
+.option-remove{width:30px;height:30px;border:0;border-radius:8px;background:#fff1f2;color:#be123c;font-weight:900;cursor:pointer}
+.option-remove:hover{background:#ffe4e6}
+.add-option{margin-top:10px;border:1.5px dashed rgba(13,35,64,.22);background:#fff;color:var(--navy);border-radius:10px;padding:9px 12px;font-weight:900;cursor:pointer}
+.add-option:hover{border-color:var(--gold);background:#fffaf0}
+.rating-preview{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.rating-chip{min-height:44px;border:1.5px solid var(--border);background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--navy);font-weight:900}
+.rating-chip span{font-size:10px;color:var(--muted);font-weight:800;margin-top:2px}
+.text-preview{min-height:88px;border:1.5px dashed var(--border2);border-radius:12px;background:#fff;color:#94a3b8;padding:12px;font-size:13px;line-height:1.6}
+.builder-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;border-top:1px solid var(--border);padding-top:13px}
+.builder-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mini-field{display:flex;align-items:center;gap:8px}
+.mini-field label{font-size:10.5px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.55px}
+.mini-field input{width:82px;height:36px;border:1.5px solid var(--border2);border-radius:9px;padding:7px 9px;color:var(--navy);font-weight:800}
+.switch-row{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:900;color:var(--navy);cursor:pointer}
+.switch-row input{position:absolute;opacity:0;pointer-events:none}
+.switch-ui{width:42px;height:24px;border-radius:999px;background:#cbd5e1;position:relative;transition:background .15s}
+.switch-ui::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(13,35,64,.25);transition:left .15s}
+.switch-row input:checked+.switch-ui{background:var(--navy)}
+.switch-row input:checked+.switch-ui::after{left:21px}
+.builder-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.summary-card{border:1px solid var(--border);border-radius:13px;background:#fff;padding:13px}
+.summary-label{font-size:10.5px;font-weight:900;color:var(--muted);letter-spacing:.7px;text-transform:uppercase}
+.summary-value{font-size:17px;font-weight:900;color:var(--navy);line-height:1.35;margin-top:4px}
+.check-list{display:grid;gap:8px;margin:12px 0}
+.check-item{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--border);border-radius:11px;background:#fff;padding:10px}
+.check-dot{width:26px;height:22px;border-radius:999px;display:grid;place-items:center;flex:0 0 auto;background:#fee2e2;color:#991b1b;font-size:10px;font-weight:900}
+.check-item.ok .check-dot{background:#dcfce7;color:#047857}
+.check-title{font-weight:900;color:var(--navy);font-size:12.5px}
+.check-desc{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:2px}
+.leaderboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.rank-card{border:1px solid var(--border);border-radius:14px;padding:14px;background:linear-gradient(180deg,#fff,#faf9f4);min-width:0}
+.rank-card:first-child{background:linear-gradient(180deg,#fff8df,#fff);border-color:rgba(200,168,75,.55)}
+.rank-no{font-family:'Fraunces',serif;font-size:28px;color:var(--gold-dark);font-weight:600}
+.rank-name{font-weight:900;color:var(--navy);line-height:1.35;margin-top:4px}
+.rank-score{font-size:12px;color:var(--muted);margin-top:7px}
+.footer-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+@media(max-width:1100px){.workspace{grid-template-columns:1fr}.cycle-list{max-height:none}.grid.two,.grid.three,.summary-grid{grid-template-columns:1fr 1fr}.leaderboard{grid-template-columns:1fr}.builder-grid{grid-template-columns:1fr}.rating-preview{grid-template-columns:repeat(5,minmax(48px,1fr))}}
+@media(max-width:768px){:root{--sidebar-w:220px}.main{padding:24px 16px}.page-header{display:block}.stepper,.grid.two,.grid.three,.summary-grid,.nominee-picker{grid-template-columns:1fr}.range-card{grid-template-columns:1fr}.range-bridge{height:34px;border-left:0;border-right:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}.option-row{grid-template-columns:24px minmax(0,1fr) 88px 30px;gap:6px}.builder-footer{align-items:flex-start}.builder-actions{width:100%}.builder-actions .btn{flex:1}.rating-preview{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:520px){.option-row{grid-template-columns:24px minmax(0,1fr);align-items:start}.score-input{grid-column:2}.option-remove{grid-column:2;justify-self:end}.rating-preview{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -27,7 +182,7 @@ html{height:100%}body{height:100%;display:flex;flex-direction:column;background:
       <div>
         <div class="page-eyebrow">Administrasi</div>
         <h1 class="page-title">Employee <em>of the Quarter</em></h1>
-        <p class="page-desc">Susun periode penghargaan, pilih nominasi pegawai terbaik, buat pertanyaan berbobot, dan pantau hasil penilaian seluruh pegawai.</p>
+        <p class="page-desc">Susun periode, pilih nominasi, buat kuesioner berbobot, lalu publish saat semuanya siap.</p>
       </div>
       <button class="btn gold" type="button" onclick="newCycle()">+ Periode Baru</button>
     </header>
@@ -38,7 +193,7 @@ html{height:100%}body{height:100%;display:flex;flex-direction:column;background:
         <div class="panel-body"><div class="cycle-list" id="cycle-list"></div></div>
       </aside>
       <section class="panel">
-        <div class="panel-head"><div class="panel-title">Pengaturan</div><div class="panel-count" id="detail-state">Pilih periode</div></div>
+        <div class="panel-head"><div class="panel-title">Alur Pengaturan</div><div class="panel-count" id="detail-state">Pilih periode</div></div>
         <div class="panel-body" id="detail"></div>
       </section>
     </section>
@@ -57,7 +212,14 @@ html{height:100%}body{height:100%;display:flex;flex-direction:column;background:
 'use strict';
 
 let SESSION = null;
-let STATE = { cycles: [], employees: [], selectedId: null, bundle: null, editingQuestion: null };
+let STATE = {
+  cycles: [],
+  employees: [],
+  selectedId: null,
+  bundle: null,
+  editingQuestion: null,
+  activeStep: 'period',
+};
 const $ = id => document.getElementById(id);
 const clean = v => String(v == null ? '' : v);
 const initials = name => clean(name).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase() || 'PG';
@@ -69,40 +231,42 @@ function showAlert(message, type='info'){
 }
 function clearAlert(){ $('alert').className = 'alert'; $('alert').textContent = ''; }
 
-async function loadAll(selectId){
+async function loadAll(selectId, step){
   clearAlert();
   try{
     const [cycles, employees] = await Promise.all([Eotq9201.loadCycles(), Eotq9201.loadEmployees()]);
     STATE.cycles = cycles || [];
     STATE.employees = employees || [];
     STATE.selectedId = selectId || STATE.selectedId || (STATE.cycles[0] && STATE.cycles[0].id) || null;
+    if(step) STATE.activeStep = step;
     renderCycles();
-    if(STATE.selectedId) await selectCycle(STATE.selectedId);
+    if(STATE.selectedId) await selectCycle(STATE.selectedId, STATE.activeStep || 'nominees');
     else renderEmpty();
   }catch(e){
     console.error(e);
-    showAlert(`Gagal memuat EoTQ: ${e.message}. Jalankan dulu supabase-eotq.sql di Supabase SQL Editor.`, 'error');
+    showAlert(`Gagal memuat EoTQ: ${e.message}. Jalankan supabase-eotq.sql di Supabase SQL Editor.`, 'error');
   }
 }
 
 function renderCycles(){
   $('cycle-count').textContent = `${STATE.cycles.length} periode`;
   if(!STATE.cycles.length){
-    $('cycle-list').innerHTML = '<div class="empty">Belum ada periode EoTQ. Klik tombol Periode Baru untuk memulai.</div>';
+    $('cycle-list').innerHTML = '<div class="empty"><strong>Belum ada periode</strong>Klik Periode Baru untuk mulai menyusun EoTQ.</div>';
     return;
   }
   $('cycle-list').innerHTML = STATE.cycles.map(c => {
     const st = Eotq9201.cycleState(c);
-    return `<button class="cycle-card ${String(c.id)===String(STATE.selectedId)?'active':''}" type="button" onclick="selectCycle(${c.id})">
+    return `<button class="cycle-card ${String(c.id)===String(STATE.selectedId)?'active':''}" type="button" onclick="selectCycle(${c.id}, 'nominees')">
       <div class="cycle-main">${esc(c.title || 'Employee of the Quarter')}</div>
-      <div class="cycle-sub">${esc(c.quarter_label || '-')}<br>${esc(Eotq9201.fmtDateTime(c.start_at))} - ${esc(Eotq9201.fmtDateTime(c.end_at))}</div>
+      <div class="cycle-sub">${esc(c.quarter_label || '-')}<br>${esc(Eotq9201.fmtDateTime(c.start_at))} s.d. ${esc(Eotq9201.fmtDateTime(c.end_at))}</div>
       <span class="status ${esc(st.key)}">${esc(st.label)}</span>
     </button>`;
   }).join('');
 }
 
-async function selectCycle(id){
+async function selectCycle(id, step){
   STATE.selectedId = id;
+  STATE.activeStep = step || 'nominees';
   STATE.editingQuestion = null;
   renderCycles();
   try{
@@ -115,7 +279,7 @@ async function selectCycle(id){
 
 function renderEmpty(){
   $('detail-state').textContent = 'Belum ada data';
-  $('detail').innerHTML = '<div class="empty">Belum ada periode. Buat periode untuk mulai menyusun nominasi dan pertanyaan EoTQ.</div>';
+  $('detail').innerHTML = `<div class="empty"><strong>Mulai dari periode</strong>Buat periode EoTQ lebih dulu, lalu lanjutkan ke nominasi dan kuesioner.</div>`;
 }
 
 function renderDetail(){
@@ -123,43 +287,144 @@ function renderDetail(){
   if(!b || !b.cycle) return renderEmpty();
   const c = b.cycle;
   const st = Eotq9201.cycleState(c);
+  const step = c.id ? STATE.activeStep : 'period';
   $('detail-state').textContent = st.label;
-  const ranked = Eotq9201.summarize(b.nominees, b.responses);
-  $('detail').innerHTML = `
-    <form class="form-section" onsubmit="saveCycle(event)">
-      <div class="section-title">Data Periode</div>
-      <div class="grid two">
-        <div class="field"><label>Nama Periode</label><input class="input" id="cycle-title" value="${esc(c.title || '')}" required></div>
-        <div class="field"><label>Label Triwulan</label><input class="input" id="cycle-quarter" value="${esc(c.quarter_label || '')}" placeholder="Triwulan I 2026" required></div>
-        <div class="field"><label>Mulai Penilaian</label><input class="input" id="cycle-start" type="datetime-local" value="${esc(Eotq9201.toLocalInputValue(c.start_at))}" required></div>
-        <div class="field"><label>Tutup Penilaian</label><input class="input" id="cycle-end" type="datetime-local" value="${esc(Eotq9201.toLocalInputValue(c.end_at))}" required></div>
-        <div class="field"><label>Waktu Pengumuman</label><input class="input" id="cycle-announce" type="datetime-local" value="${esc(Eotq9201.toLocalInputValue(c.announce_at))}"><div class="hint">Kosongkan jika pengumuman langsung setelah penilaian ditutup.</div></div>
-        <div class="field"><label>Status Admin</label><select class="select" id="cycle-status"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></div>
+  $('detail').innerHTML = `<div class="wizard-shell">
+    ${renderWizardTop(step)}
+    ${step === 'period' ? renderPeriodStep() : ''}
+    ${step === 'nominees' ? renderNomineesStep() : ''}
+    ${step === 'questions' ? renderQuestionsStep() : ''}
+    ${step === 'publish' ? renderPublishStep() : ''}
+  </div>`;
+}
+
+function renderWizardTop(step){
+  const c = STATE.bundle.cycle || {};
+  const saved = !!c.id;
+  const steps = [
+    { key:'period', no:1, label:'Periode', note:'Jadwal dan label' },
+    { key:'nominees', no:2, label:'Nominasi', note:'Pegawai terbaik' },
+    { key:'questions', no:3, label:'Kuesioner', note:'Pertanyaan berbobot' },
+    { key:'publish', no:4, label:'Publish', note:'Draft, publish, arsip' },
+  ];
+  return `<div class="wizard-top">
+    <div class="wizard-title">
+      <div>
+        <h2>${esc(c.title || 'Periode Baru')}</h2>
+        <p>${esc(c.quarter_label || 'Lengkapi data periode untuk mulai membuat EoTQ.')}</p>
       </div>
-      <div class="field" style="margin-top:10px"><label>Deskripsi</label><textarea class="textarea" id="cycle-description" placeholder="Narasi singkat penghargaan">${esc(c.description || '')}</textarea></div>
-      <div class="btn-row" style="margin-top:12px"><button class="btn primary" type="submit">Simpan Periode</button><button class="btn danger" type="button" onclick="deleteCycle()">Delete Periode</button></div>
-    </form>
-    <section class="form-section">
-      <div class="section-title">Nominasi Pegawai</div>
-      <div class="grid three">
-        <div class="field"><label>Pegawai</label><select class="select" id="nominee-select">${employeeOptions()}</select></div>
-        <div class="field"><label>Catatan Nominasi</label><input class="input" id="nominee-note" placeholder="Alasan singkat nominasi"></div>
-        <div class="field"><label>&nbsp;</label><button class="btn primary" type="button" onclick="addNominee()">Tambah Nominasi</button></div>
+      ${c.status ? `<span class="status ${esc(Eotq9201.cycleState(c).key)}">${esc(c.status)}</span>` : ''}
+    </div>
+    <div class="stepper">${steps.map(item => `<button class="step-btn ${step===item.key?'active':''}" type="button" ${!saved && item.key !== 'period' ? 'disabled' : ''} onclick="goStep('${item.key}')">
+      <div class="step-kicker"><span class="step-no">${item.no}</span>Langkah ${item.no}</div>
+      <div class="step-label">${item.label}</div>
+      <div class="step-note">${item.note}</div>
+    </button>`).join('')}</div>
+  </div>`;
+}
+
+function goStep(step){
+  if(!STATE.bundle || !STATE.bundle.cycle || (!STATE.bundle.cycle.id && step !== 'period')) return;
+  STATE.activeStep = step;
+  STATE.editingQuestion = null;
+  renderDetail();
+}
+
+function renderPeriodStep(){
+  const c = STATE.bundle.cycle || {};
+  return `<form class="form-section" onsubmit="saveCycle(event)">
+    <div class="section-title">Data Periode</div>
+    <div class="grid two">
+      <div class="field"><label>Nama Periode</label><input class="input" id="cycle-title" value="${esc(c.title || '')}" required></div>
+      <div class="field"><label>Label Triwulan</label><input class="input" id="cycle-quarter" value="${esc(c.quarter_label || '')}" placeholder="Triwulan I 2026" required></div>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label>Waktu Penilaian</label>
+      <div class="range-card">
+        <div class="range-part"><label>Mulai</label><input id="cycle-start" type="datetime-local" value="${esc(Eotq9201.toLocalInputValue(c.start_at))}" required></div>
+        <div class="range-bridge" aria-hidden="true"><span></span></div>
+        <div class="range-part"><label>Tutup</label><input id="cycle-end" type="datetime-local" value="${esc(Eotq9201.toLocalInputValue(c.end_at))}" required></div>
       </div>
-      <div class="divider"></div>
-      ${renderNominees(b.nominees)}
-    </section>
-    <section class="form-section">
-      <div class="section-title">Pertanyaan dan Bobot</div>
-      ${renderQuestionForm()}
-      <div class="divider"></div>
-      ${renderQuestions(b.questions)}
-    </section>
-    <section class="form-section">
-      <div class="section-title">Leaderboard Sementara</div>
-      ${renderLeaderboard(ranked)}
-    </section>`;
-  $('cycle-status').value = c.status || 'draft';
+      <div class="hint">Waktu mulai dan tutup digabung dalam satu kontrol rentang agar lebih mudah dibaca.</div>
+    </div>
+    <div class="grid two" style="margin-top:12px">
+      <div class="field"><label>Waktu Pengumuman</label><input class="input" id="cycle-announce" type="datetime-local" value="${esc(Eotq9201.toLocalInputValue(c.announce_at))}"><div class="hint">Kosongkan jika diumumkan langsung setelah penilaian ditutup.</div></div>
+      <div class="field"><label>Deskripsi</label><textarea class="textarea" id="cycle-description" placeholder="Narasi singkat penghargaan">${esc(c.description || '')}</textarea></div>
+    </div>
+    <div class="footer-actions">
+      <div class="btn-row"><button class="btn primary" type="submit" data-next="nominees">Simpan & Lanjut Nominasi</button><button class="btn ghost" type="submit" data-next="period">Simpan Draft</button></div>
+      ${c.id ? '<button class="btn danger" type="button" onclick="deleteCycle()">Delete Periode</button>' : ''}
+    </div>
+  </form>`;
+}
+
+function renderNomineesStep(){
+  const rows = STATE.bundle.nominees || [];
+  return `<section class="form-section">
+    <div class="section-title">Pilih Nominasi EoTQ</div>
+    <div class="nominee-picker">
+      <div class="field"><label>Pegawai</label><select class="select" id="nominee-select">${employeeOptions()}</select></div>
+      <div class="field"><label>Catatan Nominasi</label><input class="input" id="nominee-note" placeholder="Alasan singkat nominasi"></div>
+      <button class="btn primary" type="button" onclick="addNominee()">Tambah Nominasi</button>
+    </div>
+    ${renderNominees(rows)}
+    <div class="footer-actions">
+      <button class="btn ghost" type="button" onclick="goStep('period')">Kembali ke Periode</button>
+      <button class="btn primary" type="button" onclick="goStep('questions')" ${rows.length ? '' : 'disabled'}>Lanjut Kuesioner</button>
+    </div>
+  </section>`;
+}
+
+function renderQuestionsStep(){
+  const nominees = STATE.bundle.nominees || [];
+  const questions = STATE.bundle.questions || [];
+  if(!nominees.length){
+    return `<div class="empty"><strong>Nominasi belum dipilih</strong>Pilih minimal satu nominasi sebelum membuat kuesioner.<div class="btn-row" style="justify-content:center;margin-top:12px"><button class="btn primary" type="button" onclick="goStep('nominees')">Pilih Nominasi</button></div></div>`;
+  }
+  return `<section class="form-section">
+    <div class="section-title">Kuesioner Penilaian</div>
+    ${renderQuestionForm()}
+    <div style="height:1px;background:var(--border);margin:14px 0"></div>
+    ${renderQuestions(questions)}
+    <div class="footer-actions">
+      <button class="btn ghost" type="button" onclick="goStep('nominees')">Kembali ke Nominasi</button>
+      <button class="btn primary" type="button" onclick="goStep('publish')" ${questions.length ? '' : 'disabled'}>Lanjut Publish</button>
+    </div>
+  </section>`;
+}
+
+function renderPublishStep(){
+  const c = STATE.bundle.cycle || {};
+  const ranked = Eotq9201.summarize(STATE.bundle.nominees, STATE.bundle.responses);
+  const checks = publishChecks();
+  const ready = checks.every(x => x.ok);
+  return `<section class="form-section">
+    <div class="section-title">Publish dan Arsip</div>
+    <div class="summary-grid">
+      <div class="summary-card"><div class="summary-label">Status</div><div class="summary-value">${esc(c.status || 'draft')}</div></div>
+      <div class="summary-card"><div class="summary-label">Nominasi</div><div class="summary-value">${STATE.bundle.nominees.length}</div></div>
+      <div class="summary-card"><div class="summary-label">Pertanyaan</div><div class="summary-value">${STATE.bundle.questions.length}</div></div>
+      <div class="summary-card"><div class="summary-label">Respons Masuk</div><div class="summary-value">${STATE.bundle.responses.length}</div></div>
+    </div>
+    <div class="check-list">${checks.map(item => `<div class="check-item ${item.ok?'ok':''}"><div class="check-dot">${item.ok?'OK':'!'}</div><div><div class="check-title">${esc(item.title)}</div><div class="check-desc">${esc(item.desc)}</div></div></div>`).join('')}</div>
+    <div class="btn-row"><button class="btn ghost" type="button" onclick="setCycleStatus('draft')">Simpan sebagai Draft</button><button class="btn primary" type="button" onclick="setCycleStatus('published')" ${ready ? '' : 'disabled'}>Publish Penilaian</button><button class="btn danger" type="button" onclick="setCycleStatus('archived')">Archive</button></div>
+    <div class="section-title" style="margin-top:18px">Leaderboard Sementara</div>
+    ${renderLeaderboard(ranked)}
+    <div class="footer-actions"><button class="btn ghost" type="button" onclick="goStep('questions')">Kembali ke Kuesioner</button></div>
+  </section>`;
+}
+
+function publishChecks(){
+  const c = STATE.bundle.cycle || {};
+  const start = c.start_at ? new Date(c.start_at) : null;
+  const end = c.end_at ? new Date(c.end_at) : null;
+  const validRange = start && end && Number.isFinite(start.getTime()) && Number.isFinite(end.getTime()) && end > start;
+  return [
+    { ok: !!(c.id && c.title && c.quarter_label), title:'Periode tersimpan', desc:'Nama periode dan label triwulan sudah tersimpan.' },
+    { ok: !!validRange, title:'Jadwal valid', desc:'Waktu tutup harus lebih besar dari waktu mulai.' },
+    { ok: (STATE.bundle.nominees || []).length > 0, title:'Nominasi tersedia', desc:'Minimal satu pegawai masuk nominasi EoTQ.' },
+    { ok: (STATE.bundle.questions || []).length > 0, title:'Kuesioner tersedia', desc:'Minimal satu pertanyaan penilaian sudah dibuat.' },
+  ];
 }
 
 function employeeOptions(){
@@ -171,7 +436,7 @@ function employeeOptions(){
 }
 
 function renderNominees(rows){
-  if(!rows.length) return '<div class="empty">Belum ada nominasi. Tambahkan pegawai yang akan dinilai seluruh pegawai.</div>';
+  if(!rows.length) return '<div class="empty" style="margin-top:12px"><strong>Belum ada nominasi</strong>Tambahkan beberapa pegawai terbaik yang akan dinilai seluruh pegawai.</div>';
   return `<div class="nominee-grid">${rows.map(n => `<article class="nominee-card">
     <div class="avatar">${esc(initials(n.pegawai_nama))}</div>
     <div style="min-width:0;flex:1"><div class="nominee-name">${esc(n.pegawai_nama)}</div><div class="nominee-nip">${esc(n.pegawai_nip)}</div>${n.note?`<div class="nominee-note">${esc(n.note)}</div>`:''}</div>
@@ -290,7 +555,7 @@ function removeQuestionOption(btn){
 }
 
 function renderQuestions(rows){
-  if(!rows.length) return '<div class="empty">Belum ada pertanyaan. Buat pertanyaan penilaian seperti Google Form, lengkap dengan bobot.</div>';
+  if(!rows.length) return '<div class="empty"><strong>Belum ada pertanyaan</strong>Buat pertanyaan penilaian seperti Google Form, lengkap dengan bobot.</div>';
   return `<div class="question-list">${rows.map((q, i) => {
     const type = Eotq9201.QUESTION_TYPES.find(t => t.value === q.type);
     const opts = (q.options || []).map(o => `${o.label} (${o.score})`).join(', ');
@@ -302,7 +567,7 @@ function renderQuestions(rows){
 }
 
 function renderLeaderboard(rows){
-  if(!rows.length) return '<div class="empty">Leaderboard akan muncul setelah ada nominasi dan penilaian.</div>';
+  if(!rows.length) return '<div class="empty"><strong>Belum ada nilai</strong>Leaderboard akan muncul setelah pegawai mulai memberi penilaian.</div>';
   return `<div class="leaderboard">${rows.slice(0,3).map((r, idx) => `<article class="rank-card">
     <div class="rank-no">#${idx+1}</div><div class="rank-name">${esc(r.nominee.pegawai_nama)}</div><div class="rank-score">${r.average.toFixed(2)} rata-rata dari ${r.votes} penilai</div>
   </article>`).join('')}</div>`;
@@ -311,6 +576,8 @@ function renderLeaderboard(rows){
 function newCycle(){
   STATE.bundle = { cycle: { id:null, title:'Employee of the Quarter', quarter_label:'Triwulan I 2026', status:'draft' }, nominees:[], questions:[], responses:[] };
   STATE.selectedId = null;
+  STATE.activeStep = 'period';
+  STATE.editingQuestion = null;
   $('detail-state').textContent = 'Periode Baru';
   renderCycles();
   renderDetail();
@@ -318,6 +585,8 @@ function newCycle(){
 
 async function saveCycle(ev){
   ev.preventDefault();
+  const next = ev.submitter && ev.submitter.dataset ? ev.submitter.dataset.next : 'nominees';
+  const existing = STATE.bundle && STATE.bundle.cycle || {};
   const payload = {
     title: $('cycle-title').value.trim(),
     quarter_label: $('cycle-quarter').value.trim(),
@@ -325,17 +594,19 @@ async function saveCycle(ev){
     start_at: Eotq9201.fromLocalInputValue($('cycle-start').value),
     end_at: Eotq9201.fromLocalInputValue($('cycle-end').value),
     announce_at: Eotq9201.fromLocalInputValue($('cycle-announce').value),
-    status: $('cycle-status').value,
+    status: existing.status || 'draft',
     created_by: SESSION && SESSION.username,
   };
   if(!payload.title || !payload.quarter_label || !payload.start_at || !payload.end_at) return showAlert('Lengkapi nama, label, dan jadwal periode.', 'error');
+  if(new Date(payload.end_at) <= new Date(payload.start_at)) return showAlert('Waktu tutup harus lebih besar dari waktu mulai.', 'error');
   try{
     let rows;
-    if(STATE.bundle && STATE.bundle.cycle && STATE.bundle.cycle.id) rows = await Eotq9201.updateCycle(STATE.bundle.cycle.id, payload);
+    if(existing.id) rows = await Eotq9201.updateCycle(existing.id, payload);
     else rows = await Eotq9201.createCycle(payload);
     const id = rows && rows[0] && rows[0].id;
-    showAlert('Periode EoTQ berhasil disimpan.', 'success');
-    await loadAll(id || STATE.selectedId);
+    showAlert(next === 'nominees' ? 'Periode tersimpan. Lanjut pilih nominasi.' : 'Draft periode berhasil disimpan.', 'success');
+    STATE.activeStep = next || 'period';
+    await loadAll(id || STATE.selectedId, STATE.activeStep);
   }catch(e){ showAlert(`Gagal menyimpan periode: ${e.message}`, 'error'); }
 }
 
@@ -343,8 +614,13 @@ async function deleteCycle(){
   const c = STATE.bundle && STATE.bundle.cycle;
   if(!c || !c.id) return renderEmpty();
   if(!confirm(`Hapus periode "${c.title}" beserta semua nominasi, pertanyaan, dan jawaban?`)) return;
-  try{ await Eotq9201.deleteCycle(c.id); STATE.selectedId = null; showAlert('Periode dihapus.', 'success'); await loadAll(); }
-  catch(e){ showAlert(`Gagal menghapus periode: ${e.message}`, 'error'); }
+  try{
+    await Eotq9201.deleteCycle(c.id);
+    STATE.selectedId = null;
+    STATE.activeStep = 'period';
+    showAlert('Periode dihapus.', 'success');
+    await loadAll();
+  }catch(e){ showAlert(`Gagal menghapus periode: ${e.message}`, 'error'); }
 }
 
 async function addNominee(){
@@ -355,13 +631,14 @@ async function addNominee(){
   const p = STATE.employees.find(x => String(pegawaiNip(x)) === String(nip));
   try{
     await Eotq9201.addNominee({ cycle_id: cycleId, pegawai_nip: nip, pegawai_nama: pegawaiNama(p), note: $('nominee-note').value.trim() || null, sort_order: STATE.bundle.nominees.length + 1 });
-    await selectCycle(cycleId);
+    showAlert('Nominasi ditambahkan.', 'success');
+    await selectCycle(cycleId, 'nominees');
   }catch(e){ showAlert(`Gagal menambah nominasi: ${e.message}`, 'error'); }
 }
 
 async function deleteNominee(id){
   if(!confirm('Hapus nominasi ini? Jawaban untuk nominasi ini juga akan hilang.')) return;
-  try{ await Eotq9201.deleteNominee(id); await selectCycle(STATE.selectedId); }
+  try{ await Eotq9201.deleteNominee(id); await selectCycle(STATE.selectedId, 'nominees'); }
   catch(e){ showAlert(`Gagal menghapus nominasi: ${e.message}`, 'error'); }
 }
 
@@ -384,15 +661,33 @@ async function saveQuestion(){
     if(STATE.editingQuestion) await Eotq9201.updateQuestion(STATE.editingQuestion.id, payload);
     else await Eotq9201.addQuestion(payload);
     STATE.editingQuestion = null;
-    await selectCycle(cycleId);
+    showAlert('Pertanyaan tersimpan.', 'success');
+    await selectCycle(cycleId, 'questions');
   }catch(e){ showAlert(`Gagal menyimpan pertanyaan: ${e.message}`, 'error'); }
 }
-function editQuestion(id){ STATE.editingQuestion = STATE.bundle.questions.find(q => String(q.id) === String(id)); renderDetail(); }
+
+function editQuestion(id){
+  STATE.editingQuestion = STATE.bundle.questions.find(q => String(q.id) === String(id));
+  STATE.activeStep = 'questions';
+  renderDetail();
+}
 function cancelQuestionEdit(){ STATE.editingQuestion = null; renderDetail(); }
+
 async function deleteQuestion(id){
   if(!confirm('Hapus pertanyaan ini? Jawaban historis tetap tersimpan sebagai JSON, tetapi form baru tidak menampilkan pertanyaan ini.')) return;
-  try{ await Eotq9201.deleteQuestion(id); await selectCycle(STATE.selectedId); }
+  try{ await Eotq9201.deleteQuestion(id); await selectCycle(STATE.selectedId, 'questions'); }
   catch(e){ showAlert(`Gagal menghapus pertanyaan: ${e.message}`, 'error'); }
+}
+
+async function setCycleStatus(status){
+  const c = STATE.bundle && STATE.bundle.cycle;
+  if(!c || !c.id) return showAlert('Simpan periode terlebih dahulu.', 'error');
+  if(status === 'published' && !publishChecks().every(x => x.ok)) return showAlert('Lengkapi periode, nominasi, dan kuesioner sebelum publish.', 'error');
+  try{
+    await Eotq9201.updateCycle(c.id, { status });
+    showAlert(status === 'published' ? 'Periode EoTQ dipublish.' : status === 'archived' ? 'Periode EoTQ diarsipkan.' : 'Periode disimpan sebagai draft.', 'success');
+    await selectCycle(c.id, 'publish');
+  }catch(e){ showAlert(`Gagal mengubah status: ${e.message}`, 'error'); }
 }
 
 async function init(){
