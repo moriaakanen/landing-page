@@ -189,6 +189,29 @@
     return rows && rows[0] ? rows[0] : null;
   }
 
+  function getCallerId() {
+    try {
+      const s = JSON.parse(localStorage.getItem('nova_user') || 'null');
+      return (s && s.id) ? Number(s.id) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function rpc(fnName, params) {
+    if (typeof window.novaRpc === 'function') {
+      return await window.novaRpc(fnName, params);
+    }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(params || {}),
+    });
+    if (!res.ok) throw await restError(res);
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+
   const Eotq = {
     QUESTION_TYPES,
     fmtDateTime,
@@ -214,21 +237,73 @@
       ]);
       return { cycle: cycleRows[0] || null, nominees, questions, responses };
     },
-    createCycle: payload => write(TABLES.cycles, 'POST', payload),
-    updateCycle: (id, payload) => write(`${TABLES.cycles}?id=eq.${qs(id)}`, 'PATCH', payload),
-    deleteCycle: id => remove(`${TABLES.cycles}?id=eq.${qs(id)}`),
-    addNominee: payload => write(TABLES.nominees, 'POST', payload),
-    updateNominee: (id, payload) => write(`${TABLES.nominees}?id=eq.${qs(id)}`, 'PATCH', payload),
-    deleteNominee: id => remove(`${TABLES.nominees}?id=eq.${qs(id)}`),
-    addQuestion: payload => write(TABLES.questions, 'POST', payload),
-    updateQuestion: (id, payload) => write(`${TABLES.questions}?id=eq.${qs(id)}`, 'PATCH', payload),
-    deleteQuestion: id => remove(`${TABLES.questions}?id=eq.${qs(id)}`),
-    submitResponse: payload => write(
-      `${TABLES.responses}?on_conflict=cycle_id,nominee_id,voter_user_id`,
-      'POST',
-      payload,
-      { Prefer: 'resolution=merge-duplicates,return=representation' }
-    ),
+    createCycle: payload => rpc('eotq_save_cycle', {
+      p_caller_id: getCallerId(),
+      p_title: payload.title,
+      p_quarter_label: payload.quarter_label,
+      p_description: payload.description,
+      p_start_at: payload.start_at,
+      p_end_at: payload.end_at,
+      p_announce_at: payload.announce_at,
+      p_status: payload.status,
+    }),
+    updateCycle: (id, payload) => rpc('eotq_save_cycle', {
+      p_caller_id: getCallerId(),
+      p_id: Number(id),
+      p_title: payload.title,
+      p_quarter_label: payload.quarter_label,
+      p_description: payload.description,
+      p_start_at: payload.start_at,
+      p_end_at: payload.end_at,
+      p_announce_at: payload.announce_at,
+      p_status: payload.status,
+    }),
+    deleteCycle: id => rpc('eotq_delete_cycle', { p_caller_id: getCallerId(), p_id: Number(id) }),
+    addNominee: payload => rpc('eotq_save_nominee', {
+      p_caller_id: getCallerId(),
+      p_cycle_id: Number(payload.cycle_id),
+      p_pegawai_nip: payload.pegawai_nip,
+      p_pegawai_nama: payload.pegawai_nama,
+      p_note: payload.note,
+      p_sort_order: payload.sort_order,
+    }),
+    updateNominee: (id, payload) => rpc('eotq_save_nominee', {
+      p_caller_id: getCallerId(),
+      p_id: Number(id),
+      p_note: payload.note,
+      p_sort_order: payload.sort_order,
+    }),
+    deleteNominee: id => rpc('eotq_delete_nominee', { p_caller_id: getCallerId(), p_id: Number(id) }),
+    addQuestion: payload => rpc('eotq_save_question', {
+      p_caller_id: getCallerId(),
+      p_cycle_id: Number(payload.cycle_id),
+      p_question: payload.question,
+      p_type: payload.type,
+      p_required: payload.required,
+      p_weight: payload.weight,
+      p_options: payload.options,
+      p_sort_order: payload.sort_order,
+    }),
+    updateQuestion: (id, payload) => rpc('eotq_save_question', {
+      p_caller_id: getCallerId(),
+      p_id: Number(id),
+      p_question: payload.question,
+      p_type: payload.type,
+      p_required: payload.required,
+      p_weight: payload.weight,
+      p_options: payload.options,
+      p_sort_order: payload.sort_order,
+    }),
+    deleteQuestion: id => rpc('eotq_delete_question', { p_caller_id: getCallerId(), p_id: Number(id) }),
+    submitResponse: payload => rpc('eotq_submit_vote', {
+      p_voter_user_id: String(payload.voter_user_id),
+      p_cycle_id: Number(payload.cycle_id),
+      p_nominee_id: Number(payload.nominee_id),
+      p_voter_nip: payload.voter_nip,
+      p_voter_name: payload.voter_name,
+      p_answers: payload.answers,
+      p_total_score: payload.total_score,
+    }),
   };
 
   window.Eotq9201 = Eotq;
