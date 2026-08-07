@@ -11,6 +11,7 @@
     { key: 'profil', href: 'index.html', label: 'Profil Saya' },
     { key: 'pegawai-terbaik', href: 'pegawai-terbaik.html', label: 'Pegawai Terbaik' },
     { key: 'surat-tugas', href: 'surat-tugas.html', label: 'Minta Surat Tugas' },
+    { key: 'kuis', href: 'kuis.html', label: 'Kuis Interaktif' },
   ];
 
   var NAV_ADMIN_ITEMS = [
@@ -21,6 +22,7 @@
     { key: 'kamus-pok', href: 'manajemen-kamus-pok.html', label: 'Kamus POK' },
     { key: 'manajemen-mitra', href: 'manajemen-mitra.html', label: 'Manajemen Mitra' },
     { key: 'manajemen-pengguna', href: 'manajemen-pengguna.html', label: 'Manajemen Pengguna' },
+    { key: 'admin-kuis', href: 'admin-kuis.html', label: 'Manajemen Kuis' },
   ];
 
   var SIDEBAR_CSS = `

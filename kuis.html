@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9201 - Arena Kuis Interaktif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fraunces:ital,wght@0,300;0,500;0,600;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f4f0;--white:#fff;--navy:#0d2340;--navy2:#163358;--gold:#c8a84b;--gold-light:#f5edda;--gold-dark:#a78a3a;
+  --text:#1a1a2e;--muted:#6b7280;--border:#e2ddd6;--border2:#d1ccc3;--red:#e11d48;--blue:#2563eb;--amber:#d97706;--green:#059669;
+  --sidebar-w:260px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden}
+button,input,select{font:inherit}
+.layout{display:flex;flex:1;min-height:0}
+.main{flex:1;overflow:auto;padding:32px 38px 56px}
+
+/* Page Header */
+.page-header{
+  position:relative;overflow:hidden;border:1px solid rgba(200,168,75,.35);border-radius:18px;
+  background:linear-gradient(135deg,#0d2340 0%,#163358 58%,#2b4164 100%);padding:28px;margin-bottom:22px;
+  box-shadow:0 18px 45px rgba(13,35,64,.18);
+}
+.page-header::after{
+  content:'';position:absolute;right:-90px;top:-120px;width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,168,75,.36),rgba(200,168,75,0) 68%);
+}
+.page-eyebrow{position:relative;z-index:1;font-size:11px;font-weight:900;color:rgba(245,237,218,.82);letter-spacing:2.2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.page-eyebrow::before{content:'';width:16px;height:2px;background:var(--gold)}
+.page-title{position:relative;z-index:1;font-family:'Fraunces',serif;font-size:clamp(26px,3.8vw,42px);font-weight:300;color:#fff;line-height:1.1}
+.page-title em{font-style:italic;color:var(--gold);font-weight:400}
+.page-desc{position:relative;z-index:1;color:rgba(255,255,255,.78);font-size:13px;line-height:1.65;margin-top:8px;max-width:680px}
+
+/* LOBBY VIEW */
+.lobby-container{display:flex;flex-direction:column;gap:24px}
+.pin-banner{
+  background:linear-gradient(135deg,#ffffff 0%,#fefcf6 100%);border:1.5px solid var(--border2);border-radius:20px;
+  padding:24px;box-shadow:0 8px 24px rgba(13,35,64,.05);display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+}
+.pin-info h3{font-family:'Fraunces',serif;font-size:22px;color:var(--navy);font-weight:500;margin-bottom:4px}
+.pin-info p{font-size:13px;color:var(--muted)}
+.pin-input-group{display:flex;align-items:center;gap:10px;min-width:300px;flex:1;max-width:440px}
+.pin-input{
+  flex:1;height:52px;border:2px solid var(--border2);border-radius:14px;padding:0 18px;font-size:20px;font-weight:900;
+  letter-spacing:4px;text-align:center;color:var(--navy);background:#fff;text-transform:uppercase;outline:none;
+  transition:border-color .18s,box-shadow .18s;
+}
+.pin-input:focus{border-color:var(--navy);box-shadow:0 0 0 4px rgba(13,35,64,.1)}
+.btn-play-pin{
+  height:52px;padding:0 24px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--navy),var(--navy2));
+  color:#fff;font-weight:900;font-size:14px;letter-spacing:.5px;cursor:pointer;box-shadow:0 6px 18px rgba(13,35,64,.2);
+  transition:transform .15s,box-shadow .15s;display:inline-flex;align-items:center;gap:8px;
+}
+.btn-play-pin:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(13,35,64,.28)}
+
+.section-label{font-size:11.5px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.section-label::before{content:'';width:18px;height:2px;background:var(--gold);border-radius:2px}
+
+.quiz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px}
+.quiz-card{
+  background:#fff;border:1px solid var(--border);border-radius:18px;padding:22px;display:flex;flex-direction:column;
+  justify-content:space-between;gap:16px;box-shadow:0 4px 16px rgba(13,35,64,.04);transition:transform .2s,box-shadow .2s,border-color .2s;
+  position:relative;overflow:hidden;
+}
+.quiz-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(13,35,64,.09);border-color:rgba(200,168,75,.6)}
+.quiz-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--navy),var(--gold))}
+.quiz-badge-wrap{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.badge-cat{background:var(--gold-light);color:var(--gold-dark);font-size:11px;font-weight:900;padding:4px 10px;border-radius:999px;letter-spacing:.3px}
+.badge-pin{background:#f1f5f9;color:#475569;font-size:11px;font-weight:800;padding:4px 9px;border-radius:6px;font-family:monospace}
+.quiz-card-title{font-family:'Fraunces',serif;font-size:20px;color:var(--navy);font-weight:500;line-height:1.3;margin-top:6px}
+.quiz-card-desc{font-size:12.5px;color:var(--muted);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.quiz-meta{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--muted);font-weight:700}
+.btn-start-quiz{
+  width:100%;height:44px;border:none;border-radius:12px;background:var(--navy);color:#fff;font-weight:900;font-size:13px;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .12s;
+}
+.btn-start-quiz:hover{background:var(--navy2);transform:scale(1.01)}
+
+/* GAME ARENA VIEW (KAHOOT / WAYGROUND STYLE) */
+.game-arena{display:none;flex-direction:column;gap:20px;max-width:960px;margin:0 auto;width:100%}
+.game-header{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border:1px solid var(--border);
+  border-radius:16px;padding:14px 20px;box-shadow:0 4px 14px rgba(13,35,64,.04);
+}
+.game-progress-info{display:flex;align-items:center;gap:14px}
+.q-step-badge{background:var(--navy);color:#fff;font-size:12px;font-weight:900;padding:6px 14px;border-radius:999px;letter-spacing:.5px}
+.streak-badge{background:linear-gradient(135deg,#ff9800,#f44336);color:#fff;font-size:12px;font-weight:900;padding:6px 14px;border-radius:999px;box-shadow:0 4px 10px rgba(244,67,54,.3)}
+.score-badge{font-family:'Fraunces',serif;font-size:24px;font-weight:800;color:var(--navy)}
+
+/* Timer Circle */
+.timer-container{display:flex;align-items:center;justify-content:center;position:relative}
+.timer-circle{width:62px;height:62px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:22px;font-weight:900;box-shadow:0 6px 18px rgba(13,35,64,.25);transition:background .3s,transform .15s}
+.timer-circle.warning{background:var(--red);animation:pulse 0.6s infinite alternate}
+
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+
+/* Question Card */
+.question-box{
+  background:linear-gradient(135deg,#ffffff 0%,#fbfaf7 100%);border:2px solid var(--border2);border-radius:22px;
+  padding:32px;text-align:center;box-shadow:0 12px 36px rgba(13,35,64,.06);min-height:160px;display:flex;align-items:center;justify-content:center;
+}
+.question-title-text{font-family:'Fraunces',serif;font-size:clamp(22px,3.2vw,32px);color:var(--navy);font-weight:500;line-height:1.3}
+
+/* KAHOOT OPTION GRID (4 COLORFUL CARDS) */
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+.option-card{
+  border:none;border-radius:18px;padding:22px 24px;min-height:92px;display:flex;align-items:center;gap:18px;
+  color:#fff;font-size:17px;font-weight:800;cursor:pointer;text-align:left;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.12);
+  transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;position:relative;overflow:hidden;
+}
+.option-card:hover:not(:disabled){transform:translateY(-4px) scale(1.01);box-shadow:0 14px 32px rgba(0,0,0,.2)}
+.option-card:active:not(:disabled){transform:scale(0.98)}
+.option-card:disabled{cursor:default;opacity:0.85}
+
+.option-card.opt-A{background:linear-gradient(135deg,#e11d48 0%,#be123c 100%)}
+.option-card.opt-B{background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%)}
+.option-card.opt-C{background:linear-gradient(135deg,#d97706 0%,#b45309 100%)}
+.option-card.opt-D{background:linear-gradient(135deg,#059669 0%,#047857 100%)}
+
+.opt-symbol{
+  width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.24);display:grid;place-items:center;
+  font-size:20px;font-weight:900;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);
+}
+.opt-text{flex:1}
+
+/* FEEDBACK OVERLAY / CARD */
+.feedback-banner{
+  display:none;border-radius:20px;padding:24px;text-align:center;color:#fff;animation:slideUp 0.3s ease-out;
+  box-shadow:0 14px 40px rgba(0,0,0,.2);margin-top:10px;
+}
+.feedback-banner.correct{background:linear-gradient(135deg,#10b981,#047857)}
+.feedback-banner.wrong{background:linear-gradient(135deg,#f43f5e,#be123c)}
+.feedback-title{font-family:'Fraunces',serif;font-size:28px;font-weight:800;margin-bottom:6px}
+.feedback-sub{font-size:15px;font-weight:700;opacity:0.95}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* RESULT / PODIUM VIEW */
+.result-view{display:none;flex-direction:column;gap:24px;max-width:880px;margin:0 auto;width:100%}
+.podium-box{
+  background:linear-gradient(135deg,#0d2340 0%,#163358 100%);border:2px solid var(--gold);border-radius:26px;
+  padding:36px 28px;color:#fff;text-align:center;box-shadow:0 20px 60px rgba(13,35,64,.3);position:relative;overflow:hidden;
+}
+.podium-title{font-family:'Fraunces',serif;font-size:36px;color:var(--gold);font-weight:400;margin-bottom:4px}
+.podium-subtitle{font-size:14px;color:rgba(255,255,255,.75);margin-bottom:28px}
+.user-score-highlight{
+  background:rgba(255,255,255,.1);border:1px solid rgba(200,168,75,.4);border-radius:18px;padding:20px;
+  max-width:440px;margin:0 auto 30px;display:flex;align-items:center;justify-content:space-around;
+}
+.score-stat-val{font-family:'Fraunces',serif;font-size:28px;color:#fff;font-weight:800}
+.score-stat-lbl{font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+.leaderboard-list{background:#fff;border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 4px 16px rgba(13,35,64,.04)}
+.lb-head{background:#faf9f6;padding:12px 18px;font-size:11px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:grid;grid-template-columns:50px 1fr 100px 100px}
+.lb-row{padding:14px 18px;border-top:1px solid var(--border);display:grid;grid-template-columns:50px 1fr 100px 100px;align-items:center;font-size:13.5px;font-weight:700}
+.lb-row.me{background:#fffdf5;border-left:4px solid var(--gold)}
+.lb-rank{font-family:'Fraunces',serif;font-weight:800;font-size:18px;color:var(--navy)}
+
+.btn-actions{display:flex;gap:12px;justify-content:center;margin-top:10px}
+.btn-sec{
+  height:46px;padding:0 22px;border:1.5px solid var(--border2);border-radius:12px;background:#fff;color:var(--navy);
+  font-weight:900;font-size:13px;cursor:pointer;transition:background .15s;
+}
+.btn-sec:hover{background:#f5f4f0}
+
+@media(max-width:768px){
+  .options-grid{grid-template-columns:1fr}
+  .pin-banner{flex-direction:column;align-items:stretch}
+  .pin-input-group{min-width:0;max-width:100%}
+  .lb-head,.lb-row{grid-template-columns:40px 1fr 80px}
+  .lb-head div:last-child,.lb-row div:last-child{display:none}
+}
+</style>
+</head>
+<body>
+<div id="topbar-mount"></div>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" data-active="kuis"></aside>
+  <main class="main">
+    
+    <!-- PAGE HEADER -->
+    <header class="page-header" id="page-header">
+      <div class="page-eyebrow">Interactive Quiz Arena</div>
+      <h1 class="page-title">Arena <em>Kuis 9201</em></h1>
+      <p class="page-desc">Uji pengetahuan dan kecepatan berpikir Anda! Jawab pertanyaan berwaktu secara cepat dan tepat untuk mengumpulkan skor tertinggi di Leaderboard.</p>
+    </header>
+
+    <!-- LOBBY VIEW -->
+    <div class="lobby-container" id="lobby-view">
+      <div class="pin-banner">
+        <div class="pin-info">
+          <h3>Punya PIN Kuis Game?</h3>
+          <p>Masukkan 6-digit PIN yang diberikan oleh Admin untuk langsung bergabung ke room kuis.</p>
+        </div>
+        <div class="pin-input-group">
+          <input type="text" class="pin-input" id="pin-code-input" placeholder="920101" maxlength="6">
+          <button class="btn-play-pin" onclick="joinByPin()">MAIN! 🚀</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Daftar Kuis Aktif Tersedia</div>
+        <div class="quiz-grid" id="quiz-grid">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME ARENA VIEW -->
+    <div class="game-arena" id="game-arena">
+      <div class="game-header">
+        <div class="game-progress-info">
+          <span class="q-step-badge" id="q-step-text">SOAL 1 / 5</span>
+          <span class="streak-badge" id="streak-badge" style="display:none;">STREAK 2x 🔥</span>
+        </div>
+        <div class="timer-container">
+          <div class="timer-circle" id="timer-badge">20</div>
+        </div>
+        <div class="score-badge" id="current-score-text">0 PTS</div>
+      </div>
+
+      <div class="question-box">
+        <h2 class="question-title-text" id="question-text">Memuat pertanyaan...</h2>
+      </div>
+
+      <div class="options-grid" id="options-grid">
+        <button class="option-card opt-A" onclick="submitAnswer('A')">
+          <div class="opt-symbol">▲</div>
+          <div class="opt-text" id="opt-text-A">Pilihan A</div>
+        </button>
+        <button class="option-card opt-B" onclick="submitAnswer('B')">
+          <div class="opt-symbol">◆</div>
+          <div class="opt-text" id="opt-text-B">Pilihan B</div>
+        </button>
+        <button class="option-card opt-C" onclick="submitAnswer('C')">
+          <div class="opt-symbol">●</div>
+          <div class="opt-text" id="opt-text-C">Pilihan C</div>
+        </button>
+        <button class="option-card opt-D" onclick="submitAnswer('D')">
+          <div class="opt-symbol">■</div>
+          <div class="opt-text" id="opt-text-D">Pilihan D</div>
+        </button>
+      </div>
+
+      <div class="feedback-banner" id="feedback-banner">
+        <div class="feedback-title" id="fb-title">BENAR! 🎉</div>
+        <div class="feedback-sub" id="fb-sub">+120 Skor Kecepatan</div>
+      </div>
+    </div>
+
+    <!-- RESULT / PODIUM VIEW -->
+    <div class="result-view" id="result-view">
+      <div class="podium-box">
+        <div class="podium-title">Kuis Selesai! 🏆</div>
+        <div class="podium-subtitle" id="quiz-finished-title">Kuis Pengetahuan Umum Portal 9201</div>
+
+        <div class="user-score-highlight">
+          <div>
+            <div class="score-stat-val" id="res-score">0</div>
+            <div class="score-stat-lbl">Total Skor</div>
+          </div>
+          <div>
+            <div class="score-stat-val" id="res-correct">0 / 0</div>
+            <div class="score-stat-lbl">Jawaban Benar</div>
+          </div>
+          <div>
+            <div class="score-stat-val" id="res-streak">0x</div>
+            <div class="score-stat-lbl">Max Streak</div>
+          </div>
+        </div>
+
+        <div class="btn-actions">
+          <button class="btn-play-pin" onclick="restartQuiz()">Main Lagi 🔄</button>
+          <button class="btn-sec" onclick="showLobby()">Kembali ke Lobby</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Papan Peringkat (Leaderboard)</div>
+        <div class="leaderboard-list">
+          <div class="lb-head">
+            <div>#</div>
+            <div>Nama Peserta</div>
+            <div>Jawaban</div>
+            <div>Skor</div>
+          </div>
+          <div id="lb-body">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="9201-shared.js"></script>
+<script src="9201-topbar.js"></script>
+<script src="9201-sidebar.js"></script>
+<script src="9201-role-switcher.js"></script>
+<script src="9201-kuis.js"></script>
+<script>
+'use strict';
+
+let SESSION = null;
+let QUIZZES_LIST = [];
+let ACTIVE_QUIZ = null;
+let CURRENT_Q_INDEX = 0;
+let TIMER_INTERVAL = null;
+let TIME_LEFT = 20;
+let USER_SCORE = 0;
+let CORRECT_COUNT = 0;
+let WRONG_COUNT = 0;
+let CURRENT_STREAK = 0;
+let MAX_STREAK = 0;
+let HAS_ANSWERED = false;
+
+const $ = id => document.getElementById(id);
+
+async function initPage() {
+  SESSION = novaCheckSession({ page: 'kuis' });
+  await loadQuizzes();
+}
+
+async function loadQuizzes() {
+  QUIZZES_LIST = await KuisDB.fetchQuizzes();
+  renderLobby();
+}
+
+function renderLobby() {
+  const container = $('quiz-grid');
+  container.innerHTML = '';
+
+  const activeQuizzes = QUIZZES_LIST.filter(q => q.is_active !== false);
+
+  if (activeQuizzes.length === 0) {
+    container.innerHTML = `<div style="grid-column:1/-1;background:#fff;padding:32px;border-radius:16px;text-align:center;color:var(--muted);border:1px dashed var(--border2)">Belum ada kuis aktif yang tersedia.</div>`;
+    return;
+  }
+
+  activeQuizzes.forEach(quiz => {
+    const qCount = (quiz.questions || []).length;
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+    card.innerHTML = `
+      <div>
+        <div class="quiz-badge-wrap">
+          <span class="badge-cat">${esc(quiz.category || 'Umum')}</span>
+          <span class="badge-pin">PIN: ${esc(quiz.pin_code || '---')}</span>
+        </div>
+        <h3 class="quiz-card-title">${esc(quiz.title)}</h3>
+        <p class="quiz-card-desc">${esc(quiz.description || 'Tidak ada deskripsi.')}</p>
+      </div>
+      <div>
+        <div class="quiz-meta" style="margin-bottom:12px;">
+          <span>⏱ ${quiz.time_per_question_sec || 20} detik/soal</span>
+          <span>❓ ${qCount} Soal</span>
+        </div>
+        <button class="btn-start-quiz" onclick="startQuiz('${quiz.id}')">MULAI KUIS 🚀</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function joinByPin() {
+  const pin = $('pin-code-input').value.trim();
+  if (!pin) {
+    alert('Masukkan PIN Kuis terlebih dahulu.');
+    return;
+  }
+  const match = QUIZZES_LIST.find(q => String(q.pin_code) === pin && q.is_active !== false);
+  if (match) {
+    startQuiz(match.id);
+  } else {
+    alert('PIN Kuis tidak ditemukan atau kuis sudah tidak aktif.');
+  }
+}
+
+function startQuiz(quizId) {
+  ACTIVE_QUIZ = QUIZZES_LIST.find(q => String(q.id) === String(quizId));
+  if (!ACTIVE_QUIZ || !ACTIVE_QUIZ.questions || ACTIVE_QUIZ.questions.length === 0) {
+    alert('Kuis tidak memiliki pertanyaan.');
+    return;
+  }
+
+  CURRENT_Q_INDEX = 0;
+  USER_SCORE = 0;
+  CORRECT_COUNT = 0;
+  WRONG_COUNT = 0;
+  CURRENT_STREAK = 0;
+  MAX_STREAK = 0;
+
+  $('page-header').style.display = 'none';
+  $('lobby-view').style.display = 'none';
+  $('result-view').style.display = 'none';
+  $('game-arena').style.display = 'flex';
+
+  showQuestion();
+}
+
+function showQuestion() {
+  HAS_ANSWERED = false;
+  clearInterval(TIMER_INTERVAL);
+
+  const q = ACTIVE_QUIZ.questions[CURRENT_Q_INDEX];
+  const totalQ = ACTIVE_QUIZ.questions.length;
+
+  $('q-step-text').textContent = `SOAL ${CURRENT_Q_INDEX + 1} / ${totalQ}`;
+  $('current-score-text').textContent = `${USER_SCORE} PTS`;
+  $('question-text').textContent = q.question_text;
+
+  $('opt-text-A').textContent = q.option_a;
+  $('opt-text-B').textContent = q.option_b;
+  $('opt-text-C').textContent = q.option_c;
+  $('opt-text-D').textContent = q.option_d;
+
+  // Reset Option Buttons state
+  const btns = document.querySelectorAll('.option-card');
+  btns.forEach(btn => {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.filter = 'none';
+  });
+
+  // Hide feedback banner
+  $('feedback-banner').style.display = 'none';
+  $('feedback-banner').className = 'feedback-banner';
+
+  // Streak Badge
+  if (CURRENT_STREAK >= 2) {
+    $('streak-badge').style.display = 'inline-block';
+    $('streak-badge').textContent = `STREAK ${CURRENT_STREAK}x 🔥`;
+  } else {
+    $('streak-badge').style.display = 'none';
+  }
+
+  // Timer Setup
+  TIME_LEFT = ACTIVE_QUIZ.time_per_question_sec || 20;
+  updateTimerUI();
+
+  TIMER_INTERVAL = setInterval(() => {
+    TIME_LEFT--;
+    updateTimerUI();
+
+    if (TIME_LEFT > 0 && TIME_LEFT <= 5) {
+      KuisAudio.playTick();
+    }
+
+    if (TIME_LEFT <= 0) {
+      clearInterval(TIMER_INTERVAL);
+      handleTimeout();
+    }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  const badge = $('timer-badge');
+  badge.textContent = TIME_LEFT;
+  if (TIME_LEFT <= 5) {
+    badge.classList.add('warning');
+  } else {
+    badge.classList.remove('warning');
+  }
+}
+
+function submitAnswer(selectedOpt) {
+  if (HAS_ANSWERED) return;
+  HAS_ANSWERED = true;
+  clearInterval(TIMER_INTERVAL);
+
+  const q = ACTIVE_QUIZ.questions[CURRENT_Q_INDEX];
+  const isCorrect = selectedOpt === q.correct_option;
+  const totalTime = ACTIVE_QUIZ.time_per_question_sec || 20;
+
+  // Disable options
+  const btns = document.querySelectorAll('.option-card');
+  btns.forEach(btn => btn.disabled = true);
+
+  const fbBanner = $('feedback-banner');
+
+  if (isCorrect) {
+    CORRECT_COUNT++;
+    CURRENT_STREAK++;
+    if (CURRENT_STREAK > MAX_STREAK) MAX_STREAK = CURRENT_STREAK;
+
+    const earned = calculateScore(q.points || 100, TIME_LEFT, totalTime, CURRENT_STREAK);
+    USER_SCORE += earned;
+    $('current-score-text').textContent = `${USER_SCORE} PTS`;
+
+    KuisAudio.playCorrect();
+
+    fbBanner.className = 'feedback-banner correct';
+    fbBanner.style.display = 'block';
+    $('fb-title').textContent = 'JAWABAN BENAR! 🎉';
+    $('fb-sub').textContent = `+${earned} Poin ${CURRENT_STREAK >= 2 ? '(Streak Bonus 🔥)' : ''}`;
+  } else {
+    WRONG_COUNT++;
+    CURRENT_STREAK = 0;
+    KuisAudio.playWrong();
+
+    fbBanner.className = 'feedback-banner wrong';
+    fbBanner.style.display = 'block';
+    $('fb-title').textContent = selectedOpt === null ? 'Waktu Habis! ⏱' : 'JAWABAN SALAH! ❌';
+    $('fb-sub').textContent = `Jawaban yang benar adalah Pilihan ${q.correct_option}`;
+  }
+
+  setTimeout(() => {
+    CURRENT_Q_INDEX++;
+    if (CURRENT_Q_INDEX < ACTIVE_QUIZ.questions.length) {
+      showQuestion();
+    } else {
+      finishQuiz();
+    }
+  }, 2200);
+}
+
+function handleTimeout() {
+  submitAnswer(null);
+}
+
+async function finishQuiz() {
+  $('game-arena').style.display = 'none';
+  $('result-view').style.display = 'flex';
+
+  KuisAudio.playFanfare();
+
+  $('quiz-finished-title').textContent = ACTIVE_QUIZ.title;
+  $('res-score').textContent = USER_SCORE;
+  $('res-correct').textContent = `${CORRECT_COUNT} / ${ACTIVE_QUIZ.questions.length}`;
+  $('res-streak').textContent = `${MAX_STREAK}x`;
+
+  // Save attempt
+  const userNip = (SESSION && SESSION.username) || 'pegawai-guest';
+  const userName = (SESSION && (SESSION.full_name || SESSION.username)) || 'Pegawai';
+
+  await KuisDB.saveAttempt({
+    quiz_id: ACTIVE_QUIZ.id,
+    user_nip: userNip,
+    user_name: userName,
+    total_score: USER_SCORE,
+    correct_count: CORRECT_COUNT,
+    wrong_count: WRONG_COUNT,
+    max_streak: MAX_STREAK
+  });
+
+  loadLeaderboard();
+}
+
+async function loadLeaderboard() {
+  const lbBody = $('lb-body');
+  lbBody.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted)">Memuat leaderboard...</div>';
+
+  const attempts = await KuisDB.fetchAttempts(ACTIVE_QUIZ.id);
+  lbBody.innerHTML = '';
+
+  if (attempts.length === 0) {
+    lbBody.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted)">Belum ada peserta lain.</div>';
+    return;
+  }
+
+  const currentUserNip = SESSION && SESSION.username;
+
+  attempts.forEach((att, idx) => {
+    const isMe = String(att.user_nip) === String(currentUserNip);
+    const row = document.createElement('div');
+    row.className = `lb-row ${isMe ? 'me' : ''}`;
+    
+    let rankBadge = `${idx + 1}`;
+    if (idx === 0) rankBadge = '🥇 1';
+    else if (idx === 1) rankBadge = '🥈 2';
+    else if (idx === 2) rankBadge = '🥉 3';
+
+    row.innerHTML = `
+      <div class="lb-rank">${rankBadge}</div>
+      <div>${esc(att.user_name || att.user_nip)} ${isMe ? '(Anda)' : ''}</div>
+      <div>${att.correct_count || 0} Benar</div>
+      <div style="font-family:'Fraunces',serif;font-size:16px;color:var(--navy);font-weight:800">${att.total_score || 0}</div>
+    `;
+    lbBody.appendChild(row);
+  });
+}
+
+function restartQuiz() {
+  if (ACTIVE_QUIZ) {
+    startQuiz(ACTIVE_QUIZ.id);
+  } else {
+    showLobby();
+  }
+}
+
+function showLobby() {
+  $('page-header').style.display = 'block';
+  $('game-arena').style.display = 'none';
+  $('result-view').style.display = 'none';
+  $('lobby-view').style.display = 'flex';
+  loadQuizzes();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+</script>
+</body>
+</html>
