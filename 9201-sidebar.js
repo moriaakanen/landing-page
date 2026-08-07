@@ -26,13 +26,21 @@
   ];
 
   var SIDEBAR_CSS = `
+  html, body{height:100%}
+  body{display:flex!important;flex-direction:column!important;min-height:100vh!important}
+  .layout{display:flex!important;flex:1!important;min-height:0!important}
   :where(.sidebar){
     position:relative;
+    width:var(--sidebar-w,260px)!important;
+    min-width:var(--sidebar-w,260px)!important;
     background:linear-gradient(180deg,#ffffff 0%,#fbfaf7 100%)!important;
     border-right:1px solid rgba(13,35,64,.09)!important;
     box-shadow:8px 0 30px rgba(13,35,64,.035);
     padding:16px 12px!important;
     gap:4px;
+    display:flex!important;
+    flex-direction:column!important;
+    flex-shrink:0!important;
     transition:width .24s ease,min-width .24s ease,padding .24s ease,transform .24s ease,opacity .18s ease;
   }
   :where(.sidebar.collapsed){
@@ -105,10 +113,18 @@
   .nav-submenu-inner{overflow:hidden;padding-top:4px;display:flex;flex-direction:column;gap:4px}
   .nav-submenu .nav-item{min-height:38px;margin-left:10px;padding-left:12px!important;font-size:12.5px!important}
   :where(.sidebar-footer){
-    border-top:1px solid rgba(13,35,64,.08)!important;margin:14px 2px 0!important;padding:14px 8px 0!important;
+    margin-top:auto!important;
+    border-top:1px solid rgba(13,35,64,.08)!important;margin-top:auto!important;margin-left:2px!important;margin-right:2px!important;padding:14px 8px 0!important;
     font-size:10.5px!important;line-height:1.65!important;color:#8790a1!important;
   }
   :where(.sidebar-footer strong){display:none!important}
+  .admin-badge{
+    display:inline-flex!important;align-items:center!important;gap:4px!important;
+    background:rgba(200,168,75,.15)!important;border:1px solid rgba(200,168,75,.35)!important;
+    border-radius:100px!important;padding:2px 8px!important;font-size:10px!important;
+    font-weight:600!important;color:#a78a3a!important;margin-top:4px!important;
+    letter-spacing:.3px!important;
+  }
   @media(max-width:600px){
     .sidebar-toggle{left:14px;top:62px}
     :where(.sidebar){padding:14px 12px!important}
