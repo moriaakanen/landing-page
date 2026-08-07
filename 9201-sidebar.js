@@ -172,6 +172,20 @@
     aside.innerHTML = buildSidebar(activeKey);
     ensureToggleButton();
     try {
+      var s = JSON.parse(localStorage.getItem('nova_user') || 'null');
+      if (s) {
+        var roles = (typeof getUserRoles === 'function') ? getUserRoles(s) : (Array.isArray(s.roles) && s.roles.length ? s.roles : ['user']);
+        var role = s.active_role || (roles.includes('admin') ? 'admin' : 'user');
+        var isAdmin = role === 'admin';
+        var adminNav = document.getElementById('admin-nav');
+        if (adminNav) adminNav.style.display = isAdmin ? 'block' : 'none';
+        var adminFooterBadge = document.getElementById('admin-footer-badge');
+        if (adminFooterBadge) adminFooterBadge.style.display = isAdmin ? 'block' : 'none';
+        var sidebarBadge = document.getElementById('sidebar-admin-badge');
+        if (sidebarBadge) sidebarBadge.style.display = isAdmin ? 'inline-flex' : 'none';
+      }
+    } catch (_) {}
+    try {
       var persisted = localStorage.getItem('sidebar_collapsed_v1') === '1' || localStorage.getItem('nova_sidebar_hidden') === '1';
       if (persisted && !window.matchMedia('(max-width:600px)').matches) {
         aside.classList.add('collapsed');

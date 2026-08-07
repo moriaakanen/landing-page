@@ -323,6 +323,9 @@ const $ = id => document.getElementById(id);
 
 async function initPage() {
   SESSION = novaCheckSession({ page: 'kuis' });
+  if (!SESSION) return;
+  if (window.Topbar9201) Topbar9201.setUser(SESSION);
+  if (typeof initRoleSwitcher === 'function') initRoleSwitcher(SESSION, false);
   await loadQuizzes();
 }
 
