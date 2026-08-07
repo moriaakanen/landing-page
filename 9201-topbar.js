@@ -62,6 +62,15 @@
     document.head.appendChild(style);
   }
 
+  // Auto-inject favicon if missing
+  if (!document.querySelector('link[rel="icon"]')) {
+    var favLink = document.createElement('link');
+    favLink.rel = 'icon';
+    favLink.type = 'image/svg+xml';
+    favLink.href = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230d2340'/><g fill='%23c8a84b' transform='translate(0,1)'><path d='M 5 15 C 2 13, 1 9, 3 4 C 4 8, 6 11, 9 13 Z' opacity='0.55'/><path d='M 6 18 C 3 16, 2 11, 4 7 C 5 10, 7 14, 10 16 Z' opacity='0.85'/><path d='M 8 18 Q 8 12, 13 11 L 19 11 Q 23 12, 23 16 Q 23 20, 19 21 L 14 22 Q 8 22, 8 18 Z'/><circle cx='20' cy='11' r='3.2'/><path d='M 18 8 Q 18 6, 19 6 Q 19 5, 20 5.5 Q 20 4.5, 21 5 Q 21 6, 22 6.5 L 22 8 Z'/><path d='M 23 11 L 25.5 10.5 L 23 12.5 Z'/><path d='M 22 12.5 Q 22.5 14.5, 21.5 14.5 L 21 12.5 Z'/><circle cx='20.2' cy='10.5' r='0.65' fill='white'/><rect x='13' y='22' width='1' height='4' rx='0.3'/><rect x='17.5' y='22' width='1' height='4' rx='0.3'/></g></svg>";
+    document.head.appendChild(favLink);
+  }
+
   // ─── HTML template ───────────────────────────────────────────────
   // NB: role switcher CSS (.user-switcher-*, .usd-*, dst.) di-inject
   // oleh 9201-role-switcher.js. Jadi script itu tetap perlu dimuat.
