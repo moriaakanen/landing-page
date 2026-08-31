@@ -161,7 +161,12 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
   @override
   Widget build(BuildContext context) {
-    final todayFormatted = DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.now());
+    String todayFormatted;
+    try {
+      todayFormatted = DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.now());
+    } catch (_) {
+      todayFormatted = DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now());
+    }
     final bool isInRadius = _currentDistance <= (_office?.radiusMeters ?? 50.0) && !_isMocked;
 
     return Scaffold(

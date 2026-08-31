@@ -57,9 +57,16 @@ class HistoryView extends StatelessWidget {
             separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final item = list[index];
-              final dateFormatted = DateFormat('EEEE, dd MMM yyyy', 'id_ID').format(
-                DateTime.tryParse(item.date) ?? DateTime.now(),
-              );
+              String dateFormatted;
+              try {
+                dateFormatted = DateFormat('EEEE, dd MMM yyyy', 'id_ID').format(
+                  DateTime.tryParse(item.date) ?? DateTime.now(),
+                );
+              } catch (_) {
+                dateFormatted = DateFormat('EEEE, dd MMM yyyy').format(
+                  DateTime.tryParse(item.date) ?? DateTime.now(),
+                );
+              }
 
               final bool isLate = item.checkIn?.status == 'LATE';
 
