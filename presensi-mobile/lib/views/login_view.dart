@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../core/services/auth_service.dart';
 import 'home_attendance_view.dart';
 
@@ -218,7 +217,11 @@ class _LoginViewState extends State<LoginView> {
                     shadowColor: const Color(0xFF2563EB).withOpacity(0.4),
                   ),
                   child: _isLoading
-                      ? const SpinKitThreeBounce(color: Colors.white, size: 22)
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                        )
                       : const Text(
                           "Masuk Sekarang",
                           style: TextStyle(

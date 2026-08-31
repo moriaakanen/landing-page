@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../models/user_model.dart';
 import '../models/office_model.dart';
 import '../models/attendance_model.dart';
@@ -326,7 +325,11 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 if (!hasCheckedIn) ...[
                   ElevatedButton.icon(
                     icon: _isLoadingAction
-                        ? const SpinKitThreeBounce(color: Colors.white, size: 20)
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
                         : const Icon(Icons.touch_app_rounded, color: Colors.white, size: 24),
                     label: Text(
                       _isLoadingAction
@@ -351,7 +354,11 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 ] else if (!hasCheckedOut) ...[
                   ElevatedButton.icon(
                     icon: _isLoadingAction
-                        ? const SpinKitThreeBounce(color: Colors.white, size: 20)
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
                         : const Icon(Icons.exit_to_app_rounded, color: Colors.white, size: 24),
                     label: Text(
                       _isLoadingAction
