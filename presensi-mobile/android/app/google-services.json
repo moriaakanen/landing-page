@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1030045209803",
+    "project_id": "presensi-kantor-app-31df1",
+    "storage_bucket": "presensi-kantor-app-31df1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1030045209803:android:8897d96f126638ad95774e",
+        "android_client_info": {
+          "package_name": "com.example.presensi_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-3RwWyEOLnLeZ0NksVKByh6-FEGDRpdQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin HR - Presensi & Geofencing Pegawai</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Leaflet CSS & JS for Interactive Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    #map {
+      height: 380px;
+      width: 100%;
+      border-radius: 1rem;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+  <div class="flex min-h-screen">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shrink-0 p-5 hidden md:flex">
+      <div>
+        <!-- Brand / Logo -->
+        <div class="flex items-center gap-3 px-2 py-4 mb-6 border-b border-slate-800">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+            <i data-lucide="map-pin" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-base leading-tight">PresensiGeo</h1>
+            <p class="text-xs text-slate-400">Admin & HR Portal</p>
+          </div>
+        </div>
+
+        <!-- Menu Links -->
+        <nav class="space-y-1.5">
+          <a href="#monitoring" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-600 text-white font-medium text-sm transition">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Monitoring Hadir</span>
+          </a>
+          <a href="#geofence" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium text-sm transition">
+            <i data-lucide="radar" class="w-4 h-4"></i>
+            <span>Lokasi & Radius</span>
+          </a>
+          <a href="#employees" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium text-sm transition">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            <span>Data Pegawai</span>
+          </a>
+          <a href="#reports" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium text-sm transition">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            <span>Rekap & Ekspor</span>
+          </a>
+          <a href="#simulator" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium text-sm transition">
+            <i data-lucide="smartphone" class="w-4 h-4"></i>
+            <span>Simulator Presensi</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- User Profile / Office Info -->
+      <div class="p-3 bg-slate-800/80 rounded-xl flex items-center gap-3 border border-slate-700">
+        <div class="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+          HR
+        </div>
+        <div class="overflow-hidden">
+          <p class="text-xs font-semibold truncate">HR Manager</p>
+          <p class="text-[11px] text-slate-400 truncate" id="office-name-badge">Kantor Pusat</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col min-w-0">
+      <!-- Topbar Header -->
+      <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Dashboard Presensi Karyawan</h2>
+          <p class="text-xs text-slate-500" id="current-date-header">Memuat tanggal...</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-semibold border border-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Geofencing Radius: <span id="header-radius-display">50 meter</span>
+          </div>
+          <button onclick="exportToCSV()" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm transition">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            Ekspor Laporan (CSV)
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Container -->
+      <div class="p-6 space-y-6 max-w-7xl w-full mx-auto">
+
+        <!-- Stat Cards Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Total Pegawai -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Pegawai</p>
+              <h3 class="text-2xl font-extrabold text-slate-900 mt-1" id="stat-total-employees">12</h3>
+              <p class="text-xs text-slate-400 mt-1">Terdaftar aktif</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <i data-lucide="users" class="w-6 h-6"></i>
+            </div>
+          </div>
+
+          <!-- Hadir Tepat Waktu -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Hadir Tepat Waktu</p>
+              <h3 class="text-2xl font-extrabold text-emerald-700 mt-1" id="stat-on-time">9</h3>
+              <p class="text-xs text-slate-400 mt-1">Dalam radius ≤ 50m</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <i data-lucide="check-circle" class="w-6 h-6"></i>
+            </div>
+          </div>
+
+          <!-- Terlambat -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Terlambat</p>
+              <h3 class="text-2xl font-extrabold text-amber-700 mt-1" id="stat-late">2</h3>
+              <p class="text-xs text-slate-400 mt-1">> Jam 08:00 WIB</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <i data-lucide="clock" class="w-6 h-6"></i>
+            </div>
+          </div>
+
+          <!-- Belum Hadir -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-rose-600 uppercase tracking-wider">Belum Presensi</p>
+              <h3 class="text-2xl font-extrabold text-rose-700 mt-1" id="stat-absent">1</h3>
+              <p class="text-xs text-slate-400 mt-1">Belum check-in</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+              <i data-lucide="user-x" class="w-6 h-6"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Geofencing & Map Setting -->
+        <section id="geofence" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="map" class="w-5 h-5 text-blue-600"></i>
+                Konfigurasi Titik Kantor & Radius Geofencing
+              </h3>
+              <p class="text-xs text-slate-500">Geser pin pada peta atau ubah koordinat untuk menentukan area presensi pegawai (lingkaran hijau = area yang diizinkan).</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="saveOfficeLocation()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                Simpan Konfigurasi Kantor
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left: Interactive Map -->
+            <div class="lg:col-span-2">
+              <div id="map"></div>
+            </div>
+
+            <!-- Right: Office Coordinates Form -->
+            <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Kantor</label>
+                  <input type="text" id="input-office-name" value="Kantor Pusat - Jakarta" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Latitude</label>
+                    <input type="number" step="0.000001" id="input-office-lat" value="-6.208800" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" onchange="updateMapFromInputs()">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Longitude</label>
+                    <input type="number" step="0.000001" id="input-office-lng" value="106.845600" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" onchange="updateMapFromInputs()">
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <label class="text-xs font-semibold text-slate-700">Radius Absensi</label>
+                    <span class="text-xs font-bold text-blue-600" id="radius-slider-val">50 Meter</span>
+                  </div>
+                  <input type="range" id="input-office-radius" min="10" max="200" step="5" value="50" class="w-full accent-blue-600" oninput="handleRadiusSlider(this.value)">
+                  <p class="text-[11px] text-slate-400 mt-1">Hanya pegawai dalam radius ini yang dapat melakukan absensi.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Mulai Kerja</label>
+                    <input type="time" id="input-office-start" value="08:00" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Pulang</label>
+                    <input type="time" id="input-office-end" value="17:00" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 p-3 bg-blue-50 text-blue-800 rounded-lg text-xs flex items-center gap-2 border border-blue-200">
+                <i data-lucide="shield-check" class="w-4 h-4 shrink-0 text-blue-600"></i>
+                Deteksi Fake GPS / Mock Location aktif secara otomatis di aplikasi Android.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Live Attendance Table -->
+        <section id="monitoring" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="list-checks" class="w-5 h-5 text-blue-600"></i>
+                Log Kehadiran Hari Ini
+              </h3>
+              <p class="text-xs text-slate-500">Daftar kehadiran real-time pegawai beserta jarak GPS saat melakukan absen.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <input type="text" id="table-search" placeholder="Cari nama / departemen..." oninput="filterAttendanceTable()" class="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-1.5 text-xs focus:outline-none focus:border-blue-500 w-48 sm:w-60">
+              <select id="status-filter" onchange="filterAttendanceTable()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500">
+                <option value="ALL">Semua Status</option>
+                <option value="ON_TIME">Tepat Waktu</option>
+                <option value="LATE">Terlambat</option>
+                <option value="ABSENT">Belum Hadir</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 border-y border-slate-200 text-slate-700 font-bold uppercase tracking-wider">
+                <tr>
+                  <th class="py-3 px-4">Nama Pegawai</th>
+                  <th class="py-3 px-4">Departemen</th>
+                  <th class="py-3 px-4">Jam Masuk</th>
+                  <th class="py-3 px-4">Jam Pulang</th>
+                  <th class="py-3 px-4">Jarak GPS</th>
+                  <th class="py-3 px-4">Keamanan GPS</th>
+                  <th class="py-3 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody id="attendance-table-body" class="divide-y divide-slate-100 font-medium">
+                <!-- Injected by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Section: Interactive Mobile & Geofence Simulator -->
+        <section id="simulator" class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 rounded-2xl shadow-xl">
+          <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
+            <div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold mb-2">
+                <i data-lucide="cpu" class="w-3.5 h-3.5"></i> Testing & QA Tool
+              </span>
+              <h3 class="text-lg font-bold text-white">Simulator Presensi & Verifikasi Radius</h3>
+              <p class="text-xs text-slate-300">Uji coba simulasi presensi dari berbagai jarak atau aktifkan simulasi Fake GPS untuk melihat respon sistem.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Simulator Form -->
+            <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700 space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Pilih Pegawai Penguji</label>
+                <select id="sim-employee-select" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500">
+                  <option value="user_1">Budi Santoso (IT)</option>
+                  <option value="user_2">Siti Rahma (HRD)</option>
+                  <option value="user_3">Ahmad Fauzi (Keuangan)</option>
+                </select>
+              </div>
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <label class="text-xs font-semibold text-slate-300">Simulasi Jarak dari Kantor</label>
+                  <span class="text-xs font-bold text-blue-400" id="sim-distance-val">15 Meter</span>
+                </div>
+                <input type="range" id="sim-distance-slider" min="0" max="150" value="15" class="w-full accent-blue-500" oninput="handleSimDistanceSlider(this.value)">
+                <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                  <span>0m (Tepat di Titik)</span>
+                  <span>50m (Batas)</span>
+                  <span>150m (Jauh)</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" id="sim-mock-gps" class="w-4 h-4 accent-red-500 rounded">
+                <label for="sim-mock-gps" class="text-xs font-semibold text-rose-400 cursor-pointer">
+                  Simulasikan Perangkat Fake GPS / Mock Location
+                </label>
+              </div>
+
+              <div class="flex gap-2 pt-2">
+                <button onclick="runSimulatedCheckIn()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+                  <i data-lucide="log-in" class="w-3.5 h-3.5"></i>
+                  Uji Absen Masuk
+                </button>
+                <button onclick="runSimulatedCheckOut()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+                  <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                  Uji Absen Pulang
+                </button>
+              </div>
+            </div>
+
+            <!-- Simulator Output Console -->
+            <div class="lg:col-span-2 bg-slate-950 p-5 rounded-xl border border-slate-800 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+                  <span class="text-xs font-bold text-slate-400 flex items-center gap-2">
+                    <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
+                    Konsol Log Respon Geofencing Engine
+                  </span>
+                  <button onclick="clearSimulatorLog()" class="text-[11px] text-slate-500 hover:text-slate-300">Bersihkan Log</button>
+                </div>
+                <div id="simulator-console" class="font-mono text-xs space-y-1.5 text-slate-300 h-44 overflow-y-auto pr-2">
+                  <div class="text-slate-500">> Sistem geofencing siap menerima pengujian simulasi...</div>
+                </div>
+              </div>
+              <div id="sim-status-banner" class="mt-3 p-2.5 rounded-lg text-xs font-semibold hidden"></div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
