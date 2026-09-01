@@ -3,15 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/user_model.dart';
 import '../models/office_model.dart';
-import '../models/attendance_model.dart';
 import '../models/permit_model.dart';
 import '../core/services/attendance_service.dart';
 import '../core/services/permit_service.dart';
 import '../core/services/auth_service.dart';
-import 'history_view.dart';
 import 'login_view.dart';
-import 'record_attendance_map_view.dart';
 import 'record_permit_map_view.dart';
+import 'cepu_report_view.dart';
 import 'daily_monitoring_view.dart';
 
 class HomeAttendanceView extends StatefulWidget {
@@ -29,7 +27,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
   final _authService = AuthService();
 
   OfficeModel? _office;
-  AttendanceModel? _todayAttendance;
   PermitModel? _activePermit;
   bool _isLoading = true;
 
@@ -42,13 +39,11 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
   Future<void> _loadInitialData() async {
     setState(() => _isLoading = true);
     final office = await _attendanceService.getOfficeConfig(widget.user.officeId);
-    final attendance = await _attendanceService.getTodayAttendance(widget.user.uid);
     final activePermit = await _permitService.getActivePermit(widget.user.uid);
 
     if (mounted) {
       setState(() {
         _office = office;
-        _todayAttendance = attendance;
         _activePermit = activePermit;
         _isLoading = false;
       });
@@ -62,24 +57,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
         context,
         MaterialPageRoute(builder: (context) => const LoginView()),
       );
-    }
-  }
-
-  void _navigateToRecordAttendance() async {
-    if (_office == null) return;
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => RecordAttendanceMapView(
-          user: widget.user,
-          office: _office!,
-          todayAttendance: _todayAttendance,
-        ),
-      ),
-    );
-
-    if (result == true) {
-      _loadInitialData();
     }
   }
 
@@ -101,6 +78,19 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     }
   }
 
+  void _navigateToCepuReport() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CepuReportView(reporter: widget.user),
+      ),
+    );
+
+    if (result == true) {
+      _loadInitialData();
+    }
+  }
+
   void _navigateToDailyMonitoring() {
     Navigator.push(
       context,
@@ -114,30 +104,27 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
   Widget build(BuildContext context) {
     String todayFormatted;
     try {
-      todayFormatted = DateFormat('EEE, d MMMM yyyy', 'id_ID').format(DateTime.now());
+      todayFormatted = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now());
     } catch (_) {
-      todayFormatted = DateFormat('EEE, d MMMM yyyy').format(DateTime.now());
+      todayFormatted = DateFormat('EEEE, d MMMM yyyy').format(DateTime.now());
     }
 
-    final hasCheckIn = _todayAttendance?.checkIn != null;
-    final hasCheckOut = _todayAttendance?.checkOut != null;
-    final checkInTime = hasCheckIn
-        ? DateFormat('HH:mm').format(_todayAttendance!.checkIn!.time)
+    final hasActivePermit = _activePermit != null;
+    final startPermitTime = hasActivePermit
+        ? DateFormat('HH:mm').format(_activePermit!.startTime)
         : "--:--";
-    final checkOutTime = hasCheckOut
-        ? DateFormat('HH:mm').format(_todayAttendance!.checkOut!.time)
-        : "--:--";
+    const endPermitTime = "--:--"; // Selalu reset ke --:-- ketika tidak ada izin atau selesai izin
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: const Color(0xFFF8FAFC),
       body: Stack(
         children: [
-          // Blue Gradient Background Header
+          // Cheerful Blue-Indigo Gradient Header Background
           Container(
-            height: 280,
+            height: 290,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF1E60F2), Color(0xFF2563EB), Color(0xFF3B82F6)],
+                colors: [Color(0xFF1E60F2), Color(0xFF2563EB), Color(0xFF4F46E5)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -153,21 +140,21 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Top App Bar: Profile, Name, Icons
+                    // Top App Bar: Profile, Name, Departemen & Logout
                     Row(
                       children: [
-                        // Avatar with Green Active Dot
+                        // Avatar with Active Green Dot
                         Stack(
                           children: [
                             CircleAvatar(
-                              radius: 20,
+                              radius: 22,
                               backgroundColor: Colors.white24,
                               child: Text(
                                 widget.user.name.isNotEmpty ? widget.user.name[0].toUpperCase() : 'U',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: 18,
                                 ),
                               ),
                             ),
@@ -175,85 +162,82 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                               top: 0,
                               right: 0,
                               child: Container(
-                                width: 10,
-                                height: 10,
+                                width: 11,
+                                height: 11,
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF10B981),
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 1.5),
+                                  border: Border.all(color: Colors.white, width: 2),
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(width: 10),
-                        // Name
+                        const SizedBox(width: 12),
+                        // Name & Department
                         Expanded(
-                          child: Text(
-                            widget.user.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.user.name,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                widget.user.department,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.85),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                         // Action Icons
                         IconButton(
-                          icon: const Icon(Icons.refresh, color: Colors.white, size: 22),
+                          icon: const Icon(Icons.refresh_rounded, color: Colors.white, size: 22),
                           onPressed: _loadInitialData,
                           tooltip: "Perbarui Data",
                         ),
                         IconButton(
-                          icon: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
-                          onPressed: () {},
-                          tooltip: "Bagikan",
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.logout, color: Colors.white, size: 20),
+                          icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 22),
                           onPressed: _handleLogout,
                           tooltip: "Keluar",
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
 
-                    // Date & WFOL Pill Badge
+                    // Date Pill Badge (WFOL telah dihapus)
                     Center(
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF97316).withOpacity(0.85),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withOpacity(0.3)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            const Icon(Icons.calendar_today_rounded, size: 14, color: Colors.white),
+                            const SizedBox(width: 8),
                             Text(
                               todayFormatted,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFDC2626),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Text(
-                                "WFOL",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
                               ),
                             ),
                           ],
@@ -263,9 +247,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
                     const SizedBox(height: 18),
 
-                    // White Card: Jam Datang & Jam Pulang
+                    // Card Status: "Mulai Izin" & "Selesai Izin"
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(22),
@@ -282,21 +266,28 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                           Expanded(
                             child: Column(
                               children: [
-                                Text(
-                                  "Jam Datang",
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    Icon(Icons.play_circle_fill_rounded, size: 16, color: Color(0xFF3B82F6)),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      "Mulai Izin",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF64748B),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  checkInTime,
-                                  style: const TextStyle(
+                                  startPermitTime,
+                                  style: TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E40AF),
+                                    color: hasActivePermit ? const Color(0xFFEA580C) : const Color(0xFF1E40AF),
                                     letterSpacing: 0.5,
                                   ),
                                 ),
@@ -311,17 +302,24 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                           Expanded(
                             child: Column(
                               children: [
-                                Text(
-                                  "Jam Pulang",
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    Icon(Icons.stop_circle_rounded, size: 16, color: Color(0xFF10B981)),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      "Selesai Izin",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF64748B),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  checkOutTime,
+                                  endPermitTime,
                                   style: const TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
@@ -336,8 +334,8 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                     ),
 
-                    // Active Permit Banner Alert if user currently on permit
-                    if (_activePermit != null) ...[
+                    // Active Permit Alert Banner
+                    if (hasActivePermit) ...[
                       const SizedBox(height: 14),
                       InkWell(
                         onTap: _navigateToRecordPermit,
@@ -378,7 +376,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                     Row(
                                       children: [
                                         const Text(
-                                          "Status: Sedang Izin Keluar",
+                                          "Sedang Izin Keluar Kantor",
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
@@ -409,7 +407,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                     ),
                                     const SizedBox(height: 2),
                                     const Text(
-                                      "Klik di sini untuk selesaikan izin saat kembali",
+                                      "👉 Klik di sini untuk selesaikan izin saat kembali ke kantor",
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: Color(0xFF2563EB),
@@ -426,112 +424,69 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                     ],
 
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 24),
 
-                    // 6 Grid Action Tiles
-                    GridView.count(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 14,
-                      childAspectRatio: 0.88,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        // 1. Presensi Bulanan
-                        _buildMenuCard(
-                          icon: Icons.calendar_month_rounded,
-                          iconColor: const Color(0xFFF59E0B),
-                          title: "Presensi\nBulanan",
-                          bgColor: const Color(0xFF60A5FA),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => HistoryView(user: widget.user),
-                              ),
-                            );
-                          },
-                        ),
+                    // Section Title
+                    const Text(
+                      "Menu Utama",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
 
-                        // 2. Izin Kegiatan Kantor (CUSTOM PERMIT BUTTON WITH SPECIFIED TEXTS)
-                        _buildPermitMenuCard(
-                          topText: "Ada kegiatan di jam kantor?",
-                          icon: _activePermit != null
-                              ? Icons.assignment_turned_in_rounded
-                              : Icons.assignment_ind_rounded,
-                          bottomText: _activePermit != null ? "Selesai Izin" : "Izin dulu!",
-                          isHighlighted: true,
-                          isActive: _activePermit != null,
-                          onTap: _navigateToRecordPermit,
-                        ),
+                    const SizedBox(height: 12),
 
-                        // 3. Presensi Manual
-                        _buildMenuCard(
-                          icon: Icons.touch_app_rounded,
-                          iconColor: const Color(0xFFF97316),
-                          title: "Presensi\nManual",
-                          bgColor: const Color(0xFF60A5FA),
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Fitur Presensi Manual khusus jika ada kendala GPS")),
-                            );
-                          },
-                        ),
+                    // =========================================================================
+                    // 3 MODERN HORIZONTAL WIDE ACTION CARDS (COLORFUL, CHEERFUL & MODERN)
+                    // =========================================================================
 
-                        // 4. Lapor Aktivitas
-                        _buildMenuCard(
-                          icon: Icons.alt_route_rounded,
-                          iconColor: const Color(0xFFEF4444),
-                          title: "Lapor\nAktivitas",
-                          bgColor: const Color(0xFF60A5FA),
-                          onTap: () {},
-                        ),
+                    // 1. CARD 1: IZIN KEGIATAN KANTOR (Ada kegiatan di jam kantor? / Izin dulu!)
+                    _buildHorizontalMenuCard(
+                      tagText: "Ada kegiatan di jam kantor?",
+                      title: hasActivePermit ? "Selesaikan Izin" : "Izin dulu!",
+                      subtitle: "Rekam waktu mulai & selesai izin kegiatan dinas keluar kantor",
+                      icon: Icons.assignment_ind_rounded,
+                      gradientColors: hasActivePermit
+                          ? const [Color(0xFFF59E0B), Color(0xFFEA580C)]
+                          : const [Color(0xFFEF4444), Color(0xFFF43F5E), Color(0xFFFB7185)],
+                      badgeText: hasActivePermit ? "Sedang Izin Aktif" : "GPS Geofencing",
+                      badgeColor: hasActivePermit ? const Color(0xFFB45309) : const Color(0xFF9F1239),
+                      onTap: _navigateToRecordPermit,
+                    ),
 
-                        // 5. Monitoring Harian (OPEN DAILY MONITORING VIEW)
-                        _buildMenuCard(
-                          icon: Icons.search_rounded,
-                          iconColor: const Color(0xFFFCD34D),
-                          title: "Monitoring\nHarian",
-                          bgColor: const Color(0xFF60A5FA),
-                          onTap: _navigateToDailyMonitoring,
-                        ),
+                    const SizedBox(height: 14),
 
-                        // 6. Menu Lainnya
-                        _buildMenuCard(
-                          icon: Icons.grid_view_rounded,
-                          iconColor: const Color(0xFFFBBF24),
-                          title: "Menu\nLainnya",
-                          bgColor: const Color(0xFF60A5FA),
-                          onTap: () {},
-                        ),
-                      ],
+                    // 2. CARD 2: FITUR CEPU (Lapor Pegawai Tanpa Izin)
+                    _buildHorizontalMenuCard(
+                      tagText: "Disiplin & Transparansi",
+                      title: "Fitur Cepu",
+                      subtitle: "Laporkan rekan yang tidak ada di kantor tanpa izin",
+                      icon: Icons.campaign_rounded,
+                      gradientColors: const [Color(0xFFF97316), Color(0xFFEA580C), Color(0xFFDC2626)],
+                      badgeText: "Verifikasi 4 Rekan",
+                      badgeColor: const Color(0xFF7C2D12),
+                      onTap: _navigateToCepuReport,
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // 3. CARD 3: MONITORING HARIAN (Pantau Izin & Laporan Cepu)
+                    _buildHorizontalMenuCard(
+                      tagText: "Rekap & Verifikasi",
+                      title: "Monitoring Harian",
+                      subtitle: "Pantau seluruh izin pegawai & lakukan verifikasi laporan Cepu",
+                      icon: Icons.analytics_rounded,
+                      gradientColors: const [Color(0xFF0D9488), Color(0xFF059669), Color(0xFF10B981)],
+                      badgeText: "Real-time Rekap",
+                      badgeColor: const Color(0xFF064E3B),
+                      onTap: _navigateToDailyMonitoring,
                     ),
 
                     const SizedBox(height: 24),
 
-                    // Information / Changelog Card at bottom
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Informasi:",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: _loadInitialData,
-                          icon: const Icon(Icons.refresh, size: 16, color: Color(0xFF2563EB)),
-                          label: const Text("Refresh", style: TextStyle(fontSize: 12, color: Color(0xFF2563EB))),
-                          style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 6),
-
+                    // Informasi Singkat Aturan Jam Kantor
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -542,21 +497,27 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Fitur Izin Kegiatan Jam Kantor",
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF2563EB),
-                            ),
+                          Row(
+                            children: const [
+                              Icon(Icons.info_outline_rounded, size: 18, color: Color(0xFF2563EB)),
+                              SizedBox(width: 8),
+                              Text(
+                                "Panduan Penggunaan",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           Text(
-                            "1. Mulai Izin: Rekam waktu mulai & isi keperluan saat berada di kantor.\n2. Selesai Izin: Rekam waktu selesai setelah kembali ke radius kantor.\n3. Monitoring Harian: Pantau seluruh izin pegawai hari ini dan rekap riwayat.",
+                            "• Izin Kantor: Wajib rekam Mulai Izin di radius kantor dan Selesai Izin setelah kembali.\n• Fitur Cepu: Gunakan untuk melaporkan rekan kerja yang meninggalkan kantor tanpa izin. Laporan akan dinyatakan sah setelah diverifikasi oleh 4 rekan kerja lain.\n• Monitoring Harian: Pantau seluruh aktivitas dan berikan verifikasi objektif.",
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11.5,
                               color: Colors.grey[700],
-                              height: 1.4,
+                              height: 1.45,
                             ),
                           ),
                         ],
@@ -574,162 +535,135 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     );
   }
 
-  /// Custom Menu Card Khusus Tombol Izin Sesuai Permintaan User:
-  /// - "Ada kegiatan di jam kantor?" di atas logo menu
-  /// - Logo menu di tengah
-  /// - "Izin dulu!" di bawah logo menu
-  Widget _buildPermitMenuCard({
-    required String topText,
-    required IconData icon,
-    required String bottomText,
-    bool isHighlighted = true,
-    bool isActive = false,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: isActive
-                ? const LinearGradient(
-                    colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : const LinearGradient(
-                    colors: [Color(0xFFEF4444), Color(0xFFF43F5E), Color(0xFFFB7185)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: isActive
-                    ? const Color(0xFFF59E0B).withOpacity(0.35)
-                    : const Color(0xFFEF4444).withOpacity(0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Top Text
-              Text(
-                topText,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.bold,
-                  height: 1.1,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-
-              // Middle Icon
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.25),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: Colors.white, size: 22),
-              ),
-
-              // Bottom Text
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  bottomText,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuCard({
-    required IconData icon,
-    required Color iconColor,
+  /// Widget Card Menu Horizontal yang Colorful, Cheerful, Clean, dan Modern
+  Widget _buildHorizontalMenuCard({
+    required String tagText,
     required String title,
-    Color bgColor = const Color(0xFF3B82F6),
-    bool isHighlighted = false,
+    required String subtitle,
+    required IconData icon,
+    required List<Color> gradientColors,
+    required String badgeText,
+    required Color badgeColor,
     required VoidCallback onTap,
   }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(
-            gradient: isHighlighted
-                ? const LinearGradient(
-                    colors: [Color(0xFFEF4444), Color(0xFFF43F5E), Color(0xFFFB7185)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : const LinearGradient(
-                    colors: [Color(0xFF60A5FA), Color(0xFF3B82F6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-            borderRadius: BorderRadius.circular(18),
+            gradient: LinearGradient(
+              colors: gradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: isHighlighted
-                    ? const Color(0xFFEF4444).withOpacity(0.3)
-                    : const Color(0xFF3B82F6).withOpacity(0.25),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: gradientColors.first.withOpacity(0.32),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Row(
             children: [
+              // Icon Circle Badge
               Container(
-                width: 40,
-                height: 40,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
-                  color: isHighlighted
-                      ? Colors.white.withOpacity(0.25)
-                      : Colors.white.withOpacity(0.2),
+                  color: Colors.white.withOpacity(0.22),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withOpacity(0.35), width: 1.5),
+                ),
+                child: Icon(icon, color: Colors.white, size: 28),
+              ),
+
+              const SizedBox(width: 14),
+
+              // Title, Tag & Subtitle
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top Tag & Badge Row
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            tagText,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.92),
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            badgeText,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    // Main Big Title
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+
+                    const SizedBox(height: 2),
+
+                    // Subtitle
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.88),
+                        fontSize: 11,
+                        height: 1.25,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Action Arrow Circle
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: iconColor, size: 22),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
+                child: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
               ),
             ],
           ),
