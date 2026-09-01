@@ -234,6 +234,10 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
             ),
           ),
         );
+      },
+    );
+  }
+
   void _showVerificatorsModal(CepuModel cepu) {
     showModalBottomSheet(
       context: context,
