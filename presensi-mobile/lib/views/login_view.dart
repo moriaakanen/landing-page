@@ -118,23 +118,35 @@ class _LoginViewState extends State<LoginView> {
                 const SizedBox(height: 24),
 
                 const Text(
-                  "Presensi Pegawai",
+                  "Waigama",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 26,
+                    fontSize: 28,
                     fontWeight: FontWeight.w900,
                     color: Color(0xFF0F172A),
                     letterSpacing: -0.5,
                   ),
                 ),
 
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
 
                 const Text(
-                  "Masuk dengan username pegawai Anda untuk melakukan absensi.",
+                  "Wajib Isi Guna Kebaikan Bersama",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2563EB),
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                const Text(
+                  "Masuk dengan username pegawai Anda.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12.5,
                     color: Color(0xFF64748B),
                     height: 1.3,
                   ),

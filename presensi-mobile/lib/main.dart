@@ -62,7 +62,7 @@ class PresensiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Presensi Karyawan',
+      title: 'Waigama',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
