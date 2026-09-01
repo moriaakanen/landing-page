@@ -154,19 +154,21 @@ class CepuService {
     });
   }
 
-  /// Mengambil laporan Cepu terverifikasi aktif untuk user yang dilaporkan (belum ada endTime)
+  /// Mengambil laporan Cepu terverifikasi aktif untuk user yang dilaporkan pada hari ini (belum ada endTime)
   Future<CepuModel?> getActiveCepuForTarget(String targetUid) async {
     try {
+      final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final snapshot = await _firestore
           .collection('cepu_reports')
           .where('target_uid', isEqualTo: targetUid)
+          .where('date', isEqualTo: todayStr)
           .where('end_time', isNull: true)
           .get();
 
       if (snapshot.docs.isNotEmpty) {
         final list = snapshot.docs
             .map((d) => CepuModel.fromMap(d.data(), d.id))
-            .where((c) => c.isValid) // Harus sudah terverifikasi (min 4 verifikator)
+            .where((c) => c.isValid && c.isActive) // Harus sudah terverifikasi (min 4) & belum kadaluarsa
             .toList();
 
         if (list.isNotEmpty) {

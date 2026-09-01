@@ -238,7 +238,7 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          isPermitActive ? "Selesai Waigama" : "Waigama",
+          isPermitActive ? "Selesai" : "Waigama",
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w700,
@@ -586,7 +586,7 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
-                              "Waigama",
+                              "Alasan",
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
@@ -633,7 +633,7 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                               color: Color(0xFF1E293B),
                             ),
                             decoration: InputDecoration(
-                              hintText: "Tuliskan alasan/keperluan izin kegiatan di sini...",
+                              hintText: "Tuliskan alasan/keperluan",
                               hintStyle: const TextStyle(
                                 fontSize: 12.5,
                                 color: Color(0xFF94A3B8),
@@ -666,7 +666,7 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                     const SizedBox(height: 16),
                   ],
 
-                  // Action Button (Mulai Waigama / Selesai Waigama)
+                  // Action Button (REKAM / SELESAI)
                   SizedBox(
                     height: 48,
                     child: ElevatedButton(
@@ -691,13 +691,13 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                             )
                           : Text(
                               isPermitActive
-                                  ? "REKAM SELESAI WAIGAMA (KEMBALI KE KANTOR)"
-                                  : "REKAM MULAI WAIGAMA",
+                                  ? "SELESAI"
+                                  : "REKAM",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                letterSpacing: 0.5,
+                                fontSize: 14,
+                                letterSpacing: 0.8,
                               ),
                             ),
                     ),

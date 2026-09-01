@@ -69,7 +69,17 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
   /// Poin 11: Real-time broadcast notification untuk seluruh user ketika ada laporan Cepu baru
   void _listenToNewCepuNotifications() {
+    bool isFirstFetch = true;
     _cepuNotifSub = NotificationService.streamRecentCepuNotifications().listen((snapshot) {
+      if (isFirstFetch) {
+        // Tandai laporan yang sudah ada agar tidak spam saat pertama kali app dibuka
+        for (final doc in snapshot.docs) {
+          _seenNotifIds.add(doc.id);
+        }
+        isFirstFetch = false;
+        return;
+      }
+
       for (final doc in snapshot.docs) {
         if (!_seenNotifIds.contains(doc.id)) {
           _seenNotifIds.add(doc.id);
@@ -78,7 +88,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
           final String message = data['message'] ?? 'Ada laporan baru yang membutuhkan verifikasi rekan.';
           final String targetUid = data['target_uid'] ?? '';
 
-          // Jangan munculkan popup banner jika ini adalah event awal saat buka app pertama kali
           if (mounted && targetUid != widget.user.uid) {
             NotificationService.showInAppAlert(
               context,

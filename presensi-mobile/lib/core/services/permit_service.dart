@@ -10,19 +10,21 @@ class PermitService {
 
   String get _todayDateString => DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-  /// Mengambil data izin aktif (belum selesai) milik user tertentu
+  /// Mengambil data izin aktif (belum selesai) milik user tertentu pada hari ini
   Future<PermitModel?> getActivePermit(String userId) async {
     try {
       final snapshot = await _firestore
           .collection('permits')
           .where('user_id', isEqualTo: userId)
+          .where('date', isEqualTo: _todayDateString)
           .where('status', isEqualTo: 'ACTIVE')
           .limit(1)
           .get();
 
       if (snapshot.docs.isNotEmpty) {
         final doc = snapshot.docs.first;
-        return PermitModel.fromMap(doc.data(), doc.id);
+        final permit = PermitModel.fromMap(doc.data(), doc.id);
+        if (permit.isActive) return permit;
       }
     } catch (e) {
       // Ignore or log error

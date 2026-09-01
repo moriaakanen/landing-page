@@ -38,10 +38,26 @@ class PermitModel {
     required this.createdAt,
   });
 
-  bool get isActive => status == 'ACTIVE' && endTime == null;
+  /// Kadaluarsa pada esok hari jam 00.00 WIT jika tidak diselesaikan
+  bool get isExpired {
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    return date != today && endTime == null;
+  }
+
+  bool get isActive => endTime == null && !isExpired && status == 'ACTIVE';
+
+  String get returnStatusDisplay {
+    if (endTime != null) {
+      return "Kembali: ${DateFormat('HH:mm').format(endTime!)} WIT";
+    }
+    if (isExpired) {
+      return "Tidak Kembali";
+    }
+    return "Belum Kembali";
+  }
 
   String get durationString {
-    final end = endTime ?? DateTime.now();
+    final end = endTime ?? (isExpired ? startTime : DateTime.now());
     final diff = end.difference(startTime);
     final hours = diff.inHours;
     final minutes = diff.inMinutes % 60;
@@ -58,24 +74,24 @@ class PermitModel {
       id: id,
       userId: map['user_id'] ?? '',
       userName: map['user_name'] ?? '',
-      userDepartment: map['user_department'] ?? 'Umum',
-      officeId: map['office_id'] ?? 'office_main',
-      officeName: map['office_name'] ?? 'Kantor Pusat',
+      userDepartment: map['user_department'] ?? '',
+      officeId: map['office_id'] ?? '',
+      officeName: map['office_name'] ?? '',
       purpose: map['purpose'] ?? '',
       startTime: map['start_time'] != null
           ? (map['start_time'] is Timestamp
               ? (map['start_time'] as Timestamp).toDate()
               : DateTime.tryParse(map['start_time'].toString()) ?? DateTime.now())
           : DateTime.now(),
-      startLatitude: (map['start_latitude'] as num?)?.toDouble() ?? 0.0,
-      startLongitude: (map['start_longitude'] as num?)?.toDouble() ?? 0.0,
+      startLatitude: (map['start_latitude'] ?? 0.0).toDouble(),
+      startLongitude: (map['start_longitude'] ?? 0.0).toDouble(),
       endTime: map['end_time'] != null
           ? (map['end_time'] is Timestamp
               ? (map['end_time'] as Timestamp).toDate()
               : DateTime.tryParse(map['end_time'].toString()))
           : null,
-      endLatitude: (map['end_latitude'] as num?)?.toDouble(),
-      endLongitude: (map['end_longitude'] as num?)?.toDouble(),
+      endLatitude: map['end_latitude'] != null ? (map['end_latitude'] as num).toDouble() : null,
+      endLongitude: map['end_longitude'] != null ? (map['end_longitude'] as num).toDouble() : null,
       status: map['status'] ?? 'ACTIVE',
       date: map['date'] ?? DateFormat('yyyy-MM-dd').format(DateTime.now()),
       createdAt: map['created_at'] != null

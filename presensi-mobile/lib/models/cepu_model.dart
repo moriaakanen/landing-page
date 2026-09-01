@@ -41,11 +41,31 @@ class CepuModel {
   int get verificationCount => verifiedByUids.length;
   bool get isValid => verificationCount >= 4;
 
+  /// Kadaluarsa pada esok hari jam 00.00 WIT jika tidak diselesaikan
+  bool get isExpired {
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    return date != today && endTime == null;
+  }
+
+  bool get isActive => endTime == null && !isExpired;
+
   bool isVerifiedByUser(String uid) => verifiedByUids.contains(uid);
+
+  String get returnStatusDisplay {
+    if (endTime != null) {
+      return "Kembali: ${DateFormat('HH:mm').format(endTime!)} WIT";
+    }
+    if (isExpired) {
+      return "Tidak Kembali";
+    }
+    return "Belum Kembali";
+  }
 
   String get durationString {
     final startStr = DateFormat('HH:mm').format(startTime);
-    final endStr = endTime != null ? DateFormat('HH:mm').format(endTime!) : 'Belum Kembali';
+    final endStr = endTime != null
+        ? DateFormat('HH:mm').format(endTime!)
+        : (isExpired ? 'Tidak Kembali' : 'Belum Kembali');
     return '$startStr - $endStr';
   }
 
@@ -54,10 +74,10 @@ class CepuModel {
       id: id,
       reporterUid: map['reporter_uid'] ?? '',
       reporterName: map['reporter_name'] ?? 'Pegawai',
-      reporterDepartment: map['reporter_department'] ?? 'Umum',
+      reporterDepartment: map['reporter_department'] ?? '',
       targetUid: map['target_uid'] ?? '',
       targetName: map['target_name'] ?? '',
-      targetDepartment: map['target_department'] ?? 'Umum',
+      targetDepartment: map['target_department'] ?? '',
       description: map['description'] ?? '',
       startTime: map['start_time'] != null
           ? (map['start_time'] is Timestamp

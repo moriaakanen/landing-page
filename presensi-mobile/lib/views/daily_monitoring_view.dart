@@ -562,16 +562,37 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
 
         return Column(
           children: [
-            // Summary Cards
+            // Summary Filter Cards (Poin 7 & 8: Total, Sedang di Luar, Sudah Kembali)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
               child: Row(
                 children: [
-                  _buildSummaryCard("Total Waigama", allPermits.length.toString(), const Color(0xFF3B82F6), Icons.list_alt_rounded),
+                  _buildSummaryCard(
+                    label: "Total",
+                    count: allPermits.length.toString(),
+                    color: const Color(0xFF3B82F6),
+                    icon: Icons.list_alt_rounded,
+                    isSelected: _permitFilter == 'ALL',
+                    onTap: () => setState(() => _permitFilter = 'ALL'),
+                  ),
                   const SizedBox(width: 8),
-                  _buildSummaryCard("Sedang di Luar", activeCount.toString(), const Color(0xFFF59E0B), Icons.directions_walk_rounded),
+                  _buildSummaryCard(
+                    label: "Sedang di Luar",
+                    count: activeCount.toString(),
+                    color: const Color(0xFFF59E0B),
+                    icon: Icons.directions_walk_rounded,
+                    isSelected: _permitFilter == 'ACTIVE',
+                    onTap: () => setState(() => _permitFilter = 'ACTIVE'),
+                  ),
                   const SizedBox(width: 8),
-                  _buildSummaryCard("Sudah Kembali", completedCount.toString(), const Color(0xFF10B981), Icons.check_circle_outline_rounded),
+                  _buildSummaryCard(
+                    label: "Sudah Kembali",
+                    count: completedCount.toString(),
+                    color: const Color(0xFF10B981),
+                    icon: Icons.check_circle_outline_rounded,
+                    isSelected: _permitFilter == 'COMPLETED',
+                    onTap: () => setState(() => _permitFilter = 'COMPLETED'),
+                  ),
                 ],
               ),
             ),
@@ -622,16 +643,37 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
 
         return Column(
           children: [
-            // Summary Cards
+            // Summary Filter Cards (Poin 8: Total Laporan, Butuh Verifikasi, Valid)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
               child: Row(
                 children: [
-                  _buildSummaryCard("Total Laporan", allCepu.length.toString(), const Color(0xFFEA580C), Icons.campaign_rounded),
+                  _buildSummaryCard(
+                    label: "Total Laporan",
+                    count: allCepu.length.toString(),
+                    color: const Color(0xFFEA580C),
+                    icon: Icons.campaign_rounded,
+                    isSelected: _cepuFilter == 'ALL',
+                    onTap: () => setState(() => _cepuFilter = 'ALL'),
+                  ),
                   const SizedBox(width: 8),
-                  _buildSummaryCard("Butuh Verifikasi", pendingCount.toString(), const Color(0xFFF59E0B), Icons.pending_actions_rounded),
+                  _buildSummaryCard(
+                    label: "Butuh Verifikasi",
+                    count: pendingCount.toString(),
+                    color: const Color(0xFFF59E0B),
+                    icon: Icons.pending_actions_rounded,
+                    isSelected: _cepuFilter == 'PENDING',
+                    onTap: () => setState(() => _cepuFilter = 'PENDING'),
+                  ),
                   const SizedBox(width: 8),
-                  _buildSummaryCard("Valid (≥4 Rekan)", verifiedCount.toString(), const Color(0xFF10B981), Icons.verified_rounded),
+                  _buildSummaryCard(
+                    label: "Valid",
+                    count: verifiedCount.toString(),
+                    color: const Color(0xFF10B981),
+                    icon: Icons.verified_rounded,
+                    isSelected: _cepuFilter == 'VERIFIED',
+                    onTap: () => setState(() => _cepuFilter = 'VERIFIED'),
+                  ),
                 ],
               ),
             ),
@@ -653,44 +695,70 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
     );
   }
 
-  Widget _buildSummaryCard(String label, String count, Color color, IconData icon) {
+  Widget _buildSummaryCard({
+    required String label,
+    required String count,
+    required Color color,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withOpacity(0.25)),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: color, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  count,
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: color),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+            decoration: BoxDecoration(
+              color: isSelected ? color.withOpacity(0.12) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isSelected ? color : color.withOpacity(0.25),
+                width: isSelected ? 2.0 : 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isSelected ? color.withOpacity(0.15) : color.withOpacity(0.04),
+                  blurRadius: isSelected ? 10 : 6,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: color, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      count,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    color: isSelected ? color : const Color(0xFF64748B),
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -773,16 +841,24 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isActive ? const Color(0xFFFFFBEB) : const Color(0xFFECFDF5),
+                  color: permit.isExpired
+                      ? const Color(0xFFFEF2F2)
+                      : (isActive ? const Color(0xFFFFFBEB) : const Color(0xFFECFDF5)),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: isActive ? const Color(0xFFFDE68A) : const Color(0xFFA7F3D0)),
+                  border: Border.all(
+                    color: permit.isExpired
+                        ? const Color(0xFFFCA5A5)
+                        : (isActive ? const Color(0xFFFDE68A) : const Color(0xFFA7F3D0)),
+                  ),
                 ),
                 child: Text(
-                  isActive ? "Sedang Izin" : "Sudah Kembali",
+                  permit.isExpired ? "Kadaluarsa" : (isActive ? "Sedang Izin" : "Sudah Kembali"),
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.bold,
-                    color: isActive ? const Color(0xFFB45309) : const Color(0xFF047857),
+                    color: permit.isExpired
+                        ? const Color(0xFF991B1B)
+                        : (isActive ? const Color(0xFFB45309) : const Color(0xFF047857)),
                   ),
                 ),
               ),
@@ -807,7 +883,16 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("Mulai: $startTimeStr WIT", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
-                Text(isActive ? "Belum Kembali" : "Kembali: $endTimeStr WIT", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isActive ? const Color(0xFFB45309) : const Color(0xFF1E293B))),
+                Text(
+                  permit.returnStatusDisplay,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: permit.isExpired
+                        ? const Color(0xFFDC2626)
+                        : (isActive ? const Color(0xFFB45309) : const Color(0xFF1E293B)),
+                  ),
+                ),
                 Text(permit.durationString, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
               ],
             ),
@@ -954,11 +1039,13 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
                   children: [
                     Text("Mulai: $startTimeStr WIT", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                     Text(
-                      cepu.endTime == null ? "Belum Kembali" : "Kembali: $endTimeStr WIT",
+                      cepu.returnStatusDisplay,
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: cepu.endTime == null ? const Color(0xFFEA580C) : const Color(0xFF1E293B),
+                        color: cepu.isExpired
+                            ? const Color(0xFFDC2626)
+                            : (cepu.isActive ? const Color(0xFFEA580C) : const Color(0xFF1E293B)),
                       ),
                     ),
                   ],
