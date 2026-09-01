@@ -232,25 +232,27 @@ class _RecordAttendanceMapViewState extends State<RecordAttendanceMapView> {
                         ),
 
                         // 2. User Live Position Marker with Callout Bubble
+                        // Anchored at bottomCenter to ensure pin tip stays exactly on GPS coordinates regardless of zoom level
                         if (_currentPosition != null)
                           Marker(
                             point: userLatLng,
                             width: 140,
-                            height: 90,
-                            alignment: Alignment.topCenter,
+                            height: 64,
+                            alignment: Alignment.bottomCenter,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 // Callout Bubble "Anda di sini"
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(10),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.15),
-                                        blurRadius: 8,
+                                        color: Colors.black.withOpacity(0.18),
+                                        blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
                                     ],
@@ -265,11 +267,11 @@ class _RecordAttendanceMapViewState extends State<RecordAttendanceMapView> {
                                   ),
                                 ),
                                 const SizedBox(height: 2),
-                                // Blue Pin Icon
+                                // Blue Pin Icon with tip at the bottom
                                 const Icon(
                                   Icons.location_on,
                                   color: Color(0xFF2563EB),
-                                  size: 38,
+                                  size: 36,
                                 ),
                               ],
                             ),

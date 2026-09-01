@@ -4,11 +4,15 @@ import 'package:intl/intl.dart';
 import '../models/user_model.dart';
 import '../models/office_model.dart';
 import '../models/attendance_model.dart';
+import '../models/permit_model.dart';
 import '../core/services/attendance_service.dart';
+import '../core/services/permit_service.dart';
 import '../core/services/auth_service.dart';
 import 'history_view.dart';
 import 'login_view.dart';
 import 'record_attendance_map_view.dart';
+import 'record_permit_map_view.dart';
+import 'daily_monitoring_view.dart';
 
 class HomeAttendanceView extends StatefulWidget {
   final UserModel user;
@@ -21,10 +25,12 @@ class HomeAttendanceView extends StatefulWidget {
 
 class _HomeAttendanceViewState extends State<HomeAttendanceView> {
   final _attendanceService = AttendanceService();
+  final _permitService = PermitService();
   final _authService = AuthService();
 
   OfficeModel? _office;
   AttendanceModel? _todayAttendance;
+  PermitModel? _activePermit;
   bool _isLoading = true;
 
   @override
@@ -37,10 +43,13 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     setState(() => _isLoading = true);
     final office = await _attendanceService.getOfficeConfig(widget.user.officeId);
     final attendance = await _attendanceService.getTodayAttendance(widget.user.uid);
+    final activePermit = await _permitService.getActivePermit(widget.user.uid);
+
     if (mounted) {
       setState(() {
         _office = office;
         _todayAttendance = attendance;
+        _activePermit = activePermit;
         _isLoading = false;
       });
     }
@@ -72,6 +81,33 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     if (result == true) {
       _loadInitialData();
     }
+  }
+
+  void _navigateToRecordPermit() async {
+    if (_office == null) return;
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RecordPermitMapView(
+          user: widget.user,
+          office: _office!,
+          initialActivePermit: _activePermit,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      _loadInitialData();
+    }
+  }
+
+  void _navigateToDailyMonitoring() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DailyMonitoringView(user: widget.user),
+      ),
+    );
   }
 
   @override
@@ -300,14 +336,104 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    // Active Permit Banner Alert if user currently on permit
+                    if (_activePermit != null) ...[
+                      const SizedBox(height: 14),
+                      InkWell(
+                        onTap: _navigateToRecordPermit,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFFFBEB), Color(0xFFFEF3C7)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFFCD34D), width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFF59E0B).withOpacity(0.12),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFF59E0B),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.directions_walk_rounded, color: Colors.white, size: 22),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Text(
+                                          "Status: Sedang Izin Keluar",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF92400E),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          "(${DateFormat('HH:mm').format(_activePermit!.startTime)})",
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: Color(0xFFB45309),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      _activePermit!.purpose,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF1E293B),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      "Klik di sini untuk selesaikan izin saat kembali",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF2563EB),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right_rounded, color: Color(0xFF92400E)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 22),
 
                     // 6 Grid Action Tiles
                     GridView.count(
                       crossAxisCount: 3,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 14,
-                      childAspectRatio: 0.95,
+                      childAspectRatio: 0.88,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
@@ -327,13 +453,16 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                           },
                         ),
 
-                        // 2. Buat Kehadiran (HIGHLIGHTED BUTTON)
-                        _buildMenuCard(
-                          icon: Icons.access_time_filled_rounded,
-                          iconColor: Colors.white,
-                          title: "Buat\nKehadiran",
+                        // 2. Izin Kegiatan Kantor (CUSTOM PERMIT BUTTON WITH SPECIFIED TEXTS)
+                        _buildPermitMenuCard(
+                          topText: "Ada kegiatan di jam kantor?",
+                          icon: _activePermit != null
+                              ? Icons.assignment_turned_in_rounded
+                              : Icons.assignment_ind_rounded,
+                          bottomText: _activePermit != null ? "Selesai Izin" : "Izin dulu!",
                           isHighlighted: true,
-                          onTap: _navigateToRecordAttendance,
+                          isActive: _activePermit != null,
+                          onTap: _navigateToRecordPermit,
                         ),
 
                         // 3. Presensi Manual
@@ -358,13 +487,13 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                           onTap: () {},
                         ),
 
-                        // 5. Monitoring Harian
+                        // 5. Monitoring Harian (OPEN DAILY MONITORING VIEW)
                         _buildMenuCard(
                           icon: Icons.search_rounded,
                           iconColor: const Color(0xFFFCD34D),
                           title: "Monitoring\nHarian",
                           bgColor: const Color(0xFF60A5FA),
-                          onTap: () {},
+                          onTap: _navigateToDailyMonitoring,
                         ),
 
                         // 6. Menu Lainnya
@@ -414,7 +543,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            "Changelog versi 1.0.0",
+                            "Fitur Izin Kegiatan Jam Kantor",
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -423,10 +552,11 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            "Sistem Geofencing Peta Interaktif radius 50m dan Deteksi Fake GPS aktif.",
+                            "1. Mulai Izin: Rekam waktu mulai & isi keperluan saat berada di kantor.\n2. Selesai Izin: Rekam waktu selesai setelah kembali ke radius kantor.\n3. Monitoring Harian: Pantau seluruh izin pegawai hari ini dan rekap riwayat.",
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[700],
+                              height: 1.4,
                             ),
                           ),
                         ],
@@ -440,6 +570,100 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Custom Menu Card Khusus Tombol Izin Sesuai Permintaan User:
+  /// - "Ada kegiatan di jam kantor?" di atas logo menu
+  /// - Logo menu di tengah
+  /// - "Izin dulu!" di bawah logo menu
+  Widget _buildPermitMenuCard({
+    required String topText,
+    required IconData icon,
+    required String bottomText,
+    bool isHighlighted = true,
+    bool isActive = false,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: isActive
+                ? const LinearGradient(
+                    colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : const LinearGradient(
+                    colors: [Color(0xFFEF4444), Color(0xFFF43F5E), Color(0xFFFB7185)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: isActive
+                    ? const Color(0xFFF59E0B).withOpacity(0.35)
+                    : const Color(0xFFEF4444).withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Top Text
+              Text(
+                topText,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                  height: 1.1,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              // Middle Icon
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.25),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
+
+              // Bottom Text
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  bottomText,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
