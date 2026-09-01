@@ -318,8 +318,8 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
           unselectedLabelColor: Colors.white70,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           tabs: const [
-            Tab(icon: Icon(Icons.badge_rounded, size: 20), text: "Izin Kegiatan Kantor"),
-            Tab(icon: Icon(Icons.campaign_rounded, size: 20), text: "Laporan Cepu"),
+            Tab(icon: Icon(Icons.badge_rounded, size: 20), text: "Waigama"),
+            Tab(icon: Icon(Icons.campaign_rounded, size: 20), text: "Cepu"),
           ],
         ),
       ),
@@ -439,7 +439,7 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
               child: Row(
                 children: [
-                  _buildSummaryCard("Total Izin", allPermits.length.toString(), const Color(0xFF3B82F6), Icons.list_alt_rounded),
+                  _buildSummaryCard("Total Waigama", allPermits.length.toString(), const Color(0xFF3B82F6), Icons.list_alt_rounded),
                   const SizedBox(width: 8),
                   _buildSummaryCard("Sedang di Luar", activeCount.toString(), const Color(0xFFF59E0B), Icons.directions_walk_rounded),
                   const SizedBox(width: 8),
@@ -451,7 +451,7 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
             // List
             Expanded(
               child: filteredPermits.isEmpty
-                  ? _buildEmptyState("Belum ada izin kegiatan kantor pada tanggal ini.")
+                  ? _buildEmptyState("Belum ada catatan Waigama pada tanggal ini.")
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
                       itemCount: filteredPermits.length,
@@ -682,8 +682,8 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Mulai: $startTimeStr", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
-                Text(isActive ? "Belum Kembali" : "Kembali: $endTimeStr", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isActive ? const Color(0xFFB45309) : const Color(0xFF1E293B))),
+                Text("Mulai: $startTimeStr WIT", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+                Text(isActive ? "Belum Kembali" : "Kembali: $endTimeStr WIT", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isActive ? const Color(0xFFB45309) : const Color(0xFF1E293B))),
                 Text(permit.durationString, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
               ],
             ),
@@ -812,8 +812,8 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Mulai: $startTimeStr WIB", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
-                Text("Kembali: $endTimeStr WIB", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: cepu.endTime == null ? const Color(0xFFEA580C) : const Color(0xFF1E293B))),
+                Text("Mulai: $startTimeStr WIT", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+                Text("Kembali: $endTimeStr WIT", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: cepu.endTime == null ? const Color(0xFFEA580C) : const Color(0xFF1E293B))),
               ],
             ),
           ),

@@ -238,7 +238,7 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          isPermitActive ? "Selesai Izin Kantor" : "Izin Kegiatan Kantor",
+          isPermitActive ? "Selesai Waigama" : "Waigama",
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w700,
@@ -542,7 +542,7 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                "Mulai: ${DateFormat('HH:mm').format(_activePermit!.startTime)} WIB",
+                                "Mulai: ${DateFormat('HH:mm').format(_activePermit!.startTime)} WIT",
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -582,8 +582,8 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                     TextField(
                       controller: _purposeController,
                       decoration: InputDecoration(
-                        labelText: "Keperluan Izin",
-                        hintText: "Contoh: Koordinasi tugas ke instansi X",
+                        labelText: "Keperluan Waigama",
+                        hintText: "Contoh: Koordinasi dinas ke Bappeda",
                         prefixIcon: const Icon(Icons.edit_note_rounded, color: Color(0xFF2563EB)),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
@@ -605,7 +605,7 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                     const SizedBox(height: 14),
                   ],
 
-                  // Action Button (Mulai Izin / Selesai Izin)
+                  // Action Button (Mulai Waigama / Selesai Waigama)
                   SizedBox(
                     height: 48,
                     child: ElevatedButton(
@@ -630,8 +630,8 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                             )
                           : Text(
                               isPermitActive
-                                  ? "REKAM SELESAI IZIN (KEMBALI KE KANTOR)"
-                                  : "REKAM MULAI IZIN",
+                                  ? "REKAM SELESAI WAIGAMA (KEMBALI KE KANTOR)"
+                                  : "REKAM MULAI WAIGAMA",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
