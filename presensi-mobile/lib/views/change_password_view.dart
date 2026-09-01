@@ -95,32 +95,26 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Key / Security Icon Header
+                // Manta Ray Logo Header
                 Center(
                   child: Container(
-                    width: 80,
-                    height: 80,
+                    width: 90,
+                    height: 90,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF2563EB), Color(0xFF4F46E5)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(24),
+                      color: Colors.white,
+                      shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF2563EB).withOpacity(0.35),
+                          color: const Color(0xFF2563EB).withOpacity(0.18),
                           blurRadius: 20,
-                          offset: const Offset(0, 10),
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.lock_reset_rounded,
-                        color: Colors.white,
-                        size: 44,
-                      ),
+                    padding: const EdgeInsets.all(10),
+                    child: Image.asset(
+                      'assets/images/app_logo.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),

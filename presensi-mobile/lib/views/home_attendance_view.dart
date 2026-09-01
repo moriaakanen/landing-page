@@ -235,22 +235,24 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(2),
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
+                            color: Colors.white,
                             border: Border.all(color: const Color(0xFF60A5FA), width: 2),
-                          ),
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: const Color(0xFF334155),
-                            child: Text(
-                              widget.user.name.isNotEmpty ? widget.user.name[0].toUpperCase() : 'U',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF3B82F6).withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                            ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(5),
+                          child: Image.asset(
+                            'assets/images/app_logo.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(width: 12),

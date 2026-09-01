@@ -91,32 +91,26 @@ class _LoginViewState extends State<LoginView> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Modern App Icon Header
+                // Modern Manta Ray Logo Header
                 Center(
                   child: Container(
-                    width: 88,
-                    height: 88,
+                    width: 105,
+                    height: 105,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF2563EB), Color(0xFF1D4ED8), Color(0xFF1E40AF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(26),
+                      color: Colors.white,
+                      shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF2563EB).withOpacity(0.35),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+                          color: const Color(0xFF2563EB).withOpacity(0.18),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.fingerprint_rounded,
-                        color: Colors.white,
-                        size: 48,
-                      ),
+                    padding: const EdgeInsets.all(12),
+                    child: Image.asset(
+                      'assets/images/app_logo.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),
