@@ -578,31 +578,92 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                     ),
                     const SizedBox(height: 14),
                   ] else ...[
-                    // IF NO ACTIVE PERMIT: Input Purpose Field
-                    TextField(
-                      controller: _purposeController,
-                      decoration: InputDecoration(
-                        labelText: "Keperluan Waigama",
-                        hintText: "Contoh: Koordinasi dinas ke Bappeda",
-                        prefixIcon: const Icon(Icons.edit_note_rounded, color: Color(0xFF2563EB)),
-                        filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    // IF NO ACTIVE PERMIT: Prominent & Highly Visible Waigama Input Field
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Waigama",
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: const Color(0xFFBFDBFE)),
+                              ),
+                              child: const Text(
+                                "* WAJIB DIISI",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF2563EB).withOpacity(0.08),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: TextField(
+                            controller: _purposeController,
+                            maxLines: 2,
+                            style: const TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: "Tuliskan alasan/keperluan izin kegiatan di sini...",
+                              hintStyle: const TextStyle(
+                                fontSize: 12.5,
+                                color: Color(0xFF94A3B8),
+                                fontWeight: FontWeight.normal,
+                              ),
+                              prefixIcon: const Padding(
+                                padding: EdgeInsets.only(bottom: 18),
+                                child: Icon(Icons.edit_note_rounded, color: Color(0xFF2563EB), size: 26),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.8),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(color: Color(0xFF1D4ED8), width: 2.2),
+                              ),
+                            ),
+                          ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
-                        ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
                   ],
 
                   // Action Button (Mulai Waigama / Selesai Waigama)

@@ -234,6 +234,130 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
             ),
           ),
         );
+  void _showVerificatorsModal(CepuModel cepu) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.verified_user_rounded, color: Color(0xFF10B981), size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        "Daftar Verifikator",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: cepu.isValid ? const Color(0xFFECFDF5) : const Color(0xFFFFF7ED),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      cepu.isValid ? "VALID (${cepu.verificationCount} Rekan)" : "${cepu.verificationCount}/4 Rekan",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: cepu.isValid ? const Color(0xFF047857) : const Color(0xFFEA580C),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "Laporan atas nama ${cepu.targetName}",
+                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 14),
+              const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              const SizedBox(height: 10),
+              if (cepu.verifiedByNames.isEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Column(
+                    children: const [
+                      Icon(Icons.info_outline_rounded, size: 36, color: Color(0xFF94A3B8)),
+                      SizedBox(height: 8),
+                      Text(
+                        "Belum ada verifikator",
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: cepu.verifiedByNames.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                    itemBuilder: (context, idx) {
+                      final name = cepu.verifiedByNames[idx];
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        leading: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: const Color(0xFFEFF6FF),
+                          child: Text(
+                            name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                            style: const TextStyle(
+                              color: Color(0xFF2563EB),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        trailing: const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 20),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
       },
     );
   }
@@ -635,13 +759,9 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
                   children: [
                     Text(
                       permit.userName,
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      permit.userDepartment,
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                     ),
                   ],
                 ),
@@ -698,238 +818,275 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
     final isVerifiedByMe = cepu.isVerifiedByUser(widget.user.uid);
     final isReporterOrTarget = widget.user.uid == cepu.reporterUid || widget.user.uid == cepu.targetUid;
     final startTimeStr = DateFormat('HH:mm').format(cepu.startTime);
-    final endTimeStr = cepu.endTime != null ? DateFormat('HH:mm').format(cepu.endTime!) : 'Belum Kembali';
+    final endTimeStr = cepu.endTime != null ? DateFormat('HH:mm').format(cepu.endTime!) : '';
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showVerificatorsModal(cepu),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isValid ? const Color(0xFF10B981) : const Color(0xFFFDBA74),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isValid ? const Color(0xFF10B981) : const Color(0xFFEA580C)).withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: Terlapor & Status Badge
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isValid ? const Color(0xFFECFDF5) : const Color(0xFFFFF7ED),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isValid ? Icons.verified_user_rounded : Icons.warning_amber_rounded,
-                  color: isValid ? const Color(0xFF10B981) : const Color(0xFFEA580C),
-                  size: 20,
-                ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isValid ? const Color(0xFF10B981) : const Color(0xFFFDBA74),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: (isValid ? const Color(0xFF10B981) : const Color(0xFFEA580C)).withOpacity(0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+            ],
+          ),
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header: Terlapor & Status Badge
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isValid ? const Color(0xFFECFDF5) : const Color(0xFFFFF7ED),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isValid ? Icons.verified_user_rounded : Icons.warning_amber_rounded,
+                      color: isValid ? const Color(0xFF10B981) : const Color(0xFFEA580C),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Terlapor: ",
-                          style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                        Row(
+                          children: [
+                            const Text(
+                              "Terlapor: ",
+                              style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                            ),
+                            Flexible(
+                              child: Text(
+                                cepu.targetName,
+                                style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
-                        Flexible(
-                          child: Text(
-                            cepu.targetName,
-                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        Text(
+                          "Pelapor: ${cepu.reporterName}",
+                          style: const TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
+                  ),
+                  // Badge Validitas (Klik untuk lihat verifikator)
+                  InkWell(
+                    onTap: () => _showVerificatorsModal(cepu),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isValid ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            isValid ? "VALID (${cepu.verificationCount} Rekan)" : "${cepu.verificationCount}/4 Verifikasi",
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 3),
+                          const Icon(Icons.info_outline_rounded, color: Colors.white, size: 12),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+              const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              const SizedBox(height: 10),
+
+              // Keterangan
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Color(0xFF64748B)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF334155)),
+                        children: [
+                          const TextSpan(text: "Keterangan: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: cepu.description),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Waktu Mulai & Kembali (Poin 9: jika belum kembali tulis "Belum Kembali")
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Mulai: $startTimeStr WIT", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                     Text(
-                      "Pelapor: ${cepu.reporterName} (${cepu.reporterDepartment})",
-                      style: const TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8)),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      cepu.endTime == null ? "Belum Kembali" : "Kembali: $endTimeStr WIT",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: cepu.endTime == null ? const Color(0xFFEA580C) : const Color(0xFF1E293B),
+                      ),
                     ),
                   ],
                 ),
               ),
-              // Badge Validitas
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isValid ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+
+              // Dokumen Pendukung / Foto Bukti jika ada
+              if (cepu.photoBase64 != null) ...[
+                const SizedBox(height: 10),
+                InkWell(
+                  onTap: () => _showImagePreview(cepu.photoBase64!),
                   borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.image_rounded, size: 16, color: Color(0xFF2563EB)),
+                        SizedBox(width: 6),
+                        Text(
+                          "Lihat Foto Bukti Pendukung",
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF)),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(Icons.zoom_in_rounded, size: 14, color: Color(0xFF2563EB)),
+                      ],
+                    ),
+                  ),
                 ),
-                child: Text(
-                  isValid ? "VALID (≥4 Rekan)" : "${cepu.verificationCount}/4 Verifikasi",
-                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
+              ],
 
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
-          const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
-          // Keterangan
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Color(0xFF64748B)),
-              const SizedBox(width: 6),
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF334155)),
+              // Progress Verifikasi Bar & Tap to see Verifikators (Poin 10)
+              InkWell(
+                onTap: () => _showVerificatorsModal(cepu),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const TextSpan(text: "Keterangan: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                      TextSpan(text: cepu.description),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Verifikator (${cepu.verificationCount}) • Ketuk untuk detail",
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                          ),
+                          if (cepu.verifiedByNames.isNotEmpty)
+                            Text(
+                              cepu.verifiedByNames.join(", "),
+                              style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), fontStyle: FontStyle.italic),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          else
+                            const Text(
+                              "Belum ada verifikator",
+                              style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontStyle: FontStyle.italic),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: LinearProgressIndicator(
+                          value: (cepu.verificationCount / 4.0).clamp(0.0, 1.0),
+                          backgroundColor: const Color(0xFFE2E8F0),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isValid ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                          ),
+                          minHeight: 6,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
+
+              const SizedBox(height: 12),
+
+              // Tombol Aksi Verifikasi (Poin 6: Bisa verifikasi bahkan setelah 4 verifikator)
+              if (isVerifiedByMe)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECFDF5),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 16),
+                      SizedBox(width: 6),
+                      Text(
+                        "Anda sudah memverifikasi laporan ini",
+                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF065F46)),
+                      ),
+                    ],
+                  ),
+                )
+              else if (isReporterOrTarget)
+                const SizedBox.shrink()
+              else
+                SizedBox(
+                  width: double.infinity,
+                  height: 38,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showVerificationDialog(cepu),
+                    icon: const Icon(Icons.how_to_reg_rounded, size: 16, color: Colors.white),
+                    label: const Text(
+                      "Verifikasi Laporan",
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEA580C),
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
             ],
           ),
-
-          const SizedBox(height: 8),
-
-          // Waktu Mulai & Kembali
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Mulai: $startTimeStr WIT", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
-                Text("Kembali: $endTimeStr WIT", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: cepu.endTime == null ? const Color(0xFFEA580C) : const Color(0xFF1E293B))),
-              ],
-            ),
-          ),
-
-          // Dokumen Pendukung / Foto Bukti jika ada
-          if (cepu.photoBase64 != null) ...[
-            const SizedBox(height: 10),
-            InkWell(
-              onTap: () => _showImagePreview(cepu.photoBase64!),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFBFDBFE)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.image_rounded, size: 16, color: Color(0xFF2563EB)),
-                    SizedBox(width: 6),
-                    Text(
-                      "Lihat Foto Bukti Pendukung",
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF)),
-                    ),
-                    SizedBox(width: 4),
-                    Icon(Icons.zoom_in_rounded, size: 14, color: Color(0xFF2563EB)),
-                  ],
-                ),
-              ),
-            ),
-          ],
-
-          const SizedBox(height: 12),
-
-          // Progress Verifikasi Bar & Names
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Status Verifikasi Rekan (${cepu.verificationCount}/4)",
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
-                  ),
-                  if (cepu.verifiedByNames.isNotEmpty)
-                    Text(
-                      cepu.verifiedByNames.join(", "),
-                      style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), fontStyle: FontStyle.italic),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: (cepu.verificationCount / 4.0).clamp(0.0, 1.0),
-                  backgroundColor: const Color(0xFFE2E8F0),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isValid ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                  ),
-                  minHeight: 6,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Tombol Aksi Verifikasi
-          if (isVerifiedByMe)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFECFDF5),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFA7F3D0)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 16),
-                  SizedBox(width: 6),
-                  Text(
-                    "Anda sudah memverifikasi laporan ini",
-                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF065F46)),
-                  ),
-                ],
-              ),
-            )
-          else if (isReporterOrTarget)
-            const SizedBox.shrink()
-          else
-            SizedBox(
-              width: double.infinity,
-              height: 38,
-              child: ElevatedButton.icon(
-                onPressed: () => _showVerificationDialog(cepu),
-                icon: const Icon(Icons.how_to_reg_rounded, size: 16, color: Colors.white),
-                label: const Text(
-                  "Verifikasi Laporan",
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEA580C),
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }

@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../../models/cepu_model.dart';
+import '../../models/office_model.dart';
 import '../../models/user_model.dart';
-
 import '../constants/employees_data.dart';
+import 'location_service.dart';
 
 class CepuService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -32,7 +33,7 @@ class CepuService {
               username: emp.username,
               name: emp.fullName,
               email: '${emp.username}@kantor.go.id',
-              department: emp.department,
+              department: '',
               role: 'employee',
               officeId: 'office_main',
             ))
@@ -60,10 +61,10 @@ class CepuService {
       id: '',
       reporterUid: reporter.uid,
       reporterName: reporter.name,
-      reporterDepartment: reporter.department,
+      reporterDepartment: '',
       targetUid: targetUser.uid,
       targetName: targetUser.name,
-      targetDepartment: targetUser.department,
+      targetDepartment: '',
       description: description.trim(),
       startTime: startTime,
       endTime: endTime,
@@ -77,14 +78,27 @@ class CepuService {
 
     final docRef = await _firestore.collection('cepu_reports').add(report.toMap());
 
+    // Notifikasi sistem ke Firestore untuk broadcast notifikasi baru
+    try {
+      await _firestore.collection('notifications').add({
+        'type': 'CEPU_NEW',
+        'title': '🚨 Laporan Cepu Baru',
+        'message': '${targetUser.name} dilaporkan tidak berada di kantor. Seluruh rekan dapat memverifikasi.',
+        'target_uid': targetUser.uid,
+        'reporter_name': reporter.name,
+        'cepu_id': docRef.id,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {}
+
     return CepuModel(
       id: docRef.id,
       reporterUid: report.reporterUid,
       reporterName: report.reporterName,
-      reporterDepartment: report.reporterDepartment,
+      reporterDepartment: '',
       targetUid: report.targetUid,
       targetName: report.targetName,
-      targetDepartment: report.targetDepartment,
+      targetDepartment: '',
       description: report.description,
       startTime: report.startTime,
       endTime: report.endTime,
@@ -98,7 +112,7 @@ class CepuService {
   }
 
   /// Memverifikasi laporan Cepu oleh pegawai lain
-  /// Dibutuhkan 4 pegawai untuk mencapai status VALID / VERIFIED
+  /// Minimal 4 untuk valid, dan setelah 4 pegawai lain tetap dapat memverifikasi
   Future<void> verifyCepuReport({
     required String cepuId,
     required UserModel verifier,
@@ -137,6 +151,67 @@ class CepuService {
       'verified_by_uids': currentVerifiedUids,
       'verified_by_names': currentVerifiedNames,
       'status': isNowValid ? 'VERIFIED' : 'PENDING',
+    });
+  }
+
+  /// Mengambil laporan Cepu terverifikasi aktif untuk user yang dilaporkan (belum ada endTime)
+  Future<CepuModel?> getActiveCepuForTarget(String targetUid) async {
+    try {
+      final snapshot = await _firestore
+          .collection('cepu_reports')
+          .where('target_uid', isEqualTo: targetUid)
+          .where('end_time', isNull: true)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        final list = snapshot.docs
+            .map((d) => CepuModel.fromMap(d.data(), d.id))
+            .where((c) => c.isValid) // Harus sudah terverifikasi (min 4 verifikator)
+            .toList();
+
+        if (list.isNotEmpty) {
+          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return list.first;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Stream laporan Cepu aktif untuk user terlapor
+  Stream<List<CepuModel>> streamActiveCepuForTarget(String targetUid) {
+    return _firestore
+        .collection('cepu_reports')
+        .where('target_uid', isEqualTo: targetUid)
+        .where('end_time', isNull: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((d) => CepuModel.fromMap(d.data(), d.id))
+          .where((c) => c.isValid)
+          .toList();
+    });
+  }
+
+  /// Rekam waktu kembali bagi pegawai yang dilaporkan Cepu (harus dalam radius kantor)
+  Future<void> recordCepuReturnTime({
+    required String cepuId,
+    required OfficeModel office,
+  }) async {
+    final locRes = await LocationService.verifyPresenceLocation(
+      officeLat: office.latitude,
+      officeLng: office.longitude,
+      allowedRadiusMeters: office.radiusMeters,
+    );
+
+    if (!locRes.isSuccess || !locRes.isWithinRadius || locRes.isMockLocation) {
+      throw locRes.errorMessage ??
+          "Anda harus berada di dalam radius kantor (${office.radiusMeters.toInt()}m) untuk merekam waktu kembali.";
+    }
+
+    final docRef = _firestore.collection('cepu_reports').doc(cepuId);
+    await docRef.update({
+      'end_time': FieldValue.serverTimestamp(),
     });
   }
 

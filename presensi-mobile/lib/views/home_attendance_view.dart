@@ -4,9 +4,12 @@ import 'package:intl/intl.dart';
 import '../models/user_model.dart';
 import '../models/office_model.dart';
 import '../models/permit_model.dart';
+import '../models/cepu_model.dart';
 import '../core/services/attendance_service.dart';
 import '../core/services/permit_service.dart';
+import '../core/services/cepu_service.dart';
 import '../core/services/auth_service.dart';
+import '../core/services/notification_service.dart';
 import 'login_view.dart';
 import 'record_permit_map_view.dart';
 import 'cepu_map_report_view.dart';
@@ -24,30 +27,71 @@ class HomeAttendanceView extends StatefulWidget {
 class _HomeAttendanceViewState extends State<HomeAttendanceView> {
   final _attendanceService = AttendanceService();
   final _permitService = PermitService();
+  final _cepuService = CepuService();
   final _authService = AuthService();
 
   OfficeModel? _office;
   PermitModel? _activePermit;
+  CepuModel? _activeCepuForMe;
   bool _isLoading = true;
+
+  StreamSubscription? _cepuNotifSub;
+  final Set<String> _seenNotifIds = {};
 
   @override
   void initState() {
     super.initState();
     _loadInitialData();
+    _listenToNewCepuNotifications();
+  }
+
+  @override
+  void dispose() {
+    _cepuNotifSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadInitialData() async {
     setState(() => _isLoading = true);
     final office = await _attendanceService.getOfficeConfig(widget.user.officeId);
     final activePermit = await _permitService.getActivePermit(widget.user.uid);
+    final activeCepu = await _cepuService.getActiveCepuForTarget(widget.user.uid);
 
     if (mounted) {
       setState(() {
         _office = office;
         _activePermit = activePermit;
+        _activeCepuForMe = activeCepu;
         _isLoading = false;
       });
     }
+  }
+
+  /// Poin 11: Real-time broadcast notification untuk seluruh user ketika ada laporan Cepu baru
+  void _listenToNewCepuNotifications() {
+    _cepuNotifSub = NotificationService.streamRecentCepuNotifications().listen((snapshot) {
+      for (final doc in snapshot.docs) {
+        if (!_seenNotifIds.contains(doc.id)) {
+          _seenNotifIds.add(doc.id);
+          final data = doc.data() as Map<String, dynamic>;
+          final String title = data['title'] ?? '🚨 Laporan Cepu Baru';
+          final String message = data['message'] ?? 'Ada laporan baru yang membutuhkan verifikasi rekan.';
+          final String targetUid = data['target_uid'] ?? '';
+
+          // Jangan munculkan popup banner jika ini adalah event awal saat buka app pertama kali
+          if (mounted && targetUid != widget.user.uid) {
+            NotificationService.showInAppAlert(
+              context,
+              title: title,
+              message: message,
+              backgroundColor: const Color(0xFFEA580C),
+              icon: Icons.campaign_rounded,
+              onTap: _navigateToDailyMonitoring,
+            );
+          }
+        }
+      }
+    });
   }
 
   Future<void> _handleLogout() async {
@@ -120,15 +164,15 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     const endPermitTime = "--:--";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9), // Clean modern slate background
+      backgroundColor: const Color(0xFFF1F5F9),
       body: Stack(
         children: [
-          // Elegant Dribbble/Figma style curved ambient mesh header
+          // Background Header
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: 260,
+            height: 250,
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -140,7 +184,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
               ),
               child: Stack(
                 children: [
-                  // Subtle glowing ambient circles
                   Positioned(
                     top: -40,
                     right: -40,
@@ -179,10 +222,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Top Floating Profile Card Bar
+                    // Top Profile Bar (Poin 1: Hapus Department)
                     Row(
                       children: [
-                        // Profile Avatar
                         Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
@@ -203,7 +245,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // User Name & Department
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,7 +253,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                 widget.user.name,
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 15.5,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.2,
                                 ),
@@ -221,19 +262,16 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                widget.user.department,
+                                "@${widget.user.username}",
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.75),
-                                  fontSize: 11.5,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
-                        // Action Icons with Frosted Background
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.12),
@@ -295,7 +333,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
                     const SizedBox(height: 18),
 
-                    // Modern Floating Time Card: "Mulai Izin" & "Selesai Izin"
+                    // Floating Time Card: "Mulai Izin" & "Selesai Izin"
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
                       decoration: BoxDecoration(
@@ -311,7 +349,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                       child: Row(
                         children: [
-                          // Mulai Izin
                           Expanded(
                             child: Column(
                               children: [
@@ -334,7 +371,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                 Text(
                                   startPermitTime,
                                   style: TextStyle(
-                                    fontSize: hasActivePermit ? 20 : 24,
+                                    fontSize: hasActivePermit ? 19 : 24,
                                     fontWeight: FontWeight.bold,
                                     color: hasActivePermit ? const Color(0xFFEA580C) : const Color(0xFF1E293B),
                                     letterSpacing: 0.5,
@@ -348,7 +385,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                             width: 1,
                             color: const Color(0xFFE2E8F0),
                           ),
-                          // Selesai Izin
                           Expanded(
                             child: Column(
                               children: [
@@ -384,7 +420,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                     ),
 
-                    // Active Permit Alert Banner
+                    // POIN 7A: NOTIFIKASI PUSH / BANNER SAAT USER SEDANG IZIN
                     if (hasActivePermit) ...[
                       const SizedBox(height: 14),
                       InkWell(
@@ -423,46 +459,25 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          "Sedang Izin Keluar Kantor",
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF92400E),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          "(${DateFormat('HH:mm').format(_activePermit!.startTime)} WIT)",
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Color(0xFFB45309),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      _activePermit!.purpose,
-                                      style: const TextStyle(
+                                    const Text(
+                                      "Anda sedang izin, segera rekam waktu kembali jika anda sudah berada di kantor",
+                                      style: TextStyle(
                                         fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF92400E),
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Keperluan: ${_activePermit!.purpose}",
+                                      style: const TextStyle(
+                                        fontSize: 11.5,
                                         color: Color(0xFF1E293B),
                                         fontWeight: FontWeight.w500,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    const Text(
-                                      "👉 Klik untuk selesaikan izin saat kembali ke kantor",
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: Color(0xFF2563EB),
-                                        fontWeight: FontWeight.bold,
-                                      ),
                                     ),
                                   ],
                                 ),
@@ -474,13 +489,76 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                     ],
 
+                    // POIN 7B & 8: NOTIFIKASI PUSH / BANNER SAAT USER DI-CEPU-KAN & SUDAH TERVERIFIKASI
+                    if (_activeCepuForMe != null) ...[
+                      const SizedBox(height: 14),
+                      InkWell(
+                        onTap: _navigateToCepuMapReport,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF2F2),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFF87171), width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFDC2626).withOpacity(0.12),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFDC2626),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 22),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Text(
+                                      "Anda dilaporkan tidak berada di kantor, segera rekam waktu kembali jika anda berada di kantor",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF991B1B),
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                    SizedBox(height: 3),
+                                    Text(
+                                      "👉 Ketuk untuk rekam waktu kembali pada fitur Cepu",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFFDC2626),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right_rounded, color: Color(0xFF991B1B)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: 20),
 
                     // =========================================================================
-                    // 3 MODERN HORIZONTAL WIDE ACTION CARDS (DRIBBLE/FIGMA AESTHETIC)
+                    // 3 ACTION CARDS (POIN 2: HILANGKAN SUB JUDUL CEPU & MONITORING HARIAN)
                     // =========================================================================
 
-                    // 1. CARD 1: WAIGAMA (Wajib Isi Guna Kebaikan Bersama)
+                    // 1. CARD 1: WAIGAMA (Sub judul: "Wajib Isi Guna Kebaikan Bersama")
                     _buildHorizontalMenuCard(
                       title: "Waigama",
                       subtitle: "Wajib Isi Guna Kebaikan Bersama",
@@ -494,10 +572,10 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
                     const SizedBox(height: 14),
 
-                    // 2. CARD 2: CEPU (Lapor Pegawai Tanpa Izin)
+                    // 2. CARD 2: CEPU (Poin 2: Sub judul dihilangkan)
                     _buildHorizontalMenuCard(
                       title: "Cepu",
-                      subtitle: "Lapor pegawai yang tidak berada di kantor tanpa izin",
+                      subtitle: null,
                       icon: Icons.campaign_rounded,
                       gradientColors: const [Color(0xFFEA580C), Color(0xFFF97316), Color(0xFFFB923C)],
                       showActiveBadge: false,
@@ -506,61 +584,14 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
                     const SizedBox(height: 14),
 
-                    // 3. CARD 3: MONITORING HARIAN
+                    // 3. CARD 3: MONITORING HARIAN (Poin 2: Sub judul dihilangkan)
                     _buildHorizontalMenuCard(
                       title: "Monitoring Harian",
-                      subtitle: "Pantau rekap Waigama & verifikasi laporan Cepu",
+                      subtitle: null,
                       icon: Icons.analytics_rounded,
                       gradientColors: const [Color(0xFF0F766E), Color(0xFF0D9488), Color(0xFF14B8A6)],
                       showActiveBadge: false,
                       onTap: _navigateToDailyMonitoring,
-                    ),
-
-                    const SizedBox(height: 22),
-
-                    // Informasi Panduan Card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: const [
-                              Icon(Icons.info_outline_rounded, size: 18, color: Color(0xFF2563EB)),
-                              SizedBox(width: 8),
-                              Text(
-                                "Panduan Singkat",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "• Waigama: Wajib rekam Mulai Izin saat berada di kantor dan Selesai Izin setelah kembali.\n• Cepu: Laporkan rekan yang meninggalkan kantor tanpa izin. Laporan diverifikasi oleh 4 rekan kerja agar valid.\n• Waktu menggunakan zona WIT (Waktu Indonesia Timur).",
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: Colors.grey[700],
-                              height: 1.45,
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
 
                     const SizedBox(height: 24),
@@ -574,10 +605,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     );
   }
 
-  /// Clean & Modern Dribbble/Figma style horizontal action card
   Widget _buildHorizontalMenuCard({
     required String title,
-    required String subtitle,
+    String? subtitle,
     required IconData icon,
     required List<Color> gradientColors,
     bool showActiveBadge = false,
@@ -604,27 +634,29 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
               ),
             ],
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          padding: EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: subtitle != null ? 18 : 20,
+          ),
           child: Row(
             children: [
-              // Icon Container
               Container(
-                width: 50,
-                height: 50,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white.withOpacity(0.35), width: 1.5),
                 ),
-                child: Icon(icon, color: Colors.white, size: 26),
+                child: Icon(icon, color: Colors.white, size: 25),
               ),
 
               const SizedBox(width: 16),
 
-              // Title & Subtitle
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Row(
                       children: [
@@ -657,24 +689,25 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 11.5,
-                        height: 1.25,
+                    if (subtitle != null && subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 11.5,
+                          height: 1.25,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ],
                   ],
                 ),
               ),
 
               const SizedBox(width: 8),
 
-              // Forward Arrow
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(

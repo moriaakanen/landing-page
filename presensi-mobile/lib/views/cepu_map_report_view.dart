@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../models/user_model.dart';
 import '../models/office_model.dart';
+import '../models/cepu_model.dart';
 import '../core/services/cepu_service.dart';
 import '../core/services/location_service.dart';
 
@@ -36,6 +37,10 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
   bool _isLoadingEmployees = true;
   bool _isSubmitting = false;
 
+  // Laporan Cepu aktif untuk user yang login (jika dilaporkan oleh orang lain dan sudah valid)
+  CepuModel? _activeCepuForMe;
+  bool _isRecordingReturn = false;
+
   Position? _currentPosition;
   double _distanceMeters = 999.0;
   double _accuracyMeters = 0.0;
@@ -45,8 +50,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
   String? _errorMessage;
 
   DateTime _startTime = DateTime.now();
-  DateTime? _endTime;
-  bool _hasReturned = false;
+  String _searchFilter = '';
 
   File? _imageFile;
   String? _imageBase64;
@@ -56,6 +60,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     super.initState();
     _loadEmployees();
     _fetchCurrentLocation();
+    _checkActiveCepuForMe();
   }
 
   @override
@@ -71,6 +76,15 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
       setState(() {
         _employees = list;
         _isLoadingEmployees = false;
+      });
+    }
+  }
+
+  Future<void> _checkActiveCepuForMe() async {
+    final cepu = await _cepuService.getActiveCepuForTarget(widget.reporter.uid);
+    if (mounted) {
+      setState(() {
+        _activeCepuForMe = cepu;
       });
     }
   }
@@ -117,6 +131,54 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     }
   }
 
+  Future<void> _handleRecordReturnForMe() async {
+    if (_activeCepuForMe == null) return;
+
+    if (!_isInRadius || _isMocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isMocked
+              ? "⚠️ Deteksi Fake GPS aktif!"
+              : "⚠️ Anda harus sudah berada di dalam radius kantor untuk merekam waktu kembali!"),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isRecordingReturn = true);
+
+    try {
+      await _cepuService.recordCepuReturnTime(
+        cepuId: _activeCepuForMe!.id,
+        office: widget.office,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("✅ Waktu kembali Cepu berhasil direkam! Status Anda telah diperbarui."),
+            backgroundColor: Color(0xFF10B981),
+          ),
+        );
+        setState(() {
+          _activeCepuForMe = null;
+        });
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: const Color(0xFFEF4444)),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRecordingReturn = false);
+      }
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final pickedFile = await _picker.pickImage(
@@ -144,8 +206,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     }
   }
 
-  /// Searchable Modal Bottom Sheet untuk Pemilihan Nama Pegawai
-  /// Menyesuaikan dengan ruang layar dan keyboard secara otomatis
   void _openSearchableEmployeePicker() {
     showModalBottomSheet(
       context: context,
@@ -166,7 +226,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                   ),
                   child: Column(
                     children: [
-                      // Handle Bar
                       Container(
                         margin: const EdgeInsets.only(top: 12, bottom: 8),
                         width: 40,
@@ -176,7 +235,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      // Header
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                         child: Row(
@@ -197,13 +255,12 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                           ],
                         ),
                       ),
-                      // Search Box
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
                         child: TextField(
                           autofocus: false,
                           decoration: InputDecoration(
-                            hintText: "Cari nama atau departemen...",
+                            hintText: "Cari nama pegawai...",
                             hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
                             prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFFEA580C)),
                             filled: true,
@@ -226,15 +283,13 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Employee List
                       Expanded(
                         child: _employees.isEmpty
                             ? const Center(child: CircularProgressIndicator())
                             : Builder(builder: (context) {
                                 final filtered = _employees.where((e) {
                                   if (_searchFilter.isEmpty) return true;
-                                  return e.name.toLowerCase().contains(_searchFilter) ||
-                                      e.department.toLowerCase().contains(_searchFilter);
+                                  return e.name.toLowerCase().contains(_searchFilter);
                                 }).toList();
 
                                 if (filtered.isEmpty) {
@@ -276,10 +331,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                                           color: isSelected ? const Color(0xFFEA580C) : const Color(0xFF1E293B),
                                         ),
                                       ),
-                                      subtitle: Text(
-                                        emp.department,
-                                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
-                                      ),
                                       trailing: isSelected
                                           ? const Icon(Icons.check_circle_rounded, color: Color(0xFFEA580C))
                                           : null,
@@ -305,8 +356,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     );
   }
 
-  String _searchFilter = '';
-
   Future<void> _handleSubmit() async {
     if (_selectedTarget == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -322,7 +371,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
       return;
     }
 
-    // Wajib menyertakan bukti pendukung (foto)
     if (_imageBase64 == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -341,14 +389,14 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
         targetUser: _selectedTarget!,
         description: _descController.text.trim(),
         startTime: _startTime,
-        endTime: _hasReturned ? _endTime : null,
+        endTime: null,
         photoBase64: _imageBase64,
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("✅ Laporan Cepu berhasil dikirim! Menunggu 4 verifikasi rekan."),
+            content: Text("✅ Laporan Cepu berhasil dikirim! Menunggu minimal 4 verifikasi rekan."),
             backgroundColor: Color(0xFF10B981),
           ),
         );
@@ -375,7 +423,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
         : officeLatLng;
 
     final startTimeStr = DateFormat('HH:mm').format(_startTime);
-    final endTimeStr = _endTime != null ? DateFormat('HH:mm').format(_endTime!) : '--:--';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -387,7 +434,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Lapor Cepu",
+          "Cepu",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
@@ -425,7 +472,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                       urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.presensi_app',
                     ),
-                    // Geofence Radius Circle (50m)
                     CircleLayer(
                       circles: [
                         CircleMarker(
@@ -438,10 +484,8 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                         ),
                       ],
                     ),
-                    // Markers
                     MarkerLayer(
                       markers: [
-                        // Office Marker
                         Marker(
                           point: officeLatLng,
                           width: 42,
@@ -462,7 +506,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                             child: const Icon(Icons.business_rounded, color: Colors.white, size: 22),
                           ),
                         ),
-                        // User Location Marker (Simetris & Presisi)
                         if (_currentPosition != null)
                           Marker(
                             point: userLatLng,
@@ -507,7 +550,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                   ],
                 ),
 
-                // Floating Map Controls
                 Positioned(
                   top: 12,
                   right: 12,
@@ -535,7 +577,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
             ),
           ),
 
-          // 2. FORMULIR CEPU (SCROLLABLE BOTTOM PANEL)
+          // 2. FORMULIR CEPU & REKAM WAKTU KEMBALI
           Expanded(
             flex: 6,
             child: Container(
@@ -555,7 +597,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Handle line
                     Center(
                       child: Container(
                         width: 36,
@@ -568,6 +609,64 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                     ),
 
                     const SizedBox(height: 12),
+
+                    // Jika user yang login sedang dilaporkan Cepu & sudah terverifikasi:
+                    if (_activeCepuForMe != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFFCA5A5), width: 1.5),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: const [
+                                Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 20),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    "Anda Dilaporkan Tidak di Kantor",
+                                    style: TextStyle(
+                                      color: Color(0xFF991B1B),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "Laporan telah diverifikasi oleh ${_activeCepuForMe!.verificationCount} rekan kerja. Segera rekam waktu kembali setelah Anda berada di kantor.",
+                              style: const TextStyle(fontSize: 11.5, color: Color(0xFF7F1D1D), height: 1.3),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 44,
+                              child: ElevatedButton.icon(
+                                onPressed: (_isInRadius && !_isMocked && !_isRecordingReturn)
+                                    ? _handleRecordReturnForMe
+                                    : null,
+                                icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                                label: _isRecordingReturn
+                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                    : const Text("REKAM WAKTU KEMBALI SAYA", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF10B981),
+                                  disabledBackgroundColor: const Color(0xFFCBD5E1),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
 
                     // Status Bar Ringkas
                     Container(
@@ -593,7 +692,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
 
                     const SizedBox(height: 14),
 
-                    // A. PILIH PEGAWAI (Searchable Dropdown/Modal)
+                    // A. PILIH PEGAWAI
                     const Text(
                       "Pegawai yang Dilaporkan *",
                       style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
@@ -629,7 +728,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                             Expanded(
                               child: Text(
                                 _selectedTarget != null
-                                    ? "${_selectedTarget!.name} (${_selectedTarget!.department})"
+                                    ? _selectedTarget!.name
                                     : "Pilih dan cari nama pegawai...",
                                 style: TextStyle(
                                   fontSize: 13,
@@ -690,10 +789,10 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                                   border: Border.all(color: const Color(0xFFE2E8F0)),
                                 ),
                                 child: Row(
-                                  children: [
-                                    Icon(Icons.check_circle_rounded, size: 16, color: _hasReturned ? const Color(0xFF10B981) : Colors.grey[400]),
-                                    const SizedBox(width: 6),
-                                    Text(_hasReturned ? "$endTimeStr WIT" : "Belum Kembali", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _hasReturned ? const Color(0xFF1E293B) : Colors.grey[500])),
+                                  children: const [
+                                    Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF94A3B8)),
+                                    SizedBox(width: 6),
+                                    Text("Belum Kembali", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
                                   ],
                                 ),
                               ),
@@ -715,7 +814,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                       controller: _descController,
                       maxLines: 2,
                       decoration: InputDecoration(
-                        hintText: "Contoh: Tidak berada di ruangan/meja kerja tanpa surat tugas/izin...",
+                        hintText: "Tuliskan keterangan detail di sini...",
                         hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
@@ -805,7 +904,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
 
                     const SizedBox(height: 20),
 
-                    // TOMBOL KIRIM LAPORAN
+                    // TOMBOL KIRIM LAPORAN (Requirement 5)
                     SizedBox(
                       height: 48,
                       child: ElevatedButton(
@@ -822,7 +921,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                               )
                             : const Text(
-                                "KIRIM LAPORAN CEPU",
+                                "KIRIM LAPORAN",
                                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5),
                               ),
                       ),
