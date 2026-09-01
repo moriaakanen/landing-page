@@ -1,5 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../constants/employees_data.dart';
 import '../../models/user_model.dart';
 
 class AuthService {
@@ -8,60 +9,141 @@ class AuthService {
 
   User? get currentUser => _auth.currentUser;
 
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  /// Login dengan username / email & kata sandi
+  Future<UserModel> login({
+    required String usernameOrEmail,
+    required String password,
+  }) async {
+    final cleanInput = usernameOrEmail.trim().toLowerCase();
+    final cleanPassword = password.trim();
 
-  /// Login dengan email & password
-  Future<UserModel?> login({required String email, required String password}) async {
+    // 1. Validasi akun terlarang: pegawai@kantor.com sudah dihapus / dinonaktifkan
+    if (cleanInput == 'pegawai@kantor.com' || cleanInput == 'pegawai') {
+      throw "Akun pegawai@kantor.com telah dinonaktifkan dan tidak dapat digunakan lagi.";
+    }
+
+    if (cleanInput.isEmpty || cleanPassword.isEmpty) {
+      throw "Harap masukkan username dan kata sandi.";
+    }
+
+    // 2. Cari data pegawai di Master List
+    final normalizedUsername = cleanInput.contains('@')
+        ? cleanInput.split('@')[0]
+        : cleanInput;
+
+    final employeeMaster = AppEmployees.list.firstWhere(
+      (e) => e.username.toLowerCase() == normalizedUsername,
+      orElse: () => EmployeeData(
+        username: normalizedUsername,
+        fullName: normalizedUsername,
+        department: 'Pegawai',
+      ),
+    );
+
+    // Cek apakah username valid ada di daftar pegawai
+    final bool isKnownEmployee = AppEmployees.list.any(
+      (e) => e.username.toLowerCase() == normalizedUsername,
+    );
+
+    if (!isKnownEmployee) {
+      throw "Username '$usernameOrEmail' tidak terdaftar dalam sistem pegawai.";
+    }
+
+    final docId = 'user_${employeeMaster.username.replaceAll('.', '_')}';
+    final userDocRef = _firestore.collection('users').doc(docId);
+
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password,
-      );
+      final userDoc = await userDocRef.get();
 
-      if (userCredential.user != null) {
-        DocumentSnapshot userDoc = await _firestore
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .get();
+      if (userDoc.exists && userDoc.data() != null) {
+        final data = userDoc.data() as Map<String, dynamic>;
+        final storedPassword = data['password']?.toString() ?? '123456';
+        final bool isPasswordChanged = data['is_password_changed'] ?? false;
 
-        if (userDoc.exists) {
-          return UserModel.fromMap(userDoc.data() as Map<String, dynamic>, userDoc.id);
-        } else {
-          // Buat default user document jika belum ada
-          UserModel newUser = UserModel(
-            uid: userCredential.user!.uid,
-            name: userCredential.user!.displayName ?? email.split('@')[0],
-            email: email,
-            department: 'Umum',
-            role: 'employee',
-            officeId: 'office_main',
-          );
-          await _firestore.collection('users').doc(userCredential.user!.uid).set(newUser.toMap());
-          return newUser;
+        // Verifikasi kata sandi
+        if (cleanPassword != storedPassword) {
+          throw "Kata sandi yang Anda masukkan salah.";
         }
+
+        return UserModel(
+          uid: docId,
+          username: employeeMaster.username,
+          name: data['name'] ?? employeeMaster.fullName,
+          email: '${employeeMaster.username}@kantor.go.id',
+          department: data['department'] ?? employeeMaster.department,
+          role: data['role'] ?? 'employee',
+          officeId: data['office_id'] ?? 'office_main',
+          isPasswordChanged: isPasswordChanged,
+        );
+      } else {
+        // Belum pernah login sebelumnya -> Cek password default: 123456
+        if (cleanPassword != '123456') {
+          throw "Kata sandi salah. Gunakan kata sandi default (123456) untuk login pertama kali.";
+        }
+
+        final newUser = UserModel(
+          uid: docId,
+          username: employeeMaster.username,
+          name: employeeMaster.fullName,
+          email: '${employeeMaster.username}@kantor.go.id',
+          department: employeeMaster.department,
+          role: 'employee',
+          officeId: 'office_main',
+          isPasswordChanged: false, // Wajib ganti password saat login pertama
+        );
+
+        // Inisialisasi dokumen di Firestore
+        await userDocRef.set({
+          ...newUser.toMap(),
+          'password': '123456',
+        });
+
+        return newUser;
       }
-      return null;
-    } on FirebaseAuthException catch (e) {
-      throw e.message ?? "Gagal login. Periksa email dan password Anda.";
     } catch (e) {
-      throw "Terjadi kesalahan saat login: ${e.toString()}";
+      if (e is String) rethrow;
+      // Fallback offline / network error jika Firestore belum reachable
+      if (cleanPassword == '123456') {
+        return UserModel(
+          uid: docId,
+          username: employeeMaster.username,
+          name: employeeMaster.fullName,
+          email: '${employeeMaster.username}@kantor.go.id',
+          department: employeeMaster.department,
+          role: 'employee',
+          officeId: 'office_main',
+          isPasswordChanged: false,
+        );
+      }
+      throw e.toString();
     }
   }
 
-  /// Ambil profil user saat ini
-  Future<UserModel?> getCurrentUserProfile() async {
-    final user = _auth.currentUser;
-    if (user == null) return null;
-
-    final doc = await _firestore.collection('users').doc(user.uid).get();
-    if (doc.exists) {
-      return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+  /// Mengganti kata sandi pegawai (minimal 6 karakter)
+  Future<UserModel> changePassword({
+    required UserModel user,
+    required String newPassword,
+  }) async {
+    final cleanPass = newPassword.trim();
+    if (cleanPass.length < 6) {
+      throw "Kata sandi baru minimal harus 6 karakter.";
     }
-    return null;
+
+    final docId = user.uid;
+    await _firestore.collection('users').doc(docId).set({
+      ...user.toMap(),
+      'password': cleanPass,
+      'is_password_changed': true,
+      'updated_at': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    return user.copyWith(isPasswordChanged: true);
   }
 
   /// Logout
   Future<void> logout() async {
-    await _auth.signOut();
+    try {
+      await _auth.signOut();
+    } catch (_) {}
   }
 }

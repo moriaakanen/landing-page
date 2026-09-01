@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import '../../models/cepu_model.dart';
 import '../../models/user_model.dart';
 
+import '../constants/employees_data.dart';
+
 class CepuService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -13,57 +15,29 @@ class CepuService {
       if (snapshot.docs.isNotEmpty) {
         final users = snapshot.docs
             .map((doc) => UserModel.fromMap(doc.data(), doc.id))
-            .where((u) => u.uid != excludeUid)
+            .where((u) => u.uid != excludeUid && u.email != 'pegawai@kantor.com')
             .toList();
-        if (users.isNotEmpty) return users;
+        if (users.isNotEmpty && users.length >= AppEmployees.list.length) {
+          return users;
+        }
       }
     } catch (e) {
-      // Fallback
+      // Fallback to master list
     }
 
-    // Default mock list jika Firestore users belum diisi lengkap
-    return [
-      UserModel(
-        uid: 'emp_01',
-        name: 'Ahmad Fauzi, S.Kom',
-        email: 'ahmad.fauzi@instansi.go.id',
-        department: 'Teknologi Informasi & Data',
-        role: 'employee',
-        officeId: 'office_main',
-      ),
-      UserModel(
-        uid: 'emp_02',
-        name: 'Rina Wijaya, S.E',
-        email: 'rina.wijaya@instansi.go.id',
-        department: 'Keuangan & Perbendaharaan',
-        role: 'employee',
-        officeId: 'office_main',
-      ),
-      UserModel(
-        uid: 'emp_03',
-        name: 'Budi Santoso, S.Sos',
-        email: 'budi.santoso@instansi.go.id',
-        department: 'Kepegawaian & Umum',
-        role: 'employee',
-        officeId: 'office_main',
-      ),
-      UserModel(
-        uid: 'emp_04',
-        name: 'Dewi Lestari, S.H',
-        email: 'dewi.lestari@instansi.go.id',
-        department: 'Hukum & Tata Usaha',
-        role: 'employee',
-        officeId: 'office_main',
-      ),
-      UserModel(
-        uid: 'emp_05',
-        name: 'Hendra Pratama, S.T',
-        email: 'hendra.pratama@instansi.go.id',
-        department: 'Infrastruktur & Sarana',
-        role: 'employee',
-        officeId: 'office_main',
-      ),
-    ].where((u) => u.uid != excludeUid).toList();
+    // Default 21 Pegawai Resmi
+    return AppEmployees.list
+        .map((emp) => UserModel(
+              uid: 'user_${emp.username.replaceAll('.', '_')}',
+              username: emp.username,
+              name: emp.fullName,
+              email: '${emp.username}@kantor.go.id',
+              department: emp.department,
+              role: 'employee',
+              officeId: 'office_main',
+            ))
+        .where((u) => u.uid != excludeUid)
+        .toList();
   }
 
   /// Membuat laporan Cepu baru
