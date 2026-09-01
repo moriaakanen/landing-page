@@ -231,47 +231,49 @@ class _RecordAttendanceMapViewState extends State<RecordAttendanceMapView> {
                           ),
                         ),
 
-                        // 2. User Live Position Marker with Callout Bubble
-                        // Anchored at bottomCenter to ensure pin tip stays exactly on GPS coordinates regardless of zoom level
+                        // 2. User Live Position Marker (Precision Center-Aligned Blue Indicator)
+                        // Posisi simetris dengan Alignment.center agar terkunci 100% tepat di koordinat GPS tanpa bergeser pada level zoom berapa pun
                         if (_currentPosition != null)
                           Marker(
                             point: userLatLng,
-                            width: 140,
-                            height: 64,
-                            alignment: Alignment.bottomCenter,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                            width: 38,
+                            height: 38,
+                            alignment: Alignment.center,
+                            child: Stack(
+                              alignment: Alignment.center,
                               children: [
-                                // Callout Bubble "Anda di sini"
+                                // Outer pulsating halo
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                                  width: 38,
+                                  height: 38,
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
+                                    color: const Color(0xFF2563EB).withOpacity(0.25),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                // Inner blue circle with person icon & white border
+                                Container(
+                                  width: 26,
+                                  height: 26,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF2563EB),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2.5),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.18),
+                                        color: Colors.black.withOpacity(0.2),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
                                     ],
                                   ),
-                                  child: const Text(
-                                    "Anda di sini",
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.person_rounded,
+                                      color: Colors.white,
+                                      size: 15,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 2),
-                                // Blue Pin Icon with tip at the bottom
-                                const Icon(
-                                  Icons.location_on,
-                                  color: Color(0xFF2563EB),
-                                  size: 36,
                                 ),
                               ],
                             ),

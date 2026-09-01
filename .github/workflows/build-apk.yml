@@ -30,13 +30,13 @@ jobs:
           cd presensi-mobile
           flutter pub get
 
-      - name: Build APK Release
+      - name: Build Optimized Split APKs (~16 MB)
         run: |
           cd presensi-mobile
-          flutter build apk --release --android-skip-build-dependency-validation
+          flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
 
-      - name: Upload APK Artifact
+      - name: Upload Optimized APKs Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: presensi-app-release
-          path: presensi-mobile/build/app/outputs/flutter-apk/app-release.apk
+          name: presensi-app-optimized-apk
+          path: presensi-mobile/build/app/outputs/flutter-apk/*.apk

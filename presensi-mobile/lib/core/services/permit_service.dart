@@ -149,16 +149,18 @@ class PermitService {
   }
 
   /// Stream seluruh izin pada tanggal tertentu (Realtime Monitoring Harian)
+  /// Menggunakan sorting di memory agar tidak memerlukan Firestore Composite Index
   Stream<List<PermitModel>> streamDailyPermits(String dateString) {
     return _firestore
         .collection('permits')
         .where('date', isEqualTo: dateString)
-        .orderBy('start_time', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
+      final list = snapshot.docs
           .map((doc) => PermitModel.fromMap(doc.data(), doc.id))
           .toList();
+      list.sort((a, b) => b.startTime.compareTo(a.startTime));
+      return list;
     });
   }
 
@@ -167,11 +169,12 @@ class PermitService {
     final snapshot = await _firestore
         .collection('permits')
         .where('date', isEqualTo: dateString)
-        .orderBy('start_time', descending: true)
         .get();
 
-    return snapshot.docs
+    final list = snapshot.docs
         .map((doc) => PermitModel.fromMap(doc.data(), doc.id))
         .toList();
+    list.sort((a, b) => b.startTime.compareTo(a.startTime));
+    return list;
   }
 }
