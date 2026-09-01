@@ -64,6 +64,21 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
         _activeCepuForMe = activeCepu;
         _isLoading = false;
       });
+
+      if (activePermit != null) {
+        NotificationService.showSystemNotification(
+          id: 101,
+          title: "Izin Waigama Aktif",
+          body: "Anda sedang izin, segera rekam waktu kembali jika anda sudah berada di kantor",
+        );
+      }
+      if (activeCepu != null) {
+        NotificationService.showSystemNotification(
+          id: 102,
+          title: "⚠️ Peringatan Laporan Cepu",
+          body: "Anda dilaporkan tidak berada di kantor, segera rekam waktu kembali jika anda berada di kantor",
+        );
+      }
     }
   }
 

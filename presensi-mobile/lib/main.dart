@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/services/auth_service.dart';
+import 'core/services/notification_service.dart';
 import 'models/user_model.dart';
 import 'views/login_view.dart';
 import 'views/home_attendance_view.dart';
@@ -17,11 +18,17 @@ void main() async {
     debugPrint("Locale formatting note: $e");
   }
 
-  // Inisialisasi Firebase
+  // Inisialisasi Firebase & Notifikasi
   try {
     await Firebase.initializeApp();
   } catch (e) {
     debugPrint("Firebase init note: $e");
+  }
+
+  try {
+    await NotificationService.initialize();
+  } catch (e) {
+    debugPrint("Notification init note: $e");
   }
 
   // Custom Error Widget agar tidak tampil layar abu-abu jika terjadi exception
