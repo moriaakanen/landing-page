@@ -170,7 +170,6 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     try {
       await _cepuService.recordCepuReturnTime(
         cepuId: _activeCepuForMe!.id,
-        user: widget.reporter,
         office: widget.office,
       );
 
