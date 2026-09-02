@@ -18,9 +18,9 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
   final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
 
+  bool _obscureNew = true;
+  bool _obscureConfirm = true;
   bool _isLoading = false;
-  bool _obscureNewPass = true;
-  bool _obscureConfirmPass = true;
   String? _errorMessage;
 
   @override
@@ -34,23 +34,17 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
     final newPass = _newPasswordController.text.trim();
     final confirmPass = _confirmPasswordController.text.trim();
 
-    if (newPass.isEmpty || confirmPass.isEmpty) {
-      AppToast.showWarning(context, "Harap isi kata sandi baru dan konfirmasi kata sandi.", title: "Data Belum Lengkap");
-      return;
-    }
-
     if (newPass.length < 6) {
-      AppToast.showWarning(context, "Kata sandi minimal harus 6 karakter.", title: "Kata Sandi Terlalu Pendek");
+      setState(() {
+        _errorMessage = "Kata sandi baru minimal harus 6 karakter.";
+      });
       return;
     }
 
     if (newPass != confirmPass) {
-      AppToast.showWarning(context, "Konfirmasi kata sandi tidak cocok dengan kata sandi baru.", title: "Kata Sandi Berbeda");
-      return;
-    }
-
-    if (newPass == '123456') {
-      AppToast.showWarning(context, "Jangan gunakan kata sandi default 123456.", title: "Kata Sandi Tidak Aman");
+      setState(() {
+        _errorMessage = "Konfirmasi kata sandi tidak cocok.";
+      });
       return;
     }
 
@@ -96,293 +90,218 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: Stack(
-        children: [
-          // Ambient Gradient Orbs
-          Positioned(
-            top: -70,
-            right: -50,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF2563EB).withOpacity(0.4),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -70,
-            left: -50,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF38BDF8).withOpacity(0.3),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Manta Ray Logo with Cyan Glow
-                    Center(
-                      child: Container(
-                        width: 96,
-                        height: 96,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(28),
-                          border: Border.all(color: const Color(0xFF60A5FA), width: 2.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF38BDF8).withOpacity(0.4),
-                              blurRadius: 28,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Manta Ray Logo Header
+                Center(
+                  child: Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF2563EB).withOpacity(0.18),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
-                        padding: const EdgeInsets.all(10),
-                        child: Image.asset(
-                          'assets/images/app_logo.png',
-                          fit: BoxFit.contain,
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: Image.asset(
+                      'assets/images/app_logo.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                const Text(
+                  "Ganti Kata Sandi Baru",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: -0.3,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  "Halo, ${widget.user.name}!\nIni adalah login pertama Anda. Demi keamanan akun, silakan buat kata sandi baru Anda.",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF64748B),
+                    height: 1.4,
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Notice Box
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.shield_outlined, color: Color(0xFF2563EB), size: 20),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "Syarat: Minimal 6 karakter",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E40AF),
+                          ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    const Text(
-                      "Ganti Kata Sandi",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    Text(
-                      "Halo, ${widget.user.name}!\nIni adalah login pertama Anda. Silakan amankan akun Anda.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: Colors.white.withOpacity(0.7),
-                        height: 1.35,
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Modern Frosted Glass Card
-                    Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B).withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.35),
-                            blurRadius: 24,
-                            offset: const Offset(0, 12),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.fromLTRB(22, 24, 22, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Requirement Notice Pill
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: const Color(0xFF38BDF8).withOpacity(0.4)),
-                            ),
-                            child: Row(
-                              children: const [
-                                Icon(Icons.info_outline_rounded, color: Color(0xFF38BDF8), size: 18),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    "Syarat kata sandi: Minimal 6 karakter.",
-                                    style: TextStyle(fontSize: 11.5, color: Color(0xFF93C5FD), fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 18),
-
-                          if (_errorMessage != null) ...[
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF7F1D1D).withOpacity(0.6),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: const Color(0xFFEF4444)),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.error_outline_rounded, color: Color(0xFFFCA5A5), size: 18),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _errorMessage!,
-                                      style: const TextStyle(color: Color(0xFFFEE2E2), fontSize: 12),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-
-                          // New Password Input
-                          TextField(
-                            controller: _newPasswordController,
-                            obscureText: _obscureNewPass,
-                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                            decoration: InputDecoration(
-                              labelText: "Kata Sandi Baru",
-                              labelStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                              hintText: "Minimal 6 karakter",
-                              hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                              prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF38BDF8), size: 20),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscureNewPass ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                                  color: const Color(0xFF64748B),
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscureNewPass = !_obscureNewPass;
-                                  });
-                                },
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFF0F172A),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF334155))),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF334155))),
-                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF38BDF8), width: 1.8)),
-                            ),
-                          ),
-
-                          const SizedBox(height: 14),
-
-                          // Confirm Password Input
-                          TextField(
-                            controller: _confirmPasswordController,
-                            obscureText: _obscureConfirmPass,
-                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                            decoration: InputDecoration(
-                              labelText: "Konfirmasi Kata Sandi Baru",
-                              labelStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                              hintText: "Ulangi kata sandi baru",
-                              hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                              prefixIcon: const Icon(Icons.lock_reset_rounded, color: Color(0xFF38BDF8), size: 20),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscureConfirmPass ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                                  color: const Color(0xFF64748B),
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscureConfirmPass = !_obscureConfirmPass;
-                                  });
-                                },
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFF0F172A),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF334155))),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF334155))),
-                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF38BDF8), width: 1.8)),
-                            ),
-                            onSubmitted: (_) => _handleChangePassword(),
-                          ),
-
-                          const SizedBox(height: 22),
-
-                          // Submit Button
-                          SizedBox(
-                            height: 50,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF2563EB), Color(0xFF38BDF8)],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF2563EB).withOpacity(0.4),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleChangePassword,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  shadowColor: Colors.transparent,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 22,
-                                        height: 22,
-                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                                      )
-                                    : const Text(
-                                        "SIMPAN KATA SANDI",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 0.8,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+
+                const SizedBox(height: 20),
+
+                if (_errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEE2E2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFF87171)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: Color(0xFFDC2626), fontSize: 12.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // Input Password Baru
+                TextField(
+                  controller: _newPasswordController,
+                  obscureText: _obscureNew,
+                  decoration: InputDecoration(
+                    labelText: "Kata Sandi Baru",
+                    hintText: "Minimal 6 karakter",
+                    prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF2563EB)),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureNew ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                        color: const Color(0xFF64748B),
+                      ),
+                      onPressed: () => setState(() => _obscureNew = !_obscureNew),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Input Konfirmasi Password
+                TextField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirm,
+                  decoration: InputDecoration(
+                    labelText: "Ulangi Kata Sandi Baru",
+                    hintText: "Ketik ulang kata sandi",
+                    prefixIcon: const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF2563EB)),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirm ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                        color: const Color(0xFF64748B),
+                      ),
+                      onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+
+                // Submit Button
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _handleChangePassword,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 3,
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                          )
+                        : const Text(
+                            "SIMPAN KATA SANDI & MASUK",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
