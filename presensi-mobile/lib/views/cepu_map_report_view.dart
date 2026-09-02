@@ -241,10 +241,10 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
             ),
             const SizedBox(height: 16),
             const Text(
-              "Ambil Dokumen Pendukung (Foto)",
+              "Dokumen Pendukung",
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontSize: 16.5,
+                fontWeight: FontWeight.w800,
                 color: Color(0xFF1E293B),
               ),
             ),
@@ -526,7 +526,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     }
 
     if (_imageBase64 == null) {
-      AppToast.showWarning(context, "Wajib melampirkan Dokumen Pendukung (Foto Bukti) sebelum mengirim laporan!", title: "Foto Bukti Wajib");
+      AppToast.showWarning(context, "Wajib melampirkan Dokumen Pendukung sebelum mengirim laporan!", title: "Dokumen Pendukung Wajib");
       return;
     }
 
@@ -1015,12 +1015,12 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
 
                     const SizedBox(height: 14),
 
-                    // D. Dokumen Pendukung (Foto Bukti)
+                    // D. Dokumen Pendukung
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          "Dokumen Pendukung (Foto Bukti)",
+                          "Dokumen Pendukung",
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                         ),
                         Container(
