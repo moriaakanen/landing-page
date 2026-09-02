@@ -1,0 +1,2722 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Absensi Kantor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+            line-height: 1.5;
+        }
+
+        .app-container {
+            max-width: 448px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            min-height: 100vh;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        .page {
+            display: none;
+            padding: 24px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .greeting {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .username {
+            color: #111827;
+            font-size: 20px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .page-title {
+            color: #111827;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .icon-button {
+            padding: 8px;
+            background-color: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-button:hover {
+            background-color: #f3f4f6;
+        }
+
+        /* Badge */
+        .location-badge {
+            background: linear-gradient(135deg, #5a7d6f, #4a6d5f);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .date-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        /* Check In/Out Section */
+        .check-section {
+            background: linear-gradient(135deg, #5a7d6f, #4a6d5f);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 15px -3px rgba(90, 125, 111, 0.3);
+        }
+
+        .current-time-section {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .current-time-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .current-time {
+            color: white;
+            font-size: 30px;
+            font-weight: 500;
+        }
+
+        .check-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .check-button {
+            background-color: white;
+            color: #5a7d6f;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .check-button:hover:not(:disabled) {
+            background-color: #f9fafb;
+            transform: translateY(-2px);
+        }
+
+        .check-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .check-button.outline {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .check-button.outline:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .check-time {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .card-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .card-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .card-value {
+            color: #111827;
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            color: #111827;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .see-more-btn {
+            color: #5a7d6f;
+            font-size: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Attendance Card */
+        .attendance-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .attendance-card {
+            background: linear-gradient(135deg, #5a7d6f, #4a6d5f);
+            border-radius: 16px;
+            padding: 16px;
+            color: white;
+        }
+
+        .attendance-card-content {
+            display: flex;
+            gap: 16px;
+        }
+
+        .attendance-date {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 8px 12px;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .attendance-date-number {
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .attendance-date-day {
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .attendance-details {
+            flex: 1;
+        }
+
+        .attendance-times {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .attendance-time {
+            font-size: 12px;
+        }
+
+        .attendance-time-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 10px;
+        }
+
+        .attendance-location {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        /* Navigation */
+        .navigation {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 448px;
+            background-color: white;
+            border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 64px;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            position: relative;
+        }
+
+        .nav-item.active {
+            color: #5a7d6f;
+        }
+
+        .nav-item.special.active .nav-icon-circle {
+            position: absolute;
+            top: -8px;
+            width: 56px;
+            height: 56px;
+            background-color: #5a7d6f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 15px -3px rgba(90, 125, 111, 0.3);
+        }
+
+        .nav-item.special.active svg {
+            color: white;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-width: 448px;
+            padding: 24px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-handle {
+            width: 48px;
+            height: 4px;
+            background-color: #d1d5db;
+            border-radius: 9999px;
+            margin: 0 auto 24px;
+        }
+
+        .modal-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            color: #111827;
+        }
+
+        .modal-info {
+            background-color: #f9fafb;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .modal-info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .modal-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(90, 125, 111, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-info-text {
+            flex: 1;
+        }
+
+        .modal-info-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .modal-info-value {
+            color: #111827;
+            font-size: 14px;
+        }
+
+        .camera-upload {
+            background-color: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .camera-icon {
+            width: 48px;
+            height: 48px;
+            color: #9ca3af;
+            margin: 0 auto 8px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            font-family: inherit;
+            resize: none;
+            margin-bottom: 16px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #5a7d6f;
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f9fafb;
+        }
+
+        .btn-primary {
+            background-color: #5a7d6f;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #4a6d5f;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        /* Calendar */
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .calendar-month {
+            min-width: 150px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .calendar-nav-btn {
+            padding: 4px;
+            background: none;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-nav-btn:hover {
+            background-color: #f3f4f6;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            padding: 8px 0;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            background: none;
+            border: none;
+        }
+
+        .calendar-day:hover:not(:disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .calendar-day.inactive {
+            color: #d1d5db;
+        }
+
+        .calendar-day.active {
+            background-color: #5a7d6f;
+            color: white;
+        }
+
+        .calendar-day.has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 4px;
+            height: 4px;
+            background-color: #ef4444;
+            border-radius: 50%;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding-bottom: 12px;
+            border-bottom: 2px solid transparent;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            border-bottom-color: #5a7d6f;
+            color: #5a7d6f;
+        }
+
+        /* Employee Info */
+        .employee-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .info-item {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            color: #111827;
+            font-size: 14px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            color: #111827;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #9ca3af;
+        }
+
+        input[type="date"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #5a7d6f;
+        }
+
+        /* Type Selection */
+        .type-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .type-button {
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .type-button:hover {
+            border-color: #5a7d6f;
+        }
+
+        .type-button.active {
+            border-color: #5a7d6f;
+            background-color: rgba(90, 125, 111, 0.05);
+        }
+
+        .type-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .type-label {
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .type-button.active .type-label {
+            color: #5a7d6f;
+        }
+
+        /* Chip/Badge */
+        .chip-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            border-radius: 9999px;
+            border: 1px solid #e5e7eb;
+            background-color: white;
+            color: #111827;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip.active {
+            background-color: #5a7d6f;
+            color: white;
+            border-color: #5a7d6f;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card.green {
+            background-color: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        .stat-card.orange {
+            background-color: #fff7ed;
+            border-color: #fed7aa;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .stat-card.green .stat-label {
+            color: #15803d;
+        }
+
+        .stat-card.orange .stat-label {
+            color: #c2410c;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .stat-card.green .stat-value {
+            color: #15803d;
+        }
+
+        .stat-card.orange .stat-value {
+            color: #c2410c;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: #5a7d6f;
+            background-color: rgba(90, 125, 111, 0.05);
+        }
+
+        .upload-icon {
+            width: 32px;
+            height: 32px;
+            color: #9ca3af;
+            margin: 0 auto 8px;
+        }
+
+        .upload-title {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .upload-subtitle {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        /* History Card */
+        .history-card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .history-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .history-type {
+            color: #111827;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 12px;
+        }
+
+        .status-badge.approved {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-badge.pending {
+            background-color: #fed7aa;
+            color: #c2410c;
+        }
+
+        .status-badge.rejected {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .history-date {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .history-duration {
+            color: #5a7d6f;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .history-reason {
+            background-color: #f9fafb;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .reason-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .reason-text {
+            font-size: 14px;
+            color: #111827;
+        }
+
+        .history-submitted {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 8px;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: linear-gradient(135deg, #5a7d6f, #4a6d5f);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        .profile-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .profile-avatar {
+            width: 64px;
+            height: 64px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .profile-position {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .profile-id {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+        }
+
+        /* Settings List */
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .settings-section-title {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            padding: 0 8px;
+        }
+
+        .settings-list {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item:hover {
+            background-color: #f9fafb;
+        }
+
+        .settings-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #f3f4f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-item-content {
+            flex: 1;
+        }
+
+        .settings-item-label {
+            color: #111827;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .settings-item-subtitle {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background-color: #d1d5db;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .toggle-switch.active {
+            background-color: #5a7d6f;
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle-switch.active .toggle-thumb {
+            transform: translateX(24px);
+        }
+
+        /* Logout Button */
+        .logout-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px;
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: #fee2e2;
+        }
+
+        /* Chart/Graph */
+        .chart-container {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 160px;
+            margin-bottom: 16px;
+        }
+
+        .chart-bar-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            height: 100%;
+        }
+
+        .chart-bar-stack {
+            width: 100%;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .chart-bar {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .chart-bar.present {
+            background-color: #5a7d6f;
+        }
+
+        .chart-bar.late {
+            background-color: #fb923c;
+        }
+
+        .chart-bar.absent {
+            background-color: #f87171;
+        }
+
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Score Circle */
+        .score-section {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .score-title {
+            color: #111827;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .score-circle-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .score-circle {
+            position: relative;
+            width: 128px;
+            height: 128px;
+        }
+
+        .score-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-value-wrapper {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-percentage {
+            font-size: 30px;
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .score-rating {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .score-description {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* Work Hours Card */
+        .work-hours-card {
+            background: linear-gradient(135deg, #5a7d6f, #4a6d5f);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        .work-hours-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .work-hours-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .work-hours-period {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .work-hours-value {
+            font-size: 36px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .work-hours-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Trend Indicator */
+        .trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        .trend.positive {
+            color: #22c55e;
+        }
+
+        .trend.negative {
+            color: #ef4444;
+        }
+
+        /* Duration Badge */
+        .duration-badge {
+            background-color: rgba(90, 125, 111, 0.1);
+            color: #5a7d6f;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 448px) {
+            .app-container {
+                box-shadow: none;
+            }
+        }
+
+        /* SVG Icons */
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
+
+        .icon-lg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Employee Info Card */
+        .employee-info-card {
+            background: linear-gradient(135deg, #5a7d6f, #4a6d5f);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        .employee-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .employee-info-item {
+            margin-bottom: 0;
+        }
+
+        .employee-info-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 4px;
+        }
+
+        .employee-info-value {
+            font-size: 14px;
+            color: white;
+        }
+
+        /* File Attachment */
+        .file-attachment {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(90, 125, 111, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            color: #111827;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .file-type {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .file-remove {
+            padding: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .file-remove:hover {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- HOME PAGE -->
+        <div id="home" class="page active">
+            <div class="header">
+                <div>
+                    <p class="greeting">Good Morning,</p>
+                    <h1 class="username">Akhmad Maariz</h1>
+                </div>
+                <button class="icon-button">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="location-badge">
+                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span>West Jakarta, Indonesia</span>
+            </div>
+            <p class="date-text">Thursday, 23 November 2023</p>
+
+            <!-- Check In/Out Section -->
+            <div class="check-section">
+                <div class="current-time-section">
+                    <p class="current-time-label">Current Time</p>
+                    <p class="current-time" id="currentTime">14:30</p>
+                </div>
+                
+                <div class="check-buttons">
+                    <button class="check-button" id="checkInBtn" onclick="openCheckInModal()">
+                        <svg class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Check In</span>
+                        <span class="check-time" id="checkInTime">07:58</span>
+                    </button>
+                    
+                    <button class="check-button outline" id="checkOutBtn" onclick="openCheckOutModal()">
+                        <svg class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Check Out</span>
+                        <span class="check-time" id="checkOutTime">--:--</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <svg class="card-icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="card-label">Check In</span>
+                    </div>
+                    <p class="card-value">07:58</p>
+                    <p class="card-subtitle">On Time</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <svg class="card-icon" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="card-label">Check Out</span>
+                    </div>
+                    <p class="card-value" style="color: #9ca3af;">--:--</p>
+                    <p class="card-subtitle">Not checked out</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <svg class="card-icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="card-label">Absence</span>
+                    </div>
+                    <p class="card-value">3</p>
+                    <p class="card-subtitle">Day</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <svg class="card-icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="card-label">Total Attended</span>
+                    </div>
+                    <p class="card-value">15</p>
+                    <p class="card-subtitle">Day</p>
+                </div>
+            </div>
+
+            <!-- Attendance History -->
+            <div class="section-header">
+                <h2 class="section-title">Attendance History</h2>
+                <button class="see-more-btn" onclick="navigateTo('attendance')">See More</button>
+            </div>
+
+            <div class="attendance-cards">
+                <div class="attendance-card">
+                    <div class="attendance-card-content">
+                        <div class="attendance-date">
+                            <div class="attendance-date-number">22</div>
+                            <div class="attendance-date-day">Wed</div>
+                        </div>
+                        <div class="attendance-details">
+                            <div class="attendance-times">
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check In</div>
+                                    <div>07:57</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check out</div>
+                                    <div>17:00</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Total Hours</div>
+                                    <div>08:03</div>
+                                </div>
+                            </div>
+                            <div class="attendance-location">
+                                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                                <span>Office, West Jakarta, Indonesia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attendance-card">
+                    <div class="attendance-card-content">
+                        <div class="attendance-date">
+                            <div class="attendance-date-number">21</div>
+                            <div class="attendance-date-day">Tue</div>
+                        </div>
+                        <div class="attendance-details">
+                            <div class="attendance-times">
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check In</div>
+                                    <div>08:03</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check out</div>
+                                    <div>17:08</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Total Hours</div>
+                                    <div>08:05</div>
+                                </div>
+                            </div>
+                            <div class="attendance-location">
+                                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                                <span>Office, West Jakarta, Indonesia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attendance-card">
+                    <div class="attendance-card-content">
+                        <div class="attendance-date">
+                            <div class="attendance-date-number">20</div>
+                            <div class="attendance-date-day">Mon</div>
+                        </div>
+                        <div class="attendance-details">
+                            <div class="attendance-times">
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check In</div>
+                                    <div>07:59</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check out</div>
+                                    <div>17:00</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Total Hours</div>
+                                    <div>08:01</div>
+                                </div>
+                            </div>
+                            <div class="attendance-location">
+                                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                                <span>Office, West Jakarta, Indonesia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ANALYTICS PAGE -->
+        <div id="analytics" class="page">
+            <div class="header-title">
+                <button class="icon-button" onclick="navigateTo('home')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h1 class="page-title">Analytics</h1>
+                <div style="width: 36px;"></div>
+            </div>
+
+            <!-- Period Selector -->
+            <div class="chip-group">
+                <button class="chip active">This Month</button>
+                <button class="chip">Last Month</button>
+                <button class="chip">This Year</button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-label">Total Days</span>
+                        <svg class="card-icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="card-value">23</p>
+                    <div class="trend positive">
+                        <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        <span>+5% from last month</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-label">Present</span>
+                        <svg class="card-icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="card-value">20</p>
+                    <div class="trend positive">
+                        <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        <span>+3% from last month</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-label">Late</span>
+                        <svg class="card-icon" fill="none" stroke="#fb923c" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="card-value">2</p>
+                    <div class="trend negative">
+                        <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                        </svg>
+                        <span>-1% from last month</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-label">Absent</span>
+                        <svg class="card-icon" fill="none" stroke="#ef4444" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="card-value">1</p>
+                    <div class="trend positive">
+                        <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        <span>Same as last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Hours -->
+            <div class="work-hours-card">
+                <div class="work-hours-header">
+                    <h3 class="work-hours-title">Average Work Hours</h3>
+                    <span class="work-hours-period">Nov 2023</span>
+                </div>
+                <div class="work-hours-value">8.2</div>
+                <p class="work-hours-label">hours per day</p>
+            </div>
+
+            <!-- Monthly Chart -->
+            <div style="margin-bottom: 24px;">
+                <h3 class="section-title" style="margin-bottom: 16px;">Monthly Overview</h3>
+                <div class="chart-container">
+                    <div class="chart-bars">
+                        <div class="chart-bar-wrapper">
+                            <div class="chart-bar-stack">
+                                <div class="chart-bar present" style="height: 87%;"></div>
+                                <div class="chart-bar late" style="height: 8%;"></div>
+                                <div class="chart-bar absent" style="height: 4%;"></div>
+                            </div>
+                        </div>
+                        <div class="chart-bar-wrapper">
+                            <div class="chart-bar-stack">
+                                <div class="chart-bar present" style="height: 78%;"></div>
+                                <div class="chart-bar late" style="height: 13%;"></div>
+                                <div class="chart-bar absent" style="height: 8%;"></div>
+                            </div>
+                        </div>
+                        <div class="chart-bar-wrapper">
+                            <div class="chart-bar-stack">
+                                <div class="chart-bar present" style="height: 95%;"></div>
+                                <div class="chart-bar late" style="height: 4%;"></div>
+                                <div class="chart-bar absent" style="height: 0%;"></div>
+                            </div>
+                        </div>
+                        <div class="chart-bar-wrapper">
+                            <div class="chart-bar-stack">
+                                <div class="chart-bar present" style="height: 82%;"></div>
+                                <div class="chart-bar late" style="height: 8%;"></div>
+                                <div class="chart-bar absent" style="height: 8%;"></div>
+                            </div>
+                        </div>
+                        <div class="chart-bar-wrapper">
+                            <div class="chart-bar-stack">
+                                <div class="chart-bar present" style="height: 91%;"></div>
+                                <div class="chart-bar late" style="height: 4%;"></div>
+                                <div class="chart-bar absent" style="height: 4%;"></div>
+                            </div>
+                        </div>
+                        <div class="chart-bar-wrapper">
+                            <div class="chart-bar-stack">
+                                <div class="chart-bar present" style="height: 87%;"></div>
+                                <div class="chart-bar late" style="height: 8%;"></div>
+                                <div class="chart-bar absent" style="height: 4%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-labels">
+                        <span>Jan</span>
+                        <span>Feb</span>
+                        <span>Mar</span>
+                        <span>Apr</span>
+                        <span>May</span>
+                        <span>Jun</span>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color present"></div>
+                            <span class="legend-label">Present</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color late"></div>
+                            <span class="legend-label">Late</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color absent"></div>
+                            <span class="legend-label">Absent</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Score -->
+            <div class="score-section">
+                <h3 class="score-title">Attendance Score</h3>
+                <div class="score-circle-wrapper">
+                    <div class="score-circle">
+                        <svg width="128" height="128">
+                            <circle cx="64" cy="64" r="56" fill="none" stroke="#e5e7eb" stroke-width="12"></circle>
+                            <circle cx="64" cy="64" r="56" fill="none" stroke="#5a7d6f" stroke-width="12" 
+                                    stroke-dasharray="352" stroke-dashoffset="46" stroke-linecap="round"></circle>
+                        </svg>
+                        <div class="score-value-wrapper">
+                            <span class="score-percentage">87%</span>
+                            <span class="score-rating">Excellent</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="score-description">
+                    Your attendance is better than 78% of employees
+                </p>
+            </div>
+        </div>
+
+        <!-- ATTENDANCE HISTORY PAGE -->
+        <div id="attendance" class="page">
+            <div class="header-title">
+                <button class="icon-button" onclick="navigateTo('home')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h1 class="page-title">Attendance History</h1>
+                <div style="width: 36px;"></div>
+            </div>
+
+            <!-- Month Selector -->
+            <div class="calendar-header">
+                <button class="calendar-nav-btn">
+                    <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h2 class="calendar-month">November 2023</h2>
+                <button class="calendar-nav-btn">
+                    <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Calendar -->
+            <div style="margin-bottom: 24px;">
+                <div class="calendar-grid">
+                    <div class="calendar-day-header">Sun</div>
+                    <div class="calendar-day-header">Mon</div>
+                    <div class="calendar-day-header">Tue</div>
+                    <div class="calendar-day-header">Wed</div>
+                    <div class="calendar-day-header">Thu</div>
+                    <div class="calendar-day-header">Fri</div>
+                    <div class="calendar-day-header">Sat</div>
+                    
+                    <button class="calendar-day inactive">29</button>
+                    <button class="calendar-day inactive">30</button>
+                    <button class="calendar-day inactive">31</button>
+                    <button class="calendar-day">1</button>
+                    <button class="calendar-day">2</button>
+                    <button class="calendar-day">3</button>
+                    <button class="calendar-day">4</button>
+                    <button class="calendar-day">5</button>
+                    <button class="calendar-day">6</button>
+                    <button class="calendar-day">7</button>
+                    <button class="calendar-day">8</button>
+                    <button class="calendar-day">9</button>
+                    <button class="calendar-day">10</button>
+                    <button class="calendar-day">11</button>
+                    <button class="calendar-day">12</button>
+                    <button class="calendar-day has-event">13</button>
+                    <button class="calendar-day has-event">14</button>
+                    <button class="calendar-day has-event">15</button>
+                    <button class="calendar-day has-event">16</button>
+                    <button class="calendar-day">17</button>
+                    <button class="calendar-day">18</button>
+                    <button class="calendar-day">19</button>
+                    <button class="calendar-day has-event">20</button>
+                    <button class="calendar-day has-event">21</button>
+                    <button class="calendar-day has-event">22</button>
+                    <button class="calendar-day active">23</button>
+                    <button class="calendar-day">24</button>
+                    <button class="calendar-day">25</button>
+                    <button class="calendar-day">26</button>
+                    <button class="calendar-day">27</button>
+                    <button class="calendar-day">28</button>
+                    <button class="calendar-day">29</button>
+                    <button class="calendar-day">30</button>
+                    <button class="calendar-day inactive">1</button>
+                    <button class="calendar-day inactive">2</button>
+                </div>
+            </div>
+
+            <!-- Your Attendance -->
+            <h3 class="section-title" style="margin-bottom: 16px;">Your Attendance</h3>
+
+            <div class="attendance-cards">
+                <div class="attendance-card">
+                    <div class="attendance-card-content">
+                        <div class="attendance-date">
+                            <div class="attendance-date-number">23</div>
+                            <div class="attendance-date-day">Thu</div>
+                        </div>
+                        <div class="attendance-details">
+                            <div class="attendance-times">
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check In</div>
+                                    <div>07:58</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check out</div>
+                                    <div>-</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Total Hours</div>
+                                    <div>-</div>
+                                </div>
+                            </div>
+                            <div class="attendance-location">
+                                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                                <span>Office, West Jakarta, Indonesia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attendance-card">
+                    <div class="attendance-card-content">
+                        <div class="attendance-date">
+                            <div class="attendance-date-number">22</div>
+                            <div class="attendance-date-day">Wed</div>
+                        </div>
+                        <div class="attendance-details">
+                            <div class="attendance-times">
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check In</div>
+                                    <div>07:57</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check out</div>
+                                    <div>17:00</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Total Hours</div>
+                                    <div>08:03</div>
+                                </div>
+                            </div>
+                            <div class="attendance-location">
+                                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                                <span>Office, West Jakarta, Indonesia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attendance-card">
+                    <div class="attendance-card-content">
+                        <div class="attendance-date">
+                            <div class="attendance-date-number">21</div>
+                            <div class="attendance-date-day">Tue</div>
+                        </div>
+                        <div class="attendance-details">
+                            <div class="attendance-times">
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check In</div>
+                                    <div>08:03</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Check out</div>
+                                    <div>17:08</div>
+                                </div>
+                                <div class="attendance-time">
+                                    <div class="attendance-time-label">Total Hours</div>
+                                    <div>08:06</div>
+                                </div>
+                            </div>
+                            <div class="attendance-location">
+                                <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                </svg>
+                                <span>Office, West Jakarta, Indonesia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABSENCE REQUEST PAGE -->
+        <div id="absence" class="page">
+            <div class="header-title">
+                <button class="icon-button" onclick="navigateTo('home')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h1 class="page-title">Absence Request</h1>
+                <div style="width: 36px;"></div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchAbsenceTab('request')">New Request</button>
+                <button class="tab" onclick="switchAbsenceTab('history')">History</button>
+            </div>
+
+            <!-- Request Tab -->
+            <div id="absenceRequestTab">
+                <!-- Employee Info -->
+                <div class="employee-info-card">
+                    <div class="employee-info-grid">
+                        <div class="employee-info-item">
+                            <p class="employee-info-label">Employee Name</p>
+                            <p class="employee-info-value">Akhmad Maariz</p>
+                        </div>
+                        <div class="employee-info-item">
+                            <p class="employee-info-label">Employee ID</p>
+                            <p class="employee-info-value">2023988231</p>
+                        </div>
+                        <div class="employee-info-item">
+                            <p class="employee-info-label">Position</p>
+                            <p class="employee-info-value">UI/UX Designer</p>
+                        </div>
+                        <div class="employee-info-item">
+                            <p class="employee-info-label">Department</p>
+                            <p class="employee-info-value">Design Team</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Type Selection -->
+                <div class="form-group">
+                    <label class="form-label">Type of Absence</label>
+                    <div class="type-grid">
+                        <button class="type-button active">
+                            <div class="type-icon">🤒</div>
+                            <div class="type-label">Sick Leave</div>
+                        </button>
+                        <button class="type-button">
+                            <div class="type-icon">👤</div>
+                            <div class="type-label">Personal Leave</div>
+                        </button>
+                        <button class="type-button">
+                            <div class="type-icon">🚨</div>
+                            <div class="type-label">Emergency</div>
+                        </button>
+                        <button class="type-button">
+                            <div class="type-icon">📋</div>
+                            <div class="type-label">Other</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Duration -->
+                <div class="form-group">
+                    <label class="form-label">Duration</label>
+                    <div class="cards-grid">
+                        <div class="input-group">
+                            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <input type="date" value="2023-11-27">
+                        </div>
+                        <div class="input-group">
+                            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <input type="date" value="2023-11-30">
+                        </div>
+                    </div>
+                    <div class="duration-badge">
+                        Total Duration: 4 Day(s)
+                    </div>
+                </div>
+
+                <!-- Reason -->
+                <div class="form-group">
+                    <label class="form-label">Reason for Absence</label>
+                    <textarea rows="4" placeholder="Please describe the reason for your absence..."></textarea>
+                </div>
+
+                <!-- Attachment -->
+                <div class="form-group">
+                    <label class="form-label">Attachment (Optional)</label>
+                    <div class="upload-area">
+                        <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        <p class="upload-title">Upload Document</p>
+                        <p class="upload-subtitle">Medical certificate, doctor's note, etc.</p>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button class="btn btn-primary btn-full">Submit Request</button>
+            </div>
+
+            <!-- History Tab -->
+            <div id="absenceHistoryTab" style="display: none;">
+                <!-- Summary -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p class="stat-label">Total</p>
+                        <p class="stat-value">7</p>
+                    </div>
+                    <div class="stat-card green">
+                        <p class="stat-label">Approved</p>
+                        <p class="stat-value">6</p>
+                    </div>
+                    <div class="stat-card orange">
+                        <p class="stat-label">Pending</p>
+                        <p class="stat-value">1</p>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="chip-group">
+                    <button class="chip active">All</button>
+                    <button class="chip">Sick Leave</button>
+                    <button class="chip">Personal</button>
+                    <button class="chip">Emergency</button>
+                </div>
+
+                <!-- History List -->
+                <div>
+                    <div class="history-card">
+                        <div class="history-header">
+                            <div class="history-title">
+                                <h4 class="history-type">Sick Leave</h4>
+                                <span class="status-badge approved">Approved</span>
+                            </div>
+                            <div class="history-duration">3 Days</div>
+                        </div>
+                        <p class="history-date">15-17 Nov 2023</p>
+                        <div class="history-reason">
+                            <p class="reason-label">Reason:</p>
+                            <p class="reason-text">Flu and fever</p>
+                        </div>
+                        <p class="history-submitted">Submitted: 14 Nov 2023</p>
+                    </div>
+
+                    <div class="history-card">
+                        <div class="history-header">
+                            <div class="history-title">
+                                <h4 class="history-type">Personal Leave</h4>
+                                <span class="status-badge approved">Approved</span>
+                            </div>
+                            <div class="history-duration">1 Day</div>
+                        </div>
+                        <p class="history-date">08 Nov 2023</p>
+                        <div class="history-reason">
+                            <p class="reason-label">Reason:</p>
+                            <p class="reason-text">Family matters</p>
+                        </div>
+                        <p class="history-submitted">Submitted: 06 Nov 2023</p>
+                    </div>
+
+                    <div class="history-card">
+                        <div class="history-header">
+                            <div class="history-title">
+                                <h4 class="history-type">Sick Leave</h4>
+                                <span class="status-badge approved">Approved</span>
+                            </div>
+                            <div class="history-duration">2 Days</div>
+                        </div>
+                        <p class="history-date">25 Oct 2023</p>
+                        <div class="history-reason">
+                            <p class="reason-label">Reason:</p>
+                            <p class="reason-text">Medical check-up</p>
+                        </div>
+                        <p class="history-submitted">Submitted: 24 Oct 2023</p>
+                    </div>
+
+                    <div class="history-card">
+                        <div class="history-header">
+                            <div class="history-title">
+                                <h4 class="history-type">Emergency Leave</h4>
+                                <span class="status-badge pending">Pending</span>
+                            </div>
+                            <div class="history-duration">1 Day</div>
+                        </div>
+                        <p class="history-date">10 Oct 2023</p>
+                        <div class="history-reason">
+                            <p class="reason-label">Reason:</p>
+                            <p class="reason-text">Emergency situation</p>
+                        </div>
+                        <p class="history-submitted">Submitted: 10 Oct 2023</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEAVE REQUEST PAGE -->
+        <div id="leave" class="page">
+            <div class="header-title">
+                <button class="icon-button" onclick="navigateTo('home')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h1 class="page-title">Leave</h1>
+                <div style="width: 36px;"></div>
+            </div>
+
+            <!-- Employee Info -->
+            <div class="employee-info">
+                <div class="info-item">
+                    <p class="info-label">Employee Name</p>
+                    <p class="info-value">Akhmad Maariz</p>
+                </div>
+                <div class="info-item">
+                    <p class="info-label">Employee ID</p>
+                    <p class="info-value">2023988231</p>
+                </div>
+                <div class="info-item">
+                    <p class="info-label">Job Position</p>
+                    <p class="info-value">UI/UX Designer</p>
+                </div>
+                <div class="info-item">
+                    <p class="info-label">Type</p>
+                    <p class="info-value">Full Time</p>
+                </div>
+            </div>
+
+            <!-- Leave Type Selector -->
+            <div class="cards-grid">
+                <button class="type-button active" style="padding: 20px;">
+                    <div style="font-size: 20px; margin-bottom: 4px;">12 Day</div>
+                    <div class="type-label" style="font-size: 12px; opacity: 0.7;">Available Leave</div>
+                </button>
+                <button class="type-button" style="padding: 20px;">
+                    <div style="font-size: 20px; margin-bottom: 4px;">8 Day</div>
+                    <div class="type-label" style="font-size: 12px; opacity: 0.7;">Used Leave</div>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active">Leave Request</button>
+                <button class="tab">Leave History</button>
+            </div>
+
+            <!-- Duration -->
+            <div class="form-group">
+                <label class="form-label">Duration</label>
+                <div class="cards-grid">
+                    <div class="input-group">
+                        <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <input type="text" value="27/11/2023" readonly>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 14px;">
+                        to
+                    </div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <div class="input-group">
+                        <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <input type="text" value="30/11/2023" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Types of Leave -->
+            <div class="form-group">
+                <label class="form-label">Types of leave</label>
+                <div class="input-group">
+                    <select>
+                        <option>Annual Leave</option>
+                        <option>Sick Leave</option>
+                        <option>Personal Leave</option>
+                        <option>Emergency Leave</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Reason -->
+            <div class="form-group">
+                <label class="form-label">Reason (Optional)</label>
+                <textarea rows="4" placeholder="Write description here..."></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button class="btn btn-primary btn-full">Submit Request</button>
+        </div>
+
+        <!-- SETTINGS PAGE -->
+        <div id="settings" class="page">
+            <div class="header-title">
+                <button class="icon-button" onclick="navigateTo('home')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h1 class="page-title">Settings</h1>
+                <div style="width: 36px;"></div>
+            </div>
+
+            <!-- Profile Card -->
+            <div class="profile-card">
+                <div class="profile-content">
+                    <div class="profile-avatar">
+                        <svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-name">Akhmad Maariz</div>
+                        <div class="profile-position">UI/UX Designer</div>
+                        <div class="profile-id">ID: 2023988231</div>
+                    </div>
+                    <button class="icon-button">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Account Settings -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Account</h3>
+                <div class="settings-list">
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                        <div class="settings-item-content">
+                            <p class="settings-item-label">Profile Settings</p>
+                        </div>
+                        <svg class="icon" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </div>
+                        <div class="settings-item-content">
+                            <p class="settings-item-label">Privacy & Security</p>
+                        </div>
+                        <svg class="icon" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                        </div>
+                        <div class="settings-item-content">
+                            <p class="settings-item-label">Notifications</p>
+                        </div>
+                        <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                            <div class="toggle-thumb"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Preferences</h3>
+                <div class="settings-list">
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                            </svg>
+                        </div>
+                        <div class="settings-item-content">
+                            <p class="settings-item-label">Language</p>
+                            <p class="settings-item-subtitle">English</p>
+                        </div>
+                        <svg class="icon" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                            </svg>
+                        </div>
+                        <div class="settings-item-content">
+                            <p class="settings-item-label">Dark Mode</p>
+                        </div>
+                        <div class="toggle-switch" onclick="toggleSwitch(this)">
+                            <div class="toggle-thumb"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Support</h3>
+                <div class="settings-list">
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="settings-item-content">
+                            <p class="settings-item-label">Help Center</p>
+                        </div>
+                        <svg class="icon" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="settings-item-content">
+                            <p class="settings-item-label">About App</p>
+                            <p class="settings-item-subtitle">Version 1.0.0</p>
+                        </div>
+                        <svg class="icon" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logout Button -->
+            <button class="logout-btn">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                <span>Logout</span>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="navigation">
+            <div class="nav-items">
+                <button class="nav-item active" onclick="navigateTo('home')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span class="nav-label">Home</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('analytics')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <span class="nav-label">Analytics</span>
+                </button>
+                <button class="nav-item special" onclick="navigateTo('attendance')">
+                    <div class="nav-icon-circle">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <span class="nav-label">Attendance</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('absence')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span class="nav-label">Absence</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('leave')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span class="nav-label">Leave</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('settings')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span class="nav-label">Settings</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Check In Modal -->
+        <div id="checkInModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-handle"></div>
+                <h2 class="modal-title">Check In</h2>
+                
+                <div class="modal-info">
+                    <div class="modal-info-item">
+                        <div class="modal-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="modal-info-text">
+                            <p class="modal-info-label">Time</p>
+                            <p class="modal-info-value" id="modalCheckInTime">14:30:00</p>
+                        </div>
+                    </div>
+                    <div class="modal-info-item">
+                        <div class="modal-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="modal-info-text">
+                            <p class="modal-info-label">Location</p>
+                            <p class="modal-info-value">West Jakarta, Indonesia</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="camera-upload">
+                    <svg class="camera-icon" fill="none" stroke="#9ca3af" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 4px;">Take a selfie</p>
+                    <p style="color: #9ca3af; font-size: 12px;">Optional verification</p>
+                </div>
+
+                <textarea placeholder="Add note (optional)..."></textarea>
+
+                <div class="modal-buttons">
+                    <button class="btn btn-secondary" onclick="closeCheckInModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="confirmCheckIn()">Confirm Check In</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check Out Modal -->
+        <div id="checkOutModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-handle"></div>
+                <h2 class="modal-title">Check Out</h2>
+                
+                <div class="modal-info">
+                    <div class="modal-info-item">
+                        <div class="modal-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="modal-info-text">
+                            <p class="modal-info-label">Time</p>
+                            <p class="modal-info-value" id="modalCheckOutTime">17:00:00</p>
+                        </div>
+                    </div>
+                    <div class="modal-info-item">
+                        <div class="modal-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="modal-info-text">
+                            <p class="modal-info-label">Checked In At</p>
+                            <p class="modal-info-value">07:58</p>
+                        </div>
+                    </div>
+                    <div class="modal-info-item">
+                        <div class="modal-icon">
+                            <svg class="icon" fill="none" stroke="#5a7d6f" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="modal-info-text">
+                            <p class="modal-info-label">Location</p>
+                            <p class="modal-info-value">West Jakarta, Indonesia</p>
+                        </div>
+                    </div>
+                </div>
+
+                <textarea placeholder="Add note about your work today (optional)..."></textarea>
+
+                <div class="modal-buttons">
+                    <button class="btn btn-secondary" onclick="closeCheckOutModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="confirmCheckOut()">Confirm Check Out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const time = `${hours}:${minutes}`;
+            const fullTime = `${hours}:${minutes}:${seconds}`;
+            
+            const currentTimeEl = document.getElementById('currentTime');
+            if (currentTimeEl) currentTimeEl.textContent = time;
+            
+            const modalCheckInTime = document.getElementById('modalCheckInTime');
+            if (modalCheckInTime) modalCheckInTime.textContent = fullTime;
+            
+            const modalCheckOutTime = document.getElementById('modalCheckOutTime');
+            if (modalCheckOutTime) modalCheckOutTime.textContent = fullTime;
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Navigation
+        function navigateTo(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update navigation active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+        }
+
+        // Check In Modal
+        function openCheckInModal() {
+            document.getElementById('checkInModal').classList.add('active');
+        }
+
+        function closeCheckInModal() {
+            document.getElementById('checkInModal').classList.remove('active');
+        }
+
+        function confirmCheckIn() {
+            const now = new Date();
+            const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            document.getElementById('checkInTime').textContent = time;
+            document.getElementById('checkInBtn').disabled = true;
+            document.getElementById('checkOutBtn').disabled = false;
+            closeCheckInModal();
+            alert('Check In successful!');
+        }
+
+        // Check Out Modal
+        function openCheckOutModal() {
+            document.getElementById('checkOutModal').classList.add('active');
+        }
+
+        function closeCheckOutModal() {
+            document.getElementById('checkOutModal').classList.remove('active');
+        }
+
+        function confirmCheckOut() {
+            const now = new Date();
+            const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            document.getElementById('checkOutTime').textContent = time;
+            document.getElementById('checkOutBtn').disabled = true;
+            closeCheckOutModal();
+            alert('Check Out successful!');
+        }
+
+        // Close modal when clicking overlay
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // Toggle Switch
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+
+        // Absence Tab Switching
+        function switchAbsenceTab(tab) {
+            const tabs = document.querySelectorAll('#absence .tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (tab === 'request') {
+                document.getElementById('absenceRequestTab').style.display = 'block';
+                document.getElementById('absenceHistoryTab').style.display = 'none';
+            } else {
+                document.getElementById('absenceRequestTab').style.display = 'none';
+                document.getElementById('absenceHistoryTab').style.display = 'block';
+            }
+        }
+
+        // Type Button Selection
+        document.querySelectorAll('.type-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active from siblings
+                const parent = this.parentElement;
+                parent.querySelectorAll('.type-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // Add active to clicked
+                this.classList.add('active');
+            });
+        });
+
+        // Chip Selection
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                // Remove active from siblings
+                const parent = this.parentElement;
+                parent.querySelectorAll('.chip').forEach(c => {
+                    c.classList.remove('active');
+                });
+                // Add active to clicked
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
