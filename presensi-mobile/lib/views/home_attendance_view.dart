@@ -10,6 +10,7 @@ import '../core/services/permit_service.dart';
 import '../core/services/cepu_service.dart';
 import '../core/services/auth_service.dart';
 import '../core/services/notification_service.dart';
+import '../core/utils/custom_toast.dart';
 import 'login_view.dart';
 import 'record_permit_map_view.dart';
 import 'cepu_map_report_view.dart';
@@ -34,6 +35,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
   PermitModel? _activePermit;
   CepuModel? _activeCepuForMe;
   bool _isLoading = true;
+  int _currentNavIndex = 0;
 
   StreamSubscription? _cepuNotifSub;
   final Set<String> _seenNotifIds = {};
@@ -82,12 +84,10 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     }
   }
 
-  /// Poin 11: Real-time broadcast notification untuk seluruh user ketika ada laporan Cepu baru
   void _listenToNewCepuNotifications() {
     bool isFirstFetch = true;
     _cepuNotifSub = NotificationService.streamRecentCepuNotifications().listen((snapshot) {
       if (isFirstFetch) {
-        // Tandai laporan yang sudah ada agar tidak spam saat pertama kali app dibuka
         for (final doc in snapshot.docs) {
           _seenNotifIds.add(doc.id);
         }
@@ -119,12 +119,39 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
   }
 
   Future<void> _handleLogout() async {
-    await _authService.logout();
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginView()),
-      );
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        title: const Text("Konfirmasi Keluar", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5)),
+        content: const Text("Apakah Anda yakin ingin keluar dari aplikasi Waigama?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("Batal", style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: const Text("Keluar", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _authService.logout();
+      if (mounted) {
+        AppToast.showInfo(context, "Sampai jumpa kembali!", title: "Berhasil Keluar");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginView()),
+        );
+      }
     }
   }
 
@@ -172,6 +199,78 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     );
   }
 
+  void _showProfileDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        contentPadding: const EdgeInsets.all(22),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0F2F1),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFF26A69A), width: 2),
+              ),
+              padding: const EdgeInsets.all(10),
+              child: Image.asset('assets/images/app_logo.png', fit: BoxFit.contain),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              widget.user.name,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "@${widget.user.username}",
+              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: Color(0xFFF1F5F9)),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Status Akun", style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B))),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0F2F1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text("Pegawai Aktif", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF00796B))),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _handleLogout();
+                },
+                icon: const Icon(Icons.logout_rounded, size: 18, color: Colors.white),
+                label: const Text("Keluar Akun", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEF4444),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     String todayFormatted;
@@ -185,173 +284,167 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     final startPermitTime = hasActivePermit
         ? "${DateFormat('HH:mm').format(_activePermit!.startTime)} WIT"
         : "--:--";
-    const endPermitTime = "--:--";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      body: Stack(
-        children: [
-          // Background Header
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 250,
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF1E3A8A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: -40,
-                    right: -40,
-                    child: Container(
-                      width: 180,
-                      height: 180,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF3B82F6).withOpacity(0.18),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 20,
-                    left: -30,
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF6366F1).withOpacity(0.15),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          SafeArea(
-            child: RefreshIndicator(
+      backgroundColor: const Color(0xFFF4F6F8),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            RefreshIndicator(
               onRefresh: _loadInitialData,
+              color: const Color(0xFF26A69A),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 100),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Top Profile Bar (Poin 1: Hapus Department)
+                    // =========================================================================
+                    // 1. TOP BAR (Sesuai Screenshot: Brand + Bell Notifikasi di Kanan)
+                    // =========================================================================
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            border: Border.all(color: const Color(0xFF60A5FA), width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF3B82F6).withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                        // Brand Logo & Title
+                        Row(
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFF26A69A).withOpacity(0.3), width: 1.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF26A69A).withOpacity(0.12),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(5),
-                          child: Image.asset(
-                            'assets/images/app_logo.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.user.name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.2,
+                              padding: const EdgeInsets.all(5),
+                              child: Image.asset('assets/images/app_logo.png', fit: BoxFit.contain),
+                            ),
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                RichText(
+                                  text: const TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: "Waigama",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF26A69A),
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: "App",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFFFF7043),
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "@${widget.user.username}",
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.75),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          ],
                         ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.refresh_rounded, color: Colors.white, size: 20),
-                            onPressed: _loadInitialData,
-                            tooltip: "Perbarui Data",
-                            constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
-                            padding: EdgeInsets.zero,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
-                            onPressed: _handleLogout,
-                            tooltip: "Keluar",
-                            constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
-                            padding: EdgeInsets.zero,
-                          ),
+
+                        // Action Buttons: Notification Bell & Refresh
+                        Row(
+                          children: [
+                            _buildTopRoundButton(
+                              icon: Icons.refresh_rounded,
+                              onTap: _loadInitialData,
+                              iconColor: const Color(0xFF546E7A),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildTopRoundButton(
+                              icon: Icons.notifications_active_rounded,
+                              onTap: _navigateToDailyMonitoring,
+                              iconColor: const Color(0xFFFF7043),
+                              bgColor: const Color(0xFFFFEBEE),
+                              hasBadge: hasActivePermit || _activeCepuForMe != null,
+                            ),
+                          ],
                         ),
                       ],
                     ),
 
                     const SizedBox(height: 16),
 
-                    // Date Pill Header
-                    Center(
+                    // =========================================================================
+                    // 2. LOCATION & USER CARD (Sesuai Screenshot: Icon Bulat Teal + Address/Status)
+                    // =========================================================================
+                    InkWell(
+                      onTap: _showProfileDialog,
+                      borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withOpacity(0.2)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 14,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF93C5FD)),
-                            const SizedBox(width: 6),
-                            Text(
-                              todayFormatted,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                            // Teal Circular Location Pin Container
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF26A69A),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.location_on_rounded, color: Colors.white, size: 22),
+                            ),
+                            const SizedBox(width: 12),
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.user.name,
+                                    style: const TextStyle(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _office != null
+                                        ? "${_office!.name} • Radius ${_office!.radiusMeters.toInt()}m"
+                                        : "Kantor Utama • WIT",
+                                    style: const TextStyle(
+                                      fontSize: 11.5,
+                                      color: Color(0xFF64748B),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
+
+                            const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8), size: 24),
                           ],
                         ),
                       ),
@@ -359,84 +452,110 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
                     const SizedBox(height: 18),
 
-                    // Floating Time Card: "Mulai Izin" & "Selesai Izin"
+                    // =========================================================================
+                    // 3. HERO CAROUSEL BANNER (Sesuai Screenshot: Card Banner Ilustrasi)
+                    // =========================================================================
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+                      height: 165,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(22),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFE0F2F1), Color(0xFFB2DFDB)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F172A).withOpacity(0.06),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                            color: const Color(0xFF26A69A).withOpacity(0.12),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: Stack(
                         children: [
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    Icon(Icons.play_circle_fill_rounded, size: 15, color: Color(0xFF2563EB)),
-                                    SizedBox(width: 5),
-                                    Text(
-                                      "Mulai Izin",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF64748B),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  startPermitTime,
-                                  style: TextStyle(
-                                    fontSize: hasActivePermit ? 19 : 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: hasActivePermit ? const Color(0xFFEA580C) : const Color(0xFF1E293B),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ],
+                          // Background Organic Circles
+                          Positioned(
+                            top: -20,
+                            right: -20,
+                            child: Container(
+                              width: 140,
+                              height: 140,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withOpacity(0.35),
+                              ),
                             ),
                           ),
-                          Container(
-                            height: 40,
-                            width: 1,
-                            color: const Color(0xFFE2E8F0),
+                          Positioned(
+                            bottom: -30,
+                            left: 100,
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFF26A69A).withOpacity(0.15),
+                              ),
+                            ),
                           ),
-                          Expanded(
+
+                          // Image Illustration on Right
+                          Positioned(
+                            right: 12,
+                            bottom: 10,
+                            top: 10,
+                            child: Image.asset(
+                              'assets/images/app_logo.png',
+                              width: 130,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+
+                          // Text Content on Left
+                          Padding(
+                            padding: const EdgeInsets.all(20),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    Icon(Icons.stop_circle_rounded, size: 15, color: Color(0xFF10B981)),
-                                    SizedBox(width: 5),
-                                    Text(
-                                      "Selesai Izin",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF64748B),
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.85),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    hasActivePermit ? "IZIN AKTIF" : "SISTEM PRESENSI",
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w900,
+                                      color: hasActivePermit ? const Color(0xFFD97706) : const Color(0xFF00796B),
+                                      letterSpacing: 0.5,
                                     ),
-                                  ],
+                                  ),
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 8),
                                 const Text(
-                                  endPermitTime,
+                                  "Waigama",
                                   style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
-                                    letterSpacing: 0.5,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF004D40),
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                SizedBox(
+                                  width: 180,
+                                  child: Text(
+                                    "Wajib Isi Guna Kebaikan Bersama",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF00695C).withOpacity(0.9),
+                                      height: 1.25,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -448,19 +567,15 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
                     // POIN 7A: NOTIFIKASI PUSH / BANNER SAAT USER SEDANG IZIN
                     if (hasActivePermit) ...[
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 16),
                       InkWell(
                         onTap: _navigateToRecordPermit,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
                         child: Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFFFFBEB), Color(0xFFFEF3C7)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
+                            color: const Color(0xFFFFFBEB),
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: const Color(0xFFFCD34D), width: 1.5),
                             boxShadow: [
                               BoxShadow(
@@ -478,7 +593,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                   color: Color(0xFFF59E0B),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.directions_walk_rounded, color: Colors.white, size: 22),
+                                child: const Icon(Icons.directions_walk_rounded, color: Colors.white, size: 20),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -494,14 +609,10 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                         height: 1.3,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 3),
                                     Text(
                                       "Keperluan: ${_activePermit!.purpose}",
-                                      style: const TextStyle(
-                                        fontSize: 11.5,
-                                        color: Color(0xFF1E293B),
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                      style: const TextStyle(fontSize: 11, color: Color(0xFF1E293B)),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -517,15 +628,15 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
                     // POIN 7B & 8: NOTIFIKASI PUSH / BANNER SAAT USER DI-CEPU-KAN & SUDAH TERVERIFIKASI
                     if (_activeCepuForMe != null) ...[
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 16),
                       InkWell(
                         onTap: _navigateToCepuMapReport,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
                         child: Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFEF2F2),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: const Color(0xFFF87171), width: 1.5),
                             boxShadow: [
                               BoxShadow(
@@ -543,7 +654,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                   color: Color(0xFFDC2626),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 22),
+                                child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -578,172 +689,362 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                     ],
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 22),
 
                     // =========================================================================
-                    // 3 ACTION CARDS (POIN 2: HILANGKAN SUB JUDUL CEPU & MONITORING HARIAN)
+                    // 4. CATEGORIES / FITUR UTAMA (Sesuai Screenshot: Pastel Squircle Grid Cards)
                     // =========================================================================
-
-                    // 1. CARD 1: WAIGAMA (Sub judul: "Wajib Isi Guna Kebaikan Bersama")
-                    _buildHorizontalMenuCard(
-                      title: "Waigama",
-                      subtitle: "Wajib Isi Guna Kebaikan Bersama",
-                      icon: Icons.assignment_ind_rounded,
-                      gradientColors: hasActivePermit
-                          ? const [Color(0xFFF59E0B), Color(0xFFEA580C)]
-                          : const [Color(0xFF2563EB), Color(0xFF3B82F6), Color(0xFF60A5FA)],
-                      showActiveBadge: hasActivePermit,
-                      onTap: _navigateToRecordPermit,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Fitur Utama",
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_rounded, color: Color(0xFF64748B), size: 20),
+                      ],
                     ),
 
                     const SizedBox(height: 14),
 
-                    // 2. CARD 2: CEPU (Poin 2: Sub judul dihilangkan)
-                    _buildHorizontalMenuCard(
-                      title: "Cepu",
-                      subtitle: null,
-                      icon: Icons.campaign_rounded,
-                      gradientColors: const [Color(0xFFEA580C), Color(0xFFF97316), Color(0xFFFB923C)],
-                      showActiveBadge: false,
-                      onTap: _navigateToCepuMapReport,
-                    ),
+                    // Horizontal / Grid Row of Pastel Squircle Cards
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.between,
+                      children: [
+                        // Card 1: Waigama (Teal Squircle)
+                        _buildCategorySquircleCard(
+                          title: "Waigama",
+                          icon: Icons.assignment_ind_rounded,
+                          bgColor: const Color(0xFF26A69A),
+                          onTap: _navigateToRecordPermit,
+                          badgeText: hasActivePermit ? "Aktif" : null,
+                        ),
 
-                    const SizedBox(height: 14),
+                        // Card 2: Cepu (Sky Blue Squircle)
+                        _buildCategorySquircleCard(
+                          title: "Cepu",
+                          icon: Icons.campaign_rounded,
+                          bgColor: const Color(0xFF42A5F5),
+                          onTap: _navigateToCepuMapReport,
+                        ),
 
-                    // 3. CARD 3: MONITORING HARIAN (Poin 2: Sub judul dihilangkan)
-                    _buildHorizontalMenuCard(
-                      title: "Monitoring Harian",
-                      subtitle: null,
-                      icon: Icons.analytics_rounded,
-                      gradientColors: const [Color(0xFF0F766E), Color(0xFF0D9488), Color(0xFF14B8A6)],
-                      showActiveBadge: false,
-                      onTap: _navigateToDailyMonitoring,
+                        // Card 3: Monitoring (Purple/Pink Squircle)
+                        _buildCategorySquircleCard(
+                          title: "Monitoring",
+                          icon: Icons.analytics_rounded,
+                          bgColor: const Color(0xFFAB47BC),
+                          onTap: _navigateToDailyMonitoring,
+                        ),
+
+                        // Card 4: Profil / Akun (Violet Squircle)
+                        _buildCategorySquircleCard(
+                          title: "Profil",
+                          icon: Icons.person_rounded,
+                          bgColor: const Color(0xFF7E57C2),
+                          onTap: _showProfileDialog,
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 24),
+
+                    // =========================================================================
+                    // 5. PREVIOUS STATUS CARD (Sesuai Screenshot: "Previous Order" Card Style)
+                    // =========================================================================
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Status Presensi Hari Ini",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        Text(
+                          todayFormatted,
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: hasActivePermit ? const Color(0xFFFFF7ED) : const Color(0xFFE0F2F1),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Icon(
+                                  hasActivePermit ? Icons.directions_run_rounded : Icons.check_circle_rounded,
+                                  color: hasActivePermit ? const Color(0xFFEA580C) : const Color(0xFF00897B),
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      hasActivePermit ? "Status: Sedang di Luar (Izin)" : "Status: Standby / Di Kantor",
+                                      style: TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: hasActivePermit ? const Color(0xFFC2410C) : const Color(0xFF00796B),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      "Mulai Izin: $startPermitTime  •  Selesai: --:--",
+                                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: hasActivePermit ? const Color(0xFFFFEDD5) : const Color(0xFFE0F2F1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  hasActivePermit ? "Aktif" : "Normal",
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: hasActivePermit ? const Color(0xFFEA580C) : const Color(0xFF00796B),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-          ),
-        ],
+
+            // =========================================================================
+            // 6. BOTTOM NAVIGATION BAR (Sesuai Screenshot: Floating FAB Orange di Tengah)
+            // =========================================================================
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 78,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    // Nav 1: Home (Active Teal)
+                    IconButton(
+                      icon: const Icon(Icons.home_rounded, color: Color(0xFF26A69A), size: 26),
+                      onPressed: () {},
+                    ),
+
+                    // Nav 2: Monitoring Grid
+                    IconButton(
+                      icon: const Icon(Icons.grid_view_rounded, color: Color(0xFF94A3B8), size: 24),
+                      onPressed: _navigateToDailyMonitoring,
+                    ),
+
+                    // Center Floating Action Button (Orange Circle like screenshot!)
+                    Transform.translate(
+                      offset: const Offset(0, -18),
+                      child: InkWell(
+                        onTap: _navigateToRecordPermit,
+                        borderRadius: BorderRadius.circular(30),
+                        child: Container(
+                          width: 58,
+                          height: 58,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFF8A65), Color(0xFFFF7043)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFFF7043).withOpacity(0.4),
+                                blurRadius: 14,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.assignment_ind_rounded, color: Colors.white, size: 28),
+                        ),
+                      ),
+                    ),
+
+                    // Nav 4: Cepu / Campaign
+                    IconButton(
+                      icon: const Icon(Icons.campaign_outlined, color: Color(0xFF94A3B8), size: 26),
+                      onPressed: _navigateToCepuMapReport,
+                    ),
+
+                    // Nav 5: Profile / Logout
+                    IconButton(
+                      icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF94A3B8), size: 26),
+                      onPressed: _showProfileDialog,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHorizontalMenuCard({
-    required String title,
-    String? subtitle,
+  Widget _buildTopRoundButton({
     required IconData icon,
-    required List<Color> gradientColors,
-    bool showActiveBadge = false,
     required VoidCallback onTap,
+    Color iconColor = const Color(0xFF475569),
+    Color bgColor = Colors.white,
+    bool hasBadge = false,
+  }) {
+    return Stack(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: bgColor,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: IconButton(
+            icon: Icon(icon, color: iconColor, size: 20),
+            onPressed: onTap,
+            padding: EdgeInsets.zero,
+          ),
+        ),
+        if (hasBadge)
+          Positioned(
+            top: 4,
+            right: 4,
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCategorySquircleCard({
+    required String title,
+    required IconData icon,
+    required Color bgColor,
+    required VoidCallback onTap,
+    String? badgeText,
   }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(22),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: gradientColors,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: gradientColors.first.withOpacity(0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: subtitle != null ? 18 : 20,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withOpacity(0.35), width: 1.5),
-                ),
-                child: Icon(icon, color: Colors.white, size: 25),
-              ),
-
-              const SizedBox(width: 16),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        if (showActiveBadge) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.25),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Text(
-                              "Sedang Izin",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    if (subtitle != null && subtitle.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 11.5,
-                          height: 1.25,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: bgColor.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
                       ),
                     ],
-                  ],
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 30),
                 ),
+                if (badgeText != null)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF4444),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1E293B),
               ),
-
-              const SizedBox(width: 8),
-
-              Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
