@@ -8,6 +8,7 @@ import '../models/office_model.dart';
 import '../models/permit_model.dart';
 import '../core/services/permit_service.dart';
 import '../core/services/location_service.dart';
+import '../core/utils/custom_toast.dart';
 
 class RecordPermitMapView extends StatefulWidget {
   final UserModel user;
@@ -108,23 +109,17 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
   Future<void> _handleStartPermit() async {
     final purpose = _purposeController.text.trim();
     if (purpose.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("⚠️ Harap isi keperluan izin terlebih dahulu!"),
-          backgroundColor: Color(0xFFEF4444),
-        ),
-      );
+      AppToast.showWarning(context, "Harap isi alasan / keperluan izin terlebih dahulu!", title: "Alasan Belum Diisi");
       return;
     }
 
     if (!_isInRadius || _isMocked) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_isMocked
-              ? "⚠️ Deteksi Fake GPS aktif!"
-              : "⚠️ Anda harus berada di radius kantor untuk mulai izin!"),
-          backgroundColor: const Color(0xFFEF4444),
-        ),
+      AppToast.showError(
+        context,
+        _isMocked
+            ? "Terdeteksi Fake GPS aktif! Harap matikan aplikasi lokasi palsu."
+            : "Anda harus berada di dalam radius kantor (≤${widget.office.radiusMeters.toInt()}m) untuk merekam mulai izin!",
+        title: "Gagal Merekam",
       );
       return;
     }
@@ -139,11 +134,10 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("✅ Berhasil merekam Mulai Izin! Hati-hati di jalan."),
-            backgroundColor: Color(0xFF10B981),
-          ),
+        AppToast.showSuccess(
+          context,
+          "Berhasil merekam Mulai Izin! Hati-hati di perjalanan.",
+          title: "Izin Dimulai",
         );
         setState(() {
           _activePermit = permit;
@@ -153,12 +147,7 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: const Color(0xFFEF4444),
-          ),
-        );
+        AppToast.showError(context, e.toString(), title: "Gagal Memulai Izin");
       }
     } finally {
       if (mounted) {
@@ -171,13 +160,12 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
     if (_activePermit == null) return;
 
     if (!_isInRadius || _isMocked) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_isMocked
-              ? "⚠️ Deteksi Fake GPS aktif!"
-              : "⚠️ Anda harus sudah kembali di dalam radius kantor untuk menyelesaikan izin!"),
-          backgroundColor: const Color(0xFFEF4444),
-        ),
+      AppToast.showError(
+        context,
+        _isMocked
+            ? "Terdeteksi Fake GPS aktif! Harap matikan aplikasi lokasi palsu."
+            : "Anda harus sudah kembali di dalam radius kantor (≤${widget.office.radiusMeters.toInt()}m) untuk menyelesaikan izin!",
+        title: "Gagal Selesai Izin",
       );
       return;
     }
@@ -191,11 +179,10 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("✅ Selesai Izin! Terima kasih sudah kembali tepat waktu."),
-            backgroundColor: Color(0xFF10B981),
-          ),
+        AppToast.showSuccess(
+          context,
+          "Izin Waigama telah selesai! Terima kasih sudah kembali tepat waktu.",
+          title: "Selesai Izin",
         );
         setState(() {
           _activePermit = null;
@@ -204,12 +191,7 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: const Color(0xFFEF4444),
-          ),
-        );
+        AppToast.showError(context, e.toString(), title: "Gagal Menyelesaikan Izin");
       }
     } finally {
       if (mounted) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../core/services/auth_service.dart';
+import '../core/utils/custom_toast.dart';
 import 'home_attendance_view.dart';
 
 class ChangePasswordView extends StatefulWidget {
@@ -59,11 +60,10 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("✅ Kata sandi baru berhasil disimpan! Selamat datang."),
-            backgroundColor: Color(0xFF10B981),
-          ),
+        AppToast.showSuccess(
+          context,
+          "Kata sandi baru berhasil disimpan! Selamat datang di Waigama.",
+          title: "Kata Sandi Berhasil Diubah",
         );
 
         Navigator.pushReplacement(
@@ -77,6 +77,9 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
       setState(() {
         _errorMessage = e.toString();
       });
+      if (mounted) {
+        AppToast.showError(context, e.toString(), title: "Gagal Mengubah Kata Sandi");
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

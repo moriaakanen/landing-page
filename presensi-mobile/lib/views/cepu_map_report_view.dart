@@ -11,6 +11,7 @@ import '../models/office_model.dart';
 import '../models/cepu_model.dart';
 import '../core/services/cepu_service.dart';
 import '../core/services/location_service.dart';
+import '../core/utils/custom_toast.dart';
 
 class CepuMapReportView extends StatefulWidget {
   final UserModel reporter;
@@ -33,6 +34,8 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
   final TextEditingController _descController = TextEditingController();
 
   List<UserModel> _employees = [];
+  Set<String> _activePermitUserIds = {};
+  Set<String> _activeCepuUserIds = {};
   UserModel? _selectedTarget;
   bool _isLoadingEmployees = true;
   bool _isSubmitting = false;
@@ -72,12 +75,29 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
   Future<void> _loadEmployees() async {
     setState(() => _isLoadingEmployees = true);
     final list = await _cepuService.getEmployeesList(excludeUid: widget.reporter.uid);
+    final permitIds = await _cepuService.getActivePermitUserIdsToday();
+    final cepuIds = await _cepuService.getActiveCepuTargetUserIdsToday();
+
     if (mounted) {
       setState(() {
         _employees = list;
+        _activePermitUserIds = permitIds;
+        _activeCepuUserIds = cepuIds;
         _isLoadingEmployees = false;
       });
     }
+  }
+
+  bool _isEmpPermitted(UserModel emp) {
+    return _activePermitUserIds.contains(emp.uid) ||
+        _activePermitUserIds.contains('user_${emp.username.replaceAll('.', '_')}') ||
+        _activePermitUserIds.contains(emp.username);
+  }
+
+  bool _isEmpReported(UserModel emp) {
+    return _activeCepuUserIds.contains(emp.uid) ||
+        _activeCepuUserIds.contains('user_${emp.username.replaceAll('.', '_')}') ||
+        _activeCepuUserIds.contains(emp.username);
   }
 
   Future<void> _checkActiveCepuForMe() async {
@@ -135,13 +155,12 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     if (_activeCepuForMe == null) return;
 
     if (!_isInRadius || _isMocked) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_isMocked
-              ? "⚠️ Deteksi Fake GPS aktif!"
-              : "⚠️ Anda harus sudah berada di dalam radius kantor untuk merekam waktu kembali!"),
-          backgroundColor: const Color(0xFFEF4444),
-        ),
+      AppToast.showError(
+        context,
+        _isMocked
+            ? "Terdeteksi Fake GPS! Harap matikan aplikasi lokasi palsu."
+            : "Anda berada di luar radius kantor (${_distanceMeters.toStringAsFixed(1)}m). Waktu kembali hanya bisa direkam di dalam area kantor (≤${widget.office.radiusMeters.toInt()}m).",
+        title: "Gagal Merekam Kembali",
       );
       return;
     }
@@ -151,15 +170,15 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     try {
       await _cepuService.recordCepuReturnTime(
         cepuId: _activeCepuForMe!.id,
+        user: widget.reporter,
         office: widget.office,
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("✅ Waktu kembali Cepu berhasil direkam! Status Anda telah diperbarui."),
-            backgroundColor: Color(0xFF10B981),
-          ),
+        AppToast.showSuccess(
+          context,
+          "Waktu kembali Anda telah berhasil terekam di sistem!",
+          title: "Berhasil Kembali",
         );
         setState(() {
           _activeCepuForMe = null;
@@ -168,9 +187,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: const Color(0xFFEF4444)),
-        );
+        AppToast.showError(context, e.toString(), title: "Gagal Merekam");
       }
     } finally {
       if (mounted) {
@@ -181,32 +198,117 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final pickedFile = await _picker.pickImage(
+      final picked = await _picker.pickImage(
         source: source,
-        maxWidth: 800,
-        maxHeight: 800,
+        maxWidth: 1024,
+        maxHeight: 1024,
         imageQuality: 70,
       );
 
-      if (pickedFile != null) {
-        final bytes = await File(pickedFile.path).readAsBytes();
-        final base64String = base64Encode(bytes);
-
+      if (picked != null) {
+        final bytes = await File(picked.path).readAsBytes();
         setState(() {
-          _imageFile = File(pickedFile.path);
-          _imageBase64 = base64String;
+          _imageFile = File(picked.path);
+          _imageBase64 = base64Encode(bytes);
         });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Gagal mengambil foto: $e"), backgroundColor: const Color(0xFFEF4444)),
-        );
+        AppToast.showError(context, "Gagal mengambil foto: $e", title: "Foto Gagal");
       }
     }
   }
 
-  void _openSearchableEmployeePicker() {
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFCBD5E1),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "Ambil Dokumen Pendukung (Foto)",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEFF6FF),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF2563EB)),
+              ),
+              title: const Text("Gunakan Kamera", style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFF7ED),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.photo_library_rounded, color: Color(0xFFEA580C)),
+              ),
+              title: const Text("Pilih dari Galeri", style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickStartTime() async {
+    final now = TimeOfDay.fromDateTime(_startTime);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: now,
+      helpText: "PILIH WAKTU MULAI TIDAK BERADA DI KANTOR",
+    );
+
+    if (picked != null) {
+      final nowDt = DateTime.now();
+      setState(() {
+        _startTime = DateTime(
+          nowDt.year,
+          nowDt.month,
+          nowDt.day,
+          picked.hour,
+          picked.minute,
+        );
+      });
+    }
+  }
+
+  void _showEmployeeSelector() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -216,19 +318,22 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
           builder: (context, setModalState) {
             return DraggableScrollableSheet(
               initialChildSize: 0.75,
+              maxChildSize: 0.92,
               minChildSize: 0.4,
-              maxChildSize: 0.95,
               builder: (_, scrollController) {
                 return Container(
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, -4)),
+                    ],
                   ),
                   child: Column(
                     children: [
                       Container(
                         margin: const EdgeInsets.only(top: 12, bottom: 8),
-                        width: 40,
+                        width: 44,
                         height: 4,
                         decoration: BoxDecoration(
                           color: const Color(0xFFCBD5E1),
@@ -243,8 +348,8 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                             const Text(
                               "Pilih Pegawai Terlapor",
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 16.5,
+                                fontWeight: FontWeight.w800,
                                 color: Color(0xFF1E293B),
                               ),
                             ),
@@ -285,7 +390,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                       const SizedBox(height: 8),
                       Expanded(
                         child: _employees.isEmpty
-                            ? const Center(child: CircularProgressIndicator())
+                            ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C)))
                             : Builder(builder: (context) {
                                 final filtered = _employees.where((e) {
                                   if (_searchFilter.isEmpty) return true;
@@ -309,15 +414,24 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                                   itemBuilder: (context, idx) {
                                     final emp = filtered[idx];
                                     final isSelected = _selectedTarget?.uid == emp.uid;
+                                    final isPermitted = _isEmpPermitted(emp);
+                                    final isReported = _isEmpReported(emp);
+                                    final isDisabled = isPermitted || isReported;
+
                                     return ListTile(
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      enabled: !isDisabled,
                                       leading: CircleAvatar(
                                         radius: 20,
-                                        backgroundColor: isSelected ? const Color(0xFFEA580C) : const Color(0xFFFFEDD5),
+                                        backgroundColor: isDisabled
+                                            ? const Color(0xFFF1F5F9)
+                                            : (isSelected ? const Color(0xFFEA580C) : const Color(0xFFFFEDD5)),
                                         child: Text(
                                           emp.name.isNotEmpty ? emp.name[0].toUpperCase() : 'U',
                                           style: TextStyle(
-                                            color: isSelected ? Colors.white : const Color(0xFFEA580C),
+                                            color: isDisabled
+                                                ? const Color(0xFF94A3B8)
+                                                : (isSelected ? Colors.white : const Color(0xFFEA580C)),
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14,
                                           ),
@@ -328,18 +442,63 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                          color: isSelected ? const Color(0xFFEA580C) : const Color(0xFF1E293B),
+                                          color: isDisabled
+                                              ? const Color(0xFF94A3B8)
+                                              : (isSelected ? const Color(0xFFEA580C) : const Color(0xFF1E293B)),
                                         ),
                                       ),
-                                      trailing: isSelected
-                                          ? const Icon(Icons.check_circle_rounded, color: Color(0xFFEA580C))
-                                          : null,
-                                      onTap: () {
-                                        setState(() {
-                                          _selectedTarget = emp;
-                                        });
-                                        Navigator.pop(ctx);
-                                      },
+                                      subtitle: Text(
+                                        "@${emp.username}",
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          color: isDisabled ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                                        ),
+                                      ),
+                                      trailing: isPermitted
+                                          ? Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFEFF6FF),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: const Color(0xFFBFDBFE)),
+                                              ),
+                                              child: const Text(
+                                                "Sedang Izin",
+                                                style: TextStyle(
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF2563EB),
+                                                ),
+                                              ),
+                                            )
+                                          : (isReported
+                                              ? Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFFEF2F2),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    border: Border.all(color: const Color(0xFFFECACA)),
+                                                  ),
+                                                  child: const Text(
+                                                    "Sudah Dilaporkan",
+                                                    style: TextStyle(
+                                                      fontSize: 10.5,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Color(0xFFDC2626),
+                                                    ),
+                                                  ),
+                                                )
+                                              : (isSelected
+                                                  ? const Icon(Icons.check_circle_rounded, color: Color(0xFFEA580C))
+                                                  : null)),
+                                      onTap: isDisabled
+                                          ? null
+                                          : () {
+                                              setState(() {
+                                                _selectedTarget = emp;
+                                              });
+                                              Navigator.pop(ctx);
+                                            },
                                     );
                                   },
                                 );
@@ -358,26 +517,17 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
 
   Future<void> _handleSubmit() async {
     if (_selectedTarget == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("⚠️ Harap pilih nama pegawai yang dilaporkan!"), backgroundColor: Color(0xFFEF4444)),
-      );
+      AppToast.showWarning(context, "Harap pilih nama pegawai yang dilaporkan terlebih dahulu!", title: "Pegawai Belum Dipilih");
       return;
     }
 
     if (_descController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("⚠️ Harap tuliskan keterangan laporan!"), backgroundColor: Color(0xFFEF4444)),
-      );
+      AppToast.showWarning(context, "Harap tuliskan keterangan atau alasan laporan!", title: "Keterangan Kosong");
       return;
     }
 
     if (_imageBase64 == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("⚠️ Wajib melampirkan Dokumen Pendukung (Foto Bukti) sebelum mengirim laporan!"),
-          backgroundColor: Color(0xFFEF4444),
-        ),
-      );
+      AppToast.showWarning(context, "Wajib melampirkan Dokumen Pendukung (Foto Bukti) sebelum mengirim laporan!", title: "Foto Bukti Wajib");
       return;
     }
 
@@ -394,19 +544,16 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("✅ Laporan Cepu berhasil dikirim! Menunggu minimal 4 verifikasi rekan."),
-            backgroundColor: Color(0xFF10B981),
-          ),
+        AppToast.showSuccess(
+          context,
+          "Laporan Cepu berhasil dikirim! Menunggu minimal 4 verifikasi rekan.",
+          title: "Laporan Terkirim",
         );
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: const Color(0xFFEF4444)),
-        );
+        AppToast.showError(context, e.toString(), title: "Gagal Mengirim");
       }
     } finally {
       if (mounted) {
@@ -479,8 +626,8 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                           color: const Color(0xFFEA580C).withOpacity(0.15),
                           borderColor: const Color(0xFFEA580C),
                           borderStrokeWidth: 2,
-                          useRadiusInMeter: true,
                           radius: widget.office.radiusMeters,
+                          useRadiusInMeter: true,
                         ),
                       ],
                     ),
@@ -488,61 +635,44 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                       markers: [
                         Marker(
                           point: officeLatLng,
-                          width: 42,
-                          height: 42,
+                          width: 44,
+                          height: 44,
                           alignment: Alignment.center,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
+                              color: const Color(0xFFEA580C),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.25),
-                                  blurRadius: 8,
+                                  color: const Color(0xFFEA580C).withOpacity(0.4),
+                                  blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.business_rounded, color: Colors.white, size: 22),
+                            child: const Icon(Icons.business_rounded, color: Colors.white, size: 24),
                           ),
                         ),
                         if (_currentPosition != null)
                           Marker(
                             point: userLatLng,
-                            width: 38,
-                            height: 38,
+                            width: 36,
+                            height: 36,
                             alignment: Alignment.center,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  width: 38,
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEA580C).withOpacity(0.25),
-                                    shape: BoxShape.circle,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: _isInRadius ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 3),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.25),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
                                   ),
-                                ),
-                                Container(
-                                  width: 26,
-                                  height: 26,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEA580C),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 2.5),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Center(
-                                    child: Icon(Icons.person_rounded, color: Colors.white, size: 15),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              child: const Icon(Icons.my_location_rounded, color: Colors.white, size: 18),
                             ),
                           ),
                       ],
@@ -550,115 +680,169 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                   ],
                 ),
 
+                // Floating Map Controls
                 Positioned(
-                  top: 12,
-                  right: 12,
+                  top: 14,
+                  right: 14,
                   child: Column(
                     children: [
                       _buildFloatingMapButton(
-                        icon: Icons.apartment_rounded,
-                        tooltip: "Pusatkan ke Kantor",
-                        onTap: () => _mapController.move(officeLatLng, 17.5),
+                        icon: Icons.add_rounded,
+                        tooltip: "Zoom In",
+                        onTap: () {
+                          _mapController.move(
+                            _mapController.camera.center,
+                            _mapController.camera.zoom + 1,
+                          );
+                        },
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
+                      _buildFloatingMapButton(
+                        icon: Icons.remove_rounded,
+                        tooltip: "Zoom Out",
+                        onTap: () {
+                          _mapController.move(
+                            _mapController.camera.center,
+                            _mapController.camera.zoom - 1,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
                       _buildFloatingMapButton(
                         icon: Icons.my_location_rounded,
-                        tooltip: "Pusatkan ke Lokasi Saya",
+                        tooltip: "Posisi Saya",
                         onTap: () {
                           if (_currentPosition != null) {
                             _mapController.move(userLatLng, 18.0);
                           }
                         },
                       ),
+                      const SizedBox(height: 8),
+                      _buildFloatingMapButton(
+                        icon: Icons.business_rounded,
+                        tooltip: "Pusat Kantor",
+                        onTap: () {
+                          _mapController.move(officeLatLng, 17.5);
+                        },
+                      ),
                     ],
+                  ),
+                ),
+
+                // Top GPS Status Pill
+                Positioned(
+                  top: 14,
+                  left: 14,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 9,
+                          height: 9,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _isInRadius ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                          ),
+                        ),
+                        const SizedBox(width: 7),
+                        Text(
+                          _isLoadingLocation
+                              ? "Mencari GPS..."
+                              : (_isInRadius
+                                  ? "Di Kantor (${_distanceMeters.toStringAsFixed(0)}m)"
+                                  : "Di Luar Kantor (${_distanceMeters.toStringAsFixed(0)}m)"),
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: _isInRadius ? const Color(0xFF047857) : const Color(0xFFB91C1C),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
 
-          // 2. FORMULIR CEPU & REKAM WAKTU KEMBALI
+          // 2. FORMULIR PELAPORAN CEPU
           Expanded(
             flex: 6,
             child: Container(
+              width: double.infinity,
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                 boxShadow: [
-                  BoxShadow(
-                    color: Color(0x14000000),
-                    blurRadius: 16,
-                    offset: Offset(0, -4),
-                  ),
+                  BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, -4)),
                 ],
               ),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 36,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Jika user yang login sedang dilaporkan Cepu & sudah terverifikasi:
+                    // Banner Khusus jika user yang login dilaporkan di Cepu terverifikasi
                     if (_activeCepuForMe != null) ...[
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF2F2),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFFCA5A5), width: 1.5),
+                          border: Border.all(color: const Color(0xFFFCA5A5)),
                         ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Row(
                               children: const [
-                                Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 20),
+                                Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 22),
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     "Anda Dilaporkan Tidak di Kantor",
-                                    style: TextStyle(
-                                      color: Color(0xFF991B1B),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                    ),
+                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)),
                                   ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              "Laporan telah diverifikasi oleh ${_activeCepuForMe!.verificationCount} rekan kerja. Segera rekam waktu kembali setelah Anda berada di kantor.",
-                              style: const TextStyle(fontSize: 11.5, color: Color(0xFF7F1D1D), height: 1.3),
+                            const Text(
+                              "Laporan Cepu terhadap Anda telah terverifikasi. Segera rekam waktu kembali jika Anda sudah berada di kantor.",
+                              style: TextStyle(fontSize: 11.5, color: Color(0xFF7F1D1D), height: 1.3),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
                             SizedBox(
-                              width: double.infinity,
-                              height: 44,
+                              height: 38,
                               child: ElevatedButton.icon(
-                                onPressed: (_isInRadius && !_isMocked && !_isRecordingReturn)
-                                    ? _handleRecordReturnForMe
-                                    : null,
-                                icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                                onPressed: _isRecordingReturn ? null : _handleRecordReturnForMe,
+                                icon: const Icon(Icons.check_circle_rounded, size: 16, color: Colors.white),
                                 label: _isRecordingReturn
-                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                    : const Text("REKAM WAKTU KEMBALI SAYA", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5)),
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                      )
+                                    : const Text(
+                                        "REKAM WAKTU KEMBALI SAYA",
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                                      ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF10B981),
-                                  disabledBackgroundColor: const Color(0xFFCBD5E1),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  backgroundColor: const Color(0xFFDC2626),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
                               ),
                             ),
@@ -666,40 +850,36 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      const SizedBox(height: 14),
                     ],
 
-                    // Status Bar Ringkas
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF7ED),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFFED7AA)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.location_pin, color: Color(0xFFEA580C), size: 16),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              "Radius Kantor: ${widget.office.radiusMeters.toInt()}m  •  Jarak Anda: ${_distanceMeters.toStringAsFixed(1)}m",
-                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF9A3412)),
-                            ),
+                    // A. Pilih Nama Pegawai yang Dilaporkan
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Pegawai yang Dilaporkan",
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF7ED),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFFFEDD5)),
                           ),
-                        ],
-                      ),
+                          child: const Text(
+                            "* WAJIB DIPILIH",
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 8),
 
-                    const SizedBox(height: 14),
-
-                    // A. PILIH PEGAWAI
-                    const Text(
-                      "Pegawai yang Dilaporkan *",
-                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                    ),
-                    const SizedBox(height: 6),
                     InkWell(
-                      onTap: _openSearchableEmployeePicker,
+                      onTap: _showEmployeeSelector,
                       borderRadius: BorderRadius.circular(14),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -708,38 +888,35 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: _selectedTarget != null ? const Color(0xFFEA580C) : const Color(0xFFCBD5E1),
-                            width: _selectedTarget != null ? 1.5 : 1.0,
+                            width: 1.5,
                           ),
                         ),
                         child: Row(
                           children: [
-                            if (_selectedTarget != null)
-                              CircleAvatar(
-                                radius: 14,
-                                backgroundColor: const Color(0xFFFFEDD5),
-                                child: Text(
-                                  _selectedTarget!.name[0].toUpperCase(),
-                                  style: const TextStyle(color: Color(0xFFEA580C), fontWeight: FontWeight.bold, fontSize: 12),
-                                ),
-                              )
-                            else
-                              const Icon(Icons.person_search_rounded, color: Color(0xFF94A3B8), size: 22),
-                            const SizedBox(width: 10),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: _selectedTarget != null ? const Color(0xFFFFEDD5) : const Color(0xFFE2E8F0),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.person_rounded,
+                                color: _selectedTarget != null ? const Color(0xFFEA580C) : const Color(0xFF64748B),
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                _selectedTarget != null
-                                    ? _selectedTarget!.name
-                                    : "Pilih dan cari nama pegawai...",
+                                _selectedTarget?.name ?? "Pilih Pegawai...",
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 13.5,
                                   fontWeight: _selectedTarget != null ? FontWeight.bold : FontWeight.normal,
                                   color: _selectedTarget != null ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
+                            const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF64748B), size: 28),
                           ],
                         ),
                       ),
@@ -747,182 +924,205 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
 
                     const SizedBox(height: 14),
 
-                    // B. WAKTU TERPANTAU TIDAK DI KANTOR
+                    // B. Waktu Mulai Tidak di Kantor
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text("Waktu Mulai *", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                              const SizedBox(height: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.access_time_filled_rounded, size: 16, color: Color(0xFFEA580C)),
-                                    const SizedBox(width: 6),
-                                    Text("$startTimeStr WIT", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                        const Text(
+                          "Waktu Mulai Tidak di Kantor",
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text("Waktu Kembali", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                              const SizedBox(height: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                        InkWell(
+                          onTap: _pickStartTime,
+                          borderRadius: BorderRadius.circular(6),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            child: Row(
+                              children: const [
+                                Icon(Icons.edit_rounded, size: 12, color: Color(0xFFEA580C)),
+                                SizedBox(width: 3),
+                                Text(
+                                  "Ubah Jam",
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
                                 ),
-                                child: Row(
-                                  children: const [
-                                    Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF94A3B8)),
-                                    SizedBox(width: 6),
-                                    Text("Belum Kembali", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
-                                  ],
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 8),
 
-                    const SizedBox(height: 14),
-
-                    // C. KETERANGAN
-                    const Text(
-                      "Keterangan / Alasan Laporan *",
-                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _descController,
-                      maxLines: 2,
-                      decoration: InputDecoration(
-                        hintText: "Tuliskan keterangan detail di sini...",
-                        hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                        filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
-                        contentPadding: const EdgeInsets.all(12),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEA580C), width: 1.5)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF7ED),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFFEDD5)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.access_time_rounded, color: Color(0xFFEA580C), size: 20),
+                          const SizedBox(width: 10),
+                          Text(
+                            "$startTimeStr WIT (Hari Ini)",
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFFC2410C)),
+                          ),
+                        ],
                       ),
                     ),
 
                     const SizedBox(height: 14),
 
-                    // D. BUKTI PENDUKUNG (FOTO) - WAJIB
+                    // C. Keterangan Laporan
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text("Bukti Pendukung (Foto) *", style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                        Text("(Wajib terlampir)", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFEA580C))),
+                      children: [
+                        const Text(
+                          "Keterangan",
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF7ED),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFFFEDD5)),
+                          ),
+                          child: const Text(
+                            "* WAJIB DIISI",
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
+                          ),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
+
+                    TextField(
+                      controller: _descController,
+                      maxLines: 2,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                      decoration: InputDecoration(
+                        hintText: "Contoh: Tidak ada di meja sejak jam 10 pagi tanpa izin...",
+                        hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFEA580C), width: 1.8)),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // D. Dokumen Pendukung (Foto Bukti)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Dokumen Pendukung (Foto Bukti)",
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF2F2),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFFECACA)),
+                          ),
+                          child: const Text(
+                            "* WAJIB DILAMPIRKAN",
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFDC2626)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
 
                     if (_imageFile != null) ...[
                       Stack(
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(14),
-                            child: Image.file(_imageFile!, height: 130, width: double.infinity, fit: BoxFit.cover),
-                          ),
-                          Positioned(
-                            top: 6,
-                            right: 6,
-                            child: InkWell(
-                              onTap: () => setState(() {
-                                _imageFile = null;
-                                _imageBase64 = null;
-                              }),
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                                child: const Icon(Icons.close, color: Colors.white, size: 16),
-                              ),
+                            child: Image.file(
+                              _imageFile!,
+                              height: 130,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
                             ),
                           ),
                           Positioned(
-                            bottom: 6,
-                            left: 6,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(color: Colors.black.withOpacity(0.65), borderRadius: BorderRadius.circular(6)),
-                              child: const Text("✓ Foto Terlampir & Terkompresi", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            top: 8,
+                            right: 8,
+                            child: InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _imageFile = null;
+                                  _imageBase64 = null;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(color: Colors.black87, shape: BoxShape.circle),
+                                child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ] else ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _pickImage(ImageSource.camera),
-                              icon: const Icon(Icons.camera_alt_rounded, size: 17, color: Color(0xFFEA580C)),
-                              label: const Text("Ambil Kamera", style: TextStyle(fontSize: 12, color: Color(0xFFEA580C), fontWeight: FontWeight.bold)),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                side: const BorderSide(color: Color(0xFFFDBA74)),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                            ),
+                      InkWell(
+                        onTap: _showImageSourceDialog,
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF7ED),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFFDBA74), style: BorderStyle.solid),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _pickImage(ImageSource.gallery),
-                              icon: const Icon(Icons.photo_library_rounded, size: 17, color: Color(0xFF475569)),
-                              label: const Text("Pilih Galeri", style: TextStyle(fontSize: 12, color: Color(0xFF475569), fontWeight: FontWeight.bold)),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                side: const BorderSide(color: Color(0xFFCBD5E1)),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.add_a_photo_rounded, color: Color(0xFFEA580C), size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                "Ambil / Unggah Foto Bukti",
+                                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFFC2410C)),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ],
 
                     const SizedBox(height: 20),
 
-                    // TOMBOL KIRIM LAPORAN (Requirement 5)
+                    // Tombol Kirim Laporan
                     SizedBox(
                       height: 48,
                       child: ElevatedButton(
                         onPressed: _isSubmitting ? null : _handleSubmit,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFEA580C),
-                          elevation: 2,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          elevation: 2,
                         ),
                         child: _isSubmitting
                             ? const SizedBox(
-                                width: 20,
-                                height: 20,
+                                width: 22,
+                                height: 22,
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                               )
                             : const Text(
                                 "KIRIM LAPORAN",
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  letterSpacing: 0.8,
+                                ),
                               ),
                       ),
                     ),
@@ -944,20 +1144,20 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.12),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: IconButton(
-        icon: Icon(icon, color: const Color(0xFF334155), size: 18),
+        icon: Icon(icon, color: const Color(0xFF334155), size: 20),
         tooltip: tooltip,
         onPressed: onTap,
-        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
         padding: EdgeInsets.zero,
       ),
     );

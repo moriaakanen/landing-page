@@ -41,6 +41,47 @@ class CepuService {
         .toList();
   }
 
+  /// Mengambil daftar UID pegawai yang sedang izin aktif hari ini
+  Future<Set<String>> getActivePermitUserIdsToday() async {
+    final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final set = <String>{};
+    try {
+      final snapshot = await _firestore
+          .collection('permits')
+          .where('date', isEqualTo: todayStr)
+          .where('status', isEqualTo: 'ACTIVE')
+          .where('end_time', isNull: true)
+          .get();
+      for (final doc in snapshot.docs) {
+        final uid = doc.data()['user_id'] as String?;
+        if (uid != null && uid.isNotEmpty) {
+          set.add(uid);
+        }
+      }
+    } catch (_) {}
+    return set;
+  }
+
+  /// Mengambil daftar UID pegawai yang sedang aktif dilaporkan Cepu hari ini
+  Future<Set<String>> getActiveCepuTargetUserIdsToday() async {
+    final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final set = <String>{};
+    try {
+      final snapshot = await _firestore
+          .collection('cepu_reports')
+          .where('date', isEqualTo: todayStr)
+          .where('end_time', isNull: true)
+          .get();
+      for (final doc in snapshot.docs) {
+        final uid = doc.data()['target_uid'] as String?;
+        if (uid != null && uid.isNotEmpty) {
+          set.add(uid);
+        }
+      }
+    } catch (_) {}
+    return set;
+  }
+
   /// Membuat laporan Cepu baru
   Future<CepuModel> createCepuReport({
     required UserModel reporter,

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../utils/custom_toast.dart';
 
 class NotificationService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -11,7 +12,8 @@ class NotificationService {
   static Future<void> initialize() async {
     if (_isInitialized) return;
 
-    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@drawable/ic_notification');
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
     );
@@ -19,7 +21,6 @@ class NotificationService {
     await _localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Callback saat notifikasi di status bar Android diklik oleh user
         debugPrint("Notification clicked with payload: ${response.payload}");
       },
     );
@@ -35,6 +36,7 @@ class NotificationService {
   }
 
   /// Menampilkan Notifikasi Asli Sistem Android (Status Bar, Heads-up banner, Lockscreen)
+  /// dengan Small Icon monokrom dan Large Icon (Logo Ikan Pari Biru berwarna)
   static Future<void> showSystemNotification({
     int id = 0,
     required String title,
@@ -50,7 +52,8 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_notification',
+      largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
       color: Color(0xFF1E60F2),
       enableVibration: true,
       playSound: true,
@@ -79,7 +82,7 @@ class NotificationService {
         .snapshots();
   }
 
-  /// Menampilkan In-App Top Notification Banner
+  /// Menampilkan In-App Top Notification Banner / Floating Toast
   static void showInAppAlert(BuildContext context, {
     required String title,
     required String message,
@@ -94,54 +97,6 @@ class NotificationService {
       body: message,
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        elevation: 6,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        backgroundColor: backgroundColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 24),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    message,
-                    style: const TextStyle(
-                      color: Color(0xFFE2E8F0),
-                      fontSize: 11.5,
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        action: onTap != null
-            ? SnackBarAction(
-                label: "LIHAT",
-                textColor: const Color(0xFFFBBF24),
-                onPressed: onTap,
-              )
-            : null,
-        duration: const Duration(seconds: 5),
-      ),
-    );
+    AppToast.showWarning(context, message, title: title);
   }
 }

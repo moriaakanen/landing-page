@@ -6,6 +6,7 @@ import '../models/cepu_model.dart';
 import '../models/user_model.dart';
 import '../core/services/permit_service.dart';
 import '../core/services/cepu_service.dart';
+import '../core/utils/custom_toast.dart';
 
 class DailyMonitoringView extends StatefulWidget {
   final UserModel user;
@@ -197,21 +198,15 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
                           verifier: widget.user,
                         );
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("✅ Sukses memverifikasi laporan Cepu!"),
-                              backgroundColor: Color(0xFF10B981),
-                            ),
+                          AppToast.showSuccess(
+                            context,
+                            "Sukses memverifikasi laporan Cepu!",
+                            title: "Laporan Terverifikasi",
                           );
                         }
                       } catch (e) {
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.toString()),
-                              backgroundColor: const Color(0xFFEF4444),
-                            ),
-                          );
+                          AppToast.showError(context, e.toString(), title: "Gagal Verifikasi");
                         }
                       }
                     },
