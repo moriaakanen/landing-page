@@ -713,7 +713,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
                     // Horizontal / Grid Row of Pastel Squircle Cards
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.between,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Card 1: Waigama (Teal Squircle)
                         _buildCategorySquircleCard(
