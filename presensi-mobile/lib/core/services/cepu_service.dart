@@ -272,4 +272,48 @@ class CepuService {
       return list;
     });
   }
+
+  /// Mengambil laporan Cepu valid pada tanggal tertentu untuk target user tertentu
+  Future<List<CepuModel>> getDailyValidCepuForTarget(String targetUid, String dateString) async {
+    try {
+      final snapshot = await _firestore
+          .collection('cepu_reports')
+          .where('target_uid', isEqualTo: targetUid)
+          .where('date', isEqualTo: dateString)
+          .get();
+
+      final list = snapshot.docs
+          .map((d) => CepuModel.fromMap(d.data(), d.id))
+          .where((c) => c.isValid)
+          .toList();
+      list.sort((a, b) => b.startTime.compareTo(a.startTime));
+      return list;
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Mengambil laporan Cepu pending hari ini yang belum diverifikasi oleh user tertentu
+  Future<List<CepuModel>> getPendingVerificationCepuForUser(String userId, String dateString) async {
+    try {
+      final snapshot = await _firestore
+          .collection('cepu_reports')
+          .where('date', isEqualTo: dateString)
+          .where('status', isEqualTo: 'PENDING')
+          .get();
+
+      final list = snapshot.docs
+          .map((d) => CepuModel.fromMap(d.data(), d.id))
+          .where((c) =>
+              c.reporterUid != userId &&
+              c.targetUid != userId &&
+              !c.verifiedByUids.contains(userId))
+          .toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
+    } catch (_) {
+      return [];
+    }
+  }
 }
+

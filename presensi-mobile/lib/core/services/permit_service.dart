@@ -179,4 +179,24 @@ class PermitService {
     list.sort((a, b) => b.startTime.compareTo(a.startTime));
     return list;
   }
+
+  /// Mengambil data seluruh izin milik user tertentu pada tanggal tertentu (aktivitas user)
+  Future<List<PermitModel>> getUserDailyPermits(String userId, String dateString) async {
+    try {
+      final snapshot = await _firestore
+          .collection('permits')
+          .where('user_id', isEqualTo: userId)
+          .where('date', isEqualTo: dateString)
+          .get();
+
+      final list = snapshot.docs
+          .map((doc) => PermitModel.fromMap(doc.data(), doc.id))
+          .toList();
+      list.sort((a, b) => b.startTime.compareTo(a.startTime));
+      return list;
+    } catch (_) {
+      return [];
+    }
+  }
 }
+

@@ -18,6 +18,51 @@ import 'record_permit_map_view.dart';
 import 'cepu_map_report_view.dart';
 import 'daily_monitoring_view.dart';
 
+/// Item aktivitas harian user (Izin Waigama maupun Yang Di-Cepukan Valid)
+class UserActivityItem {
+  final String id;
+  final String type; // 'PERMIT' atau 'CEPU'
+  final String title;
+  final String purposeOrDesc;
+  final DateTime startTime;
+  final DateTime? endTime;
+  final bool isActive;
+  final String? reporterName;
+  final CepuModel? cepuModel;
+  final PermitModel? permitModel;
+
+  UserActivityItem({
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.purposeOrDesc,
+    required this.startTime,
+    this.endTime,
+    required this.isActive,
+    this.reporterName,
+    this.cepuModel,
+    this.permitModel,
+  });
+
+  int getDurationMinutes() {
+    final now = DateTime.now();
+    final isFriday = now.weekday == DateTime.friday;
+    final cutoffHour = 16;
+    final cutoffMinute = isFriday ? 30 : 0;
+    final cutoffTime = DateTime(now.year, now.month, now.day, cutoffHour, cutoffMinute);
+
+    DateTime effectiveEnd;
+    if (endTime != null) {
+      effectiveEnd = endTime!;
+    } else {
+      effectiveEnd = now.isAfter(cutoffTime) ? cutoffTime : now;
+    }
+
+    if (effectiveEnd.isBefore(startTime)) return 0;
+    return effectiveEnd.difference(startTime).inMinutes;
+  }
+}
+
 class HomeAttendanceView extends StatefulWidget {
   final UserModel user;
 
@@ -36,6 +81,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
   OfficeModel? _office;
   PermitModel? _activePermit;
   CepuModel? _activeCepuForMe;
+  List<UserActivityItem> _todayActivities = [];
+  List<CepuModel> _pendingVerificationCepu = [];
+
   bool _isLoading = true;
   Timer? _clockTimer;
   DateTime _currentTime = DateTime.now();
@@ -78,15 +126,59 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
       _isCheckingLocation = true;
     });
 
+    final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final office = await _attendanceService.getOfficeConfig(widget.user.officeId);
     final activePermit = await _permitService.getActivePermit(widget.user.uid);
     final activeCepu = await _cepuService.getActiveCepuForTarget(widget.user.uid);
+
+    // 1. Ambil seluruh izin user hari ini dari database
+    final userPermits = await _permitService.getUserDailyPermits(widget.user.uid, todayStr);
+
+    // 2. Ambil seluruh laporan Cepu valid untuk user hari ini dari database
+    final userValidCepu = await _cepuService.getDailyValidCepuForTarget(widget.user.uid, todayStr);
+
+    // 3. Ambil laporan Cepu pending rekan yang belum diverifikasi
+    final pendingCepu = await _cepuService.getPendingVerificationCepuForUser(widget.user.uid, todayStr);
+
+    // Gabungkan menjadi list aktivitas harian user
+    final List<UserActivityItem> activities = [];
+    for (final p in userPermits) {
+      activities.add(UserActivityItem(
+        id: p.id,
+        type: 'PERMIT',
+        title: 'Izin Waigama',
+        purposeOrDesc: p.purpose,
+        startTime: p.startTime,
+        endTime: p.endTime,
+        isActive: p.isActive,
+        permitModel: p,
+      ));
+    }
+
+    for (final c in userValidCepu) {
+      activities.add(UserActivityItem(
+        id: c.id,
+        type: 'CEPU',
+        title: 'Laporan Cepu Terverifikasi',
+        purposeOrDesc: c.description,
+        startTime: c.startTime,
+        endTime: c.endTime,
+        isActive: c.isActive,
+        reporterName: c.reporterName,
+        cepuModel: c,
+      ));
+    }
+
+    // Urutkan dari aktivitas terbaru
+    activities.sort((a, b) => b.startTime.compareTo(a.startTime));
 
     if (mounted) {
       setState(() {
         _office = office;
         _activePermit = activePermit;
         _activeCepuForMe = activeCepu;
+        _todayActivities = activities;
+        _pendingVerificationCepu = pendingCepu;
         _isLoading = false;
       });
 
@@ -334,6 +426,291 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     );
   }
 
+  /// POIN 6: Modal Pop-up Notifikasi & Pengingat
+  /// Berisi laporan cepu yang belum diverifikasi dan izin user yang belum kembali
+  void _showNotificationsDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        final hasActivePermitNotice = _activePermit != null;
+        final hasActiveCepuNotice = _activeCepuForMe != null;
+        final hasPendingVerifyNotice = _pendingVerificationCepu.isNotEmpty;
+        final hasAnyNotification = hasActivePermitNotice || hasActiveCepuNotice || hasPendingVerifyNotice;
+
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.75,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag Indicator Bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Title Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.notifications_active_rounded, color: Color(0xFF1E60F2), size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        "Notifikasi & Pengingat",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                    onPressed: () => Navigator.pop(ctx),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+              const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              const SizedBox(height: 16),
+
+              // Content
+              if (!hasAnyNotification)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.notifications_off_outlined, color: Color(0xFF94A3B8), size: 30),
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        "Tidak ada notifikasi",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF334155),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        "Semua laporan dan izin Anda telah diperbarui.",
+                        style: TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: [
+                      // 1. Notifikasi Izin User Belum Kembali
+                      if (hasActivePermitNotice) ...[
+                        _buildNotificationCard(
+                          icon: Icons.directions_walk_rounded,
+                          iconColor: const Color(0xFFD97706),
+                          iconBgColor: const Color(0xFFFEF3C7),
+                          badgeText: "IZIN AKTIF",
+                          badgeColor: const Color(0xFFFEF3C7),
+                          badgeTextColor: const Color(0xFFB45309),
+                          title: "Izin Belum Kembali",
+                          subtitle: "Anda sedang izin untuk keperluan: ${_activePermit!.purpose}. Segera rekam waktu kembali setelah tiba di kantor.",
+                          actionText: "Rekam Waktu Kembali",
+                          onTapAction: () {
+                            Navigator.pop(ctx);
+                            _navigateToRecordPermit();
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+
+                      // 2. Notifikasi Laporan Cepu Aktif Untuk User Belum Kembali
+                      if (hasActiveCepuNotice) ...[
+                        _buildNotificationCard(
+                          icon: Icons.warning_amber_rounded,
+                          iconColor: const Color(0xFFDC2626),
+                          iconBgColor: const Color(0xFFFEE2E2),
+                          badgeText: "CEPU AKTIF",
+                          badgeColor: const Color(0xFFFEE2E2),
+                          badgeTextColor: const Color(0xFF991B1B),
+                          title: "Laporan Keberadaan (Cepu)",
+                          subtitle: "Anda dilaporkan oleh ${_activeCepuForMe!.reporterName} tidak berada di kantor. Segera rekam waktu kembali.",
+                          actionText: "Rekam Waktu Kembali",
+                          onTapAction: () {
+                            Navigator.pop(ctx);
+                            _navigateToCepuMapReport();
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+
+                      // 3. Notifikasi Laporan Cepu Rekan yang Belum Diverifikasi
+                      for (final cepu in _pendingVerificationCepu) ...[
+                        _buildNotificationCard(
+                          icon: Icons.how_to_reg_rounded,
+                          iconColor: const Color(0xFF1E60F2),
+                          iconBgColor: const Color(0xFFEFF6FF),
+                          badgeText: "VERIFIKASI CEPU",
+                          badgeColor: const Color(0xFFEFF6FF),
+                          badgeTextColor: const Color(0xFF1E60F2),
+                          title: "Verifikasi Keberadaan: ${cepu.targetName}",
+                          subtitle: "Dilaporkan oleh ${cepu.reporterName}: \"${cepu.description}\". Progres: ${cepu.verifiedByUids.length}/4 rekan telah verifikasi.",
+                          actionText: "Buka Monitoring & Verifikasi",
+                          onTapAction: () {
+                            Navigator.pop(ctx);
+                            _navigateToDailyMonitoring();
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNotificationCard({
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBgColor,
+    required String badgeText,
+    required Color badgeColor,
+    required Color badgeTextColor,
+    required String title,
+    required String subtitle,
+    required String actionText,
+    required VoidCallback onTapAction,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: badgeColor,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Text(
+                            badgeText,
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                              color: badgeTextColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: onTapAction,
+              icon: const Icon(Icons.arrow_forward_rounded, size: 14, color: Color(0xFF1E60F2)),
+              label: Text(
+                actionText,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E60F2),
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                backgroundColor: const Color(0xFFEFF6FF),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 11) return "Selamat Pagi,";
@@ -342,31 +719,19 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     return "Selamat Malam,";
   }
 
-  /// Menghitung total durasi izin dalam menit
-  /// Berhenti menghitung pada:
-  /// - 16.00 WIT untuk hari Senin - Kamis
-  /// - 16.30 WIT untuk hari Jumat
-  int _calculatePermitDurationMinutes() {
-    if (_activePermit == null) return 0;
-    final start = _activePermit!.startTime;
-    final now = DateTime.now();
-
-    // Aturan batas jam kerja WIT
-    final isFriday = now.weekday == DateTime.friday;
-    final cutoffHour = 16;
-    final cutoffMinute = isFriday ? 30 : 0;
-    final cutoffTime = DateTime(now.year, now.month, now.day, cutoffHour, cutoffMinute);
-
-    DateTime effectiveEnd;
-    if (_activePermit!.endTime != null) {
-      effectiveEnd = _activePermit!.endTime!;
-    } else {
-      // Sedang berlangsung: berhenti jika melewati jam cutoff
-      effectiveEnd = now.isAfter(cutoffTime) ? cutoffTime : now;
+  /// POIN 5: Logic pemecahan nama user
+  /// - Jika nama > 1 kata: dipecah jadi 2 baris seimbang
+  /// - Jika nama 1 kata: tidak dipecah
+  List<String> _splitUserName(String fullName) {
+    final trimmed = fullName.trim();
+    final words = trimmed.split(RegExp(r'\s+'));
+    if (words.length <= 1) {
+      return [trimmed, ""];
     }
-
-    if (effectiveEnd.isBefore(start)) return 0;
-    return effectiveEnd.difference(start).inMinutes;
+    final half = (words.length / 2).ceil();
+    final line1 = words.sublist(0, half).join(' ');
+    final line2 = words.sublist(half).join(' ');
+    return [line1, line2];
   }
 
   @override
@@ -390,7 +755,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
         ? "${DateFormat('HH:mm').format(_activePermit!.endTime!)} WIT"
         : "--:--";
     final timeFormatted = DateFormat('HH:mm').format(_currentTime);
-    final durationMinutes = _calculatePermitDurationMinutes();
+
+    final nameParts = _splitUserName(widget.user.name);
+    final hasNotificationBadge = hasActivePermit || _activeCepuForMe != null || _pendingVerificationCepu.isNotEmpty;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -406,12 +773,12 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // =========================================================================
-                // 1 & 2. TOPBAR (Pojok Kiri: Logo + "Waigama", Pojok Kanan: Icon Notifikasi)
+                // TOPBAR: Logo + "Waigama" & Icon Notifikasi
                 // =========================================================================
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Pojok Kiri: Logo Ikan Pari + Tulisan "Waigama" (Desain Glassmorphic Premium)
+                    // Pojok Kiri: Logo Ikan Pari + Tulisan "Waigama"
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
@@ -464,11 +831,11 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                     ),
 
-                    // Pojok Kanan: Icon Notifikasi
+                    // Pojok Kanan: Icon Notifikasi (Memicu Pop-up Notifikasi)
                     _buildIconButton(
                       icon: Icons.notifications_none_rounded,
-                      onTap: _navigateToDailyMonitoring,
-                      hasBadge: hasActivePermit || _activeCepuForMe != null,
+                      onTap: _showNotificationsDialog,
+                      hasBadge: hasNotificationBadge,
                     ),
                   ],
                 ),
@@ -476,15 +843,21 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 const SizedBox(height: 18),
 
                 // =========================================================================
-                // 3 & 4. DIBAWAH TOPBAR:
-                // Pojok Kiri: Sapaan (Selamat ..., baris baru: Nama User)
-                // Pojok Kanan: Hari, Tanggal, dan Border Persegi Panjang Status Lokasi (Kantor / Di Luar Kantor)
+                // POIN 5: DIBAWAH TOPBAR DENGAN TATA LETAK SERAGAM (Kiri & Kanan 3 Baris)
+                // Kiri:
+                //   Baris 1: Selamat Siang,
+                //   Baris 2: Nama Part 1
+                //   Baris 3: Nama Part 2 (jika > 1 kata)
+                // Kanan:
+                //   Baris 1: Kamis,
+                //   Baris 2: 03 September 2026
+                //   Baris 3: [ 📍 Kantor ]
                 // =========================================================================
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Kiri: Sapaan Waktu & Nama User
+                    // Sisi Kiri: Sapaan & Nama User
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -492,30 +865,46 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                           Text(
                             _getGreeting(),
                             style: const TextStyle(
-                              fontSize: 13.5,
+                              fontSize: 13,
                               color: Color(0xFF64748B),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            widget.user.name,
+                            nameParts[0],
                             style: const TextStyle(
-                              fontSize: 19,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF0F172A),
                               letterSpacing: -0.3,
+                              height: 1.18,
                             ),
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          if (nameParts[1].isNotEmpty) ...[
+                            const SizedBox(height: 1),
+                            Text(
+                              nameParts[1],
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                                letterSpacing: -0.3,
+                                height: 1.18,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ],
                       ),
                     ),
 
                     const SizedBox(width: 12),
 
-                    // Kanan: Hari, Tanggal, & Border Persegi Panjang Status Lokasi
+                    // Sisi Kanan: Hari, Tanggal, dan Status Lokasi (3 Baris)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -536,9 +925,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        // Border Persegi Panjang dengan Sudut Tumpul (Status Lokasi)
+                        // Border Persegi Panjang Status Lokasi
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
                           decoration: BoxDecoration(
                             color: _isInOfficeRadius
                                 ? const Color(0xFFECFDF5)
@@ -585,8 +974,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 const SizedBox(height: 20),
 
                 // =========================================================================
-                // 5. BORDER BIRU BESAR (Waktu Mulai Izin dan Selesai Izin)
-                // POIN 2: Menampilkan Indikator "Sedang Izin" di bawah jam ketika aktif
+                // BORDER BIRU BESAR
+                // POIN 3: "Rekam Waktu Pergi"
+                // POIN 4: "Rekam Waktu Kembali"
                 // =========================================================================
                 Container(
                   decoration: BoxDecoration(
@@ -630,7 +1020,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                             ),
                           ),
 
-                          // POIN 2: Indikator "Sedang Izin" Di Bawah Jam
+                          // Indikator "Sedang Izin" Di Bawah Jam
                           if (hasActivePermit) ...[
                             const SizedBox(height: 8),
                             Container(
@@ -676,7 +1066,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       // 2 Tombol Aksi: Mulai Izin & Selesai Izin
                       Row(
                         children: [
-                          // Tombol 1: Mulai Izin
+                          // Tombol 1: Mulai Izin (POIN 3: Rekam Waktu Pergi)
                           Expanded(
                             child: InkWell(
                               onTap: hasActivePermit ? null : _navigateToRecordPermit,
@@ -714,7 +1104,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      hasActivePermit ? startPermitTime : "Rekam Mulai",
+                                      hasActivePermit ? startPermitTime : "Rekam Waktu Pergi",
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: const Color(0xFF1E60F2).withOpacity(0.75),
@@ -729,7 +1119,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
                           const SizedBox(width: 14),
 
-                          // Tombol 2: Selesai Izin
+                          // Tombol 2: Selesai Izin (POIN 4: Rekam Waktu Kembali)
                           Expanded(
                             child: InkWell(
                               onTap: hasActivePermit ? _navigateToRecordPermit : null,
@@ -762,7 +1152,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      hasActivePermit ? "Rekam Kembali" : endPermitTime,
+                                      hasActivePermit ? "Rekam Waktu Kembali" : endPermitTime,
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: Colors.white.withOpacity(0.75),
@@ -780,9 +1170,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                   ),
                 ),
 
-                // =========================================================================
-                // POIN 3: REDESIGN CARD SEDANG IZIN (Modern Soft Surface dengan Left Accent)
-                // =========================================================================
+                // Card Peringatan Sedang Izin
                 if (hasActivePermit) ...[
                   const SizedBox(height: 16),
                   InkWell(
@@ -804,7 +1192,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                       child: Row(
                         children: [
-                          // Left Icon Badge
                           Container(
                             width: 44,
                             height: 44,
@@ -815,30 +1202,24 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                             child: const Icon(Icons.directions_walk_rounded, color: Color(0xFFD97706), size: 24),
                           ),
                           const SizedBox(width: 14),
-
-                          // Text Content
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFFEF3C7),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Text(
-                                        "SEDANG IZIN",
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFFB45309),
-                                        ),
-                                      ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF3C7),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    "SEDANG IZIN",
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFB45309),
                                     ),
-                                  ],
+                                  ),
                                 ),
                                 const SizedBox(height: 5),
                                 const Text(
@@ -873,8 +1254,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                             ),
                           ),
                           const SizedBox(width: 8),
-
-                          // Right Arrow Icon
                           Container(
                             width: 30,
                             height: 30,
@@ -891,9 +1270,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                   ),
                 ],
 
-                // =========================================================================
-                // POIN 4: CARD LAPORAN CEPU YANG PERLU DI-VALIDASI (Desain Selaras)
-                // =========================================================================
+                // Card Peringatan Laporan Cepu
                 if (_activeCepuForMe != null) ...[
                   const SizedBox(height: 16),
                   InkWell(
@@ -915,7 +1292,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                       child: Row(
                         children: [
-                          // Left Icon Badge
                           Container(
                             width: 44,
                             height: 44,
@@ -926,30 +1302,24 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                             child: const Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 24),
                           ),
                           const SizedBox(width: 14),
-
-                          // Text Content
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFFEE2E2),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Text(
-                                        "LAPORAN CEPU",
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF991B1B),
-                                        ),
-                                      ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEE2E2),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    "LAPORAN CEPU",
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF991B1B),
                                     ),
-                                  ],
+                                  ),
                                 ),
                                 const SizedBox(height: 5),
                                 const Text(
@@ -974,8 +1344,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                             ),
                           ),
                           const SizedBox(width: 8),
-
-                          // Right Arrow Icon
                           Container(
                             width: 30,
                             height: 30,
@@ -995,10 +1363,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 const SizedBox(height: 22),
 
                 // =========================================================================
-                // POIN 5: REDESIGN CARD AKTIVITAS HARI INI
-                // - Kotak kiri tanggal diganti tulisan "Sedang Izin" atau "Selesai"
-                // - Tulisan "Status" dihapus, diganti total waktu izin dalam menit (live)
-                // - Nama kantor diganti menjadi keperluan izin
+                // POIN 1 & 2: AKTIVITAS HARI INI TERHUBUNG DENGAN DATABASE
+                // - Menampilkan seluruh kegiatan user hari ini (Izin & Yang Di-Cepukan Valid)
+                // - Jika belum ada aktivitas, menampilkan desain "Belum ada aktivitas"
                 // =========================================================================
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1023,158 +1390,70 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
                 const SizedBox(height: 12),
 
-                // Redesigned Attendance Activity Card
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1E60F2), Color(0xFF1544B3)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                // POIN 2: Kondisi Belum Ada Aktivitas
+                if (_todayActivities.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    borderRadius: BorderRadius.circular(22),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1E60F2).withOpacity(0.25),
-                        blurRadius: 14,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      // Kotak Kiri: "Sedang Izin" atau "Selesai"
-                      Container(
-                        width: 72,
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: hasActivePermit
-                              ? const Color(0xFFF59E0B).withOpacity(0.28)
-                              : Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: hasActivePermit
-                                ? const Color(0xFFFDE68A).withOpacity(0.6)
-                                : Colors.white.withOpacity(0.3),
-                            width: 1.2,
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFF1F5F9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.event_available_rounded, color: Color(0xFF94A3B8), size: 28),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          "Belum ada aktivitas",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF334155),
                           ),
                         ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              hasActivePermit
-                                  ? Icons.directions_walk_rounded
-                                  : Icons.check_circle_rounded,
-                              color: hasActivePermit ? const Color(0xFFFDE68A) : Colors.white,
-                              size: 22,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              hasActivePermit ? "Sedang\nIzin" : "Selesai",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w900,
-                                color: hasActivePermit ? const Color(0xFFFEF3C7) : Colors.white,
-                                height: 1.2,
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 4),
+                        const Text(
+                          "Anda belum merekam izin atau memiliki riwayat kegiatan hari ini.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF94A3B8),
+                          ),
                         ),
-                      ),
-
-                      const SizedBox(width: 16),
-
-                      // Rincian Waktu & Durasi Menit
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Kolom 1: Mulai
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Mulai",
-                                      style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      startPermitTime,
-                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-
-                                // Kolom 2: Selesai
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Selesai",
-                                      style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      endPermitTime,
-                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-
-                                // Kolom 3: Total Waktu Izin dalam Menit (Tulisan 'Status' Dihapus)
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    const SizedBox(height: 14), // Pengganti header status yang dihapus
-                                    Text(
-                                      hasActivePermit || (_activePermit != null && _activePermit!.endTime != null)
-                                          ? "$durationMinutes Menit"
-                                          : "--",
-                                      style: const TextStyle(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFFFDE68A),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            // Keperluan Izin (Menggantikan Tulisan "Kantor Pusat")
-                            Row(
-                              children: [
-                                const Icon(Icons.edit_note_rounded, color: Colors.white70, size: 15),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    _activePermit != null
-                                        ? "Keperluan: ${_activePermit!.purpose}"
-                                        : "Keperluan: Tidak ada izin aktif",
-                                    style: TextStyle(
-                                      fontSize: 11.5,
-                                      color: Colors.white.withOpacity(0.9),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  )
+                else
+                  // POIN 1: List Seluruh Aktivitas Hari Ini (Izin Waigama & Yang Di-Cepukan Valid)
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _todayActivities.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final item = _todayActivities[index];
+                      if (item.type == 'CEPU') {
+                        return _buildCepuActivityCard(item);
+                      }
+                      return _buildPermitActivityCard(item);
+                    },
                   ),
-                ),
               ],
             ),
           ),
@@ -1182,8 +1461,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
       ),
 
       // =========================================================================
-      // POIN 6: BOTTOM NAVIGATION BAR (Menggunakan Scaffold.bottomNavigationBar)
-      // Memastikan bar menempel sempurna di dasar layar tanpa terangkat
+      // BOTTOM NAVIGATION BAR (Flush di Dasar Layar)
       // =========================================================================
       bottomNavigationBar: Container(
         height: 72,
@@ -1201,21 +1479,16 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            // Item 1: Home
             IconButton(
               icon: const Icon(Icons.home_rounded, color: Color(0xFF1E60F2), size: 26),
               onPressed: () {},
               tooltip: "Home",
             ),
-
-            // Item 2: Monitoring
             IconButton(
               icon: const Icon(Icons.bar_chart_rounded, color: Color(0xFF94A3B8), size: 26),
               onPressed: _navigateToDailyMonitoring,
               tooltip: "Monitoring",
             ),
-
-            // Center Elevated FAB (Manta Ray Blue Circle Button)
             Transform.translate(
               offset: const Offset(0, -12),
               child: InkWell(
@@ -1243,19 +1516,305 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 ),
               ),
             ),
-
-            // Item 4: Cepu
             IconButton(
               icon: const Icon(Icons.campaign_outlined, color: Color(0xFF94A3B8), size: 26),
               onPressed: _navigateToCepuMapReport,
               tooltip: "Cepu",
             ),
-
-            // Item 5: Profile
             IconButton(
               icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF94A3B8), size: 26),
               onPressed: _showProfileDialog,
               tooltip: "Profil",
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Card Aktivitas: Izin Waigama
+  Widget _buildPermitActivityCard(UserActivityItem item) {
+    final startStr = "${DateFormat('HH:mm').format(item.startTime)} WIT";
+    final endStr = item.endTime != null ? "${DateFormat('HH:mm').format(item.endTime!)} WIT" : "--:--";
+    final duration = item.getDurationMinutes();
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E60F2), Color(0xFF1544B3)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1E60F2).withOpacity(0.25),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          // Kotak Kiri: "Sedang Izin" atau "Selesai"
+          Container(
+            width: 72,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+            decoration: BoxDecoration(
+              color: item.isActive
+                  ? const Color(0xFFF59E0B).withOpacity(0.28)
+                  : Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: item.isActive
+                    ? const Color(0xFFFDE68A).withOpacity(0.6)
+                    : Colors.white.withOpacity(0.3),
+                width: 1.2,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  item.isActive ? Icons.directions_walk_rounded : Icons.check_circle_rounded,
+                  color: item.isActive ? const Color(0xFFFDE68A) : Colors.white,
+                  size: 22,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item.isActive ? "Sedang\nIzin" : "Selesai",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: item.isActive ? const Color(0xFFFEF3C7) : Colors.white,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 16),
+
+          // Rincian Waktu & Durasi Menit
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Mulai",
+                          style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          startStr,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Selesai",
+                          style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          endStr,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const SizedBox(height: 14),
+                        Text(
+                          "$duration Menit",
+                          style: const TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFFDE68A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(Icons.edit_note_rounded, color: Colors.white70, size: 15),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        "Keperluan: ${item.purposeOrDesc}",
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: Colors.white.withOpacity(0.9),
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// POIN 1: Card Aktivitas Khusus Laporan Cepu Yang Valid
+  Widget _buildCepuActivityCard(UserActivityItem item) {
+    final startStr = "${DateFormat('HH:mm').format(item.startTime)} WIT";
+    final endStr = item.endTime != null ? "${DateFormat('HH:mm').format(item.endTime!)} WIT" : "--:--";
+    final duration = item.getDurationMinutes();
+
+    return InkWell(
+      onTap: item.isActive ? _navigateToCepuMapReport : null,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFDC2626).withOpacity(0.28),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            // Kotak Kiri: "Di-Cepu" atau "Selesai"
+            Container(
+              width: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.35),
+                  width: 1.2,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    item.isActive ? Icons.campaign_rounded : Icons.verified_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.isActive ? "Di-Cepu" : "Selesai",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 16),
+
+            // Rincian Waktu & Durasi Menit
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Mulai",
+                            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            startStr,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Selesai",
+                            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            endStr,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const SizedBox(height: 14),
+                          Text(
+                            "$duration Menit",
+                            style: const TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFFFDE68A),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.person_pin_circle_rounded, color: Colors.white70, size: 15),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          "Pelapor: ${item.reporterName ?? '-'} • Ket: ${item.purposeOrDesc}",
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.white.withOpacity(0.95),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
