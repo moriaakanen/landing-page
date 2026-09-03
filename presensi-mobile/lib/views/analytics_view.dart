@@ -5,7 +5,7 @@ import '../models/user_model.dart';
 import '../models/office_model.dart';
 import '../core/services/permit_service.dart';
 import '../core/services/cepu_service.dart';
-import '../core/services/location_service.dart';
+import '../core/services/attendance_service.dart';
 import 'record_permit_map_view.dart';
 import 'cepu_map_report_view.dart';
 
@@ -34,8 +34,13 @@ class AnalyticsActivityItem {
 
 class AnalyticsView extends StatefulWidget {
   final UserModel user;
+  final OfficeModel? office;
 
-  const AnalyticsView({Key? key, required this.user}) : super(key: key);
+  const AnalyticsView({
+    Key? key,
+    required this.user,
+    this.office,
+  }) : super(key: key);
 
   @override
   State<AnalyticsView> createState() => _AnalyticsViewState();
@@ -44,6 +49,7 @@ class AnalyticsView extends StatefulWidget {
 class _AnalyticsViewState extends State<AnalyticsView> {
   final PermitService _permitService = PermitService();
   final CepuService _cepuService = CepuService();
+  final AttendanceService _attendanceService = AttendanceService();
   OfficeModel? _office;
 
   // Period: 'HARIAN', 'BULANAN', 'TAHUNAN'
@@ -74,13 +80,16 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   @override
   void initState() {
     super.initState();
-    _loadOfficeData();
+    _office = widget.office;
+    if (_office == null) {
+      _loadOfficeData();
+    }
     _loadAnalyticsData();
   }
 
   Future<void> _loadOfficeData() async {
     try {
-      final office = await LocationService().getOfficeLocation();
+      final office = await _attendanceService.getOfficeConfig(widget.user.officeId);
       if (mounted) setState(() => _office = office);
     } catch (_) {}
   }
@@ -234,21 +243,29 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   }
 
   void _navigateToRecordPermit() async {
+    final office = _office ?? await _attendanceService.getOfficeConfig(widget.user.officeId);
+    if (office == null || !mounted) return;
     final res = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => RecordPermitMapView(user: widget.user)),
+      MaterialPageRoute(
+        builder: (context) => RecordPermitMapView(
+          user: widget.user,
+          office: office,
+        ),
+      ),
     );
     if (res == true) _loadAnalyticsData();
   }
 
   void _navigateToCepuReport() async {
-    if (_office == null) return;
+    final office = _office ?? await _attendanceService.getOfficeConfig(widget.user.officeId);
+    if (office == null || !mounted) return;
     final res = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => CepuMapReportView(
           reporter: widget.user,
-          office: _office!,
+          office: office,
         ),
       ),
     );

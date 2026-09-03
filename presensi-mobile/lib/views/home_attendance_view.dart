@@ -359,7 +359,10 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AnalyticsView(user: widget.user),
+        builder: (context) => AnalyticsView(
+          user: widget.user,
+          office: _office,
+        ),
       ),
     );
   }
