@@ -273,6 +273,25 @@ class CepuService {
     });
   }
 
+  /// Mengambil seluruh laporan Cepu (valid maupun pending) pada tanggal tertentu untuk target user tertentu
+  Future<List<CepuModel>> getAllDailyCepuForTarget(String targetUid, String dateString) async {
+    try {
+      final snapshot = await _firestore
+          .collection('cepu_reports')
+          .where('target_uid', isEqualTo: targetUid)
+          .where('date', isEqualTo: dateString)
+          .get();
+
+      final list = snapshot.docs
+          .map((d) => CepuModel.fromMap(d.data(), d.id))
+          .toList();
+      list.sort((a, b) => b.startTime.compareTo(a.startTime));
+      return list;
+    } catch (_) {
+      return [];
+    }
+  }
+
   /// Mengambil laporan Cepu valid pada tanggal tertentu untuk target user tertentu
   Future<List<CepuModel>> getDailyValidCepuForTarget(String targetUid, String dateString) async {
     try {

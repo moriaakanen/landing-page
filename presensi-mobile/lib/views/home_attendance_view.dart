@@ -17,6 +17,7 @@ import 'login_view.dart';
 import 'record_permit_map_view.dart';
 import 'cepu_map_report_view.dart';
 import 'daily_monitoring_view.dart';
+import 'analytics_view.dart';
 
 /// Item aktivitas harian user (Izin Waigama maupun Yang Di-Cepukan Valid)
 class UserActivityItem {
@@ -350,6 +351,15 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
       context,
       MaterialPageRoute(
         builder: (context) => DailyMonitoringView(user: widget.user),
+      ),
+    );
+  }
+
+  void _navigateToAnalytics() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AnalyticsView(user: widget.user),
       ),
     );
   }
@@ -1486,8 +1496,8 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
             ),
             IconButton(
               icon: const Icon(Icons.bar_chart_rounded, color: Color(0xFF94A3B8), size: 26),
-              onPressed: _navigateToDailyMonitoring,
-              tooltip: "Monitoring",
+              onPressed: _navigateToAnalytics,
+              tooltip: "Analytics",
             ),
             Transform.translate(
               offset: const Offset(0, -12),
@@ -1532,188 +1542,49 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     );
   }
 
-  /// Card Aktivitas: Izin Waigama
+  /// Card Aktivitas: Izin Waigama (Redesigned: Clean White Surface, Anti-Monotonous)
   Widget _buildPermitActivityCard(UserActivityItem item) {
     final startStr = "${DateFormat('HH:mm').format(item.startTime)} WIT";
     final endStr = item.endTime != null ? "${DateFormat('HH:mm').format(item.endTime!)} WIT" : "--:--";
     final duration = item.getDurationMinutes();
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E60F2), Color(0xFF1544B3)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1E60F2).withOpacity(0.25),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          // Kotak Kiri: "Sedang Izin" atau "Selesai"
-          Container(
-            width: 72,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-            decoration: BoxDecoration(
-              color: item.isActive
-                  ? const Color(0xFFF59E0B).withOpacity(0.28)
-                  : Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: item.isActive
-                    ? const Color(0xFFFDE68A).withOpacity(0.6)
-                    : Colors.white.withOpacity(0.3),
-                width: 1.2,
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  item.isActive ? Icons.directions_walk_rounded : Icons.check_circle_rounded,
-                  color: item.isActive ? const Color(0xFFFDE68A) : Colors.white,
-                  size: 22,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  item.isActive ? "Sedang\nIzin" : "Selesai",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: item.isActive ? const Color(0xFFFEF3C7) : Colors.white,
-                    height: 1.2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 16),
-
-          // Rincian Waktu & Durasi Menit
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Mulai",
-                          style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          startStr,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Selesai",
-                          style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          endStr,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        const SizedBox(height: 14),
-                        Text(
-                          "$duration Menit",
-                          style: const TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFFFDE68A),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Icon(Icons.edit_note_rounded, color: Colors.white70, size: 15),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        "Keperluan: ${item.purposeOrDesc}",
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: Colors.white.withOpacity(0.9),
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// POIN 1: Card Aktivitas Khusus Laporan Cepu Yang Valid
-  Widget _buildCepuActivityCard(UserActivityItem item) {
-    final startStr = "${DateFormat('HH:mm').format(item.startTime)} WIT";
-    final endStr = item.endTime != null ? "${DateFormat('HH:mm').format(item.endTime!)} WIT" : "--:--";
-    final duration = item.getDurationMinutes();
-
     return InkWell(
-      onTap: item.isActive ? _navigateToCepuMapReport : null,
+      onTap: item.isActive ? _navigateToRecordPermit : null,
       borderRadius: BorderRadius.circular(22),
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: item.isActive ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
+            width: item.isActive ? 1.4 : 1.0,
+          ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFDC2626).withOpacity(0.28),
-              blurRadius: 14,
-              offset: const Offset(0, 5),
+              color: item.isActive
+                  ? const Color(0xFFD97706).withOpacity(0.08)
+                  : Colors.black.withOpacity(0.025),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            // Kotak Kiri: "Di-Cepu" atau "Selesai"
+            // Kotak Kiri: "Sedang Izin" (Amber) atau "Selesai" (Mint Emerald)
             Container(
-              width: 72,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+              width: 68,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: item.isActive
+                    ? const Color(0xFFFEF3C7)
+                    : const Color(0xFFECFDF5),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.35),
+                  color: item.isActive
+                      ? const Color(0xFFFDE68A)
+                      : const Color(0xFFA7F3D0),
                   width: 1.2,
                 ),
               ),
@@ -1721,18 +1592,18 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    item.isActive ? Icons.campaign_rounded : Icons.verified_rounded,
-                    color: Colors.white,
-                    size: 22,
+                    item.isActive ? Icons.directions_walk_rounded : Icons.check_circle_rounded,
+                    color: item.isActive ? const Color(0xFFD97706) : const Color(0xFF059669),
+                    size: 20,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    item.isActive ? "Di-Cepu" : "Selesai",
+                    item.isActive ? "Sedang\nIzin" : "Selesai",
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 11,
+                    style: TextStyle(
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: item.isActive ? const Color(0xFFB45309) : const Color(0xFF065F46),
                       height: 1.2,
                     ),
                   ),
@@ -1740,7 +1611,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
               ),
             ),
 
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
 
             // Rincian Waktu & Durasi Menit
             Expanded(
@@ -1753,64 +1624,67 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             "Mulai",
-                            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
+                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             startStr,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                           ),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             "Selesai",
-                            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
+                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             endStr,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                           ),
                         ],
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const SizedBox(height: 14),
-                          Text(
-                            "$duration Menit",
-                            style: const TextStyle(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFFFDE68A),
-                            ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: item.isActive ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          "$duration Menit",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: item.isActive ? const Color(0xFFB45309) : const Color(0xFF1E60F2),
                           ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      const Icon(Icons.person_pin_circle_rounded, color: Colors.white70, size: 15),
+                      const Icon(Icons.edit_note_rounded, color: Color(0xFF64748B), size: 16),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          "Pelapor: ${item.reporterName ?? '-'} • Ket: ${item.purposeOrDesc}",
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: Colors.white.withOpacity(0.95),
+                          "Keperluan: ${item.purposeOrDesc}",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF334155),
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (item.isActive)
+                        const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFD97706)),
                     ],
                   ),
                 ],
@@ -1821,6 +1695,157 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
       ),
     );
   }
+
+  /// POIN 1: Card Aktivitas Khusus Laporan Cepu Yang Valid (Clean White Surface with Coral Red Accent)
+  Widget _buildCepuActivityCard(UserActivityItem item) {
+    final startStr = "${DateFormat('HH:mm').format(item.startTime)} WIT";
+    final endStr = item.endTime != null ? "${DateFormat('HH:mm').format(item.endTime!)} WIT" : "--:--";
+    final duration = item.getDurationMinutes();
+
+    return InkWell(
+      onTap: item.isActive ? _navigateToCepuMapReport : null,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: item.isActive ? const Color(0xFFFECACA) : const Color(0xFFE2E8F0),
+            width: item.isActive ? 1.4 : 1.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: item.isActive
+                  ? const Color(0xFFDC2626).withOpacity(0.08)
+                  : Colors.black.withOpacity(0.025),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            // Kotak Kiri: "Di-Cepu" (Red) atau "Selesai" (Slate Blue)
+            Container(
+              width: 68,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+              decoration: BoxDecoration(
+                color: item.isActive ? const Color(0xFFFEE2E2) : const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: item.isActive ? const Color(0xFFFCA5A5) : const Color(0xFFBFDBFE),
+                  width: 1.2,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    item.isActive ? Icons.campaign_rounded : Icons.verified_rounded,
+                    color: item.isActive ? const Color(0xFFDC2626) : const Color(0xFF1E60F2),
+                    size: 20,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.isActive ? "Di-Cepu" : "Selesai",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      color: item.isActive ? const Color(0xFF991B1B) : const Color(0xFF1E40AF),
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 14),
+
+            // Rincian Waktu & Durasi Menit
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Mulai",
+                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            startStr,
+                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Selesai",
+                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            endStr,
+                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEE2E2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          "$duration Menit",
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFDC2626),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.person_pin_circle_rounded, color: Color(0xFFDC2626), size: 16),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          "Pelapor: ${item.reporterName ?? '-'} • Ket: ${item.purposeOrDesc}",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF334155),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (item.isActive)
+                        const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFDC2626)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildIconButton({
     required IconData icon,
