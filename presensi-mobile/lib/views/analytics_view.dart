@@ -2,8 +2,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/user_model.dart';
+import '../models/office_model.dart';
 import '../core/services/permit_service.dart';
 import '../core/services/cepu_service.dart';
+import '../core/services/location_service.dart';
+import 'record_permit_map_view.dart';
+import 'cepu_map_report_view.dart';
 
 /// Item aktivitas selesai untuk visualisasi chart "Ngapain Aja?"
 class AnalyticsActivityItem {
@@ -40,6 +44,7 @@ class AnalyticsView extends StatefulWidget {
 class _AnalyticsViewState extends State<AnalyticsView> {
   final PermitService _permitService = PermitService();
   final CepuService _cepuService = CepuService();
+  OfficeModel? _office;
 
   // Period: 'HARIAN', 'BULANAN', 'TAHUNAN'
   String _selectedPeriod = 'HARIAN';
@@ -56,11 +61,11 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
   // Curated Palette Colors untuk Stacked Bar Chart
   final List<Color> _chartColors = const [
-    Color(0xFF1E60F2), // Royal Azure
     Color(0xFFEA580C), // Sunset Orange
-    Color(0xFF0D9488), // Teal Emerald
     Color(0xFF6366F1), // Royal Indigo
     Color(0xFFE11D48), // Rose
+    Color(0xFF1E60F2), // Royal Azure
+    Color(0xFF0D9488), // Teal Emerald
     Color(0xFFD97706), // Amber
     Color(0xFF8B5CF6), // Violet
     Color(0xFF06B6D4), // Cyan
@@ -69,10 +74,43 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   @override
   void initState() {
     super.initState();
+    _loadOfficeData();
     _loadAnalyticsData();
   }
 
+  Future<void> _loadOfficeData() async {
+    try {
+      final office = await LocationService().getOfficeLocation();
+      if (mounted) setState(() => _office = office);
+    } catch (_) {}
+  }
+
   String _formatDateString(DateTime dt) => DateFormat('yyyy-MM-dd').format(dt);
+
+  /// POIN 6: Format menit ke "X Jam Y Menit" jika > 60 menit
+  String _formatDurationFull(int minutes) {
+    if (minutes < 60) {
+      return "$minutes Menit";
+    }
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+    if (remainingMinutes == 0) {
+      return "$hours Jam";
+    }
+    return "$hours Jam $remainingMinutes Menit";
+  }
+
+  String _formatDurationShort(int minutes) {
+    if (minutes < 60) {
+      return "$minutes mnt";
+    }
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+    if (remainingMinutes == 0) {
+      return "$hours jam";
+    }
+    return "$hours jam $remainingMinutes mnt";
+  }
 
   Future<void> _loadAnalyticsData() async {
     setState(() => _isLoading = true);
@@ -195,10 +233,33 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     }
   }
 
+  void _navigateToRecordPermit() async {
+    final res = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => RecordPermitMapView(user: widget.user)),
+    );
+    if (res == true) _loadAnalyticsData();
+  }
+
+  void _navigateToCepuReport() async {
+    if (_office == null) return;
+    final res = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CepuMapReportView(
+          reporter: widget.user,
+          office: _office!,
+        ),
+      ),
+    );
+    if (res == true) _loadAnalyticsData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      // POIN 4: Judul diubah dari "Analytics" menjadi "Insight"
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
@@ -207,7 +268,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Analytics",
+          "Insight",
           style: TextStyle(
             color: Color(0xFF0F172A),
             fontSize: 18,
@@ -228,7 +289,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
           color: const Color(0xFF1E60F2),
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -282,6 +343,76 @@ class _AnalyticsViewState extends State<AnalyticsView> {
               ],
             ),
           ),
+        ),
+      ),
+
+      // =========================================================================
+      // POIN 7: BOTTOM NAVIGATION BAR (Tetap Tampil di Menu Insight)
+      // =========================================================================
+      bottomNavigationBar: Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.home_rounded, color: Color(0xFF94A3B8), size: 26),
+              onPressed: () => Navigator.pop(context),
+              tooltip: "Home",
+            ),
+            IconButton(
+              icon: const Icon(Icons.bar_chart_rounded, color: Color(0xFF1E60F2), size: 26),
+              onPressed: () {},
+              tooltip: "Insight",
+            ),
+            Transform.translate(
+              offset: const Offset(0, -12),
+              child: InkWell(
+                onTap: _navigateToRecordPermit,
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1E60F2), Color(0xFF0E3A99)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1E60F2).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.assignment_ind_rounded, color: Colors.white, size: 26),
+                ),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.campaign_outlined, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToCepuReport,
+              tooltip: "Cepu",
+            ),
+            IconButton(
+              icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF94A3B8), size: 26),
+              onPressed: () => Navigator.pop(context),
+              tooltip: "Profil",
+            ),
+          ],
         ),
       ),
     );
@@ -364,24 +495,31 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF475569)),
             onPressed: _selectedPeriod == 'HARIAN' ? _previousDay : null,
           ),
-          InkWell(
-            onTap: _selectedPeriod == 'HARIAN' ? _pickDate : null,
-            borderRadius: BorderRadius.circular(10),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: Row(
-                children: [
-                  const Icon(Icons.calendar_month_rounded, color: Color(0xFF1E60F2), size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    dateLabel,
-                    style: const TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+          Expanded(
+            child: InkWell(
+              onTap: _selectedPeriod == 'HARIAN' ? _pickDate : null,
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.calendar_month_rounded, color: Color(0xFF1E60F2), size: 18),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        dateLabel,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -394,13 +532,20 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     );
   }
 
+  /// POIN 3: Memperbaiki tulisan terpotong pada Summary Cards
   Widget _buildSummaryCards() {
     // Perbandingan dengan kemarin
     final diff = _todayOutOfOfficeMinutes - _yesterdayOutOfOfficeMinutes;
     final bool isBetter = diff <= 0; // Lebih sedikit meninggalkan kantor dianggap lebih baik
     final bool isSame = diff == 0;
 
+    // POIN 6: Format Jam Menit jika > 60 Menit
+    final isOverAnHour = _todayOutOfOfficeMinutes >= 60;
+    final displayHours = _todayOutOfOfficeMinutes ~/ 60;
+    final displayRemainingMins = _todayOutOfOfficeMinutes % 60;
+
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Card 1: "Lama tidak dikantor"
         Expanded(
@@ -421,21 +566,24 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header Judul & Icon (Tanpa Ellipsis / Terpotong)
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Expanded(
                       child: Text(
-                        "Lama tidak dikantor",
+                        "Lama Tidak di Kantor",
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF64748B),
+                          height: 1.25,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
                       ),
                     ),
+                    const SizedBox(width: 4),
                     Container(
                       width: 28,
                       height: 28,
@@ -448,50 +596,93 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  "$_todayOutOfOfficeMinutes",
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF0F172A),
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const Text(
-                  "Menit",
-                  style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 8),
 
-                // Insight Hijau / Merah Berdasarkan Perbandingan Kemarin
+                // Angka Utama (POIN 6: Format Jam & Menit)
+                if (isOverAnHour)
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "$displayHours ",
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF0F172A),
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const TextSpan(
+                            text: "Jam ",
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                          ),
+                          if (displayRemainingMins > 0) ...[
+                            TextSpan(
+                              text: "$displayRemainingMins ",
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            const TextSpan(
+                              text: "Mnt",
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Text(
+                    "$_todayOutOfOfficeMinutes",
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0F172A),
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+
+                Text(
+                  isOverAnHour ? "Total Waktu Izin" : "Menit",
+                  style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 10),
+
+                // Insight Hijau / Merah Berdasarkan Perbandingan Kemarin (Tanpa Terpotong)
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Icon(
                       isSame
                           ? Icons.remove_rounded
                           : (isBetter ? Icons.trending_down_rounded : Icons.trending_up_rounded),
-                      size: 14,
+                      size: 15,
                       color: isSame
                           ? const Color(0xFF64748B)
                           : (isBetter ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
                     ),
-                    const SizedBox(width: 3),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         isSame
-                            ? "Sama seperti kemarin"
+                            ? "Sama vs kemarin"
                             : (isBetter
                                 ? "-${diff.abs()} mnt vs kemarin"
                                 : "+${diff.abs()} mnt vs kemarin"),
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: isSame
                               ? const Color(0xFF64748B)
                               : (isBetter ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
                       ),
                     ),
                   ],
@@ -522,21 +713,24 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header Judul & Icon (Tanpa Ellipsis / Terpotong)
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Expanded(
                       child: Text(
-                        "Berapa kali dilaporkan",
+                        "Berapa Kali Dilaporkan",
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF64748B),
+                          height: 1.25,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
                       ),
                     ),
+                    const SizedBox(width: 4),
                     Container(
                       width: 28,
                       height: 28,
@@ -549,13 +743,15 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   ],
                 ),
                 const SizedBox(height: 10),
+
+                // Rasio Valid / Total
                 RichText(
                   text: TextSpan(
                     children: [
                       TextSpan(
                         text: "$_validCepuCount ",
                         style: const TextStyle(
-                          fontSize: 26,
+                          fontSize: 28,
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF0F172A),
                           letterSpacing: -0.5,
@@ -576,27 +772,28 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   "Laporan Valid / Total",
                   style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
 
-                // Status verifikasi
+                // Status verifikasi (Teks Jelas Tanpa Terpotong)
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Icon(
                       _validCepuCount == 0 ? Icons.check_circle_outline_rounded : Icons.info_outline_rounded,
-                      size: 14,
+                      size: 15,
                       color: _validCepuCount == 0 ? const Color(0xFF10B981) : const Color(0xFFEA580C),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        _validCepuCount == 0 ? "Tidak ada pelanggaran" : "$_validCepuCount laporan terverifikasi",
+                        _validCepuCount == 0 ? "Nihil Pelanggaran" : "$_validCepuCount Laporan Valid",
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: _validCepuCount == 0 ? const Color(0xFF10B981) : const Color(0xFFEA580C),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
                       ),
                     ),
                   ],
@@ -631,23 +828,26 @@ class _AnalyticsViewState extends State<AnalyticsView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Ngapain Aja?",
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Ngapain Aja?",
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "Total di luar kantor: $_todayOutOfOfficeMinutes menit",
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      "Total di luar kantor: ${_formatDurationFull(_todayOutOfOfficeMinutes)}",
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -656,10 +856,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
-                  children: [
-                    const Icon(Icons.sort_rounded, size: 14, color: Color(0xFF1E60F2)),
-                    const SizedBox(width: 4),
-                    const Text(
+                  children: const [
+                    Icon(Icons.sort_rounded, size: 14, color: Color(0xFF1E60F2)),
+                    SizedBox(width: 4),
+                    Text(
                       "Terlama",
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E60F2)),
                     ),
@@ -730,6 +930,9 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                 final timeRange =
                     "${DateFormat('HH:mm').format(item.startTime)} - ${DateFormat('HH:mm').format(item.endTime)} WIT";
 
+                // POIN 6: Format Jam Menit pada list kegiatan
+                final durationLabel = _formatDurationShort(item.durationMinutes);
+
                 return Row(
                   children: [
                     // Dot Penanda Warna Chart
@@ -782,14 +985,14 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
                     const SizedBox(width: 10),
 
-                    // Durasi & Persentase
+                    // Durasi (POIN 6) & Persentase
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          "${item.durationMinutes} mnt",
+                          durationLabel,
                           style: const TextStyle(
-                            fontSize: 13.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF0F172A),
                           ),

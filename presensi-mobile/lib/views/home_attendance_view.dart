@@ -1233,7 +1233,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                 ),
                                 const SizedBox(height: 5),
                                 const Text(
-                                  "Segera rekam waktu kembali jika anda sudah berada di kantor.",
+                                  "Segera rekam waktu kembali setelah tiba di kantor",
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w600,
@@ -1262,17 +1262,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                 ),
                               ],
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
-                            ),
-                            child: const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFD97706), size: 12),
                           ),
                         ],
                       ),
@@ -1353,17 +1342,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
-                            ),
-                            child: const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFDC2626), size: 12),
-                          ),
                         ],
                       ),
                     ),
@@ -1389,7 +1367,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                     ),
                     InkWell(
-                      onTap: _navigateToDailyMonitoring,
+                      onTap: _navigateToAnalytics,
                       child: const Text(
                         "Lihat Rekap",
                         style: TextStyle(fontSize: 12, color: Color(0xFF1E60F2), fontWeight: FontWeight.bold),
@@ -1542,49 +1520,63 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     );
   }
 
-  /// Card Aktivitas: Izin Waigama (Redesigned: Clean White Surface, Anti-Monotonous)
+  String _formatDuration(int minutes) {
+    if (minutes < 60) return "$minutes Menit";
+    final hours = minutes ~/ 60;
+    final rem = minutes % 60;
+    if (rem == 0) return "$hours Jam";
+    return "$hours Jam $rem Menit";
+  }
+
+  /// Card Aktivitas: Izin Waigama (Desain Sebelumnya: Gradasi Elegan & Tidak Monoton)
   Widget _buildPermitActivityCard(UserActivityItem item) {
     final startStr = "${DateFormat('HH:mm').format(item.startTime)} WIT";
     final endStr = item.endTime != null ? "${DateFormat('HH:mm').format(item.endTime!)} WIT" : "--:--";
     final duration = item.getDurationMinutes();
+    final durationStr = _formatDuration(duration);
+
+    // Warna dinamis: Sedang Izin (Amber-Oranye Hangat), Selesai (Emerald Teal Tenang)
+    final gradientColors = item.isActive
+        ? const [Color(0xFFF59E0B), Color(0xFFD97706)]
+        : const [Color(0xFF0D9488), Color(0xFF0F766E)];
+    final shadowColor = item.isActive
+        ? const Color(0xFFF59E0B).withOpacity(0.28)
+        : const Color(0xFF0D9488).withOpacity(0.25);
+    final durationColor = item.isActive
+        ? const Color(0xFFFEF3C7)
+        : const Color(0xFFCCFBF1);
 
     return InkWell(
       onTap: item.isActive ? _navigateToRecordPermit : null,
       borderRadius: BorderRadius.circular(22),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: item.isActive ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
-            width: item.isActive ? 1.4 : 1.0,
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+          borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: item.isActive
-                  ? const Color(0xFFD97706).withOpacity(0.08)
-                  : Colors.black.withOpacity(0.025),
-              blurRadius: 12,
-              offset: const Offset(0, 3),
+              color: shadowColor,
+              blurRadius: 14,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            // Kotak Kiri: "Sedang Izin" (Amber) atau "Selesai" (Mint Emerald)
+            // Kotak Kiri: "Sedang Izin" atau "Selesai"
             Container(
-              width: 68,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+              width: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
               decoration: BoxDecoration(
-                color: item.isActive
-                    ? const Color(0xFFFEF3C7)
-                    : const Color(0xFFECFDF5),
+                color: Colors.white.withOpacity(0.22),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: item.isActive
-                      ? const Color(0xFFFDE68A)
-                      : const Color(0xFFA7F3D0),
+                  color: Colors.white.withOpacity(0.35),
                   width: 1.2,
                 ),
               ),
@@ -1593,17 +1585,17 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 children: [
                   Icon(
                     item.isActive ? Icons.directions_walk_rounded : Icons.check_circle_rounded,
-                    color: item.isActive ? const Color(0xFFD97706) : const Color(0xFF059669),
-                    size: 20,
+                    color: Colors.white,
+                    size: 22,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     item.isActive ? "Sedang\nIzin" : "Selesai",
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10.5,
+                    style: const TextStyle(
+                      fontSize: 11,
                       fontWeight: FontWeight.w900,
-                      color: item.isActive ? const Color(0xFFB45309) : const Color(0xFF065F46),
+                      color: Colors.white,
                       height: 1.2,
                     ),
                   ),
@@ -1611,9 +1603,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
               ),
             ),
 
-            const SizedBox(width: 14),
+            const SizedBox(width: 16),
 
-            // Rincian Waktu & Durasi Menit
+            // Rincian Waktu & Durasi Menit / Jam
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1624,67 +1616,64 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             "Mulai",
-                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             startStr,
-                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             "Selesai",
-                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             endStr,
-                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: item.isActive ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          "$duration Menit",
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: item.isActive ? const Color(0xFFB45309) : const Color(0xFF1E60F2),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const SizedBox(height: 14),
+                          Text(
+                            durationStr,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: durationColor,
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      const Icon(Icons.edit_note_rounded, color: Color(0xFF64748B), size: 16),
+                      const Icon(Icons.edit_note_rounded, color: Colors.white70, size: 15),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           "Keperluan: ${item.purposeOrDesc}",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF334155),
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.white.withOpacity(0.92),
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (item.isActive)
-                        const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFD97706)),
                     ],
                   ),
                 ],
@@ -1696,45 +1685,55 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     );
   }
 
-  /// POIN 1: Card Aktivitas Khusus Laporan Cepu Yang Valid (Clean White Surface with Coral Red Accent)
+  /// POIN 1: Card Aktivitas Khusus Laporan Cepu Yang Valid
   Widget _buildCepuActivityCard(UserActivityItem item) {
     final startStr = "${DateFormat('HH:mm').format(item.startTime)} WIT";
     final endStr = item.endTime != null ? "${DateFormat('HH:mm').format(item.endTime!)} WIT" : "--:--";
     final duration = item.getDurationMinutes();
+    final durationStr = _formatDuration(duration);
+
+    // Warna dinamis: Di-Cepu (Merah Crimson), Cepu Selesai (Deep Indigo)
+    final gradientColors = item.isActive
+        ? const [Color(0xFFDC2626), Color(0xFF991B1B)]
+        : const [Color(0xFF4338CA), Color(0xFF312E81)];
+    final shadowColor = item.isActive
+        ? const Color(0xFFDC2626).withOpacity(0.28)
+        : const Color(0xFF4338CA).withOpacity(0.25);
+    final durationColor = item.isActive
+        ? const Color(0xFFFDE68A)
+        : const Color(0xFFE0E7FF);
 
     return InkWell(
       onTap: item.isActive ? _navigateToCepuMapReport : null,
       borderRadius: BorderRadius.circular(22),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: item.isActive ? const Color(0xFFFECACA) : const Color(0xFFE2E8F0),
-            width: item.isActive ? 1.4 : 1.0,
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+          borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: item.isActive
-                  ? const Color(0xFFDC2626).withOpacity(0.08)
-                  : Colors.black.withOpacity(0.025),
-              blurRadius: 12,
-              offset: const Offset(0, 3),
+              color: shadowColor,
+              blurRadius: 14,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            // Kotak Kiri: "Di-Cepu" (Red) atau "Selesai" (Slate Blue)
+            // Kotak Kiri: "Di-Cepu" atau "Selesai"
             Container(
-              width: 68,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+              width: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
               decoration: BoxDecoration(
-                color: item.isActive ? const Color(0xFFFEE2E2) : const Color(0xFFEFF6FF),
+                color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: item.isActive ? const Color(0xFFFCA5A5) : const Color(0xFFBFDBFE),
+                  color: Colors.white.withOpacity(0.35),
                   width: 1.2,
                 ),
               ),
@@ -1743,17 +1742,17 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 children: [
                   Icon(
                     item.isActive ? Icons.campaign_rounded : Icons.verified_rounded,
-                    color: item.isActive ? const Color(0xFFDC2626) : const Color(0xFF1E60F2),
-                    size: 20,
+                    color: Colors.white,
+                    size: 22,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     item.isActive ? "Di-Cepu" : "Selesai",
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10.5,
+                    style: const TextStyle(
+                      fontSize: 11,
                       fontWeight: FontWeight.w900,
-                      color: item.isActive ? const Color(0xFF991B1B) : const Color(0xFF1E40AF),
+                      color: Colors.white,
                       height: 1.2,
                     ),
                   ),
@@ -1761,9 +1760,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
               ),
             ),
 
-            const SizedBox(width: 14),
+            const SizedBox(width: 16),
 
-            // Rincian Waktu & Durasi Menit
+            // Rincian Waktu & Durasi Menit / Jam
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1774,67 +1773,64 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             "Mulai",
-                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             startStr,
-                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             "Selesai",
-                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             endStr,
-                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFEE2E2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          "$duration Menit",
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFFDC2626),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const SizedBox(height: 14),
+                          Text(
+                            durationStr,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: durationColor,
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      const Icon(Icons.person_pin_circle_rounded, color: Color(0xFFDC2626), size: 16),
+                      const Icon(Icons.person_pin_circle_rounded, color: Colors.white70, size: 15),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           "Pelapor: ${item.reporterName ?? '-'} • Ket: ${item.purposeOrDesc}",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF334155),
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.white.withOpacity(0.95),
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (item.isActive)
-                        const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFDC2626)),
                     ],
                   ),
                 ],
