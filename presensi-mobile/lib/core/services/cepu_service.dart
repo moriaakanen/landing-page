@@ -334,5 +334,44 @@ class CepuService {
       return [];
     }
   }
+
+  /// Mengambil semua laporan Cepu (valid & non-valid) dalam rentang tanggal untuk target user
+  Future<List<CepuModel>> getAllCepuDateRangeForTarget(String targetUid, String startDate, String endDate) async {
+    try {
+      final snapshot = await _firestore
+          .collection('cepu_reports')
+          .where('target_uid', isEqualTo: targetUid)
+          .where('date', isGreaterThanOrEqualTo: startDate)
+          .where('date', isLessThanOrEqualTo: endDate)
+          .get();
+
+      final list = snapshot.docs
+          .map((d) => CepuModel.fromMap(d.data(), d.id))
+          .toList();
+      list.sort((a, b) => b.startTime.compareTo(a.startTime));
+      return list;
+    } catch (_) {
+      try {
+        final snapshot = await _firestore
+            .collection('cepu_reports')
+            .where('target_uid', isEqualTo: targetUid)
+            .get();
+        final list = snapshot.docs
+            .map((d) => CepuModel.fromMap(d.data(), d.id))
+            .where((c) => c.date.compareTo(startDate) >= 0 && c.date.compareTo(endDate) <= 0)
+            .toList();
+        list.sort((a, b) => b.startTime.compareTo(a.startTime));
+        return list;
+      } catch (_) {
+        return [];
+      }
+    }
+  }
+
+  /// Mengambil laporan Cepu valid dalam rentang tanggal untuk target user
+  Future<List<CepuModel>> getValidCepuDateRangeForTarget(String targetUid, String startDate, String endDate) async {
+    final all = await getAllCepuDateRangeForTarget(targetUid, startDate, endDate);
+    return all.where((c) => c.isValid).toList();
+  }
 }
 

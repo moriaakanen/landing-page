@@ -198,5 +198,39 @@ class PermitService {
       return [];
     }
   }
+
+  /// Mengambil data seluruh izin milik user tertentu dalam rentang tanggal
+  Future<List<PermitModel>> getUserDateRangePermits(String userId, String startDate, String endDate) async {
+    try {
+      final snapshot = await _firestore
+          .collection('permits')
+          .where('user_id', isEqualTo: userId)
+          .where('date', isGreaterThanOrEqualTo: startDate)
+          .where('date', isLessThanOrEqualTo: endDate)
+          .get();
+
+      final list = snapshot.docs
+          .map((doc) => PermitModel.fromMap(doc.data(), doc.id))
+          .toList();
+      list.sort((a, b) => b.startTime.compareTo(a.startTime));
+      return list;
+    } catch (_) {
+      // Fallback tanpa composite index range: ambil by user_id lalu filter lokal
+      try {
+        final snapshot = await _firestore
+            .collection('permits')
+            .where('user_id', isEqualTo: userId)
+            .get();
+        final list = snapshot.docs
+            .map((doc) => PermitModel.fromMap(doc.data(), doc.id))
+            .where((p) => p.date.compareTo(startDate) >= 0 && p.date.compareTo(endDate) <= 0)
+            .toList();
+        list.sort((a, b) => b.startTime.compareTo(a.startTime));
+        return list;
+      } catch (_) {
+        return [];
+      }
+    }
+  }
 }
 

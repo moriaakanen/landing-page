@@ -85,6 +85,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
   List<UserActivityItem> _todayActivities = [];
   List<CepuModel> _pendingVerificationCepu = [];
 
+  int _currentActivityPage = 0;
+  static const int _activityPageSize = 3;
+
   bool _isLoading = true;
   Timer? _clockTimer;
   DateTime _currentTime = DateTime.now();
@@ -179,6 +182,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
         _activePermit = activePermit;
         _activeCepuForMe = activeCepu;
         _todayActivities = activities;
+        _currentActivityPage = 0;
         _pendingVerificationCepu = pendingCepu;
         _isLoading = false;
       });
@@ -1257,7 +1261,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                           color: Color(0xFF64748B),
                                           fontWeight: FontWeight.w500,
                                         ),
-                                        maxLines: 1,
+                                        maxLines: 3,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -1430,21 +1434,39 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ],
                     ),
                   )
-                else
-                  // POIN 1: List Seluruh Aktivitas Hari Ini (Izin Waigama & Yang Di-Cepukan Valid)
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _todayActivities.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final item = _todayActivities[index];
-                      if (item.type == 'CEPU') {
-                        return _buildCepuActivityCard(item);
-                      }
-                      return _buildPermitActivityCard(item);
+                else ...[
+                  // POIN 1: List Seluruh Aktivitas Hari Ini dengan Pagination
+                  Builder(
+                    builder: (context) {
+                      final totalPages = (_todayActivities.length / _activityPageSize).ceil();
+                      final safePage = _currentActivityPage.clamp(0, max(0, totalPages - 1));
+                      final startIndex = safePage * _activityPageSize;
+                      final endIndex = min(startIndex + _activityPageSize, _todayActivities.length);
+                      final pageItems = _todayActivities.sublist(startIndex, endIndex);
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: pageItems.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final item = pageItems[index];
+                              if (item.type == 'CEPU') {
+                                return _buildCepuActivityCard(item);
+                              }
+                              return _buildPermitActivityCard(item);
+                            },
+                          ),
+                          if (totalPages > 1)
+                            _buildActivityPagination(totalPages, safePage),
+                        ],
+                      );
                     },
                   ),
+                ],
               ],
             ),
           ),
@@ -1531,12 +1553,310 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     return "$hours Jam $rem Menit";
   }
 
+  Widget _buildActivityCardDuration(int duration, Color durationColor) {
+    if (duration < 60) {
+      return Text(
+        "$duration Menit",
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w900,
+          color: durationColor,
+        ),
+      );
+    }
+    final hours = duration ~/ 60;
+    final rem = duration % 60;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          "$hours Jam",
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            color: durationColor,
+            height: 1.15,
+          ),
+        ),
+        const SizedBox(height: 1),
+        Text(
+          "$rem Menit",
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w800,
+            color: durationColor.withOpacity(0.92),
+            height: 1.15,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Pagination Control untuk Aktivitas Hari Ini
+  Widget _buildActivityPagination(int totalPages, int currentPage) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left_rounded),
+            color: currentPage > 0 ? const Color(0xFF1E60F2) : const Color(0xFFCBD5E1),
+            onPressed: currentPage > 0
+                ? () {
+                    setState(() {
+                      _currentActivityPage--;
+                    });
+                  }
+                : null,
+            splashRadius: 20,
+            tooltip: "Halaman Sebelumnya",
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              "Halaman ${currentPage + 1} dari $totalPages",
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF475569),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right_rounded),
+            color: currentPage < totalPages - 1 ? const Color(0xFF1E60F2) : const Color(0xFFCBD5E1),
+            onPressed: currentPage < totalPages - 1
+                ? () {
+                    setState(() {
+                      _currentActivityPage++;
+                    });
+                  }
+                : null,
+            splashRadius: 20,
+            tooltip: "Halaman Berikutnya",
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Modal Bottom Sheet untuk Melihat Keperluan & Detail Lengkap Aktivitas Selesai
+  void _showActivityDetailModal(UserActivityItem item) {
+    final startStr = "${DateFormat('HH:mm').format(item.startTime)} WIT";
+    final endStr = item.endTime != null ? "${DateFormat('HH:mm').format(item.endTime!)} WIT" : "--:--";
+    final duration = item.getDurationMinutes();
+    final durationFormatted = _formatDuration(duration);
+    final isCepu = item.type == 'CEPU';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(context).viewInsets.bottom + 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag Handle
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Header Type & Status
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isCepu ? const Color(0xFFFEE2E2) : const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          isCepu ? Icons.campaign_rounded : Icons.assignment_ind_rounded,
+                          color: isCepu ? const Color(0xFFDC2626) : const Color(0xFF1E60F2),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        isCepu ? "Laporan Cepu" : "Izin Waigama",
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: item.isActive
+                          ? (isCepu ? const Color(0xFFFEE2E2) : const Color(0xFFFEF3C7))
+                          : const Color(0xFFD1FAE5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      item.isActive ? "Sedang Berjalan" : "Selesai",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: item.isActive
+                            ? (isCepu ? const Color(0xFFDC2626) : const Color(0xFFB45309))
+                            : const Color(0xFF059669),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Info Box: Waktu Mulai, Selesai, & Durasi
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Waktu Pergi", style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                        const SizedBox(height: 3),
+                        Text(startStr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                      ],
+                    ),
+                    Container(height: 30, width: 1, color: const Color(0xFFE2E8F0)),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Waktu Kembali", style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                        const SizedBox(height: 3),
+                        Text(endStr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                      ],
+                    ),
+                    Container(height: 30, width: 1, color: const Color(0xFFE2E8F0)),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Total Durasi", style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                        const SizedBox(height: 3),
+                        Text(durationFormatted, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E60F2))),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // Detail Keperluan / Deskripsi Lengkap
+              const Text(
+                "Keperluan / Deskripsi Lengkap",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF334155),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: SelectableText(
+                  item.purposeOrDesc.isNotEmpty ? item.purposeOrDesc : "-",
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF1E293B),
+                    height: 1.5,
+                  ),
+                ),
+              ),
+
+              if (isCepu && item.reporterName != null) ...[
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    const Icon(Icons.person_pin_rounded, size: 16, color: Color(0xFF64748B)),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Dilaporkan oleh: ${item.reporterName}",
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    ),
+                  ],
+                ),
+              ],
+
+              const SizedBox(height: 24),
+
+              // Tombol Tutup
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E60F2),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleButton(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: 0,
+                  ),
+                  child: const Text("Tutup", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   /// Card Aktivitas: Izin Waigama (Desain Sebelumnya: Gradasi Elegan & Tidak Monoton)
   Widget _buildPermitActivityCard(UserActivityItem item) {
     final startStr = "${DateFormat('HH:mm').format(item.startTime)} WIT";
     final endStr = item.endTime != null ? "${DateFormat('HH:mm').format(item.endTime!)} WIT" : "--:--";
     final duration = item.getDurationMinutes();
-    final durationStr = _formatDuration(duration);
 
     // Warna dinamis: Sedang Izin (Amber-Oranye Hangat), Selesai (Emerald Teal Tenang)
     final gradientColors = item.isActive
@@ -1550,7 +1870,13 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
         : const Color(0xFFCCFBF1);
 
     return InkWell(
-      onTap: item.isActive ? _navigateToRecordPermit : null,
+      onTap: () {
+        if (item.isActive) {
+          _navigateToRecordPermit();
+        } else {
+          _showActivityDetailModal(item);
+        }
+      },
       borderRadius: BorderRadius.circular(22),
       child: Container(
         decoration: BoxDecoration(
@@ -1647,23 +1973,21 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const SizedBox(height: 14),
-                          Text(
-                            durationStr,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                              color: durationColor,
-                            ),
-                          ),
+                          const SizedBox(height: 4),
+                          // POIN 2: Durasi > 60 menit dibuat 2 baris (jam lalu menit)
+                          _buildActivityCardDuration(duration, durationColor),
                         ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.edit_note_rounded, color: Colors.white70, size: 15),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(Icons.edit_note_rounded, color: Colors.white70, size: 15),
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -1672,8 +1996,10 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                             fontSize: 11.5,
                             color: Colors.white.withOpacity(0.92),
                             fontWeight: FontWeight.w500,
+                            height: 1.3,
                           ),
-                          maxLines: 1,
+                          // POIN 3: Keperluan maksimal 3 baris
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -1693,7 +2019,6 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     final startStr = "${DateFormat('HH:mm').format(item.startTime)} WIT";
     final endStr = item.endTime != null ? "${DateFormat('HH:mm').format(item.endTime!)} WIT" : "--:--";
     final duration = item.getDurationMinutes();
-    final durationStr = _formatDuration(duration);
 
     // Warna dinamis: Di-Cepu (Merah Crimson), Cepu Selesai (Deep Indigo)
     final gradientColors = item.isActive
@@ -1707,7 +2032,13 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
         : const Color(0xFFE0E7FF);
 
     return InkWell(
-      onTap: item.isActive ? _navigateToCepuMapReport : null,
+      onTap: () {
+        if (item.isActive) {
+          _navigateToCepuMapReport();
+        } else {
+          _showActivityDetailModal(item);
+        }
+      },
       borderRadius: BorderRadius.circular(22),
       child: Container(
         decoration: BoxDecoration(
@@ -1804,23 +2135,21 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const SizedBox(height: 14),
-                          Text(
-                            durationStr,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                              color: durationColor,
-                            ),
-                          ),
+                          const SizedBox(height: 4),
+                          // POIN 2: Durasi > 60 menit dibuat 2 baris
+                          _buildActivityCardDuration(duration, durationColor),
                         ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.person_pin_circle_rounded, color: Colors.white70, size: 15),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(Icons.person_pin_circle_rounded, color: Colors.white70, size: 15),
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -1829,8 +2158,10 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                             fontSize: 11.5,
                             color: Colors.white.withOpacity(0.95),
                             fontWeight: FontWeight.w500,
+                            height: 1.3,
                           ),
-                          maxLines: 1,
+                          // POIN 3: Keperluan maksimal 3 baris
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
