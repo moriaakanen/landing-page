@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
@@ -1438,10 +1439,10 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                   // POIN 1: List Seluruh Aktivitas Hari Ini dengan Pagination
                   Builder(
                     builder: (context) {
-                      final totalPages = (_todayActivities.length / _activityPageSize).ceil();
-                      final safePage = _currentActivityPage.clamp(0, max(0, totalPages - 1));
-                      final startIndex = safePage * _activityPageSize;
-                      final endIndex = min(startIndex + _activityPageSize, _todayActivities.length);
+                      final int totalPages = (_todayActivities.length / _activityPageSize).ceil();
+                      final int safePage = _currentActivityPage.clamp(0, max(0, totalPages - 1)).toInt();
+                      final int startIndex = safePage * _activityPageSize;
+                      final int endIndex = min(startIndex + _activityPageSize, _todayActivities.length);
                       final pageItems = _todayActivities.sublist(startIndex, endIndex);
 
                       return Column(
@@ -1838,7 +1839,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1E60F2),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleButton(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                   ),
