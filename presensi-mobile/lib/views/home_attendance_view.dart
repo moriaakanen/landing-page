@@ -342,620 +342,526 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
     return "Selamat Malam,";
   }
 
+  /// Menghitung total durasi izin dalam menit
+  /// Berhenti menghitung pada:
+  /// - 16.00 WIT untuk hari Senin - Kamis
+  /// - 16.30 WIT untuk hari Jumat
+  int _calculatePermitDurationMinutes() {
+    if (_activePermit == null) return 0;
+    final start = _activePermit!.startTime;
+    final now = DateTime.now();
+
+    // Aturan batas jam kerja WIT
+    final isFriday = now.weekday == DateTime.friday;
+    final cutoffHour = 16;
+    final cutoffMinute = isFriday ? 30 : 0;
+    final cutoffTime = DateTime(now.year, now.month, now.day, cutoffHour, cutoffMinute);
+
+    DateTime effectiveEnd;
+    if (_activePermit!.endTime != null) {
+      effectiveEnd = _activePermit!.endTime!;
+    } else {
+      // Sedang berlangsung: berhenti jika melewati jam cutoff
+      effectiveEnd = now.isAfter(cutoffTime) ? cutoffTime : now;
+    }
+
+    if (effectiveEnd.isBefore(start)) return 0;
+    return effectiveEnd.difference(start).inMinutes;
+  }
+
   @override
   Widget build(BuildContext context) {
     String dayNameFormatted;
     String dateFormatted;
-    String dayNumber;
-    String dayShortName;
 
     try {
       dayNameFormatted = DateFormat('EEEE', 'id_ID').format(DateTime.now());
       dateFormatted = DateFormat('dd MMMM yyyy', 'id_ID').format(DateTime.now());
-      dayNumber = DateFormat('dd').format(DateTime.now());
-      dayShortName = DateFormat('E', 'id_ID').format(DateTime.now());
     } catch (_) {
       dayNameFormatted = DateFormat('EEEE').format(DateTime.now());
       dateFormatted = DateFormat('dd MMMM yyyy').format(DateTime.now());
-      dayNumber = DateFormat('dd').format(DateTime.now());
-      dayShortName = DateFormat('E').format(DateTime.now());
     }
 
     final hasActivePermit = _activePermit != null;
     final startPermitTime = hasActivePermit
         ? "${DateFormat('HH:mm').format(_activePermit!.startTime)} WIT"
         : "--:--";
-    const endPermitTime = "--:--";
+    final endPermitTime = (_activePermit != null && _activePermit!.endTime != null)
+        ? "${DateFormat('HH:mm').format(_activePermit!.endTime!)} WIT"
+        : "--:--";
     final timeFormatted = DateFormat('HH:mm').format(_currentTime);
+    final durationMinutes = _calculatePermitDurationMinutes();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: Stack(
-          children: [
-            RefreshIndicator(
-              onRefresh: _loadInitialData,
-              color: const Color(0xFF1E60F2),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 95),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: _loadInitialData,
+          color: const Color(0xFF1E60F2),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // =========================================================================
+                // 1 & 2. TOPBAR (Pojok Kiri: Logo + "Waigama", Pojok Kanan: Icon Notifikasi)
+                // =========================================================================
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // =========================================================================
-                    // 1 & 2. TOPBAR (Pojok Kiri: Logo + "Waigama", Pojok Kanan: Icon Notifikasi)
-                    // =========================================================================
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Pojok Kiri: Logo Ikan Pari + Tulisan "Waigama"
-                        Row(
-                          children: [
-                            Image.asset(
-                              'assets/images/app_logo.png',
-                              width: 36,
-                              height: 36,
-                              fit: BoxFit.contain,
+                    // Pojok Kiri: Logo Ikan Pari + Tulisan "Waigama" (Desain Glassmorphic Premium)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF1E60F2).withOpacity(0.06),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/images/app_logo.png',
+                            width: 32,
+                            height: 32,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(width: 8),
+                          RichText(
+                            text: const TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "Wai",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF0F172A),
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: "gama",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF1E60F2),
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              "Waigama",
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w900,
-                                color: Color(0xFF0284C7),
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        // Pojok Kanan: Icon Notifikasi
-                        _buildIconButton(
-                          icon: Icons.notifications_none_rounded,
-                          onTap: _navigateToDailyMonitoring,
-                          hasBadge: hasActivePermit || _activeCepuForMe != null,
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
 
-                    const SizedBox(height: 18),
+                    // Pojok Kanan: Icon Notifikasi
+                    _buildIconButton(
+                      icon: Icons.notifications_none_rounded,
+                      onTap: _navigateToDailyMonitoring,
+                      hasBadge: hasActivePermit || _activeCepuForMe != null,
+                    ),
+                  ],
+                ),
 
-                    // =========================================================================
-                    // 3 & 4. DIBAWAH TOPBAR:
-                    // Pojok Kiri: Sapaan (Selamat ..., baris baru: Nama User)
-                    // Pojok Kanan: Hari, Tanggal, dan Border Persegi Panjang Status Lokasi (Kantor / Di Luar Kantor)
-                    // =========================================================================
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 18),
+
+                // =========================================================================
+                // 3 & 4. DIBAWAH TOPBAR:
+                // Pojok Kiri: Sapaan (Selamat ..., baris baru: Nama User)
+                // Pojok Kanan: Hari, Tanggal, dan Border Persegi Panjang Status Lokasi (Kantor / Di Luar Kantor)
+                // =========================================================================
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Kiri: Sapaan Waktu & Nama User
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _getGreeting(),
+                            style: const TextStyle(
+                              fontSize: 13.5,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.user.name,
+                            style: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                              letterSpacing: -0.3,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // Kanan: Hari, Tanggal, & Border Persegi Panjang Status Lokasi
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        // Kiri: Sapaan Waktu & Nama User
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        Text(
+                          "$dayNameFormatted,",
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF334155),
+                          ),
+                        ),
+                        Text(
+                          dateFormatted,
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        // Border Persegi Panjang dengan Sudut Tumpul (Status Lokasi)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: _isInOfficeRadius
+                                ? const Color(0xFFECFDF5)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: _isInOfficeRadius
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFFCBD5E1),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                _getGreeting(),
-                                style: const TextStyle(
-                                  fontSize: 13.5,
-                                  color: Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
-                                ),
+                              Icon(
+                                Icons.location_on_rounded,
+                                size: 14,
+                                color: _isInOfficeRadius
+                                    ? const Color(0xFF059669)
+                                    : const Color(0xFF64748B),
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(width: 4),
                               Text(
-                                widget.user.name,
-                                style: const TextStyle(
-                                  fontSize: 19,
+                                _isCheckingLocation
+                                    ? "Mengecek..."
+                                    : (_isInOfficeRadius ? "Kantor" : "Di Luar Kantor"),
+                                style: TextStyle(
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                  letterSpacing: -0.3,
+                                  color: _isInOfficeRadius
+                                      ? const Color(0xFF059669)
+                                      : const Color(0xFF475569),
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
+                      ],
+                    ),
+                  ],
+                ),
 
-                        const SizedBox(width: 12),
+                const SizedBox(height: 20),
 
-                        // Kanan: Hari, Tanggal, & Border Persegi Panjang Status Lokasi
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              "$dayNameFormatted,",
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF334155),
-                              ),
+                // =========================================================================
+                // 5. BORDER BIRU BESAR (Waktu Mulai Izin dan Selesai Izin)
+                // POIN 2: Menampilkan Indikator "Sedang Izin" di bawah jam ketika aktif
+                // =========================================================================
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1E60F2), Color(0xFF0E3A99)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(26),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1E60F2).withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(22),
+                  child: Column(
+                    children: [
+                      // Digital Time Display
+                      Column(
+                        children: [
+                          Text(
+                            "WAKTU SAAT INI",
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white.withOpacity(0.75),
+                              letterSpacing: 0.8,
                             ),
-                            Text(
-                              dateFormatted,
-                              style: const TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF64748B),
-                              ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "$timeFormatted WIT",
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
                             ),
-                            const SizedBox(height: 6),
-                            // Border Persegi Panjang dengan Sudut Tumpul (Status Lokasi)
+                          ),
+
+                          // POIN 2: Indikator "Sedang Izin" Di Bawah Jam
+                          if (hasActivePermit) ...[
+                            const SizedBox(height: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                               decoration: BoxDecoration(
-                                color: _isInOfficeRadius
-                                    ? const Color(0xFFECFDF5)
-                                    : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.black.withOpacity(0.18),
+                                borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: _isInOfficeRadius
-                                      ? const Color(0xFF10B981)
-                                      : const Color(0xFFCBD5E1),
+                                  color: const Color(0xFFFDE68A).withOpacity(0.7),
                                   width: 1.2,
                                 ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.location_on_rounded,
-                                    size: 14,
-                                    color: _isInOfficeRadius
-                                        ? const Color(0xFF059669)
-                                        : const Color(0xFF64748B),
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFFDE68A),
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _isCheckingLocation
-                                        ? "Mengecek..."
-                                        : (_isInOfficeRadius ? "Kantor" : "Di Luar Kantor"),
+                                  const SizedBox(width: 6),
+                                  const Text(
+                                    "Sedang Izin",
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      color: Color(0xFFFEF3C7),
                                       fontWeight: FontWeight.bold,
-                                      color: _isInOfficeRadius
-                                        ? const Color(0xFF059669)
-                                        : const Color(0xFF475569),
+                                      fontSize: 12,
+                                      letterSpacing: 0.2,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                           ],
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // =========================================================================
-                    // 5. BORDER BIRU BESAR (Waktu Mulai Izin dan Selesai Izin)
-                    // =========================================================================
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1E60F2), Color(0xFF0E3A99)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(26),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF1E60F2).withOpacity(0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(22),
-                      child: Column(
+
+                      const SizedBox(height: 20),
+
+                      // 2 Tombol Aksi: Mulai Izin & Selesai Izin
+                      Row(
                         children: [
-                          // Digital Time
-                          Column(
-                            children: [
-                              Text(
-                                "WAKTU SAAT INI",
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white.withOpacity(0.75),
-                                  letterSpacing: 0.8,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "$timeFormatted WIT",
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // 2 Tombol Aksi: Mulai Izin & Selesai Izin
-                          Row(
-                            children: [
-                              // Tombol 1: Mulai Izin
-                              Expanded(
-                                child: InkWell(
-                                  onTap: hasActivePermit ? null : _navigateToRecordPermit,
+                          // Tombol 1: Mulai Izin
+                          Expanded(
+                            child: InkWell(
+                              onTap: hasActivePermit ? null : _navigateToRecordPermit,
+                              borderRadius: BorderRadius.circular(18),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: hasActivePermit
+                                      ? Colors.white.withOpacity(0.5)
+                                      : Colors.white,
                                   borderRadius: BorderRadius.circular(18),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    decoration: BoxDecoration(
-                                      color: hasActivePermit
-                                          ? Colors.white.withOpacity(0.5)
-                                          : Colors.white,
-                                      borderRadius: BorderRadius.circular(18),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.08),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        const Icon(
-                                          Icons.check_circle_rounded,
-                                          color: Color(0xFF1E60F2),
-                                          size: 24,
-                                        ),
-                                        const SizedBox(height: 6),
-                                        const Text(
-                                          "Mulai Izin",
-                                          style: TextStyle(
-                                            color: Color(0xFF1E60F2),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13.5,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          hasActivePermit ? startPermitTime : "Rekam Mulai",
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: const Color(0xFF1E60F2).withOpacity(0.75),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(width: 14),
-
-                              // Tombol 2: Selesai Izin
-                              Expanded(
-                                child: InkWell(
-                                  onTap: hasActivePermit ? _navigateToRecordPermit : null,
-                                  borderRadius: BorderRadius.circular(18),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(hasActivePermit ? 0.28 : 0.15),
-                                      borderRadius: BorderRadius.circular(18),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(hasActivePermit ? 0.4 : 0.2),
-                                        width: 1.2,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        const Icon(
-                                          Icons.access_time_filled_rounded,
-                                          color: Colors.white,
-                                          size: 24,
-                                        ),
-                                        const SizedBox(height: 6),
-                                        const Text(
-                                          "Selesai Izin",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13.5,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          hasActivePermit ? "Rekam Kembali" : "--:--",
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.white.withOpacity(0.75),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // POIN 7A: NOTIFIKASI PUSH / BANNER SAAT USER SEDANG IZIN
-                    if (hasActivePermit) ...[
-                      const SizedBox(height: 16),
-                      InkWell(
-                        onTap: _navigateToRecordPermit,
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFFBEB),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFFCD34D), width: 1.5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFF59E0B).withOpacity(0.12),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFF59E0B),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.directions_walk_rounded, color: Colors.white, size: 20),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Anda sedang izin, segera rekam waktu kembali jika anda sudah berada di kantor",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF92400E),
-                                        height: 1.3,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      "Keperluan: ${_activePermit!.purpose}",
-                                      style: const TextStyle(fontSize: 11, color: Color(0xFF1E293B)),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
                                     ),
                                   ],
                                 ),
-                              ),
-                              const Icon(Icons.chevron_right_rounded, color: Color(0xFF92400E)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    // POIN 7B & 8: NOTIFIKASI PUSH / BANNER SAAT USER DI-CEPU-KAN & SUDAH TERVERIFIKASI
-                    if (_activeCepuForMe != null) ...[
-                      const SizedBox(height: 16),
-                      InkWell(
-                        onTap: _navigateToCepuMapReport,
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFEF2F2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFF87171), width: 1.5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFDC2626).withOpacity(0.12),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFDC2626),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Text(
-                                      "Anda dilaporkan tidak berada di kantor, segera rekam waktu kembali jika anda berada di kantor",
+                                  children: [
+                                    const Icon(
+                                      Icons.check_circle_rounded,
+                                      color: Color(0xFF1E60F2),
+                                      size: 24,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      "Mulai Izin",
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        color: Color(0xFF1E60F2),
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF991B1B),
-                                        height: 1.3,
+                                        fontSize: 13.5,
                                       ),
                                     ),
-                                    SizedBox(height: 3),
+                                    const SizedBox(height: 2),
                                     Text(
-                                      "👉 Ketuk untuk rekam waktu kembali pada fitur Cepu",
+                                      hasActivePermit ? startPermitTime : "Rekam Mulai",
                                       style: TextStyle(
                                         fontSize: 11,
-                                        color: Color(0xFFDC2626),
+                                        color: const Color(0xFF1E60F2).withOpacity(0.75),
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.chevron_right_rounded, color: Color(0xFF991B1B)),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
 
-                    const SizedBox(height: 22),
+                          const SizedBox(width: 14),
 
-                    // =========================================================================
-                    // 8. AKTIVITAS HARI INI (Dipertahankan)
-                    // =========================================================================
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Aktivitas Hari Ini",
-                          style: TextStyle(
-                            fontSize: 16.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: _navigateToDailyMonitoring,
-                          child: const Text(
-                            "Lihat Rekap",
-                            style: TextStyle(fontSize: 12, color: Color(0xFF1E60F2), fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Attendance Activity Card Sesuai Home.tsx
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1E60F2), Color(0xFF1544B3)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF1E60F2).withOpacity(0.2),
-                            blurRadius: 14,
-                            offset: const Offset(0, 5),
+                          // Tombol 2: Selesai Izin
+                          Expanded(
+                            child: InkWell(
+                              onTap: hasActivePermit ? _navigateToRecordPermit : null,
+                              borderRadius: BorderRadius.circular(18),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(hasActivePermit ? 0.28 : 0.15),
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(hasActivePermit ? 0.4 : 0.2),
+                                    width: 1.2,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Icon(
+                                      Icons.access_time_filled_rounded,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      "Selesai Izin",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      hasActivePermit ? "Rekam Kembali" : endPermitTime,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.white.withOpacity(0.75),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
+                    ],
+                  ),
+                ),
+
+                // =========================================================================
+                // POIN 3: REDESIGN CARD SEDANG IZIN (Modern Soft Surface dengan Left Accent)
+                // =========================================================================
+                if (hasActivePermit) ...[
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: _navigateToRecordPermit,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
                       padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFFDE68A), width: 1.2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFD97706).withOpacity(0.08),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
                       child: Row(
                         children: [
-                          // Date Square Box
+                          // Left Icon Badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            width: 44,
+                            height: 44,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: const Color(0xFFFEF3C7),
                               borderRadius: BorderRadius.circular(14),
                             ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  dayNumber,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  dayShortName,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white.withOpacity(0.85),
-                                  ),
-                                ),
-                              ],
-                            ),
+                            child: const Icon(Icons.directions_walk_rounded, color: Color(0xFFD97706), size: 24),
                           ),
+                          const SizedBox(width: 14),
 
-                          const SizedBox(width: 16),
-
-                          // Attendance Time Details
+                          // Text Content
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Mulai",
-                                          style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7)),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFEF3C7),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Text(
+                                        "SEDANG IZIN",
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFFB45309),
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          startPermitTime,
-                                          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white),
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Selesai",
-                                          style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7)),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          endPermitTime,
-                                          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white),
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Status",
-                                          style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7)),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          hasActivePermit ? "Izin" : "Hadir",
-                                          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 5),
+                                const Text(
+                                  "Segera rekam waktu kembali jika anda sudah berada di kantor.",
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF1E293B),
+                                    height: 1.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
                                 Row(
                                   children: [
-                                    const Icon(Icons.location_on_rounded, color: Colors.white70, size: 13),
+                                    const Icon(Icons.edit_note_rounded, size: 14, color: Color(0xFF64748B)),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
-                                        _office != null
-                                            ? "${_office!.name} (Area Kantor)"
-                                            : "Kantor Utama",
-                                        style: TextStyle(
+                                        "Keperluan: ${_activePermit!.purpose}",
+                                        style: const TextStyle(
                                           fontSize: 11.5,
-                                          color: Colors.white.withOpacity(0.85),
+                                          color: Color(0xFF64748B),
+                                          fontWeight: FontWeight.w500,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -966,96 +872,390 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                               ],
                             ),
                           ),
+                          const SizedBox(width: 8),
+
+                          // Right Arrow Icon
+                          Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                            ),
+                            child: const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFD97706), size: 12),
+                          ),
                         ],
                       ),
                     ),
+                  ),
+                ],
+
+                // =========================================================================
+                // POIN 4: CARD LAPORAN CEPU YANG PERLU DI-VALIDASI (Desain Selaras)
+                // =========================================================================
+                if (_activeCepuForMe != null) ...[
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: _navigateToCepuMapReport,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFFECACA), width: 1.2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFDC2626).withOpacity(0.08),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          // Left Icon Badge
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEE2E2),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 24),
+                          ),
+                          const SizedBox(width: 14),
+
+                          // Text Content
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFEE2E2),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Text(
+                                        "LAPORAN CEPU",
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF991B1B),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 5),
+                                const Text(
+                                  "Anda dilaporkan tidak berada di kantor. Segera rekam waktu kembali.",
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF1E293B),
+                                    height: 1.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                const Text(
+                                  "👉 Ketuk untuk rekam waktu kembali",
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    color: Color(0xFFDC2626),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Right Arrow Icon
+                          Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                            ),
+                            child: const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFDC2626), size: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 22),
+
+                // =========================================================================
+                // POIN 5: REDESIGN CARD AKTIVITAS HARI INI
+                // - Kotak kiri tanggal diganti tulisan "Sedang Izin" atau "Selesai"
+                // - Tulisan "Status" dihapus, diganti total waktu izin dalam menit (live)
+                // - Nama kantor diganti menjadi keperluan izin
+                // =========================================================================
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Aktivitas Hari Ini",
+                      style: TextStyle(
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: _navigateToDailyMonitoring,
+                      child: const Text(
+                        "Lihat Rekap",
+                        style: TextStyle(fontSize: 12, color: Color(0xFF1E60F2), fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // Redesigned Attendance Activity Card
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1E60F2), Color(0xFF1544B3)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1E60F2).withOpacity(0.25),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // Kotak Kiri: "Sedang Izin" atau "Selesai"
+                      Container(
+                        width: 72,
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: hasActivePermit
+                              ? const Color(0xFFF59E0B).withOpacity(0.28)
+                              : Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: hasActivePermit
+                                ? const Color(0xFFFDE68A).withOpacity(0.6)
+                                : Colors.white.withOpacity(0.3),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              hasActivePermit
+                                  ? Icons.directions_walk_rounded
+                                  : Icons.check_circle_rounded,
+                              color: hasActivePermit ? const Color(0xFFFDE68A) : Colors.white,
+                              size: 22,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              hasActivePermit ? "Sedang\nIzin" : "Selesai",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                color: hasActivePermit ? const Color(0xFFFEF3C7) : Colors.white,
+                                height: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      // Rincian Waktu & Durasi Menit
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // Kolom 1: Mulai
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Mulai",
+                                      style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      startPermitTime,
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+
+                                // Kolom 2: Selesai
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Selesai",
+                                      style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75)),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      endPermitTime,
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+
+                                // Kolom 3: Total Waktu Izin dalam Menit (Tulisan 'Status' Dihapus)
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    const SizedBox(height: 14), // Pengganti header status yang dihapus
+                                    Text(
+                                      hasActivePermit || (_activePermit != null && _activePermit!.endTime != null)
+                                          ? "$durationMinutes Menit"
+                                          : "--",
+                                      style: const TextStyle(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: Color(0xFFFDE68A),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            // Keperluan Izin (Menggantikan Tulisan "Kantor Pusat")
+                            Row(
+                              children: [
+                                const Icon(Icons.edit_note_rounded, color: Colors.white70, size: 15),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    _activePermit != null
+                                        ? "Keperluan: ${_activePermit!.purpose}"
+                                        : "Keperluan: Tidak ada izin aktif",
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+
+      // =========================================================================
+      // POIN 6: BOTTOM NAVIGATION BAR (Menggunakan Scaffold.bottomNavigationBar)
+      // Memastikan bar menempel sempurna di dasar layar tanpa terangkat
+      // =========================================================================
+      bottomNavigationBar: Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            // Item 1: Home
+            IconButton(
+              icon: const Icon(Icons.home_rounded, color: Color(0xFF1E60F2), size: 26),
+              onPressed: () {},
+              tooltip: "Home",
+            ),
+
+            // Item 2: Monitoring
+            IconButton(
+              icon: const Icon(Icons.bar_chart_rounded, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToDailyMonitoring,
+              tooltip: "Monitoring",
+            ),
+
+            // Center Elevated FAB (Manta Ray Blue Circle Button)
+            Transform.translate(
+              offset: const Offset(0, -12),
+              child: InkWell(
+                onTap: _navigateToRecordPermit,
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1E60F2), Color(0xFF0E3A99)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1E60F2).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.assignment_ind_rounded, color: Colors.white, size: 26),
                 ),
               ),
             ),
 
-            // =========================================================================
-            // BOTTOM NAVIGATION BAR (Floating Bar dengan Center FAB)
-            // =========================================================================
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 74,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 18,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    // Item 1: Home
-                    IconButton(
-                      icon: const Icon(Icons.home_rounded, color: Color(0xFF1E60F2), size: 26),
-                      onPressed: () {},
-                      tooltip: "Home",
-                    ),
+            // Item 4: Cepu
+            IconButton(
+              icon: const Icon(Icons.campaign_outlined, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToCepuMapReport,
+              tooltip: "Cepu",
+            ),
 
-                    // Item 2: Monitoring
-                    IconButton(
-                      icon: const Icon(Icons.bar_chart_rounded, color: Color(0xFF94A3B8), size: 26),
-                      onPressed: _navigateToDailyMonitoring,
-                      tooltip: "Monitoring",
-                    ),
-
-                    // Center Elevated FAB (Manta Ray Blue Circle Button)
-                    Transform.translate(
-                      offset: const Offset(0, -14),
-                      child: InkWell(
-                        onTap: _navigateToRecordPermit,
-                        borderRadius: BorderRadius.circular(30),
-                        child: Container(
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF1E60F2), Color(0xFF0E3A99)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF1E60F2).withOpacity(0.4),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.assignment_ind_rounded, color: Colors.white, size: 26),
-                        ),
-                      ),
-                    ),
-
-                    // Item 4: Cepu
-                    IconButton(
-                      icon: const Icon(Icons.campaign_outlined, color: Color(0xFF94A3B8), size: 26),
-                      onPressed: _navigateToCepuMapReport,
-                      tooltip: "Cepu",
-                    ),
-
-                    // Item 5: Profile
-                    IconButton(
-                      icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF94A3B8), size: 26),
-                      onPressed: _showProfileDialog,
-                      tooltip: "Profil",
-                    ),
-                  ],
-                ),
-              ),
+            // Item 5: Profile
+            IconButton(
+              icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _showProfileDialog,
+              tooltip: "Profil",
             ),
           ],
         ),
