@@ -1450,25 +1450,43 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       final int endIndex = min(startIndex + _activityPageSize, _todayActivities.length);
                       final pageItems = _todayActivities.sublist(startIndex, endIndex);
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: pageItems.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final item = pageItems[index];
-                              if (item.type == 'CEPU') {
-                                return _buildCepuActivityCard(item);
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onHorizontalDragEnd: (details) {
+                          if (details.primaryVelocity != null && totalPages > 1) {
+                            if (details.primaryVelocity! < -150) {
+                              // Geser ke kiri -> Halaman berikutnya
+                              if (safePage < totalPages - 1) {
+                                setState(() => _currentActivityPage = safePage + 1);
                               }
-                              return _buildPermitActivityCard(item);
-                            },
-                          ),
-                          if (totalPages > 1)
-                            _buildActivityPagination(totalPages, safePage),
-                        ],
+                            } else if (details.primaryVelocity! > 150) {
+                              // Geser ke kanan -> Halaman sebelumnya
+                              if (safePage > 0) {
+                                setState(() => _currentActivityPage = safePage - 1);
+                              }
+                            }
+                          }
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: pageItems.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final item = pageItems[index];
+                                if (item.type == 'CEPU') {
+                                  return _buildCepuActivityCard(item);
+                                }
+                                return _buildPermitActivityCard(item);
+                              },
+                            ),
+                            if (totalPages > 1)
+                              _buildActivityPagination(totalPages, safePage),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -1508,32 +1526,10 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
               onPressed: _navigateToAnalytics,
               tooltip: "Analytics",
             ),
-            Transform.translate(
-              offset: const Offset(0, -12),
-              child: InkWell(
-                onTap: _navigateToDailyMonitoring,
-                borderRadius: BorderRadius.circular(30),
-                child: Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1E60F2), Color(0xFF0E3A99)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1E60F2).withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.fact_check_rounded, color: Colors.white, size: 26),
-                ),
-              ),
+            IconButton(
+              icon: const Icon(Icons.fact_check_outlined, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToDailyMonitoring,
+              tooltip: "Monitoring Harian",
             ),
             IconButton(
               icon: const Icon(Icons.campaign_outlined, color: Color(0xFF94A3B8), size: 26),

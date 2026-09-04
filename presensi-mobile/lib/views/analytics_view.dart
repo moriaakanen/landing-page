@@ -635,6 +635,17 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     );
   }
 
+  void _switchPeriodByOffset(int direction) {
+    const periods = ['HARIAN', 'BULANAN', 'TAHUNAN'];
+    final currentIndex = periods.indexOf(_selectedPeriod);
+    if (currentIndex == -1) return;
+    final newIndex = currentIndex + direction;
+    if (newIndex >= 0 && newIndex < periods.length) {
+      setState(() => _selectedPeriod = periods[newIndex]);
+      _loadAnalyticsData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -666,62 +677,76 @@ class _AnalyticsViewState extends State<AnalyticsView> {
         child: RefreshIndicator(
           onRefresh: _loadAnalyticsData,
           color: const Color(0xFF1E60F2),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. PERIOD SELECTOR (Harian, Bulanan, Tahunan)
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onHorizontalDragEnd: (details) {
+              if (details.primaryVelocity != null) {
+                if (details.primaryVelocity! < -200) {
+                  // Swipe kiri -> Ke periode berikutnya (Harian -> Bulanan -> Tahunan)
+                  _switchPeriodByOffset(1);
+                } else if (details.primaryVelocity! > 200) {
+                  // Swipe kanan -> Ke periode sebelumnya (Tahunan -> Bulanan -> Harian)
+                  _switchPeriodByOffset(-1);
+                }
+              }
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. PERIOD SELECTOR (Harian, Bulanan, Tahunan)
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Row(
+                      children: [
+                        _buildPeriodTab("Harian", "HARIAN"),
+                        _buildPeriodTab("Bulanan", "BULANAN"),
+                        _buildPeriodTab("Tahunan", "TAHUNAN"),
+                      ],
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      _buildPeriodTab("Harian", "HARIAN"),
-                      _buildPeriodTab("Bulanan", "BULANAN"),
-                      _buildPeriodTab("Tahunan", "TAHUNAN"),
+
+                  const SizedBox(height: 16),
+
+                  // 2. DATE / MONTH / YEAR SELECTOR BAR
+                  _buildDatePickerBar(),
+
+                  const SizedBox(height: 20),
+
+                  // 3. KONTEN INSIGHT
+                  if (_isLoading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 60),
+                      child: Center(child: CircularProgressIndicator(color: Color(0xFF1E60F2))),
+                    )
+                  else ...[
+                    // 2 Summary Cards: "Lama Tidak di Kantor" & "Berapa Kali Dilaporkan"
+                    _buildSummaryCards(),
+
+                    // Vertikal Chart (Rekap Harian untuk Bulanan / Rekap Bulanan untuk Tahunan)
+                    if (_selectedPeriod != 'HARIAN') ...[
+                      const SizedBox(height: 20),
+                      _buildVerticalChartCard(),
                     ],
-                  ),
-                ),
 
-                const SizedBox(height: 16),
-
-                // 2. DATE / MONTH / YEAR SELECTOR BAR
-                _buildDatePickerBar(),
-
-                const SizedBox(height: 20),
-
-                // 3. KONTEN INSIGHT
-                if (_isLoading)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 60),
-                    child: Center(child: CircularProgressIndicator(color: Color(0xFF1E60F2))),
-                  )
-                else ...[
-                  // 2 Summary Cards: "Lama Tidak di Kantor" & "Berapa Kali Dilaporkan"
-                  _buildSummaryCards(),
-
-                  // Vertikal Chart (Rekap Harian untuk Bulanan / Rekap Bulanan untuk Tahunan)
-                  if (_selectedPeriod != 'HARIAN') ...[
                     const SizedBox(height: 20),
-                    _buildVerticalChartCard(),
+
+                    // Stacked Horizontal Bar Chart Card: "Ngapain Aja?"
+                    _buildNgapainAjaCard(),
+
+                    // POIN 5: Extra Thoughtful Insights
+                    const SizedBox(height: 20),
+                    _buildExtraInsightsCard(),
                   ],
-
-                  const SizedBox(height: 20),
-
-                  // Stacked Horizontal Bar Chart Card: "Ngapain Aja?"
-                  _buildNgapainAjaCard(),
-
-                  // POIN 5: Extra Thoughtful Insights
-                  const SizedBox(height: 20),
-                  _buildExtraInsightsCard(),
                 ],
-              ],
+              ),
             ),
           ),
         ),
@@ -754,32 +779,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
               onPressed: () {},
               tooltip: "Insight",
             ),
-            Transform.translate(
-              offset: const Offset(0, -12),
-              child: InkWell(
-                onTap: _navigateToDailyMonitoring,
-                borderRadius: BorderRadius.circular(30),
-                child: Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1E60F2), Color(0xFF0E3A99)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1E60F2).withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.fact_check_rounded, color: Colors.white, size: 26),
-                ),
-              ),
+            IconButton(
+              icon: const Icon(Icons.fact_check_outlined, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToDailyMonitoring,
+              tooltip: "Monitoring Harian",
             ),
             IconButton(
               icon: const Icon(Icons.campaign_outlined, color: Color(0xFF94A3B8), size: 26),

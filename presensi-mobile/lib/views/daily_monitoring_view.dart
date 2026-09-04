@@ -6,7 +6,11 @@ import '../models/cepu_model.dart';
 import '../models/user_model.dart';
 import '../core/services/permit_service.dart';
 import '../core/services/cepu_service.dart';
+import '../core/services/auth_service.dart';
 import '../core/utils/custom_toast.dart';
+import 'analytics_view.dart';
+import 'cepu_map_report_view.dart';
+import 'login_view.dart';
 
 class DailyMonitoringView extends StatefulWidget {
   final UserModel user;
@@ -86,6 +90,106 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
   bool _isToday(DateTime date) {
     final now = DateTime.now();
     return date.year == now.year && date.month == now.month && date.day == now.day;
+  }
+
+  void _navigateToAnalytics() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AnalyticsView(user: widget.user),
+      ),
+    );
+  }
+
+  void _navigateToCepuReport() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CepuMapReportView(user: widget.user),
+      ),
+    );
+  }
+
+  void _handleLogout() async {
+    await AuthService().logout();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginView()),
+      (route) => false,
+    );
+  }
+
+  void _showProfileDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        contentPadding: const EdgeInsets.all(22),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFF1E60F2), width: 2),
+              ),
+              padding: const EdgeInsets.all(10),
+              child: Image.asset('assets/images/app_logo.png', fit: BoxFit.contain),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              widget.user.name,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "@${widget.user.username}",
+              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: Color(0xFFF1F5F9)),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Status Akun", style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B))),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text("Pegawai Aktif", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E60F2))),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _handleLogout();
+                },
+                icon: const Icon(Icons.logout_rounded, size: 18, color: Colors.white),
+                label: const Text("Keluar Akun", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEF4444),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   /// Dialog Verifikasi Cepu Sesuai Permintaan User:
@@ -586,6 +690,56 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
             ),
           ),
         ],
+      ),
+
+      // BOTTOM NAVIGATION BAR
+      bottomNavigationBar: Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.home_rounded, color: Color(0xFF94A3B8), size: 26),
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
+              },
+              tooltip: "Home",
+            ),
+            IconButton(
+              icon: const Icon(Icons.bar_chart_rounded, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToAnalytics,
+              tooltip: "Insight",
+            ),
+            IconButton(
+              icon: const Icon(Icons.fact_check_rounded, color: Color(0xFF1E60F2), size: 26),
+              onPressed: () {},
+              tooltip: "Monitoring Harian",
+            ),
+            IconButton(
+              icon: const Icon(Icons.campaign_outlined, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToCepuReport,
+              tooltip: "Cepu",
+            ),
+            IconButton(
+              icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _showProfileDialog,
+              tooltip: "Profil",
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1235,6 +1389,29 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
                 )
               else if (isReporterOrTarget)
                 const SizedBox.shrink()
+              else if (!cepu.canBeVerified)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.schedule_rounded, color: Color(0xFF94A3B8), size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        cepu.isExpired
+                            ? "Waktu verifikasi telah berakhir (Kadaluarsa)"
+                            : "Batas verifikasi telah lewat",
+                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                      ),
+                    ],
+                  ),
+                )
               else
                 SizedBox(
                   width: double.infinity,

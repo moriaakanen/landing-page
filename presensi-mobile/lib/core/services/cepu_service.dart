@@ -170,13 +170,26 @@ class CepuService {
     final List<String> currentVerifiedNames = List<String>.from(data['verified_by_names'] ?? []);
     final String reporterUid = data['reporter_uid'] ?? '';
     final String targetUid = data['target_uid'] ?? '';
+    final String dateStr = data['date'] ?? '';
+
+    // Validasi batas waktu verifikasi: Senin-Kamis 16:00, Jumat 16:30
+    final now = DateTime.now();
+    final todayStr = DateFormat('yyyy-MM-dd').format(now);
+    final isFriday = now.weekday == DateTime.friday;
+    final cutoffHour = 16;
+    final cutoffMinute = isFriday ? 30 : 0;
+    final cutoffTime = DateTime(now.year, now.month, now.day, cutoffHour, cutoffMinute);
+
+    if (dateStr != todayStr || now.isAfter(cutoffTime)) {
+      throw "Waktu verifikasi telah berakhir (batas verifikasi s.d. jam 16:00 WIT / 16:30 WIT pada hari Jumat).";
+    }
 
     if (verifier.uid == reporterUid) {
       throw "Pelapor tidak dapat memverifikasi laporannya sendiri.";
     }
 
     if (verifier.uid == targetUid) {
-      throw "Pegawai yang dilaporkan tidak dapat memverifikasi laporan ini.";
+      throw "Pegawai yang dilaporkan tidak dapat memverifikasi laporan dirinya sendiri.";
     }
 
     if (currentVerifiedUids.contains(verifier.uid)) {
@@ -187,12 +200,27 @@ class CepuService {
     currentVerifiedNames.add(verifier.name);
 
     final bool isNowValid = currentVerifiedUids.length >= 4;
+    final bool wasPending = data['status'] == 'PENDING';
 
     await docRef.update({
       'verified_by_uids': currentVerifiedUids,
       'verified_by_names': currentVerifiedNames,
       'status': isNowValid ? 'VERIFIED' : 'PENDING',
     });
+
+    // POIN 7 & 9: Teruskan kepada terlapor HANYA ketika laporan sudah mencapai minimal 4 verifikasi (valid)
+    if (isNowValid && wasPending) {
+      try {
+        await _firestore.collection('notifications').add({
+          'type': 'CEPU_VALID',
+          'title': '⚠️ Laporan Cepu Terverifikasi',
+          'message': 'Laporan Cepu terhadap Anda telah terverifikasi oleh 4 rekan. Segera rekam waktu kembali setelah tiba di kantor.',
+          'target_uid': targetUid,
+          'cepu_id': cepuId,
+          'created_at': FieldValue.serverTimestamp(),
+        });
+      } catch (_) {}
+    }
   }
 
   /// Mengambil laporan Cepu terverifikasi aktif untuk user yang dilaporkan pada hari ini (belum ada endTime)
@@ -332,7 +360,8 @@ class CepuService {
           .where((c) =>
               c.reporterUid != userId &&
               c.targetUid != userId &&
-              !c.verifiedByUids.contains(userId))
+              !c.verifiedByUids.contains(userId) &&
+              c.canBeVerified)
           .toList();
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return list;

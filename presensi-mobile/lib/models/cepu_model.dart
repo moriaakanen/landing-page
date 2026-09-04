@@ -43,28 +43,68 @@ class CepuModel {
   int get verificationCount => verifiedByUids.length;
   bool get isValid => verificationCount >= 4;
 
-  /// Kadaluarsa pada esok hari jam 00.00 WIT jika tidak diselesaikan
+  /// Cek apakah laporan masih dalam batas waktu verifikasi:
+  /// Senin-Kamis: s.d. 16:00 WIT
+  /// Jumat: s.d. 16:30 WIT
+  bool get canBeVerified {
+    final now = DateTime.now();
+    final today = DateFormat('yyyy-MM-dd').format(now);
+    if (date != today) return false;
+
+    final isFriday = now.weekday == DateTime.friday;
+    final cutoffHour = 16;
+    final cutoffMinute = isFriday ? 30 : 0;
+    final cutoffTime = DateTime(now.year, now.month, now.day, cutoffHour, cutoffMinute);
+
+    return now.isBefore(cutoffTime);
+  }
+
+  /// Laporan kadaluarsa jika:
+  /// 1. Belum diverifikasi minimal 4 user hingga batas jam 16:00 (Senin-Kamis) / 16:30 (Jumat) -> Tidak Valid/Kadaluarsa
+  /// 2. Atau sudah valid tapi tidak menyelesaikan waktu kembali hingga esok hari
   bool get isExpired {
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final now = DateTime.now();
+    final today = DateFormat('yyyy-MM-dd').format(now);
+    final isFriday = now.weekday == DateTime.friday;
+    final cutoffHour = 16;
+    final cutoffMinute = isFriday ? 30 : 0;
+    final cutoffTime = DateTime(now.year, now.month, now.day, cutoffHour, cutoffMinute);
+
+    if (!isValid && (date != today || now.isAfter(cutoffTime))) {
+      return true;
+    }
+
     return date != today && endTime == null;
   }
 
-  bool get isActive => endTime == null && !isExpired;
+  /// Laporan yang tidak mencapai 4 verifikasi hingga batas cutoff
+  bool get isFailedVerification => !isValid && !canBeVerified;
+
+  bool get isActive => isValid && endTime == null && !isExpired;
 
   bool isVerifiedByUser(String uid) => verifiedByUids.contains(uid);
 
   String get returnStatusDisplay {
+    if (isFailedVerification) {
+      return "Tidak Valid (Kurang dari 4 Verifikasi)";
+    }
     if (endTime != null) {
       return "Kembali: ${DateFormat('HH:mm').format(endTime!)} WIT";
     }
     if (isExpired) {
       return "Tidak Kembali";
     }
+    if (!isValid) {
+      return "Menunggu Verifikasi ($verificationCount/4)";
+    }
     return "Belum Kembali";
   }
 
   String get durationString {
     final startStr = DateFormat('HH:mm').format(startTime);
+    if (isFailedVerification) {
+      return '$startStr - Tidak Valid';
+    }
     final endStr = endTime != null
         ? DateFormat('HH:mm').format(endTime!)
         : (isExpired ? 'Tidak Kembali' : 'Belum Kembali');
