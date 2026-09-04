@@ -630,7 +630,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DailyMonitoringView(user: widget.user),
+        builder: (context) => DailyMonitoringView(
+          user: widget.user,
+          office: _office,
+        ),
       ),
     );
   }

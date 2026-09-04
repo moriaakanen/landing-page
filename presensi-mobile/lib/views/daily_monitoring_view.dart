@@ -4,8 +4,10 @@ import 'package:intl/intl.dart';
 import '../models/permit_model.dart';
 import '../models/cepu_model.dart';
 import '../models/user_model.dart';
+import '../models/office_model.dart';
 import '../core/services/permit_service.dart';
 import '../core/services/cepu_service.dart';
+import '../core/services/attendance_service.dart';
 import '../core/services/auth_service.dart';
 import '../core/utils/custom_toast.dart';
 import 'analytics_view.dart';
@@ -14,8 +16,9 @@ import 'login_view.dart';
 
 class DailyMonitoringView extends StatefulWidget {
   final UserModel user;
+  final OfficeModel? office;
 
-  const DailyMonitoringView({Key? key, required this.user}) : super(key: key);
+  const DailyMonitoringView({Key? key, required this.user, this.office}) : super(key: key);
 
   @override
   State<DailyMonitoringView> createState() => _DailyMonitoringViewState();
@@ -25,8 +28,10 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
   late TabController _tabController;
   final PermitService _permitService = PermitService();
   final CepuService _cepuService = CepuService();
+  final AttendanceService _attendanceService = AttendanceService();
   final TextEditingController _searchController = TextEditingController();
 
+  OfficeModel? _office;
   DateTime _selectedDate = DateTime.now();
   String _permitFilter = 'ALL'; // 'ALL', 'ACTIVE', 'COMPLETED'
   String _cepuFilter = 'ALL'; // 'ALL', 'PENDING', 'VERIFIED'
@@ -37,10 +42,21 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
   @override
   void initState() {
     super.initState();
+    _office = widget.office;
+    if (_office == null) {
+      _loadOfficeData();
+    }
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       setState(() {});
     });
+  }
+
+  Future<void> _loadOfficeData() async {
+    try {
+      final office = await _attendanceService.getOfficeConfig(widget.user.officeId);
+      if (mounted) setState(() => _office = office);
+    } catch (_) {}
   }
 
   @override
@@ -101,11 +117,16 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
     );
   }
 
-  void _navigateToCepuReport() {
+  void _navigateToCepuReport() async {
+    final office = _office ?? await _attendanceService.getOfficeConfig(widget.user.officeId);
+    if (office == null || !mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CepuMapReportView(user: widget.user),
+        builder: (context) => CepuMapReportView(
+          reporter: widget.user,
+          office: office,
+        ),
       ),
     );
   }
