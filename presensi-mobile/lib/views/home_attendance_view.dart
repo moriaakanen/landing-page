@@ -19,6 +19,7 @@ import 'record_permit_map_view.dart';
 import 'cepu_map_report_view.dart';
 import 'daily_monitoring_view.dart';
 import 'analytics_view.dart';
+import 'settings_view.dart';
 
 /// Item aktivitas harian user (Izin Waigama maupun Yang Di-Cepukan Valid)
 class UserActivityItem {
@@ -368,6 +369,18 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
       context,
       MaterialPageRoute(
         builder: (context) => AnalyticsView(
+          user: widget.user,
+          office: _office,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsView(
           user: widget.user,
           office: _office,
         ),
@@ -1001,15 +1014,20 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 // =========================================================================
                 Container(
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1E60F2), Color(0xFF0E3A99)],
+                    gradient: LinearGradient(
+                      colors: hasActivePermit
+                          ? const [Color(0xFFEA580C), Color(0xFFC2410C)]
+                          : const [Color(0xFF1E60F2), Color(0xFF0E3A99)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(26),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF1E60F2).withOpacity(0.3),
+                        color: (hasActivePermit
+                                ? const Color(0xFFEA580C)
+                                : const Color(0xFF1E60F2))
+                            .withOpacity(0.35),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -1096,29 +1114,38 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 decoration: BoxDecoration(
                                   color: hasActivePermit
-                                      ? Colors.white.withOpacity(0.5)
+                                      ? Colors.white.withOpacity(0.22)
                                       : Colors.white,
                                   borderRadius: BorderRadius.circular(18),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.08),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
+                                  border: hasActivePermit
+                                      ? Border.all(color: Colors.white.withOpacity(0.35), width: 1.2)
+                                      : null,
+                                  boxShadow: hasActivePermit
+                                      ? null
+                                      : [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.08),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
                                 ),
                                 child: Column(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.check_circle_rounded,
-                                      color: Color(0xFF1E60F2),
+                                      color: hasActivePermit
+                                          ? Colors.white
+                                          : const Color(0xFF1E60F2),
                                       size: 24,
                                     ),
                                     const SizedBox(height: 6),
-                                    const Text(
+                                    Text(
                                       "Mulai Izin",
                                       style: TextStyle(
-                                        color: Color(0xFF1E60F2),
+                                        color: hasActivePermit
+                                            ? Colors.white
+                                            : const Color(0xFF1E60F2),
                                         fontWeight: FontWeight.bold,
                                         fontSize: 13.5,
                                       ),
@@ -1128,7 +1155,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                       hasActivePermit ? startPermitTime : "Rekam Waktu Pergi",
                                       style: TextStyle(
                                         fontSize: 11,
-                                        color: const Color(0xFF1E60F2).withOpacity(0.75),
+                                        color: hasActivePermit
+                                            ? Colors.white.withOpacity(0.8)
+                                            : const Color(0xFF1E60F2).withOpacity(0.75),
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -1148,25 +1177,42 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(hasActivePermit ? 0.28 : 0.15),
+                                  color: hasActivePermit
+                                      ? Colors.white
+                                      : Colors.white.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(hasActivePermit ? 0.4 : 0.2),
-                                    width: 1.2,
-                                  ),
+                                  border: hasActivePermit
+                                      ? null
+                                      : Border.all(
+                                          color: Colors.white.withOpacity(0.2),
+                                          width: 1.2,
+                                        ),
+                                  boxShadow: hasActivePermit
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.14),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ]
+                                      : null,
                                 ),
                                 child: Column(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.access_time_filled_rounded,
-                                      color: Colors.white,
+                                      color: hasActivePermit
+                                          ? const Color(0xFFEA580C)
+                                          : Colors.white,
                                       size: 24,
                                     ),
                                     const SizedBox(height: 6),
-                                    const Text(
+                                    Text(
                                       "Selesai Izin",
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: hasActivePermit
+                                            ? const Color(0xFFEA580C)
+                                            : Colors.white,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 13.5,
                                       ),
@@ -1176,8 +1222,10 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                       hasActivePermit ? "Rekam Waktu Kembali" : endPermitTime,
                                       style: TextStyle(
                                         fontSize: 11,
-                                        color: Colors.white.withOpacity(0.75),
-                                        fontWeight: FontWeight.w600,
+                                        color: hasActivePermit
+                                            ? const Color(0xFFEA580C).withOpacity(0.85)
+                                            : Colors.white.withOpacity(0.75),
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ],
@@ -1540,9 +1588,9 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
               tooltip: "Cepu",
             ),
             IconButton(
-              icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF94A3B8), size: 26),
-              onPressed: _showProfileDialog,
-              tooltip: "Profil",
+              icon: const Icon(Icons.settings_outlined, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToSettings,
+              tooltip: "Settings",
             ),
           ],
         ),
@@ -1694,6 +1742,37 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                 ),
               ),
               const SizedBox(height: 18),
+
+              // Keterangan khusus jika izin sedang berlangsung
+              if (item.isActive) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_rounded, color: Color(0xFFD97706), size: 20),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          "Izin saat ini masih berlangsung. Segera rekam waktu kembali setelah Anda tiba di kantor.",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF92400E),
+                            fontWeight: FontWeight.w600,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Header Type & Status
               Row(
@@ -1865,14 +1944,44 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
 
               const SizedBox(height: 24),
 
+              // Tombol Aksi Tambahan jika Sedang Izin
+              if (item.isActive) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      if (item.type == 'CEPU') {
+                        _navigateToCepuMapReport();
+                      } else {
+                        _navigateToRecordPermit();
+                      }
+                    },
+                    icon: const Icon(Icons.camera_alt_rounded, size: 18),
+                    label: const Text(
+                      "Rekam Waktu Kembali",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEA580C),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 1,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+
               // Tombol Tutup
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E60F2),
-                    foregroundColor: Colors.white,
+                    backgroundColor: item.isActive ? const Color(0xFFF1F5F9) : const Color(0xFF1E60F2),
+                    foregroundColor: item.isActive ? const Color(0xFF475569) : Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
@@ -1905,13 +2014,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
         : const Color(0xFFCCFBF1);
 
     return InkWell(
-      onTap: () {
-        if (item.isActive) {
-          _navigateToRecordPermit();
-        } else {
-          _showActivityDetailModal(item);
-        }
-      },
+      onTap: () => _showActivityDetailModal(item),
       borderRadius: BorderRadius.circular(22),
       child: Container(
         decoration: BoxDecoration(
@@ -2067,13 +2170,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
         : const Color(0xFFE0E7FF);
 
     return InkWell(
-      onTap: () {
-        if (item.isActive) {
-          _navigateToCepuMapReport();
-        } else {
-          _showActivityDetailModal(item);
-        }
-      },
+      onTap: () => _showActivityDetailModal(item),
       borderRadius: BorderRadius.circular(22),
       child: Container(
         decoration: BoxDecoration(

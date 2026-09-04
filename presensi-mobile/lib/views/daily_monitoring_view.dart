@@ -13,6 +13,7 @@ import '../core/utils/custom_toast.dart';
 import 'analytics_view.dart';
 import 'cepu_map_report_view.dart';
 import 'login_view.dart';
+import 'settings_view.dart';
 
 class DailyMonitoringView extends StatefulWidget {
   final UserModel user;
@@ -126,6 +127,18 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
         builder: (context) => CepuMapReportView(
           reporter: widget.user,
           office: office,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsView(
+          user: widget.user,
+          office: _office,
         ),
       ),
     );
@@ -755,9 +768,9 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
               tooltip: "Cepu",
             ),
             IconButton(
-              icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF94A3B8), size: 26),
-              onPressed: _showProfileDialog,
-              tooltip: "Profil",
+              icon: const Icon(Icons.settings_outlined, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToSettings,
+              tooltip: "Settings",
             ),
           ],
         ),

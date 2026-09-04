@@ -12,6 +12,10 @@ import '../models/cepu_model.dart';
 import '../core/services/cepu_service.dart';
 import '../core/services/location_service.dart';
 import '../core/utils/custom_toast.dart';
+import 'home_attendance_view.dart';
+import 'analytics_view.dart';
+import 'daily_monitoring_view.dart';
+import 'settings_view.dart';
 
 class CepuMapReportView extends StatefulWidget {
   final UserModel reporter;
@@ -745,6 +749,41 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     }
   }
 
+  void _navigateToHome() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => HomeAttendanceView(user: widget.reporter)),
+      (route) => false,
+    );
+  }
+
+  void _navigateToAnalytics() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AnalyticsView(user: widget.reporter, office: widget.office),
+      ),
+    );
+  }
+
+  void _navigateToDailyMonitoring() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DailyMonitoringView(user: widget.reporter, office: widget.office),
+      ),
+    );
+  }
+
+  void _navigateToSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsView(user: widget.reporter, office: widget.office),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final officeLatLng = LatLng(widget.office.latitude, widget.office.longitude);
@@ -1316,6 +1355,52 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
             ),
           ),
         ],
+      ),
+
+      // BOTTOM NAVIGATION BAR
+      bottomNavigationBar: Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.home_rounded, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToHome,
+              tooltip: "Home",
+            ),
+            IconButton(
+              icon: const Icon(Icons.bar_chart_rounded, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToAnalytics,
+              tooltip: "Insight",
+            ),
+            IconButton(
+              icon: const Icon(Icons.fact_check_outlined, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToDailyMonitoring,
+              tooltip: "Monitoring Harian",
+            ),
+            IconButton(
+              icon: const Icon(Icons.campaign_rounded, color: Color(0xFF1E60F2), size: 26),
+              onPressed: () {},
+              tooltip: "Cepu",
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings_outlined, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToSettings,
+              tooltip: "Settings",
+            ),
+          ],
+        ),
       ),
     );
   }

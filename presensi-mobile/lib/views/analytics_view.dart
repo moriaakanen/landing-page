@@ -11,6 +11,7 @@ import '../core/services/attendance_service.dart';
 import 'record_permit_map_view.dart';
 import 'cepu_map_report_view.dart';
 import 'daily_monitoring_view.dart';
+import 'settings_view.dart';
 
 /// Item aktivitas selesai untuk visualisasi chart "Ngapain Aja?"
 class AnalyticsActivityItem {
@@ -638,6 +639,18 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     );
   }
 
+  void _navigateToSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsView(
+          user: widget.user,
+          office: _office,
+        ),
+      ),
+    );
+  }
+
   void _switchPeriodByOffset(int direction) {
     const periods = ['HARIAN', 'BULANAN', 'TAHUNAN'];
     final currentIndex = periods.indexOf(_selectedPeriod);
@@ -793,9 +806,9 @@ class _AnalyticsViewState extends State<AnalyticsView> {
               tooltip: "Cepu",
             ),
             IconButton(
-              icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF94A3B8), size: 26),
-              onPressed: () => Navigator.pop(context),
-              tooltip: "Profil",
+              icon: const Icon(Icons.settings_outlined, color: Color(0xFF94A3B8), size: 26),
+              onPressed: _navigateToSettings,
+              tooltip: "Settings",
             ),
           ],
         ),
