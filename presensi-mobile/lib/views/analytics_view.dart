@@ -757,7 +757,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             Transform.translate(
               offset: const Offset(0, -12),
               child: InkWell(
-                onTap: _navigateToRecordPermit,
+                onTap: _navigateToDailyMonitoring,
                 borderRadius: BorderRadius.circular(30),
                 child: Container(
                   width: 54,
@@ -777,7 +777,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.assignment_ind_rounded, color: Colors.white, size: 26),
+                  child: const Icon(Icons.fact_check_rounded, color: Colors.white, size: 26),
                 ),
               ),
             ),
@@ -1756,72 +1756,6 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: Container(
-        height: 72,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.home_rounded, color: Color(0xFF94A3B8), size: 26),
-              onPressed: () => Navigator.pop(context),
-              tooltip: "Home",
-            ),
-            IconButton(
-              icon: const Icon(Icons.bar_chart_rounded, color: Color(0xFF1E60F2), size: 26),
-              onPressed: () {},
-              tooltip: "Insight",
-            ),
-            Transform.translate(
-              offset: const Offset(0, -12),
-              child: InkWell(
-                onTap: _navigateToDailyMonitoring,
-                borderRadius: BorderRadius.circular(30),
-                child: Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1E60F2), Color(0xFF0E3A99)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1E60F2).withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.fact_check_rounded, color: Colors.white, size: 26),
-                ),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.campaign_outlined, color: Color(0xFF94A3B8), size: 26),
-              onPressed: _navigateToCepuReport,
-              tooltip: "Cepu",
-            ),
-            IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF94A3B8), size: 26),
-              onPressed: () => Navigator.pop(context),
-              tooltip: "Kembali",
-            ),
-          ],
-        ),
       ),
     );
   }
