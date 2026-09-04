@@ -12,6 +12,7 @@ class CepuModel {
   final String description;
   final DateTime startTime;
   final DateTime? endTime;
+  final String? returnReason;
   final String? photoBase64;
   final List<String> verifiedByUids;
   final List<String> verifiedByNames;
@@ -30,6 +31,7 @@ class CepuModel {
     required this.description,
     required this.startTime,
     this.endTime,
+    this.returnReason,
     this.photoBase64,
     required this.verifiedByUids,
     required this.verifiedByNames,
@@ -89,6 +91,7 @@ class CepuModel {
               ? (map['end_time'] as Timestamp).toDate()
               : DateTime.tryParse(map['end_time'].toString()))
           : null,
+      returnReason: map['return_reason'],
       photoBase64: map['photo_base64'],
       verifiedByUids: List<String>.from(map['verified_by_uids'] ?? []),
       verifiedByNames: List<String>.from(map['verified_by_names'] ?? []),
@@ -113,6 +116,7 @@ class CepuModel {
       'description': description,
       'start_time': Timestamp.fromDate(startTime),
       'end_time': endTime != null ? Timestamp.fromDate(endTime!) : null,
+      'return_reason': returnReason,
       'photo_base64': photoBase64,
       'verified_by_uids': verifiedByUids,
       'verified_by_names': verifiedByNames,

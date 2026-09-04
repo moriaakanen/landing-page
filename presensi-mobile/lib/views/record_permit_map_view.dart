@@ -213,17 +213,17 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E60F2),
+        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          isPermitActive ? "Selesai" : "Waigama",
+          isPermitActive ? "Selesai Waigama" : "Rekam Waigama",
           style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
+            color: Color(0xFF0F172A),
+            fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
@@ -234,9 +234,9 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: CircularProgressIndicator(color: Color(0xFF1E60F2), strokeWidth: 2),
                   )
-                : const Icon(Icons.refresh_rounded, color: Colors.white),
+                : const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
             tooltip: "Perbarui Lokasi GPS",
             onPressed: _isLoadingLocation ? null : _fetchActivePermitAndLocation,
           ),
@@ -673,8 +673,8 @@ class _RecordPermitMapViewState extends State<RecordPermitMapView> {
                             )
                           : Text(
                               isPermitActive
-                                  ? "SELESAI"
-                                  : "REKAM",
+                                  ? "REKAM WAKTU KEMBALI"
+                                  : "REKAM WAKTU PERGI",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,

@@ -412,77 +412,136 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E60F2),
+        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           "Monitoring Harian",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
         actions: [
           if (!isCurrentDay)
-            TextButton(
-              onPressed: _goToToday,
-              child: const Text(
-                "Hari Ini",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Center(
+                child: InkWell(
+                  onTap: _goToToday,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: const Text(
+                      "Hari Ini",
+                      style: TextStyle(color: Color(0xFF1E60F2), fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ),
+                ),
               ),
             ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          indicatorWeight: 3.5,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-          tabs: const [
-            Tab(icon: Icon(Icons.badge_rounded, size: 20), text: "Waigama"),
-            Tab(icon: Icon(Icons.campaign_rounded, size: 20), text: "Cepu"),
-          ],
-        ),
       ),
       body: Column(
         children: [
-          // Date Selector Header Bar
+          // 1. SEGMENTED TAB SELECTOR (Waigama & Cepu)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              indicator: BoxDecoration(
+                color: const Color(0xFF1E60F2),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF1E60F2).withOpacity(0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelColor: Colors.white,
+              unselectedLabelColor: const Color(0xFF64748B),
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              dividerColor: Colors.transparent,
+              tabs: const [
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.badge_rounded, size: 18),
+                      SizedBox(width: 8),
+                      Text("Waigama"),
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.campaign_rounded, size: 18),
+                      SizedBox(width: 8),
+                      Text("Cepu"),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 2. DATE SELECTOR HEADER BAR
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF1E60F2), size: 28),
+                  icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF1E60F2), size: 26),
                   onPressed: _previousDay,
                   tooltip: "Hari Sebelumnya",
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  padding: EdgeInsets.zero,
                 ),
                 Expanded(
                   child: InkWell(
                     onTap: _pickDate,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFDBEAFE)),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.calendar_today_rounded, size: 15, color: Color(0xFF1E60F2)),
+                          const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF1E60F2)),
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
@@ -496,22 +555,24 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
                             ),
                           ),
                           const SizedBox(width: 4),
-                          const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF1E60F2)),
+                          const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF1E60F2), size: 20),
                         ],
                       ),
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.chevron_right_rounded, color: Color(0xFF1E60F2), size: 28),
+                  icon: const Icon(Icons.chevron_right_rounded, color: Color(0xFF1E60F2), size: 26),
                   onPressed: _nextDay,
                   tooltip: "Hari Berikutnya",
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  padding: EdgeInsets.zero,
                 ),
               ],
             ),
           ),
 
-          // Tab Bar Views
+          // 3. TAB BAR VIEWS
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -1022,6 +1083,28 @@ class _DailyMonitoringViewState extends State<DailyMonitoringView> with SingleTi
                   ),
                 ],
               ),
+
+              if (cepu.returnReason != null && cepu.returnReason!.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.assignment_turned_in_rounded, size: 14, color: Color(0xFF10B981)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF065F46)),
+                          children: [
+                            const TextSpan(text: "Alasan Kembali: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(text: cepu.returnReason!),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
 
               const SizedBox(height: 8),
 

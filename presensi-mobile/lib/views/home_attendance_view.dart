@@ -193,8 +193,8 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
       if (activePermit != null) {
         NotificationService.showSystemNotification(
           id: 101,
-          title: "Izin Waigama Aktif",
-          body: "Anda sedang izin, segera rekam waktu kembali jika anda sudah berada di kantor",
+          title: "Anda sedang berada di luar kantor",
+          body: "Segera rekam waktu kembali setelah tiba di kantor",
         );
       }
       if (activeCepu != null) {
@@ -1251,8 +1251,12 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                 ),
                                 const SizedBox(height: 5),
                                 Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(Icons.edit_note_rounded, size: 14, color: Color(0xFF64748B)),
+                                    const Padding(
+                                      padding: EdgeInsets.only(top: 2),
+                                      child: Icon(Icons.edit_note_rounded, size: 14, color: Color(0xFF64748B)),
+                                    ),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
@@ -1261,6 +1265,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                                           fontSize: 11.5,
                                           color: Color(0xFF64748B),
                                           fontWeight: FontWeight.w500,
+                                          height: 1.3,
                                         ),
                                         maxLines: 3,
                                         overflow: TextOverflow.ellipsis,
@@ -1506,7 +1511,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
             Transform.translate(
               offset: const Offset(0, -12),
               child: InkWell(
-                onTap: _navigateToRecordPermit,
+                onTap: _navigateToDailyMonitoring,
                 borderRadius: BorderRadius.circular(30),
                 child: Container(
                   width: 54,
@@ -1526,7 +1531,7 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.assignment_ind_rounded, color: Colors.white, size: 26),
+                  child: const Icon(Icons.fact_check_rounded, color: Colors.white, size: 26),
                 ),
               ),
             ),
@@ -1814,6 +1819,36 @@ class _HomeAttendanceViewState extends State<HomeAttendanceView> {
                   ),
                 ),
               ),
+
+              if (isCepu && item.cepuModel?.returnReason != null && item.cepuModel!.returnReason!.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                const Text(
+                  "Alasan / Keperluan Kembali",
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF334155),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFBBF7D0)),
+                  ),
+                  child: SelectableText(
+                    item.cepuModel!.returnReason!,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF166534),
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
 
               if (isCepu && item.reporterName != null) ...[
                 const SizedBox(height: 14),

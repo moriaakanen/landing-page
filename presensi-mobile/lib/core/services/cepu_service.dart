@@ -240,7 +240,12 @@ class CepuService {
   Future<void> recordCepuReturnTime({
     required String cepuId,
     required OfficeModel office,
+    required String returnReason,
   }) async {
+    if (returnReason.trim().isEmpty) {
+      throw "Alasan/Keperluan kembali wajib diisi.";
+    }
+
     final locRes = await LocationService.verifyPresenceLocation(
       officeLat: office.latitude,
       officeLng: office.longitude,
@@ -255,6 +260,7 @@ class CepuService {
     final docRef = _firestore.collection('cepu_reports').doc(cepuId);
     await docRef.update({
       'end_time': FieldValue.serverTimestamp(),
+      'return_reason': returnReason.trim(),
     });
   }
 

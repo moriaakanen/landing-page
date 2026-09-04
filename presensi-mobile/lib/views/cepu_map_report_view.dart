@@ -151,7 +151,190 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     }
   }
 
-  Future<void> _handleRecordReturnForMe() async {
+  void _promptRecordReturnReason() {
+    if (_activeCepuForMe == null) return;
+
+    if (!_isInRadius || _isMocked) {
+      AppToast.showError(
+        context,
+        _isMocked
+            ? "Terdeteksi Fake GPS! Harap matikan aplikasi lokasi palsu."
+            : "Anda berada di luar radius kantor (${_distanceMeters.toStringAsFixed(1)}m). Waktu kembali hanya bisa direkam di dalam area kantor (≤${widget.office.radiusMeters.toInt()}m).",
+        title: "Gagal Merekam Kembali",
+      );
+      return;
+    }
+
+    final reasonController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              ),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 20,
+                      offset: Offset(0, -4),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 30),
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.assignment_turned_in_rounded, color: Color(0xFF1E60F2), size: 22),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  "Rekam Waktu Kembali",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  "Sertakan alasan/keperluan kegiatan Anda di luar kantor",
+                                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Alasan / Keperluan",
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF0F172A)),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFBFDBFE)),
+                            ),
+                            child: const Text(
+                              "* WAJIB DIISI",
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1E60F2)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: reasonController,
+                        maxLines: 3,
+                        autofocus: true,
+                        style: const TextStyle(fontSize: 13.5, color: Color(0xFF1E293B)),
+                        decoration: InputDecoration(
+                          hintText: "Tuliskan alasan/keperluan Anda selama di luar kantor...",
+                          hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          contentPadding: const EdgeInsets.all(14),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Color(0xFF1E60F2), width: 1.8),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Alasan/keperluan kembali wajib diisi";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (!formKey.currentState!.validate()) return;
+                            final reason = reasonController.text.trim();
+                            Navigator.pop(bottomSheetContext);
+                            await _handleRecordReturnForMe(reason);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1E60F2),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            "SIMPAN & SELESAI",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _handleRecordReturnForMe(String returnReason) async {
     if (_activeCepuForMe == null) return;
 
     if (!_isInRadius || _isMocked) {
@@ -171,6 +354,7 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
       await _cepuService.recordCepuReturnTime(
         cepuId: _activeCepuForMe!.id,
         office: widget.office,
+        returnReason: returnReason,
       );
 
       if (mounted) {
@@ -573,15 +757,15 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFEA580C),
+        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           "Cepu",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
         actions: [
@@ -590,9 +774,9 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: CircularProgressIndicator(color: Color(0xFF1E60F2), strokeWidth: 2),
                   )
-                : const Icon(Icons.refresh_rounded, color: Colors.white),
+                : const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
             tooltip: "Perbarui Lokasi GPS",
             onPressed: _isLoadingLocation ? null : _fetchCurrentLocation,
           ),
@@ -825,10 +1009,10 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                             ),
                             const SizedBox(height: 10),
                             SizedBox(
-                              height: 38,
+                              height: 42,
                               child: ElevatedButton.icon(
-                                onPressed: _isRecordingReturn ? null : _handleRecordReturnForMe,
-                                icon: const Icon(Icons.check_circle_rounded, size: 16, color: Colors.white),
+                                onPressed: _isRecordingReturn ? null : _promptRecordReturnReason,
+                                icon: const Icon(Icons.check_circle_rounded, size: 18, color: Colors.white),
                                 label: _isRecordingReturn
                                     ? const SizedBox(
                                         width: 16,
@@ -837,11 +1021,12 @@ class _CepuMapReportViewState extends State<CepuMapReportView> {
                                       )
                                     : const Text(
                                         "REKAM WAKTU KEMBALI SAYA",
-                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.3),
                                       ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFFDC2626),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
                                 ),
                               ),
                             ),
